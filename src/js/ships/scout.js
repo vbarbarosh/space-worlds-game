@@ -1,0 +1,20 @@
+const ship_scout = {
+    ship: {
+        id: 'scout',
+        name: 'Wisp Scout',
+        role: 'Exploration',
+        price: 0,
+        rank: 0,
+        hull: 100,
+        shield: 0,
+        speed: 1,
+        handling: 1,
+        cargo: 40,
+        radius: 12,
+        damage: 1,
+        color: cyan,
+        shape: 0,
+        description: 'Your original balanced shuttle. Low running costs and responsive flight.',
+    },
+    hull_profile: {radiation: 0, traction: 1, braking: 1, cooling: 0, turbo: 1, endurance: 0},
+};

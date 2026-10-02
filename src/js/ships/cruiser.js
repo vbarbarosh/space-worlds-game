@@ -1,0 +1,20 @@
+const ship_cruiser = {
+    ship: {
+        id: 'cruiser',
+        name: 'Aurora Cruiser',
+        role: 'Expedition flagship',
+        price: 5600,
+        rank: 5,
+        hull: 340,
+        shield: 130,
+        speed: 0.78,
+        handling: 0.65,
+        cargo: 120,
+        radius: 25,
+        damage: 1.85,
+        color: '#e8c4ff',
+        shape: 5,
+        description: 'A slow flagship with immense shields and 85% stronger guns. Prepare for elite expeditions.',
+    },
+    hull_profile: {radiation: 0.75, traction: 1.9, braking: 1.6, cooling: 0.6, turbo: 1.1, endurance: 7},
+};

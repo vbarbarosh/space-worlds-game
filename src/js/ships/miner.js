@@ -1,0 +1,21 @@
+const ship_miner = {
+    ship: {
+        id: 'miner',
+        name: 'Mule Prospector',
+        role: 'Mining / salvage',
+        price: 1050,
+        rank: 2,
+        hull: 190,
+        shield: 25,
+        speed: 0.8,
+        handling: 0.8,
+        cargo: 150,
+        radius: 19,
+        damage: 1,
+        mining: 2.5,
+        color: '#eabb7e',
+        shape: 3,
+        description: '150 cargo slots and 2.5× damage to ore. Durable industrial frame.',
+    },
+    hull_profile: {radiation: 0.35, traction: 1.45, braking: 1.25, cooling: 0.2, turbo: 0.9, endurance: 4},
+};

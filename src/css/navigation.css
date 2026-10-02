@@ -1,0 +1,192 @@
+.navigation-panel {
+    width: min(1050px, 100%);
+    text-align: left;
+    max-height: 90vh;
+    overflow: auto;
+}
+
+.navigation-panel h2 {
+    font-size: 30px;
+    margin: 12px 0;
+}
+
+.navigation-panel p {
+    font-size: 12px;
+}
+
+.nav-tabs {
+    display: flex;
+    gap: 6px;
+    margin: 18px 0;
+    flex-wrap: wrap;
+}
+
+.nav-tabs button {
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    padding: 10px 14px;
+}
+
+.nav-tabs .selected {
+    border-color: var(--cyan);
+    color: var(--cyan);
+    background: #6cf8ec14;
+}
+
+.nav-content,
+.station-content {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    max-height: 48vh;
+    overflow: auto;
+    padding: 2px;
+}
+
+.frontier-card {
+    background: #0b1424;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.frontier-card h3 {
+    font-size: 16px;
+    margin: 0;
+}
+
+.frontier-card p {
+    font-size: 12px;
+    line-height: 1.7;
+    margin: 0;
+    color: #a7b5d0;
+}
+
+.frontier-card small {
+    font: 10px ui-monospace, monospace;
+    color: var(--cyan);
+    line-height: 1.7;
+}
+
+.frontier-card button {
+    font-size: 11px;
+    padding: 9px 12px;
+    margin-top: auto;
+}
+
+.frontier-card.locked {
+    border-color: #ff5baf44;
+}
+
+.frontier-card.active {
+    border-color: #6cf8ec88;
+}
+
+.route-strip {
+    font: 10px ui-monospace, monospace;
+    color: var(--muted);
+    line-height: 1.7;
+}
+
+.navigation-panel .dock-heading {
+    align-items: flex-start;
+}
+
+.station-content:empty {
+    display: none;
+}
+
+.dock {
+    max-height: 94vh;
+    overflow: auto;
+}
+
+.dock .shop-grid {
+    max-height: 39vh;
+}
+
+.dock-footer {
+    position: sticky;
+    bottom: 0;
+    background: #101827;
+    padding-bottom: 8px;
+}
+
+.mission-row {
+    gap: 5px;
+}
+
+.mission_phase {
+    overflow-wrap: anywhere;
+}
+
+.tools #dock_button,
+.tools #nav_button {
+    font-size: 10px;
+    padding: 10px;
+}
+
+.sector-progress {
+    transition: none;
+}
+
+@media (max-width: 720px) {
+    .nav-content,
+    .station-content {
+        grid-template-columns: 1fr;
+    }
+
+    .frontier-card {
+        padding: 14px;
+    }
+
+    .navigation-panel {
+        padding: 20px 14px;
+    }
+
+    .navigation-panel .dock-heading {
+        flex-direction: column;
+    }
+
+    .navigation-panel h2 {
+        font-size: 25px;
+    }
+
+    .tools #nav_button,
+    .tools #dock_button {
+        padding: 8px 5px;
+        font-size: 8px;
+    }
+
+    .mission {
+        width: 180px;
+    }
+
+    .mission-row {
+        flex-wrap: wrap;
+    }
+
+    .hud > div:first-child {
+        display: none;
+    }
+
+    .tools #fx_button {
+        display: none;
+    }
+
+    .dock .shop-grid {
+        max-height: 36vh;
+    }
+
+    .loadout {
+        max-width: calc(100% - 30px);
+        flex-wrap: wrap;
+    }
+
+    .magnet-status {
+        font-size: 8px;
+    }
+}

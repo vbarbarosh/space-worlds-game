@@ -1,0 +1,20 @@
+const ship_interceptor = {
+    ship: {
+        id: 'interceptor',
+        name: 'Viper Interceptor',
+        role: 'Combat / evasion',
+        price: 850,
+        rank: 2,
+        hull: 85,
+        shield: 45,
+        speed: 1.5,
+        handling: 1.5,
+        cargo: 25,
+        radius: 10,
+        damage: 1.2,
+        color: pink,
+        shape: 2,
+        description: 'Quick and agile, with 20% stronger guns. Light hull demands careful flying.',
+    },
+    hull_profile: {radiation: 0.04, traction: 0.95, braking: 1.5, cooling: 0.05, turbo: 1.4, endurance: 1},
+};

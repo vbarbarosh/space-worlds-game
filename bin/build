@@ -1,0 +1,39 @@
+#!/usr/bin/env node
+
+const cli = require('@vbarbarosh/node-helpers/src/cli');
+const fs = require('node:fs');
+const path = require('node:path');
+
+const build_dir = path.join(__dirname, '..', 'build');
+const include_regex = /^<!-- include (.+) -->\n$/;
+const src_dir = path.join(__dirname, '..', 'src');
+
+cli(main);
+
+function main()
+{
+    build_index_html();
+}
+
+function build_index_html()
+{
+    const template = fs.readFileSync(path.join(src_dir, 'index.html'), 'utf8');
+    fs.mkdirSync(build_dir, {recursive: true});
+    fs.writeFileSync(path.join(build_dir, 'index.html'), html_from_template(template));
+}
+
+// A line `<!-- include css/base.css -->` is replaced by that file of src/, as it is
+function html_from_template(template)
+{
+    const parts = [];
+    for (const line of template.split(/(?<=\n)/)) {
+        const match = line.match(include_regex);
+        if (match) {
+            parts.push(fs.readFileSync(path.join(src_dir, match[1]), 'utf8'));
+        }
+        else {
+            parts.push(line);
+        }
+    }
+    return parts.join('');
+}

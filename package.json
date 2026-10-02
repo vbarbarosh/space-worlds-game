@@ -1,0 +1,13 @@
+{
+  "name": "space-worlds-game",
+  "version": "0.1.0",
+  "private": true,
+  "description": "World Explorer: a space flight, trade and exploration game",
+  "license": "MIT",
+  "scripts": {
+    "build": "bin/build"
+  },
+  "dependencies": {
+    "@vbarbarosh/node-helpers": "^3.78.1"
+  }
+}

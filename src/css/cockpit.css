@@ -1,0 +1,46 @@
+#view_button.cockpit {
+    color: #96ffda;
+    border-color: #96ffda77;
+    background: #14362bcc;
+}
+
+body[data-view='cockpit'] .scanlines {
+    opacity: 0.025;
+}
+
+body[data-view='cockpit'] .vignette {
+    box-shadow: inset 0 0 100px #010710aa;
+}
+
+body[data-view='cockpit'] .mission {
+    background: #05141ecc;
+    border-color: #71d9cf33;
+}
+
+body[data-view='cockpit'] .hint {
+    display: none;
+}
+
+body[data-view='cockpit'] .zoom-controls {
+    top: 245px;
+    bottom: auto;
+}
+
+body[data-view='cockpit'] .loadout {
+    bottom: calc(24% + 12px);
+}
+
+@media (max-width: 720px) {
+    body[data-view='cockpit'] .mission {
+        width: 185px;
+    }
+
+    body[data-view='cockpit'] .mission-instruction {
+        font-size: 8px;
+    }
+
+    body[data-view='cockpit'] .zoom-controls {
+        top: 234px;
+        bottom: auto;
+    }
+}

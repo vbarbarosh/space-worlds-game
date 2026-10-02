@@ -1,0 +1,63 @@
+.magnet-status {
+    padding: 9px 12px;
+    border-radius: 8px;
+    border: 1px solid #ffd16e44;
+    color: #ffd16e;
+    background: #0d192be6;
+    font-size: 11px;
+    white-space: nowrap;
+}
+
+.magnet-status b {
+    font-size: 10px;
+    margin-left: 5px;
+}
+
+.map-coordinates {
+    font: 8px ui-monospace, monospace;
+    color: #6d829d;
+    margin-top: 7px;
+    letter-spacing: 0.08em;
+}
+
+canvas {
+    cursor: crosshair;
+}
+
+@media (max-width: 720px) {
+    .magnet-status {
+        padding: 8px;
+        font-size: 10px;
+    }
+
+    .magnet-status b {
+        font-size: 9px;
+    }
+
+    .mission {
+        width: 180px;
+    }
+
+    .map-coordinates {
+        font-size: 7px;
+    }
+
+    .loadout {
+        gap: 5px;
+    }
+
+    .loadout button {
+        padding: 7px 8px;
+    }
+}
+
+.navigation-status {
+    font: 8px ui-monospace, monospace;
+    color: var(--cyan);
+    margin-top: 7px;
+    line-height: 1.5;
+}
+
+.navigation-status.danger {
+    color: var(--pink);
+}

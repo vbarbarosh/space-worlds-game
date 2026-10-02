@@ -1,0 +1,20 @@
+const ship_courier = {
+    ship: {
+        id: 'courier',
+        name: 'Kestrel Courier',
+        role: 'Trading / delivery',
+        price: 350,
+        rank: 1,
+        hull: 120,
+        shield: 20,
+        speed: 1.2,
+        handling: 1.15,
+        cargo: 100,
+        radius: 14,
+        damage: 0.95,
+        color: gold,
+        shape: 1,
+        description: 'Fast transport with 100 cargo slots. Ideal for multi-world supply chains.',
+    },
+    hull_profile: {radiation: 0.12, traction: 1.1, braking: 1.15, cooling: 0.1, turbo: 1.1, endurance: 3},
+};

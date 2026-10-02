@@ -1,0 +1,67 @@
+body.in-game {
+    --world-accent: #6cf8ec;
+    --world-border: #6cf8ec44;
+    --world-panel: #142639;
+}
+
+body.in-game[data-world='1'] {
+    --world-accent: #9dff9b;
+    --world-border: #9dff9b44;
+    --world-panel: #183626;
+}
+
+body.in-game[data-world='2'] {
+    --world-accent: #ffd16e;
+    --world-border: #ffd16e44;
+    --world-panel: #392c23;
+}
+
+body.in-game[data-world='3'] {
+    --world-accent: #8d9cff;
+    --world-border: #8d9cff55;
+    --world-panel: #222b4b;
+}
+
+body.in-game[data-world='4'] {
+    --world-accent: #ed97cf;
+    --world-border: #ed97cf44;
+    --world-panel: #302b3b;
+}
+
+body.in-game[data-world='5'] {
+    --world-accent: #8be9ff;
+    --world-border: #8be9ff44;
+    --world-panel: #193c49;
+}
+
+body.in-game[data-world='6'] {
+    --world-accent: #ff9469;
+    --world-border: #ff946944;
+    --world-panel: #402128;
+}
+
+body.in-game[data-world='7'] {
+    --world-accent: #d5a4ff;
+    --world-border: #bd87eb44;
+    --world-panel: #22122f;
+}
+
+body.in-game .dock,
+body.in-game .navigation-panel,
+body.in-game .inventory-panel {
+    background: linear-gradient(140deg, var(--world-panel), #0b1020f5);
+    border-color: var(--world-border);
+}
+
+body.in-game .dock-heading .eyebrow {
+    color: var(--world-accent);
+}
+
+body.in-game .frontier-card {
+    border-color: var(--world-border);
+}
+
+body.in-game .nav-tabs .selected {
+    color: var(--world-accent);
+    border-color: var(--world-accent);
+}

@@ -1,0 +1,150 @@
+.expedition-readout {
+    font: 10px/1.7 ui-monospace, monospace;
+    margin: 9px 0;
+    padding: 9px 10px;
+    border: 1px solid #6cf8ec33;
+    border-radius: 8px;
+    background: #081423cc;
+    color: #c8e5e8;
+}
+
+.expedition-readout.danger {
+    border-color: #ff5baf88;
+    color: #ffa9c7;
+}
+
+.intel-wide {
+    grid-column: 1/-1;
+}
+
+.intel-table-wrap {
+    overflow: auto;
+    width: 100%;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+}
+
+.intel-table {
+    width: 100%;
+    border-collapse: collapse;
+    font: 11px/1.6 ui-monospace, monospace;
+    min-width: 730px;
+}
+
+.intel-table th,
+.intel-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #33465d66;
+    white-space: nowrap;
+}
+
+.intel-table th {
+    color: var(--cyan);
+    background: #101e2e;
+}
+
+.intel-table tr.current {
+    background: #6cf8ec0c;
+}
+
+.intel-table .demand {
+    color: #ffd16e;
+}
+
+.intel-filter {
+    display: flex;
+    gap: 9px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.intel-filter select {
+    background: #101e2e;
+    border: 1px solid #6cf8ec44;
+    color: #e9f4ff;
+    border-radius: 7px;
+    padding: 10px;
+    font: 12px system-ui;
+}
+
+.intel-heading {
+    margin: 0;
+    color: #e9f4ff;
+    font-size: 18px;
+}
+
+.route-metrics {
+    font: 11px/1.8 ui-monospace, monospace;
+    color: #ffd16e;
+    border-top: 1px solid #ffd16e33;
+    padding-top: 12px;
+}
+
+.frontier-card .environment-brief {
+    border-top: 1px solid #6cf8ec33;
+    padding-top: 10px;
+    color: #adcdda;
+}
+
+.nav-tabs button {
+    flex-shrink: 0;
+}
+
+@media (max-width: 720px) {
+    .expedition-readout {
+        font-size: 8px;
+        padding: 6px;
+    }
+
+    .intel-table th,
+    .intel-table td {
+        padding: 9px;
+    }
+
+    .intel-heading {
+        font-size: 15px;
+    }
+}
+
+.title.explorer-title {
+    font-size: clamp(48px, 6vw, 90px);
+    line-height: 0.95;
+    letter-spacing: -0.065em;
+}
+
+.minimap-button {
+    position: absolute;
+    z-index: 3;
+    padding: 0;
+    border: 1px solid transparent;
+    border-radius: 0;
+    background: transparent !important;
+    box-shadow: none;
+    transform: none !important;
+    touch-action: none;
+    cursor: pointer;
+}
+
+.minimap-button:hover,
+.minimap-button:focus-visible {
+    border-color: #6cf8ec88;
+    background: #6cf8ec08 !important;
+    outline: 2px solid #6cf8ec66;
+    outline-offset: 4px;
+}
+
+.minimap-button span {
+    position: absolute;
+    right: 3px;
+    top: 0;
+    font: 8px/16px ui-monospace, monospace;
+    color: #6cf8ec;
+    letter-spacing: 0.06em;
+    pointer-events: none;
+}
+
+#touch_dash[aria-pressed='true'] {
+    border-color: #6cf8ec;
+    background: #1b6156;
+}

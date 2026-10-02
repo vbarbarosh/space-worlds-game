@@ -1,0 +1,189 @@
+.zoom-controls {
+    display: none;
+    position: absolute;
+    right: 26px;
+    bottom: 82px;
+    z-index: 3;
+    align-items: center;
+    gap: 4px;
+    padding: 5px;
+    border: 1px solid #6cf8ec33;
+    border-radius: 12px;
+    background: #0b1528e8;
+}
+
+.in-game .zoom-controls {
+    display: flex;
+}
+
+.zoom-controls button {
+    padding: 8px 11px;
+    border: 0;
+    background: transparent;
+    border-radius: 7px;
+    font: 700 15px ui-monospace, monospace;
+}
+
+.zoom-controls #zoom_reset {
+    min-width: 58px;
+    font-size: 11px;
+    color: var(--cyan);
+}
+
+.zoom-controls button:hover {
+    background: #6cf8ec15;
+}
+
+.tools #audio_settings_button {
+    font-size: 9px;
+    letter-spacing: 0.04em;
+}
+
+#audio_overlay {
+    z-index: 8;
+    background: #030914b8;
+}
+
+.audio-panel {
+    width: min(510px, 100%);
+    text-align: left;
+    max-height: calc(100dvh - 40px);
+    overflow: auto;
+    padding: 30px;
+}
+
+.audio-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+}
+
+.audio-heading h2 {
+    font-size: 30px;
+    margin: 12px 0;
+}
+
+.audio-heading button {
+    padding: 8px 12px;
+    font-size: 18px;
+}
+
+.audio-panel > p {
+    margin: 6px 0 24px;
+    font-size: 12px;
+}
+
+.volume-control {
+    display: block;
+    margin: 21px 0;
+}
+
+.volume-heading {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.volume-heading output {
+    font: 700 12px ui-monospace, monospace;
+    color: var(--cyan);
+}
+
+.volume-control input {
+    display: block;
+    position: static;
+    width: 100%;
+    height: 30px;
+    accent-color: var(--cyan);
+    margin: 9px 0 0;
+    cursor: pointer;
+}
+
+.volume-control small {
+    font-size: 10px;
+    color: var(--muted);
+}
+
+.audio-panel .panel-actions {
+    justify-content: flex-start;
+    margin-top: 22px;
+    gap: 8px;
+}
+
+.audio-panel .panel-actions button {
+    font-size: 11px;
+    padding: 10px 13px;
+}
+
+.audio-panel .audio-state {
+    font-size: 11px;
+    color: var(--cyan);
+    margin: 20px 0 0;
+}
+
+.audio-panel .fine {
+    margin: 10px 0 0;
+}
+
+.dock-footer #station_audio {
+    padding: 10px 13px;
+    font-size: 10px;
+    white-space: nowrap;
+}
+
+@media (max-width: 720px) {
+    .tools {
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        max-width: 100%;
+        gap: 4px;
+    }
+
+    .topbar {
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .in-game .mission {
+        top: 98px;
+    }
+
+    .tools #audio_settings_button {
+        padding: 8px 6px;
+        font-size: 8px;
+    }
+
+    .tools #sound_button {
+        padding: 8px 6px;
+        font-size: 9px;
+    }
+
+    .zoom-controls {
+        right: 16px;
+        bottom: 210px;
+        padding: 3px;
+    }
+
+    .zoom-controls button {
+        padding: 8px 9px;
+    }
+
+    .audio-panel {
+        padding: 24px 20px;
+    }
+
+    .audio-panel .panel-actions {
+        flex-wrap: wrap;
+    }
+
+    .audio-panel .volume-control {
+        margin: 17px 0;
+    }
+
+    .audio-panel h2 {
+        font-size: 26px;
+    }
+}

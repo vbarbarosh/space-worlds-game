@@ -1,0 +1,20 @@
+const ship_gunship = {
+    ship: {
+        id: 'gunship',
+        name: 'Bastion Gunship',
+        role: 'Heavy assault',
+        price: 2300,
+        rank: 3,
+        hull: 250,
+        shield: 70,
+        speed: 0.88,
+        handling: 0.85,
+        cargo: 65,
+        radius: 21,
+        damage: 1.5,
+        color: blue,
+        shape: 4,
+        description: '50% stronger weapons and an armored hull. Built for ambushes and blockades.',
+    },
+    hull_profile: {radiation: 0.55, traction: 1.7, braking: 1.4, cooling: 0.4, turbo: 1.05, endurance: 2},
+};
