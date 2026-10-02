@@ -1,0 +1,236 @@
+:root {
+    --dev-panel-width: 380px;
+    --dev-bg: #f6f7f9;
+    --dev-surface: #ffffff;
+    --dev-text: #1b1f23;
+    --dev-muted: #5b6573;
+    --dev-line: #d4dae2;
+    --dev-hover: #eaeef3;
+    --dev-accent: #0b7f78;
+    --dev-accent-text: #ffffff;
+    --dev-selected: #d9f3f0;
+}
+
+:root[data-theme='dark'] {
+    --dev-bg: #0c111d;
+    --dev-surface: #121a2b;
+    --dev-text: #e6e8eb;
+    --dev-muted: #94a0b8;
+    --dev-line: #27324a;
+    --dev-hover: #1a2440;
+    --dev-accent: #6cf8ec;
+    --dev-accent-text: #062022;
+    --dev-selected: #17363a;
+}
+
+body {
+    width: auto;
+    right: var(--dev-panel-width);
+}
+
+.overlay {
+    right: var(--dev-panel-width);
+}
+
+body.dev-collapsed,
+body.dev-collapsed .overlay {
+    right: 0;
+}
+
+.dev-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    box-sizing: border-box;
+    width: var(--dev-panel-width);
+    padding: 12px;
+    overflow-y: auto;
+    border-left: 1px solid var(--dev-line);
+    background: var(--dev-bg);
+    color: var(--dev-text);
+    font: 12px/1.45 ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+body.dev-collapsed .dev-panel {
+    display: none;
+}
+
+.dev-panel button,
+.dev-panel select,
+.dev-panel input[type='range'] {
+    font: inherit;
+    color: inherit;
+}
+
+.dev-panel button {
+    padding: 5px 9px;
+    border: 1px solid var(--dev-line);
+    border-radius: 6px;
+    background: var(--dev-surface);
+}
+
+.dev-panel button:hover {
+    border-color: var(--dev-line);
+    background: var(--dev-hover);
+}
+
+.dev-panel button[aria-pressed='true'],
+.dev-panel button.dev-primary {
+    border-color: var(--dev-accent);
+    background: var(--dev-accent);
+    color: var(--dev-accent-text);
+}
+
+.dev-panel select {
+    padding: 4px 6px;
+    border: 1px solid var(--dev-line);
+    border-radius: 6px;
+    background: var(--dev-surface);
+}
+
+.dev-panel h3 {
+    margin: 6px 0 0;
+    color: var(--dev-muted);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.dev-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.dev-header b {
+    flex: 1;
+    letter-spacing: 0.08em;
+}
+
+.dev-switch,
+.dev-speed {
+    display: inline-flex;
+}
+
+.dev-switch button,
+.dev-speed button {
+    border-radius: 0;
+}
+
+.dev-switch button:first-child,
+.dev-speed button:first-child {
+    border-radius: 6px 0 0 6px;
+}
+
+.dev-switch button:last-child,
+.dev-speed button:last-child {
+    border-radius: 0 6px 6px 0;
+}
+
+.dev-time,
+.dev-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+}
+
+.dev-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--dev-line);
+}
+
+.dev-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.dev-form {
+    display: grid;
+    grid-template-columns: 90px 1fr;
+    align-items: center;
+    gap: 6px 8px;
+}
+
+.dev-check {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.dev-note {
+    margin: 0;
+    color: var(--dev-muted);
+}
+
+.dev-panel table {
+    width: 100%;
+    border-collapse: collapse;
+    font-variant-numeric: tabular-nums;
+}
+
+.dev-panel th,
+.dev-panel td {
+    padding: 4px 3px;
+    border-bottom: 1px solid var(--dev-line);
+    text-align: right;
+    white-space: nowrap;
+}
+
+.dev-panel th:first-child,
+.dev-panel td:first-child {
+    text-align: left;
+}
+
+.dev-panel th {
+    color: var(--dev-muted);
+    font-weight: 600;
+}
+
+.dev-panel tr.dev-row {
+    cursor: pointer;
+}
+
+.dev-panel tr.dev-row:hover {
+    background: var(--dev-hover);
+}
+
+.dev-panel tr.dev-selected {
+    background: var(--dev-selected);
+}
+
+.dev-panel td button {
+    min-width: 26px;
+    padding: 1px 6px;
+}
+
+.dev-readout {
+    margin: auto 0 0;
+    padding: 8px;
+    border: 1px solid var(--dev-line);
+    border-radius: 6px;
+    background: var(--dev-surface);
+    font: 11px/1.5 ui-monospace, monospace;
+    white-space: pre-wrap;
+}
+
+.dev-open {
+    position: fixed;
+    top: 50%;
+    right: 0;
+    z-index: 1000;
+    padding: 10px 6px;
+    border-radius: 6px 0 0 6px;
+    writing-mode: vertical-rl;
+    font: 11px ui-monospace, monospace;
+    letter-spacing: 0.1em;
+}

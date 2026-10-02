@@ -8,13 +8,21 @@ with no server.
 
     bin/configure    install dependencies and build
     bin/run          build and open build/index.html in the browser
-    bin/build        write build/index.html
+    bin/build        write build/index.html and build/dev.html
+
+`build/dev.html` is the developer mode: the game with a dev panel. It starts
+straight into any world, ship and weapon, and has time controls, cheats,
+enemy and target-dummy spawning, live upgrade levels and a sound board. The
+scene lives in the URL, e.g. `dev.html?world=3&ship=gunship&weapon=rail`.
+It keeps its own storage and never touches the game's save.
 
 ## Layout
 
 The game is one page with one script scope. `bin/build` reads
 `src/index.html` and replaces each `<!-- include path -->` line with that
-file of `src/`, so the include list there is the load order.
+file of `src/`, so the include list there is the load order. A
+`<!-- slot name -->` line is empty in the game; `src/dev.html` fills the slots
+for the dev page.
 
     src/index.html   the page shell and the include list
     src/css/         styles, in their original order
@@ -23,5 +31,7 @@ file of `src/`, so the include list there is the load order.
     src/js/worlds/   one file per world: map, look, flight rules, expedition, music
     src/js/ships/    one file per ship class: catalog entry and hull profile
     src/js/sfx/      one file per sound effect: its cooldown and its synth calls
+    src/dev.html     what the dev page adds into the slots of src/index.html
+    src/js/dev/      the dev panel: time, cheats, scenario, one file per tab
 
 Code: [vbarbarosh/rules](https://github.com/vbarbarosh/rules).

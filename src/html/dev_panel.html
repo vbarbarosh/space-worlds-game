@@ -1,0 +1,83 @@
+<aside class="dev-panel" id="dev_panel" aria-label="Developer mode">
+    <header class="dev-header">
+        <b>DEV MODE</b>
+        <span class="dev-switch" role="group" aria-label="Panel theme">
+            <button type="button" data-dev-theme="light">Light</button>
+            <button type="button" data-dev-theme="dark">Dark</button>
+        </span>
+        <button type="button" id="dev_collapse" title="Hide the panel (`)" aria-label="Hide the panel">⟩</button>
+    </header>
+    <div class="dev-time">
+        <button type="button" id="dev_pause" title="Pause or resume the game clock">Pause</button>
+        <button type="button" id="dev_step" title="Run one frame">Step</button>
+        <span class="dev-speed" id="dev_speed" role="group" aria-label="Game speed"></span>
+    </div>
+    <nav class="dev-tabs" id="dev_tabs" aria-label="Dev sections"></nav>
+    <section class="dev-section" data-dev-section="scenario">
+        <div class="dev-form">
+            <label for="dev_world">World</label>
+            <select id="dev_world"></select>
+            <label for="dev_ship">Ship</label>
+            <select id="dev_ship"></select>
+            <label for="dev_weapon">Weapon</label>
+            <select id="dev_weapon"></select>
+            <label for="dev_tier">Weapon tier</label>
+            <select id="dev_tier"></select>
+            <label for="dev_difficulty">Difficulty</label>
+            <select id="dev_difficulty"></select>
+            <label for="dev_view">View</label>
+            <select id="dev_view"></select>
+        </div>
+        <button type="button" class="dev-primary" id="dev_start">Start in this world</button>
+        <h3>Cheats</h3>
+        <label class="dev-check"><input type="checkbox" id="dev_god"> Invincible</label>
+        <label class="dev-check"><input type="checkbox" id="dev_energy"> Full energy, turbo, no heat</label>
+        <label class="dev-check"><input type="checkbox" id="dev_spawns"> Enemy patrols spawn</label>
+        <button type="button" id="dev_clear">Clear enemies and enemy fire</button>
+    </section>
+    <section class="dev-section" data-dev-section="ships">
+        <p class="dev-note">Click a ship to fly it now. Values come from src/js/ships/.</p>
+        <div id="dev_ships"></div>
+    </section>
+    <section class="dev-section" data-dev-section="weapons">
+        <p class="dev-note">Click a weapon to fire it now. Tier applies to the selected weapon.</p>
+        <div class="dev-form">
+            <label for="dev_weapon_tier">Tier</label>
+            <select id="dev_weapon_tier"></select>
+        </div>
+        <div id="dev_weapons"></div>
+    </section>
+    <section class="dev-section" data-dev-section="enemies">
+        <div class="dev-form">
+            <label for="dev_enemy_type">Type</label>
+            <select id="dev_enemy_type"></select>
+            <label for="dev_enemy_distance">Distance</label>
+            <input type="range" id="dev_enemy_distance" min="250" max="1500" step="50" value="500">
+        </div>
+        <div class="dev-buttons">
+            <button type="button" class="dev-primary" id="dev_enemy_spawn">Spawn ahead</button>
+            <button type="button" id="dev_dummy_spawn">Target dummy ahead</button>
+            <button type="button" id="dev_enemy_clear">Clear</button>
+        </div>
+        <p class="dev-note">A dummy stands still, never fires and never dies. It takes damage with the armor and shields of this world's faction.</p>
+        <div id="dev_meter"></div>
+    </section>
+    <section class="dev-section" data-dev-section="upgrades">
+        <div class="dev-buttons" id="dev_presets"></div>
+        <div id="dev_upgrades"></div>
+        <h3>Derived stats</h3>
+        <div id="dev_stats"></div>
+    </section>
+    <section class="dev-section" data-dev-section="sounds">
+        <div class="dev-form">
+            <label for="dev_sound_volume">Volume</label>
+            <input type="range" id="dev_sound_volume" min="0" max="1.5" step="0.05" value="1">
+            <label for="dev_sound_pan">Position</label>
+            <input type="range" id="dev_sound_pan" min="-1" max="1" step="0.1" value="0">
+        </div>
+        <p class="dev-note" id="dev_sound_status">Click a sound to play it. Position needs a run: left is −, right is +.</p>
+        <div id="dev_sounds"></div>
+    </section>
+    <pre class="dev-readout" id="dev_readout"></pre>
+</aside>
+<button type="button" class="dev-open hidden" id="dev_open" title="Show the dev panel (`)">DEV</button>
