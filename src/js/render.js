@@ -10,6 +10,7 @@ function base_damage_ore(v, amount)
     }
     burst(v.x, v.y, gold, 25, 150);
     ring(v.x, v.y, gold, v.r*2, 0.4);
+    explode(v.x, v.y, v.r*1.5, '#c9924e');
     sfx('mine', 1, v);
     label(v.x, v.y - 25, 'ORE EXTRACTED', gold);
     for (let i = 0; i < 3; ++i) {
@@ -386,6 +387,7 @@ function render()
     ctx.globalAlpha = 1;
     ctx.restore();
     render_enemies();
+    render_explosions();
     render_pickups();
     render_equipment();
     render_hazards();

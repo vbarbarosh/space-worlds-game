@@ -480,6 +480,7 @@ function cabin_render_world()
         ctx.globalAlpha = 1;
     }
     ctx.restore();
+    render_explosions_in_cabin();
 }
 
 function cabin_label(text, x, y, size = 10, color = cyan, align = 'left')

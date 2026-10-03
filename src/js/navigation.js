@@ -437,6 +437,9 @@ function expedition_base_render_inventory()
 
 function finish(won)
 {
+    if (!won && player) {
+        explode(player.x, player.y, 100, cyan);
+    }
     if (arcade.active) {
         arcade_finish(won);
         return;

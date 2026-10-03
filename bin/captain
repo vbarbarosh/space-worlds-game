@@ -208,7 +208,7 @@ async function captain_press(page, target)
     const pressed = await button.evaluate(function (v) {
         const holder = v.closest('.frontier-card, .shop-item');
         const title = holder ? (holder.querySelector('h3, b') || {textContent: ''}).textContent : '';
-        return v.innerText.trim() + (title ? ' · ' + title.trim() : '');
+        return (v.innerText + (title ? ' · ' + title : '')).replace(/\s+/g, ' ').trim();
     });
     try {
         await button.click({timeout: 3000});

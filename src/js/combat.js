@@ -281,6 +281,15 @@ function base_damage_enemy(enemy, damage)
     shake = Math.max(shake, (enemy.type === 'boss') ? 22 : 4);
     sfx('kill', 1, enemy);
     if (enemy.type === 'boss') {
+        explode_flagship(enemy.x, enemy.y, enemy.r, enemy.color || pink);
+    }
+    else {
+        explode(enemy.x, enemy.y, {shard: 26, tank: 72, splitter: 48, lancer: 48, shooter: 46}[enemy.type] || 40, enemy.color || pink);
+    }
+    if (enemy.drop_on_death) {
+        drop_pickup(enemy.x, enemy.y, enemy.drop_on_death);
+    }
+    if (enemy.type === 'boss') {
         boss_defeated = true;
         hostile = [];
         flash = 0.5;

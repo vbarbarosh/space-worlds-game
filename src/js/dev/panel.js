@@ -36,6 +36,11 @@ function dev_panel_init()
         dev_enemy_spawn(true);
     });
     document.getElementById('dev_enemy_clear').addEventListener('click', dev_enemies_clear);
+    for (const button of document.querySelectorAll('[data-dev-explosion]')) {
+        button.addEventListener('click', function () {
+            dev_explosion_preview(button.dataset.devExplosion);
+        });
+    }
     for (const key of ['god', 'energy', 'spawns']) {
         const input = document.getElementById('dev_' + key);
         input.checked = dev_scenario[key];

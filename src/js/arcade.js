@@ -1,9 +1,10 @@
 // Arcade: one run through the eight worlds, three waves each, the world's flagship in the third; no stations, contracts or saves.
-const arcade = {active: false, world: -1, wave: 0, pause: 0, campaign_checkpoint: null};
+const arcade = {active: false, world: -1, wave: 0, pause: 0, squad_timer: 0, squads: 0, phase: 0, campaign_checkpoint: null};
 const arcade_extent = [7200, 5600];
 const arcade_waves = 3;
 const arcade_radiation = 0.35;
 const arcade_defense = 0.5;
+const arcade_wave_names = ['', 'SCOUTS', 'ASSAULT', 'FLAGSHIP'];
 
 function arcade_start(world = 0)
 {
@@ -79,6 +80,8 @@ function arcade_update(dt)
         }
         return;
     }
+    arcade_squads_update(dt);
+    arcade_flagship_update();
     if ((spawn_left > 0) || enemies.some(v => v.hp > 0)) {
         return;
     }
@@ -93,13 +96,89 @@ function arcade_update(dt)
 function arcade_wave_start(n)
 {
     arcade.wave = n;
+    arcade.squad_timer = 0.8;
+    arcade.squads = 0;
     phase_index = n;
     phase_timer = 0;
-    spawn_left = 8 + campaign.world*2 + (n - 1)*3;
-    spawn_timer = 1.2;
-    show_toast('WAVE ' + n + ' / ' + arcade_waves, worlds[campaign.world].name.toUpperCase() + ' · ' + current_world_rules().name.toUpperCase(), 2);
+    spawn_left = arcade_wave_size(n);
+    show_toast('WAVE ' + n + ' / ' + arcade_waves + ' · ' + arcade_wave_names[n], worlds[campaign.world].name.toUpperCase() + ' · ' + current_world_rules().name.toUpperCase(), 2);
     if (n === arcade_waves) {
         arcade_flagship_spawn();
+    }
+}
+
+function arcade_wave_size(n)
+{
+    return 10 + campaign.world*2 + (n - 1)*4;
+}
+
+// Raiders come in squadrons from one side, not one by one; a squadron waits while the sky is crowded.
+function arcade_squads_update(dt)
+{
+    arcade.squad_timer -= dt;
+    const alive = enemies.filter(v => v.hp > 0).length;
+    if ((spawn_left <= 0) || (arcade.squad_timer > 0) || (alive > 14)) {
+        return;
+    }
+    const size = Math.min(spawn_left, 3 + Math.min(3, Math.floor(campaign.world/2)) + (arcade.wave - 1));
+    arcade_squad_spawn(size);
+    spawn_left -= size;
+    arcade.squad_timer = Math.max(2.6, 5.5 - campaign.world*0.3);
+}
+
+// One type per squadron, in a line across its heading; from the second world on every second one has an elite leader.
+function arcade_squad_spawn(size)
+{
+    const type = (arcade.wave === 1) ? ((Math.random() < 0.7) ? 'chaser' : 'shooter') : enemy_type();
+    const angle = Math.random()*Math.PI*2;
+    const cx = player.x + Math.cos(angle)*640;
+    const cy = player.y + Math.sin(angle)*640;
+    const elite = (campaign.world >= 1) && (arcade.wave >= 2) && (arcade.squads % 2 === 1);
+    arcade.squads++;
+    for (let i = 0; i < size; ++i) {
+        const enemy = spawn_enemy(type);
+        const offset = (i - (size - 1)/2)*55;
+        enemy.x = clamp(cx - Math.sin(angle)*offset, 40, world.w - 40);
+        enemy.y = clamp(cy + Math.cos(angle)*offset, 40, world.h - 40);
+        ring(enemy.x, enemy.y, enemy.color || pink, 40, 0.4);
+        if (elite && (i === 0)) {
+            arcade_elite_make(enemy);
+        }
+    }
+}
+
+function arcade_elite_make(enemy)
+{
+    enemy.arcade_scaled = true;
+    enemy.elite = true;
+    enemy.hp = Math.round(enemy.max_hp*3);
+    enemy.max_hp = enemy.hp;
+    enemy.r = Math.round(enemy.r*1.35);
+    enemy.armor = (enemy.armor || 0)*arcade_defense;
+    enemy.max_shield = 40 + campaign.world*25;
+    enemy.shield = enemy.max_shield;
+    enemy.drop_on_death = 'medkit';
+}
+
+// The flagship turns at 66% (escorts) and at 33% (a last stand with more of them).
+function arcade_flagship_update()
+{
+    const boss = enemies.find(v => (v.type === 'boss') && (v.hp > 0));
+    if (!boss) {
+        return;
+    }
+    if ((arcade.phase === 1) && (boss.hp < boss.max_hp*0.66)) {
+        arcade.phase = 2;
+        show_toast('FLAGSHIP · ESCORTS INBOUND', worlds[campaign.world].faction.toUpperCase(), 2);
+        arcade_squad_spawn(3 + Math.min(2, Math.floor(campaign.world/3)));
+    }
+    if ((arcade.phase === 2) && (boss.hp < boss.max_hp*0.33)) {
+        arcade.phase = 3;
+        show_toast('FLAGSHIP · LAST STAND', 'EVERYTHING IT HAS', 2);
+        flash = 0.35;
+        shake = Math.max(shake, 14);
+        ring(boss.x, boss.y, pink, 260, 0.6);
+        arcade_squad_spawn(4 + Math.min(2, Math.floor(campaign.world/3)));
     }
 }
 
@@ -111,6 +190,7 @@ function arcade_flagship_spawn()
     enemy.max_hp = enemy.hp;
     boss_spawned = true;
     boss_defeated = false;
+    arcade.phase = 1;
     el.bossbar.querySelector('.meter-row').textContent = worlds[campaign.world].faction.toUpperCase() + ' FLAGSHIP';
     set_hidden(el.bossbar, false);
 }
@@ -214,7 +294,7 @@ function arcade_update_hud()
     el.act_label.textContent = 'ARCADE · WORLD ' + (campaign.world + 1) + ' / ' + worlds.length + ' · ' + world_looks[campaign.world].biome;
     el.mission_name.textContent = worlds[campaign.world].name.toUpperCase();
     el.mission_phase.textContent = (arcade.pause > 0) ? 'WAVE ' + arcade.wave + ' CLEAR' : 'WAVE ' + Math.max(1, arcade.wave) + ' / ' + arcade_waves;
-    const total = 8 + campaign.world*2 + (arcade.wave - 1)*3;
+    const total = arcade_wave_size(arcade.wave);
     const left = spawn_left + enemies.filter(v => v.hp > 0).length;
     el.sector_progress.style.width = clamp((((arcade.wave - 1) + (1 - Math.min(1, left/Math.max(1, total))))/arcade_waves)*100, 0, 100) + '%';
 }

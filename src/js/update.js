@@ -54,6 +54,7 @@ function base_update_hud()
 
 function update_effects(dt)
 {
+    update_explosions(dt);
     for (const particle of particles) {
         particle.x += particle.vx*dt;
         particle.y += particle.vy*dt;
@@ -212,7 +213,7 @@ function update(dt)
         }
     }
     spawn_timer -= dt;
-    if ((spawn_left > 0) && (spawn_timer <= 0) && (enemies.length < 24)) {
+    if ((spawn_left > 0) && (spawn_timer <= 0) && (enemies.length < 24) && !arcade.active) {
         spawn_enemy(enemy_type());
         spawn_left--;
         spawn_timer =

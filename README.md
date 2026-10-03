@@ -7,7 +7,8 @@ with no server.
 Two modes:
 
 - **Arcade**: one run through the eight worlds, three waves each, the world's
-  flagship in the third. A card between worlds adds a module or a new weapon,
+  flagship in the third. Raiders come in squadrons; from the second world
+  on, elites lead some of them; the flagship turns at 66% and 33%. A card between worlds adds a module or a new weapon,
   and the weapon grows a tier per world. Score, combo and a best score; no
   stations, contracts or saves.
 - **Campaign**: the stations, contracts, trading and story chapters; see

@@ -32,6 +32,25 @@ function dev_enemy_spawn(dummy)
     }
 }
 
+// An explosion to the right of the ship, at the distance set above, to tune the effect without a fight.
+function dev_explosion_preview(kind)
+{
+    if (!dev_run_active()) {
+        return;
+    }
+    const x = player.x + Number(document.getElementById('dev_enemy_distance').value);
+    const y = player.y;
+    const color = worlds[campaign.world].accent;
+    if (kind === 'flagship') {
+        explode_flagship(x, y, 66, color);
+        flash = 0.5;
+        shake = Math.max(shake, 22);
+    }
+    else {
+        explode(x, y, (kind === 'tank') ? 72 : 40, color);
+    }
+}
+
 function dev_enemies_clear()
 {
     enemies = [];
