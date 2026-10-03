@@ -1,8 +1,19 @@
-// Ship sprites: the SVGs of src/sprites/, packed into sprite_svgs by bin/build. A drawing is nose up on a 256 canvas,
-// the ship's longest side 228 units; its anchors layer marks flames (lines from the nozzle, as long as a full-thrust
-// flame) and points (turrets, beam). In the game's frame the nose is +x, so a drawing's (x, y) is (128 - y, x - 128).
-// sprite_svgs holds one set per folder, flat and 3d; the player picks one with the sprites button.
+// Sprites: the SVGs of src/sprites/, packed into sprite_svgs by bin/build. Ships come in two sets, 3d and flat, picked
+// with the sprites button; weapons/ holds the turrets and the missile, worlds/<world>/ a world's objects. A ship is
+// nose up on a 256 canvas, its longest side 228 units; an anchors layer marks flames (lines from the nozzle, as long
+// as a full-thrust flame) and points (turrets, muzzles, berths, beam).
 const sprite_cache = new Map();
+// How big things are drawn, in game units, in one place so the proportions are tuned together: ship classes by
+// length, from the 42-unit interceptor to the 104-unit cruiser; raiders and flagships by their radius; the rest
+// across. The hit radii stay as they are; a ship is drawn a little larger than it is hit.
+const sprite_sizes = {
+    ships: {interceptor: 42, scout: 48, courier: 58, miner: 74, gunship: 84, cruiser: 104},
+    raider: 2.9,
+    flagship: 3.2,
+    freighter: 120,
+    drone: 20,
+    pickup: 15,
+};
 const sprite_span = 228;
 const sprite_sets = ['3d', 'flat'];
 let sprite_set = '3d';
@@ -27,6 +38,9 @@ function sprite_set_toggle()
     }
     sync_sprites_button();
     performance_render_dirty = true;
+    if ((state === 'upgrade') && (station_tab === 'hangar')) {
+        render_station();
+    }
 }
 
 function sync_sprites_button()
@@ -34,71 +48,92 @@ function sync_sprites_button()
     const b = document.getElementById('sprites_button');
     const title = (sprite_set === '3d') ? '3D' : 'Flat';
     b.textContent = title.toUpperCase();
-    b.setAttribute('aria-label', 'Ship sprites: ' + title + '. Click to switch.');
+    b.setAttribute('aria-label', `Ship sprites: ${title}. Click to switch.`);
 }
 
-// The parsed drawing, its anchors in drawing units and its rasters; null for a name with no file
+// The parsed drawing, its anchors as fractions of the canvas from its centre, and its rasters; null for a name with
+// no file. A plain name is a ship of the chosen set; a path (weapons/turret-ion, worlds/haven/station) is that file.
+// Ships, turrets and the missile point their nose up and are turned to +x; world objects keep their orientation.
 function sprite(name)
 {
-    const key = sprite_set + ':' + name;
+    const key = name.includes('/') ? name : `${sprite_set}:${name}`;
     if (sprite_cache.has(key)) {
         return sprite_cache.get(key);
     }
-    const text = sprite_svgs[sprite_set][name];
-    if (!text) {
+    const text = name.includes('/') ? name.split('/').reduce((v, k) => v?.[k], sprite_svgs) : sprite_svgs[sprite_set][name];
+    if (typeof text !== 'string') {
         sprite_cache.set(key, null);
         return null;
     }
     const svg = new DOMParser().parseFromString(text, 'image/svg+xml').documentElement;
+    const box = Number(svg.getAttribute('viewBox').split(/\s+/)[2]);
+    const turned = !name.startsWith('worlds/');
+    // A drawing's point as a fraction of the canvas from its centre, in the game's frame
+    function at(x, y) {
+        return turned ? {x: (box/2 - y)/box, y: (x - box/2)/box} : {x: (x - box/2)/box, y: (y - box/2)/box};
+    }
     const flames = [];
     const points = {};
     const anchors = svg.querySelector('#anchors');
     for (const v of anchors ? [...anchors.children] : []) {
-        const n = k => Number(v.getAttribute(k));
+        function n(name) {
+            return Number(v.getAttribute(name));
+        }
         if (v.tagName === 'line') {
-            flames.push({kind: v.id.replace(/^flame-|-\d+$/g, ''), x: 128 - n('y1'), y: n('x1') - 128, dx: n('y1') - n('y2'), dy: n('x2') - n('x1'), width: n('stroke-width')});
+            const a = at(n('x1'), n('y1'));
+            const b = at(n('x2'), n('y2'));
+            flames.push({kind: v.id.replace(/^flame-|-\d+$/g, ''), x: a.x, y: a.y, dx: b.x - a.x, dy: b.y - a.y, width: n('stroke-width')/box});
         }
         else {
-            points[v.id] = {x: 128 - n('cy'), y: n('cx') - 128};
+            points[v.id] = {...at(n('cx'), n('cy')), r: n('r')/box};
         }
     }
     anchors?.remove();
-    const out = {svg, flames, points, rasters: new Map()};
+    const out = {svg, box, turned, flames, points, spin: !!svg.querySelector('#spin'), rasters: new Map()};
     sprite_cache.set(key, out);
     return out;
 }
 
-// The anchors of a sprite drawn `length` game units long, in game units: flames by kind, and the points
+// The anchors of a ship drawn `length` game units long, in game units: flames by kind, and the points
 function sprite_anchors(name, length)
+{
+    return sprite_anchors_box(name, (length*256)/sprite_span);
+}
+
+// The anchors of a sprite whose canvas is drawn `size` game units wide
+function sprite_anchors_box(name, size)
 {
     const v = sprite(name);
     if (!v) {
         return null;
     }
-    const k = length/sprite_span;
     const flames = {main: [], reverse: [], side: []};
     for (const f of v.flames) {
-        flames[f.kind]?.push({x: f.x*k, y: f.y*k, dx: f.dx*k, dy: f.dy*k, width: f.width*k});
+        flames[f.kind]?.push({x: f.x*size, y: f.y*size, dx: f.dx*size, dy: f.dy*size, width: f.width*size});
     }
     const points = {};
     for (const [id, p] of Object.entries(v.points)) {
-        points[id] = {x: p.x*k, y: p.y*k};
+        points[id] = {x: p.x*size, y: p.y*size, r: p.r*size};
     }
     return {flames, points};
 }
 
-// A raster turned nose to +x, with the accent painted `color` (null keeps the drawing's own); null while it loads
-function sprite_raster(name, color, px)
+// A raster of the drawing, with the accent painted `color` (null keeps the drawing's own); part 'body' is all but
+// the spin layer, 'spin' the spin layer alone; null while it loads
+function sprite_raster(name, color, px, part = 'body')
 {
     const v = sprite(name);
     if (!v) {
         return null;
     }
-    const key = (color || '') + ':' + px;
+    const key = `${color || ''}:${px}:${part}`;
     if (v.rasters.has(key)) {
         return v.rasters.get(key).ready ? v.rasters.get(key).canvas : null;
     }
     const svg = v.svg.cloneNode(true);
+    for (const id of (part === 'spin') ? ['base', 'hull', 'accent'] : ['spin']) {
+        svg.querySelector(`#${id}`)?.remove();
+    }
     // A 3D drawing shades its accent with a gradient of three stops; a flat one fills each shape
     if (color && svg.querySelector('#accent-base')) {
         svg.querySelector('#accent-light').setAttribute('stop-color', color_mix(color, '#ffffff', 0.45));
@@ -118,43 +153,64 @@ function sprite_raster(name, color, px)
     image.onload = function () {
         const draw = raster.canvas.getContext('2d');
         draw.translate(px/2, px/2);
-        draw.rotate(Math.PI/2);
+        if (v.turned) {
+            draw.rotate(Math.PI/2);
+        }
         draw.drawImage(image, -px/2, -px/2, px, px);
         raster.ready = true;
     };
-    image.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(new XMLSerializer().serializeToString(svg));
+    image.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(new XMLSerializer().serializeToString(svg))}`;
     return null;
 }
 
 // Two #rrggbb colours mixed, t of the way from a to b
 function color_mix(a, b, t)
 {
-    const channel = (v, i) => parseInt(v.slice(1 + i*2, 3 + i*2), 16);
-    return '#' + [0, 1, 2].map(i => Math.round(channel(a, i) + (channel(b, i) - channel(a, i))*t).toString(16).padStart(2, '0')).join('');
+    const parts = [0, 1, 2].map(v => Math.round(channel(a, v) + (channel(b, v) - channel(a, v))*t).toString(16).padStart(2, '0'));
+    return `#${parts.join('')}`;
+    function channel(color, i) {
+        return parseInt(color.slice(1 + i*2, 3 + i*2), 16);
+    }
 }
 
-// Draws the sprite `length` game units long at x, y, turned to angle; false while it is not ready, so the caller
+// Draws the ship `length` game units long at x, y, turned to angle; false while it is not ready, so the caller
 // draws its own fallback
 function sprite_draw(name, color, length, x, y, angle, alpha = 1)
 {
-    const size = (length*256)/sprite_span;
-    const px = Math.min(512, Math.max(64, 2**Math.ceil(Math.log2(size*2))));
-    const raster = sprite_raster(name, color, px);
-    if (!raster) {
+    return sprite_draw_box(name, color, (length*256)/sprite_span, x, y, angle, alpha);
+}
+
+// Draws a sprite's canvas `size` game units wide centred at x, y, turned to angle; its spin layer, if it has one,
+// turned by `spin` more. False while it is not ready.
+function sprite_draw_box(name, color, size, x, y, angle, alpha = 1, spin = 0, draw = ctx)
+{
+    const v = sprite(name);
+    if (!v) {
         return false;
     }
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.rotate(angle);
-    ctx.globalAlpha = alpha;
-    ctx.drawImage(raster, -size/2, -size/2, size, size);
-    ctx.restore();
+    const t = draw.getTransform();
+    const px = Math.min(v.box*2, 1024, Math.max(32, 2**Math.ceil(Math.log2(size*Math.hypot(t.a, t.b)*1.5))));
+    const raster = sprite_raster(name, color, px);
+    const ring = v.spin ? sprite_raster(name, color, px, 'spin') : null;
+    if (!raster || (v.spin && !ring)) {
+        return false;
+    }
+    draw.save();
+    draw.translate(x, y);
+    draw.rotate(angle);
+    draw.globalAlpha = alpha;
+    draw.drawImage(raster, -size/2, -size/2, size, size);
+    if (ring) {
+        draw.rotate(spin);
+        draw.drawImage(ring, -size/2, -size/2, size, size);
+    }
+    draw.restore();
     return true;
 }
 
-// Flames along a sprite's anchors of one kind, in the ship's frame (the caller has turned the context): each as long
-// as its anchor times `power`, as wide as its nozzle
-function sprite_flames(flames, power, color, flicker = 0)
+// Flames along a sprite's anchors of one kind, on `draw` in the ship's frame (the caller has turned the context):
+// each as long as its anchor times `power`, as wide as its nozzle
+function sprite_flames(draw, flames, power, color, flicker = 0)
 {
     for (const f of flames) {
         const length = Math.hypot(f.dx, f.dy);
@@ -162,38 +218,62 @@ function sprite_flames(flames, power, color, flicker = 0)
             continue;
         }
         const reach = length*power*(1 + flicker);
-        ctx.save();
-        ctx.translate(f.x, f.y);
-        ctx.rotate(Math.atan2(f.dy, f.dx));
-        const g = ctx.createLinearGradient(0, 0, reach, 0);
+        draw.save();
+        draw.translate(f.x, f.y);
+        draw.rotate(Math.atan2(f.dy, f.dx));
+        const g = draw.createLinearGradient(0, 0, reach, 0);
         g.addColorStop(0, '#f1faffee');
         g.addColorStop(0.25, color_with_alpha(color, 0.75));
         g.addColorStop(0.7, color_with_alpha(color, 0.25));
         g.addColorStop(1, color_with_alpha(color, 0));
-        ctx.fillStyle = g;
+        draw.fillStyle = g;
         const r = f.width/2;
-        ctx.beginPath();
-        ctx.moveTo(0, -r);
-        ctx.bezierCurveTo(reach*0.2, -r, reach*0.7, -r*0.35, reach, 0);
-        ctx.bezierCurveTo(reach*0.7, r*0.35, reach*0.2, r, 0, r);
-        ctx.closePath();
-        ctx.fill();
-        ctx.restore();
+        draw.beginPath();
+        draw.moveTo(0, -r);
+        draw.bezierCurveTo(reach*0.2, -r, reach*0.7, -r*0.35, reach, 0);
+        draw.bezierCurveTo(reach*0.7, r*0.35, reach*0.2, r, 0, r);
+        draw.closePath();
+        draw.fill();
+        draw.restore();
     }
+}
+
+// The current world's drawing of an object (worlds/haven/station), or null where the world has none yet, so the
+// caller draws today's look; the wireframe view never uses them
+function world_art(name)
+{
+    if (view_mode === 'wireframe') {
+        return null;
+    }
+    const path = `worlds/${world_slug()}/${name}`;
+    return sprite(path) ? path : null;
+}
+
+// The current world's name as a file name: haven, ion-reach
+function world_slug()
+{
+    return worlds[campaign.world].name.toLowerCase().replace(/\s+/g, '-');
 }
 
 // The sprite of a player ship class, and its length: the size follows the class's radius
 function ship_sprite(v)
 {
-    return {name: 'ship-' + v.id, length: v.radius*2.8};
+    return {name: `ship-${v.id}`, length: sprite_sizes.ships[v.id] || v.radius*2.8};
 }
 
 // The sprite of a raider: its type, elite or not; the flagship of the world it serves
 function enemy_sprite(enemy)
 {
     if (enemy.type === 'boss') {
-        const name = 'flagship-' + worlds[campaign.world].name.toLowerCase().replace(/\s+/g, '-');
-        return {name: sprite(name) ? name : 'flagship', length: enemy.r*2.2};
+        const name = `flagship-${world_slug()}`;
+        return {name: sprite(name) ? name : 'flagship', length: enemy.r*sprite_sizes.flagship};
     }
-    return {name: 'enemy-' + enemy.type + (enemy.elite ? '-elite' : ''), length: enemy.r*2.4};
+    return {name: `enemy-${enemy.type}${enemy.elite ? '-elite' : ''}`, length: enemy.r*sprite_sizes.raider};
+}
+
+// The radius of the rings around your ship (shield, invincibility, pulse ready): clear of its hull in the rendered
+// view, as before in the wireframe one
+function ship_halo()
+{
+    return (view_mode === 'wireframe') ? 26 : Math.max(26, ship_sprite(current_ship()).length*0.58);
 }

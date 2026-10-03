@@ -21,23 +21,9 @@ function render_galaxy_chart(parent, c)
         for (const id of world.links.filter(v => v > i)) {
             const a = positions[i];
             const b = positions[id];
-            const active = route_edges.has(i + ':' + id);
+            const active = route_edges.has(`${i}:${id}`);
             out +=
-                '<path d="M ' +
-                a[0] +
-                ' ' +
-                a[1] +
-                ' L ' +
-                b[0] +
-                ' ' +
-                b[1] +
-                '" stroke="' +
-                (active ? gold : '#39516f') +
-                '" stroke-width="' +
-                (active ? 4 : 2) +
-                '"' +
-                (active ? '' : ' stroke-dasharray="6 7"') +
-                '/>';
+                `<path d="M ${a[0]} ${a[1]} L ${b[0]} ${b[1]}" stroke="${active ? gold : '#39516f'}" stroke-width="${active ? 4 : 2}"${active ? '' : ' stroke-dasharray="6 7"'}/>`;
         }
     }
     for (let i = 0, end = worlds.length; i < end; ++i) {
@@ -46,48 +32,12 @@ function render_galaxy_chart(parent, c)
         const current = i === campaign.world;
         const target = i === c.target;
         out +=
-            '<g data-chart-world="' +
-            i +
-            '" role="button" tabindex="0" aria-label="Set route to ' +
-            world.name +
-            '" class="chart-node"><circle cx="' +
-            p[0] +
-            '" cy="' +
-            p[1] +
-            '" r="' +
-            (current ? 30 : 25) +
-            '" fill="' +
-            world.color +
-            '" stroke="' +
-            (target ? gold : current ? cyan : allowed_world(i) ? world.accent : '#ff5baf') +
-            '" stroke-width="3"/>';
+            `<g data-chart-world="${i}" role="button" tabindex="0" aria-label="Set route to ${world.name}" class="chart-node"><circle cx="${p[0]}" cy="${p[1]}" r="${current ? 30 : 25}" fill="${world.color}" stroke="${target ? gold : current ? cyan : allowed_world(i) ? world.accent : '#ff5baf'}" stroke-width="3"/>`;
         if (current) {
-            out += '<circle cx="' + p[0] + '" cy="' + p[1] + '" r="36" stroke="' + cyan + '" fill="none" opacity=".4"/>';
+            out += `<circle cx="${p[0]}" cy="${p[1]}" r="36" stroke="${cyan}" fill="none" opacity=".4"/>`;
         }
         out +=
-            '<text x="' +
-            p[0] +
-            '" y="' +
-            (p[1] + 5) +
-            '" fill="' +
-            world.accent +
-            '" text-anchor="middle" font-size="14">' +
-            (i + 1) +
-            '</text><text x="' +
-            p[0] +
-            '" y="' +
-            (p[1] + 53) +
-            '" text-anchor="middle" fill="#e9f6ff" font-size="14">' +
-            world.name +
-            '</text><text x="' +
-            p[0] +
-            '" y="' +
-            (p[1] + 70) +
-            '" text-anchor="middle" fill="' +
-            (allowed_world(i) ? '#9ba8c5' : pink) +
-            '" font-size="10">' +
-            (current ? 'YOU ARE HERE' : allowed_world(i) ? 'THREAT ' + (i + 1) : 'UPGRADES REQUIRED') +
-            '</text></g>';
+            `<text x="${p[0]}" y="${p[1] + 5}" fill="${world.accent}" text-anchor="middle" font-size="14">${i + 1}</text><text x="${p[0]}" y="${p[1] + 53}" text-anchor="middle" fill="#e9f6ff" font-size="14">${world.name}</text><text x="${p[0]}" y="${p[1] + 70}" text-anchor="middle" fill="${allowed_world(i) ? '#9ba8c5' : pink}" font-size="10">${current ? 'YOU ARE HERE' : allowed_world(i) ? `THREAT ${i + 1}` : 'UPGRADES REQUIRED'}</text></g>`;
     }
     out += '</svg>';
     const div = document.createElement('div');
@@ -171,10 +121,10 @@ function local_map_select(x, y)
     let near = Infinity;
     const targets = [
         {...station, label: worlds[campaign.world].station},
-        ...world_gates.map(v => ({...v, label: 'WORLD GATE → ' + worlds[v.destination].name})),
-        ...beacons.map((v, i) => ({...v, label: 'SCAN BEACON ' + (i + 1)})),
-        ...mining_fields.filter(v => ore_nodes.some(vv => (vv.hp > 0) && (vv.field === v.id))).map(v => ({...v, label: 'MINING FIELD ' + (v.id + 1)})),
-        ...portals.map((v, i) => ({...v, portal: i, label: 'LOCAL PORTAL ' + v.label})),
+        ...world_gates.map(v => ({...v, label: `WORLD GATE → ${worlds[v.destination].name}`})),
+        ...beacons.map((v, i) => ({...v, label: `SCAN BEACON ${i + 1}`})),
+        ...mining_fields.filter(v => ore_nodes.some(vv => (vv.hp > 0) && (vv.field === v.id))).map(v => ({...v, label: `MINING FIELD ${v.id + 1}`})),
+        ...portals.map((v, i) => ({...v, portal: i, label: `LOCAL PORTAL ${v.label}`})),
     ];
     for (const target of targets) {
         const d = Math.hypot(((target.x - point.x)/b.w)*960, ((target.y - point.y)/b.h)*620);
@@ -184,7 +134,7 @@ function local_map_select(x, y)
         }
     }
     if (!best || (near >= 35)) {
-        track_local_point(point, 'COORDINATES ' + Math.round(point.x) + ' / ' + Math.round(point.y));
+        track_local_point(point, `COORDINATES ${Math.round(point.x)} / ${Math.round(point.y)}`);
         render_navigation();
         return;
     }
@@ -287,22 +237,22 @@ function physics_base_render_local_map_canvas(map)
         draw.stroke();
         draw.fillStyle = gold;
         draw.fillRect(p.x - 3, p.y - 3, 6, 6);
-        label(mining_field, 'MINE ' + (mining_field.id + 1), '#cbae79', 25);
+        label(mining_field, `MINE ${mining_field.id + 1}`, '#cbae79', 25);
     }
     for (const portal of portals) {
-        ring(portal, 7, portal.color + '99');
-        label(portal, 'LOCAL ' + portal.label, portal.color, 22);
+        ring(portal, 7, `${portal.color}99`);
+        label(portal, `LOCAL ${portal.label}`, portal.color, 22);
     }
     for (let i = 0, end = beacons.length; i < end; ++i) {
         const beacon = beacons[i];
         ring(beacon, 6, cyan);
-        label(beacon, 'SCAN ' + (i + 1), '#8db8ba', -12);
+        label(beacon, `SCAN ${i + 1}`, '#8db8ba', -12);
     }
     for (let i = 0, end = world_gates.length; i < end; ++i) {
         const world_gate = world_gates[i];
         const p = point(world_gate);
         draw.strokeStyle = world_gate.color;
-        draw.fillStyle = world_gate.color + '22';
+        draw.fillStyle = `${world_gate.color}22`;
         draw.beginPath();
         draw.moveTo(p.x, p.y - 12);
         draw.lineTo(p.x + 12, p.y);
@@ -311,7 +261,7 @@ function physics_base_render_local_map_canvas(map)
         draw.closePath();
         draw.fill();
         draw.stroke();
-        label(world_gate, 'WORLD → ' + worlds[world_gate.destination].name.toUpperCase(), world_gate.color, (i === 2) ? -20 : 30);
+        label(world_gate, `WORLD → ${worlds[world_gate.destination].name.toUpperCase()}`, world_gate.color, (i === 2) ? -20 : 30);
     }
     const p = point(station);
     draw.strokeStyle = cyan;
@@ -395,7 +345,7 @@ function render_screen_controls()
             ctx.font = 'bold 16px ui-monospace,monospace';
             ctx.textAlign = 'center';
             ctx.fillStyle = gold;
-            ctx.fillText(c.interaction + ' / ' + c.goal.label, W/2, H - 165);
+            ctx.fillText(`${c.interaction} / ${c.goal.label}`, W/2, H - 165);
             ctx.restore();
         }
     }

@@ -7,7 +7,7 @@ function save_best()
     }
     catch {
     }
-    el.best_intro.textContent = 'BEST ' + String(best).padStart(6, '0');
+    el.best_intro.textContent = `BEST ${String(best).padStart(6, '0')}`;
     return score > previous;
 }
 
@@ -20,7 +20,7 @@ function base_finish(won)
     }
     else if (checkpoint) {
         set_hidden(el.continue_button, false);
-        el.continue_button.textContent = 'CONTINUE · SECTOR ' + String(checkpoint.wave).padStart(2, '0');
+        el.continue_button.textContent = `CONTINUE · SECTOR ${String(checkpoint.wave).padStart(2, '0')}`;
     }
     set_hidden(document.getElementById('retry_sector'), won || !checkpoint);
     set_hidden(el.result_overlay, false);
@@ -34,19 +34,12 @@ function base_finish(won)
     el.result_eyebrow.textContent = won ? 'SINGULARITY COLLAPSED' : 'SIGNAL LOST';
     el.result_title.textContent = won ? 'You broke the storm.' : 'One more drift?';
     el.result_description.textContent = won
-        ? 'Fifteen sectors. Three guardians. ' + format_time(run_time) + ' in the storm. Your expedition is complete.'
-        : 'Sector ' + String(wave).padStart(2, '0') + ' reached. Retry this sector with your saved loadout, or begin a new expedition.';
+        ? `Fifteen sectors. Three guardians. ${format_time(run_time)} in the storm. Your expedition is complete.`
+        : `Sector ${String(wave).padStart(2, '0')} reached. Retry this sector with your saved loadout, or begin a new expedition.`;
     el.result_score.textContent = score.toLocaleString();
     el.result_sector.textContent = String(wave).padStart(2, '0');
     el.result_best.textContent =
-        (record ? 'NEW PERSONAL BEST · ' : 'PERSONAL BEST · ') +
-        best.toLocaleString() +
-        '  /  ' +
-        kills +
-        ' ELIMINATIONS · ' +
-        artifacts_count +
-        ' ARTIFACTS · ' +
-        format_time(run_time);
+        `${record ? 'NEW PERSONAL BEST · ' : 'PERSONAL BEST · '}${best.toLocaleString()}  /  ${kills} ELIMINATIONS · ${artifacts_count} ARTIFACTS · ${format_time(run_time)}`;
     document.getElementById('restart_button').focus();
     update_hud();
 }

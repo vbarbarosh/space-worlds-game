@@ -59,14 +59,10 @@ async function main()
         });
         break;
     case 'press':
-        await page_run(function (page) {
-            return captain_press(page, args.join(' '));
-        });
+        await page_run(v => captain_press(v, args.join(' ')));
         break;
     case 'key':
-        await page_run(function (page) {
-            return captain_key(page, args[0], Number(args[1]) || 0);
-        });
+        await page_run(v => captain_key(v, args[0], Number(args[1]) || 0));
         break;
     case 'status':
         await page_run(async function (page) {
@@ -74,9 +70,7 @@ async function main()
         });
         break;
     case 'wait':
-        await page_run(function (page) {
-            return captain_wait(page, Number(args[0]) || 60);
-        });
+        await page_run(v => captain_wait(v, Number(args[0]) || 60));
         break;
     case 'dock':
         await page_run(async function (page) {
@@ -87,7 +81,7 @@ async function main()
     case 'autopilot':
         await page_run(async function (page) {
             const on = await page.evaluate(v => window.captain.autopilot(v), args[0] !== 'off');
-            console.log('Autopilot ' + (on ? 'on' : 'off') + '.');
+            console.log(`Autopilot ${on ? 'on' : 'off'}.`);
         });
         break;
     case 'news':
@@ -118,8 +112,8 @@ async function captain_start()
     }
     fs.mkdirSync(agent_dir, {recursive: true});
     const args = [
-        '--remote-debugging-port=' + port,
-        '--user-data-dir=' + path.join(agent_dir, 'profile'),
+        `--remote-debugging-port=${port}`,
+        `--user-data-dir=${path.join(agent_dir, 'profile')}`,
         '--no-first-run',
         '--no-default-browser-check',
         '--no-sandbox',
@@ -129,7 +123,7 @@ async function captain_start()
     if (process.env.HEADLESS === '1') {
         args.push('--headless=new');
     }
-    args.push('file://' + page_file);
+    args.push(`file://${page_file}`);
     const chrome = spawn(chromium.executablePath(), args, {detached: true, stdio: 'ignore'});
     chrome.unref();
     const relay = spawn(process.execPath, [__filename, 'relay'], {detached: true, stdio: 'ignore'});
@@ -187,13 +181,14 @@ function captain_relay()
         fs.chmodSync(socket_file, 0o600);
     });
     // The relay leaves with the window.
-    setInterval(async function () {
+    async function relay_check() {
         if (!(await port_alive())) {
             server.close();
             fs.rmSync(socket_file, {force: true});
             process.exit(0);
         }
-    }, 5000);
+    }
+    setInterval(relay_check, 5000);
 }
 
 async function captain_press(page, target)
@@ -215,7 +210,7 @@ async function captain_press(page, target)
     const pressed = await button.evaluate(function (v) {
         const holder = v.closest('.frontier-card, .shop-item');
         const title = holder ? (holder.querySelector('h3, b') || {textContent: ''}).textContent : '';
-        return (v.innerText + (title ? ' · ' + title : '')).replace(/\s+/g, ' ').trim();
+        return `${v.innerText}${title ? ` · ${title}` : ''}`.replace(/\s+/g, ' ').trim();
     });
     try {
         await button.click({timeout: 3000});
@@ -223,7 +218,7 @@ async function captain_press(page, target)
     catch {
         throw new Error(`Could not press "${target}": something covers it. Run bin/captain screen.`);
     }
-    console.log('PRESSED ' + pressed);
+    console.log(`PRESSED ${pressed}`);
     await sleep(700);
     console.log(await screen_text(page));
 }
@@ -255,13 +250,13 @@ async function captain_wait(page, seconds)
         const urgent = news.find(v => wait_titles.some(vv => v.title.includes(vv)));
         idle = ((status.state === 'playing') && !status.arcade && !status.objective) ? idle + 1 : 0;
         if (!['playing', 'transit'].includes(status.state) && (status.state !== first.state)) {
-            reason = 'the screen is now ' + status.state;
+            reason = `the screen is now ${status.state}`;
         }
         else if (urgent) {
             reason = urgent.title;
         }
         else if ((hull_fraction(status) < 0.35) && (hull_fraction(first) >= 0.35)) {
-            reason = 'hull is low: ' + status.hull;
+            reason = `hull is low: ${status.hull}`;
         }
         else if (idle >= 3) {
             reason = 'nothing to fly to: choose a contract or a destination';
@@ -274,7 +269,7 @@ async function captain_wait(page, seconds)
     console.log(`WAIT ENDED after ${waited}s: ${reason}`);
     console.log(await news_text(page));
     console.log(await screen_text(page));
-    console.log('STATUS ' + JSON.stringify(await page.evaluate(() => window.captain.status())));
+    console.log(`STATUS ${JSON.stringify(await page.evaluate(() => window.captain.status()))}`);
 }
 
 function hull_fraction(status)
@@ -289,7 +284,7 @@ function hull_fraction(status)
 async function captain_shot(page)
 {
     fs.mkdirSync(shots_dir, {recursive: true});
-    const file = path.join(shots_dir, new Date().toISOString().replace(/[:.]/g, '-') + '.png');
+    const file = path.join(shots_dir, `${new Date().toISOString().replace(/[:.]/g, '-')}.png`);
     await page.screenshot({path: file});
     console.log(file);
 }
@@ -302,10 +297,10 @@ async function page_run(fn)
     }
     const bridge = await bridge_open();
     try {
-        const address = '127.0.0.1:' + bridge.address().port;
-        const response = await fetch('http://' + address + '/json/version');
+        const address = `127.0.0.1:${bridge.address().port}`;
+        const response = await fetch(`http://${address}/json/version`);
         const version = await response.json();
-        const endpoint = version.webSocketDebuggerUrl.replace(/^ws:\/\/[^/]+/, 'ws://' + address);
+        const endpoint = version.webSocketDebuggerUrl.replace(/^ws:\/\/[^/]+/, `ws://${address}`);
         const browser = await chromium.connectOverCDP(endpoint);
         try {
             const pages = browser.contexts().flatMap(v => v.pages());
@@ -349,7 +344,7 @@ async function socket_alive()
     }
     const bridge = await bridge_open();
     try {
-        const response = await fetch('http://127.0.0.1:' + bridge.address().port + '/json/version', {signal: AbortSignal.timeout(1500)});
+        const response = await fetch(`http://127.0.0.1:${bridge.address().port}/json/version`, {signal: AbortSignal.timeout(1500)});
         return response.ok;
     }
     catch {
@@ -363,7 +358,7 @@ async function socket_alive()
 async function port_alive()
 {
     try {
-        const response = await fetch('http://127.0.0.1:' + port + '/json/version', {signal: AbortSignal.timeout(1500)});
+        const response = await fetch(`http://127.0.0.1:${port}/json/version`, {signal: AbortSignal.timeout(1500)});
         return response.ok;
     }
     catch {
@@ -394,7 +389,7 @@ function screen_text(page)
                 else {
                     n++;
                     button.dataset.captain = String(n);
-                    mark.textContent = '[' + n + '] ';
+                    mark.textContent = `[${n}] `;
                 }
                 button.prepend(mark);
                 marks.push(mark);
@@ -404,8 +399,8 @@ function screen_text(page)
         for (const mark of marks) {
             mark.remove();
         }
-        const title = overlay ? 'SCREEN: ' + overlay.id : 'SCREEN: flight';
-        return title + '\n' + text.replace(/\n{3,}/g, '\n\n').trim().slice(0, 8000);
+        const title = overlay ? `SCREEN: ${overlay.id}` : 'SCREEN: flight';
+        return `${title}\n${text.replace(/\n{3,}/g, '\n\n').trim().slice(0, 8000)}`;
     });
 }
 
@@ -416,8 +411,8 @@ async function news_text(page)
     if (news.length) {
         fs.writeFileSync(news_file, String(news[news.length - 1].n));
     }
-    const lines = news.map(v => `[${v.time}s] ${v.title}${v.sub ? ' · ' + v.sub : ''}`);
-    return lines.length ? 'NEWS\n' + lines.join('\n') : 'NEWS: nothing new';
+    const lines = news.map(v => `[${v.time}s] ${v.title}${v.sub ? ` · ${v.sub}` : ''}`);
+    return lines.length ? `NEWS\n${lines.join('\n')}` : 'NEWS: nothing new';
 }
 
 function sleep(ms)

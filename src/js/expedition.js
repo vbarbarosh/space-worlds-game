@@ -53,13 +53,7 @@ function world_brief(id)
     const size = world_extents[id];
     const crossing = format_time(size[0]/cruise_speed(id));
     return (
-        Math.round(size[0]/1000) +
-        ' × ' +
-        Math.round(size[1]/1000) +
-        ' km · CROSSING ~' +
-        crossing +
-        ' cruise · ' +
-        (c.radiation ? 'RAD ' + c.radiation.toFixed(1) + '/s · MIN LINING ' + Math.round(c.required*100) + '%' : 'NO RADIATION')
+        `${Math.round(size[0]/1000)} × ${Math.round(size[1]/1000)} km · CROSSING ~${crossing} cruise · ${c.radiation ? `RAD ${c.radiation.toFixed(1)}/s · MIN LINING ${Math.round(c.required*100)}%` : 'NO RADIATION'}`
     );
 }
 
@@ -67,7 +61,7 @@ function append_world_brief(cardel, id)
 {
     const note = document.createElement('p');
     note.className = 'environment-brief';
-    note.textContent = world_brief(id) + ' · ' + world_rules[id].name + '. ' + expedition_conditions[id].advice;
+    note.textContent = `${world_brief(id)} · ${world_rules[id].name}. ${expedition_conditions[id].advice}`;
     cardel.append(note);
 }
 
@@ -129,7 +123,7 @@ function portal_flight_path(start, end)
         const a = nodes[i];
         const b = nodes[j];
         const cacheable = (i >= 2) && (j >= 2);
-        const key = campaign.world + ':' + i + ':' + j;
+        const key = `${campaign.world}:${i}:${j}`;
         let leg = cacheable ? portal_leg_cache.get(key) : null;
         if (!leg) {
             const points = safe_flight_path(a, b);
@@ -241,18 +235,10 @@ function render_local_route_brief(parent)
     if (c?.goal) {
         const m = route_metrics();
         note.textContent =
-            'PLANNED: ' +
-            (m.walk/1000).toFixed(1) +
-            ' km flight · ' +
-            m.jumps +
-            ' local portal jumps · ~' +
-            format_time(m.seconds) +
-            ' cruise / DIRECT ' +
-            (distance(player, c.goal)/1000).toFixed(1) +
-            ' km. Gold dots mark the portal entrances; dotted links are teleports.';
+            `PLANNED: ${(m.walk/1000).toFixed(1)} km flight · ${m.jumps} local portal jumps · ~${format_time(m.seconds)} cruise / DIRECT ${(distance(player, c.goal)/1000).toFixed(1)} km. Gold dots mark the portal entrances; dotted links are teleports.`;
     }
     else {
-        note.textContent = world_brief(campaign.world) + '. Select a distant map object to compare direct flight with a portal route.';
+        note.textContent = `${world_brief(campaign.world)}. Select a distant map object to compare direct flight with a portal route.`;
     }
     parent.append(note);
 }
@@ -371,8 +357,19 @@ function drifting_debris_hit(piece, damage)
 function render_drifting_debris()
 {
     ctx.save();
-    for (const drifting_debri of drifting_debris) {
+    for (let i = 0, end = drifting_debris.length; i < end; ++i) {
+        const drifting_debri = drifting_debris[i];
         if (!in_view(drifting_debri, drifting_debri.r + 20)) {
+            continue;
+        }
+        // The designer's drifting rocks and wrecks, with the same hazard rim: these hit hard
+        const art = world_art(`${(drifting_debri.kind === 'asteroid') ? 'debris-rock' : 'debris-wreck'}-${(i % 2) + 1}`);
+        if (art && sprite_draw_box(art, null, drifting_debri.r*2.6, drifting_debri.x, drifting_debri.y, drifting_debri.angle)) {
+            ctx.strokeStyle = '#ff7a5c66';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(drifting_debri.x, drifting_debri.y, drifting_debri.r*1.05, 0, Math.PI*2);
+            ctx.stroke();
             continue;
         }
         ctx.save();
@@ -416,24 +413,18 @@ function update_expedition_readout()
     const c = expedition_conditions[campaign.world];
     const safe = distance(player, station) < 500;
     const speed = Math.round(Math.hypot(player.vx, player.vy));
-    let text = 'FLIGHT ' + speed + ' m/s · TURBO ' + turbo_duration() + 's';
+    let text = `FLIGHT ${speed} m/s · TURBO ${turbo_duration()}s`;
     if (c.radiation) {
         text +=
-            '\n☢ ' +
-            (safe ? 'STATION SANCTUARY' : c.radiation.toFixed(1) + '/s FIELD') +
-            ' · LINING ' +
-            Math.round(radiation_protection()*100) +
-            '% · DOSE ' +
-            Math.round(player.radiation_dose || 0) +
-            '%';
+            `\n☢ ${safe ? 'STATION SANCTUARY' : `${c.radiation.toFixed(1)}/s FIELD`} · LINING ${Math.round(radiation_protection()*100)}% · DOSE ${Math.round(player.radiation_dose || 0)}%`;
     }
     else {
-        text += '\nNO RADIATION · ' + Math.round(world.w/1000) + ' × ' + Math.round(world.h/1000) + ' km';
+        text += `\nNO RADIATION · ${Math.round(world.w/1000)} × ${Math.round(world.h/1000)} km`;
     }
     const context = guide_context();
     if (context?.goal && guide_path.length) {
         const m = route_metrics();
-        text += '\nROUTE ' + m.jumps + ' PORTALS · ' + (m.walk/1000).toFixed(1) + ' km · ~' + format_time(m.seconds);
+        text += `\nROUTE ${m.jumps} PORTALS · ${(m.walk/1000).toFixed(1)} km · ~${format_time(m.seconds)}`;
     }
     readout.textContent = text;
     readout.style.whiteSpace = 'pre-line';

@@ -7,13 +7,13 @@ const dev_storage_remove = Storage.prototype.removeItem;
 const dev_inner_width = Object.getOwnPropertyDescriptor(window, 'innerWidth');
 
 Storage.prototype.getItem = function (key) {
-    return dev_storage_get.call(this, 'dev:' + key);
+    return dev_storage_get.call(this, `dev:${key}`);
 };
 Storage.prototype.setItem = function (key, value) {
-    return dev_storage_set.call(this, 'dev:' + key, value);
+    return dev_storage_set.call(this, `dev:${key}`, value);
 };
 Storage.prototype.removeItem = function (key) {
-    return dev_storage_remove.call(this, 'dev:' + key);
+    return dev_storage_remove.call(this, `dev:${key}`);
 };
 Object.defineProperty(window, 'innerWidth', {
     configurable: true,

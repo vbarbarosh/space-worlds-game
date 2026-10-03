@@ -17,7 +17,7 @@ function save_checkpoint()
         difficulty,
         hp: player.hp,
         energy: player.energy,
-        position: {x: player.x, y: player.y, size: {w: world.w, h: world.h}},
+        position: checkpoint_position(),
         physics: {
             heat: player.heat || 0,
             overheated: !!player.overheated,
@@ -32,13 +32,27 @@ function save_checkpoint()
     };
     try {
         localStorage.setItem('pulse_drift_frontier_v4', JSON.stringify(checkpoint));
-        checkpoint_notice = 'Progress saved · ' + worlds[campaign.world].name;
+        checkpoint_notice = `Progress saved · ${worlds[campaign.world].name}`;
         set_hidden(el.continue_button, false);
-        el.continue_button.textContent = 'CONTINUE · ' + worlds[campaign.world].name;
+        el.continue_button.textContent = `CONTINUE · ${worlds[campaign.world].name}`;
     }
     catch {
         checkpoint_notice = 'Autosave unavailable. Keep this tab open.';
     }
+}
+
+// Where a continue resumes: the ship's place, unless it is in a black hole's pull; then the last safe place saved in
+// this world, or beside the station
+function checkpoint_position()
+{
+    const size = {w: world.w, h: world.h};
+    if (!in_gravity_pull(player)) {
+        return {x: player.x, y: player.y, size};
+    }
+    if (checkpoint?.position && (checkpoint.campaign?.world === campaign.world)) {
+        return checkpoint.position;
+    }
+    return {x: station.x, y: station.y + 260, size};
 }
 
 function clear_checkpoint()
@@ -59,7 +73,7 @@ function load_checkpoint()
         if (valid_checkpoint(v)) {
             checkpoint = v;
             set_hidden(el.continue_button, false);
-            el.continue_button.textContent = 'CONTINUE · ' + worlds[v.campaign.world].name;
+            el.continue_button.textContent = `CONTINUE · ${worlds[v.campaign.world].name}`;
         }
     }
     catch {

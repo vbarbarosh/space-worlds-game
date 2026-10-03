@@ -12,6 +12,7 @@ function frame(timestamp)
     else if (!modal) {
         update(game_dt);
     }
+    hangar_previews_tick(dt);
     ui_timer += dt;
     if (ui_timer > 0.12) {
         update_hud();

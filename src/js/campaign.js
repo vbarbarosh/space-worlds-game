@@ -106,6 +106,12 @@ function guide_base_reset_run(resume = false)
         const size = saved.position.size || {w: 9000 + wave*320, h: 7400 + wave*240};
         player.x = clamp((saved.position.x*world.w)/size.w, 30, world.w - 30);
         player.y = clamp((saved.position.y*world.h)/size.h, 30, world.h - 30);
+        // A save made inside a black hole's pull, before saves avoided it, resumes beside the station instead
+        if (in_gravity_pull(player)) {
+            player.x = station.x;
+            player.y = station.y + 260;
+            show_toast(`RECOVERED AT ${worlds[campaign.world].station.toUpperCase()}`, 'YOUR LAST SAVE WAS INSIDE A GRAVITY WELL', 4);
+        }
         update_camera(0, true);
     }
     loading_campaign = false;

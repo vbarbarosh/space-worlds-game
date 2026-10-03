@@ -12,7 +12,7 @@ function dev_weapons_fill()
     const rows = [];
     for (const weapon of weapon_catalog) {
         const range = Math.round(weapon.speed*weapon.life);
-        rows.push({value: weapon.id, cells: [weapon.name, weapon.damage, weapon.interval + ' s', weapon.speed, range, weapon.rating]});
+        rows.push({value: weapon.id, cells: [weapon.name, weapon.damage, `${weapon.interval} s`, weapon.speed, range, weapon.rating]});
     }
     const headers = ['Weapon', 'Dmg', 'Every', 'Speed', 'Range', 'Rating'];
     dev_table_fill(document.getElementById('dev_weapons'), headers, rows, dev_scenario.weapon, dev_weapon_set);

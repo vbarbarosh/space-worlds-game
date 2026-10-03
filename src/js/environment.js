@@ -24,7 +24,7 @@ function generate_environment()
             diam: diameters[campaign.world],
             texture: campaign.world,
             primary: true,
-            name: worlds[campaign.world].name + ' PRIME',
+            name: `${worlds[campaign.world].name} PRIME`,
         },
         {
             x: world.w*((campaign.world % 2) ? 0.22 : 0.77),
@@ -32,7 +32,7 @@ function generate_environment()
             diam: 650 + campaign.world*35,
             texture: 2,
             primary: false,
-            name: worlds[campaign.world].name + ' OUTER MOON',
+            name: `${worlds[campaign.world].name} OUTER MOON`,
         },
     ];
     world_zones = [];

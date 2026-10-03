@@ -11,7 +11,7 @@ function refresh_guidance()
         guide_path = [];
         return c;
     }
-    const key = campaign.world + ':' + c.kind + ':' + Math.round(c.goal.x/50) + ':' + Math.round(c.goal.y/50);
+    const key = `${campaign.world}:${c.kind}:${Math.round(c.goal.x/50)}:${Math.round(c.goal.y/50)}`;
     if ((key !== guide_path_key) || !guide_path_origin || (distance(player, guide_path_origin) > 160)) {
         guide_path = portal_flight_path(player, c.goal);
         guide_path_key = key;
@@ -26,7 +26,7 @@ function refresh_guidance()
         y: next.y,
         label:
             (next.portal !== undefined)
-                ? 'LOCAL PORTAL ' + portals[next.portal].label + ' → ' + portals[portals[next.portal].destination].label
+                ? `LOCAL PORTAL ${portals[next.portal].label} → ${portals[portals[next.portal].destination].label}`
                 : (guide_path.length > 1)
                     ? 'SAFE ROUTE / NEXT MARKER'
                     : c.goal.label,
@@ -233,7 +233,7 @@ function guide_action_label(c)
 {
     if ((state === 'playing') && c.goal && (distance(player, c.goal) < ((c.kind === 'jump') ? 155 : 230))) {
         if (c.kind === 'jump') {
-            return 'R / JUMP TO ' + worlds[c.route[1]].name.toUpperCase();
+            return `R / JUMP TO ${worlds[c.route[1]].name.toUpperCase()}`;
         }
         if (['claim', 'courier', 'trade', 'prepare', 'station'].includes(c.kind)) {
             return 'R / DOCK NOW';
@@ -259,16 +259,16 @@ function visual_base_update_hud()
     document.getElementById('mission_instruction').textContent = c.instruction;
     document.getElementById('mission_route').textContent =
         (c.route.length > 1)
-            ? 'ROUTE ' + c.route.map(v => worlds[v].name).join(' → ')
+            ? `ROUTE ${c.route.map(v => worlds[v].name).join(' → ')}`
             : c.goal
-                ? c.goal.label + ' · ' + Math.round(distance(player, c.goal)) + ' m'
+                ? `${c.goal.label} · ${Math.round(distance(player, c.goal))} m`
                 : '';
     const b = document.getElementById('guide_action');
     b.textContent = guide_action_label(c);
     b.disabled = !['playing', 'upgrade'].includes(state);
     document.getElementById('guide_plan').disabled = !['playing', 'paused', 'upgrade', 'navigation'].includes(state);
     if ((m?.type === 'courier') && !m.ready) {
-        el.mission_phase.textContent = 'CORE ABOARD · DELIVERY ' + format_progress(m.progress) + '/' + m.target;
+        el.mission_phase.textContent = `CORE ABOARD · DELIVERY ${format_progress(m.progress)}/${m.target}`;
     }
 }
 
@@ -280,15 +280,15 @@ function render_guide_plan(parent, c)
     parent.append(heading);
     const next = document.createElement('p');
     next.className = 'next-instruction';
-    next.textContent = 'NEXT: ' + c.instruction;
+    next.textContent = `NEXT: ${c.instruction}`;
     parent.append(next);
     const route = document.createElement('div');
     route.className = 'route-chips';
     for (let i = 0, end = c.route.length; i < end; ++i) {
         const id = c.route[i];
         const chip = document.createElement('span');
-        chip.className = ((i === 0) ? 'current ' : '') + ((id === c.target) ? 'destination ' : '') + (!allowed_world(id) ? 'locked' : '');
-        chip.textContent = ((i === 0) ? 'YOU: ' : '') + worlds[id].name;
+        chip.className = `${(i === 0) ? 'current ' : ''}${(id === c.target) ? 'destination ' : ''}${!allowed_world(id) ? 'locked' : ''}`;
+        chip.textContent = `${(i === 0) ? 'YOU: ' : ''}${worlds[id].name}`;
         route.append(chip);
     }
     parent.append(route);
@@ -299,7 +299,7 @@ function render_guide_plan(parent, c)
             const item = document.createElement('li');
             item.className = v.done ? 'done' : '';
             const title = document.createElement('b');
-            title.textContent = (v.done ? '✓ ' : '') + v.title;
+            title.textContent = `${v.done ? '✓ ' : ''}${v.title}`;
             item.append(title);
             const text = document.createElement('span');
             text.textContent = v.text;
@@ -330,7 +330,7 @@ function expedition_base_render_contracts(parent, board = false)
             (contract.type === 'courier')
                 ? contract.ready
                     ? 'DELIVERED · Collect your reward.'
-                    : 'PACKAGE ABOARD · Dock at ' + worlds[contract.world].station + ' in ' + worlds[contract.world].name + ' to deliver automatically.'
+                    : `PACKAGE ABOARD · Dock at ${worlds[contract.world].station} in ${worlds[contract.world].name} to deliver automatically.`
                 : 'Open MISSION PLAN for controls, the next step and a marked route.';
         c.append(note);
         const b = document.createElement('button');
@@ -396,7 +396,7 @@ function physics_base_render_navigation()
     guide_base_render_navigation();
     render_guide_plan(document.getElementById('route_briefing'), c);
     set_hidden(document.getElementById('route_briefing'), nav_tab === 'local');
-    document.querySelector('.navigation-panel h2').textContent = (nav_tab === 'local') ? worlds[campaign.world].name + ' / world map' : 'Chart your own course.';
+    document.querySelector('.navigation-panel h2').textContent = (nav_tab === 'local') ? `${worlds[campaign.world].name} / world map` : 'Chart your own course.';
     const chart = document.getElementById('navigation_chart');
     chart.replaceChildren();
     chart.classList.remove('hidden');

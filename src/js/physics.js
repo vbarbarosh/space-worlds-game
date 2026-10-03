@@ -47,7 +47,7 @@ function expedition_base_reset_run(resume = false)
 function show_world_arrival(title)
 {
     const r = current_world_rules();
-    show_toast(title, r.name.toUpperCase() + ' / ' + r.summary + ' / J → WORLD RULES', 5);
+    show_toast(title, `${r.name.toUpperCase()} / ${r.summary} / J → WORLD RULES`, 5);
 }
 
 function render_celestial_body(body)
@@ -58,6 +58,11 @@ function render_celestial_body(body)
     const radius = diam*0.437;
     const id = body.primary ? campaign.world : 2;
     if ((px + diam < 0) || (px - diam > W) || (py + diam < 0) || (py - diam > H)) {
+        return;
+    }
+    // The designer's planet: its disc as wide as today's, a little see-through so it stays in the background
+    const art = body.primary && world_art(`planet-${world_slug()}`);
+    if (art && sprite_draw_box(art, null, diam*0.913, px, py, 0, 0.85)) {
         return;
     }
     const sky = ensure_world_visuals(body.texture);
@@ -108,8 +113,8 @@ function render_world_fields()
         }
         const s = zone_state(world_zone);
         const color = (world_zone.type === 'storm') ? blue : '#ff9469';
-        ctx.fillStyle = color + (s.active ? '26' : s.warning ? '18' : '08');
-        ctx.strokeStyle = color + (s.active ? 'aa' : s.warning ? '88' : '33');
+        ctx.fillStyle = `${color}${s.active ? '26' : s.warning ? '18' : '08'}`;
+        ctx.strokeStyle = `${color}${s.active ? 'aa' : s.warning ? '88' : '33'}`;
         ctx.lineWidth = s.active ? 2 : 1;
         ctx.setLineDash(s.active ? [] : [8, 12]);
         ctx.beginPath();
@@ -121,14 +126,12 @@ function render_world_fields()
         ctx.font = 'bold 10px ui-monospace,monospace';
         ctx.textAlign = 'center';
         ctx.fillText(
-            ((world_zone.type === 'storm') ? 'ION FIELD' : 'SOLAR FIELD') +
-                ' / ' +
-                (s.active ? 'ACTIVE ' + Math.ceil(s.remaining) + 's' : s.warning ? 'WARNING ' + Math.ceil(s.remaining - 4) + 's' : 'CALM'),
+            `${(world_zone.type === 'storm') ? 'ION FIELD' : 'SOLAR FIELD'} / ${s.active ? `ACTIVE ${Math.ceil(s.remaining)}s` : s.warning ? `WARNING ${Math.ceil(s.remaining - 4)}s` : 'CALM'}`,
             world_zone.x,
             world_zone.y - world_zone.r - 18
         );
         if (s.active) {
-            ctx.strokeStyle = color + '66';
+            ctx.strokeStyle = `${color}66`;
             for (let i = 0; i < 4; ++i) {
                 const a = (i*Math.PI)/2 + environment_time*0.2;
                 ctx.beginPath();
@@ -188,8 +191,8 @@ function render_environment_on_chart(map)
         const x = ((world_zone.x - b.x)/b.w)*960;
         const y = ((world_zone.y - b.y)/b.h)*620;
         const color = (world_zone.type === 'storm') ? blue : '#ff9469';
-        draw.strokeStyle = color + '88';
-        draw.fillStyle = color + '11';
+        draw.strokeStyle = `${color}88`;
+        draw.fillStyle = `${color}11`;
         draw.beginPath();
         draw.ellipse(x, y, (world_zone.r/b.w)*960, (world_zone.r/b.h)*620, 0, 0, Math.PI*2);
         draw.fill();
@@ -285,17 +288,18 @@ function render_navigation()
     parent.replaceChildren();
     for (let i = 0, end = world_rules.length; i < end; ++i) {
         const world_rule = world_rules[i];
+        function on_plan() {
+            track_world(i);
+            nav_tab = 'worlds';
+            render_navigation();
+        }
         const c = card(
             parent,
-            worlds[i].name + ' / ' + world_rule.name,
-            world_rule.details.join(' ') + ' ' + expedition_conditions[i].advice,
-            world_brief(i) + ' · ' + world_rule.prepare + ' Soundtrack: ' + world_audio[i].title + ' / ' + world_audio[i].bpm + ' BPM.',
+            `${worlds[i].name} / ${world_rule.name}`,
+            `${world_rule.details.join(' ')} ${expedition_conditions[i].advice}`,
+            `${world_brief(i)} · ${world_rule.prepare} Soundtrack: ${world_audio[i].title} / ${world_audio[i].bpm} BPM.`,
             (i === campaign.world) ? 'CURRENT WORLD' : 'PLAN TRAVEL',
-            function () {
-                track_world(i);
-                nav_tab = 'worlds';
-                render_navigation();
-            },
+            on_plan,
             i === campaign.world,
             (i === campaign.world) ? 'active' : ''
         );

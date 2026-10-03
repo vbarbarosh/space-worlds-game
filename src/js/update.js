@@ -1,59 +1,58 @@
 function base_update_hud()
 {
     el.score.textContent = String(score).padStart(6, '0');
-    el.sector.innerHTML = String(wave).padStart(2, '0') + ' <small>/ 15</small>';
-    el.combo.textContent = '×' + combo;
+    el.sector.innerHTML = `${String(wave).padStart(2, '0')} <small>/ 15</small>`;
+    el.combo.textContent = `×${combo}`;
     el.combo.style.color = (combo > 3) ? gold : '#eef4ff';
     el.salvage.textContent = salvage;
     if (!player) {
         return;
     }
-    el.health_text.textContent = Math.ceil(player.hp) + ' / ' + hull_max();
-    el.health_fill.style.width = (player.hp/hull_max())*100 + '%';
+    el.health_text.textContent = `${Math.ceil(player.hp)} / ${hull_max()}`;
+    el.health_fill.style.width = `${(player.hp/hull_max())*100}%`;
     el.health_fill.style.background = (player.hp < 30) ? pink : cyan;
-    el.pulse_text.textContent = (player.energy >= 100) ? 'READY' : Math.floor(player.energy) + '%';
-    el.pulse_fill.style.width = player.energy + '%';
+    el.pulse_text.textContent = (player.energy >= 100) ? 'READY' : `${Math.floor(player.energy)}%`;
+    el.pulse_fill.style.width = `${player.energy}%`;
     el.dash_text.textContent = player.turbo_active
-        ? 'THRUST ' + turbo_fuel().toFixed(1) + 's'
+        ? `THRUST ${turbo_fuel().toFixed(1)}s`
         : (player.dash_cd > 0)
             ? 'COOLING'
             : (turbo_fuel() >= turbo_duration() - 0.05)
                 ? 'READY'
-                : 'CHARGING ' + turbo_fuel().toFixed(1) + 's';
-    el.dash_fill.style.width = (turbo_fuel()/turbo_duration())*100 + '%';
+                : `CHARGING ${turbo_fuel().toFixed(1)}s`;
+    el.dash_fill.style.width = `${(turbo_fuel()/turbo_duration())*100}%`;
     document.getElementById('touch_pulse').disabled = player.energy < 100;
     document.getElementById('touch_dash').disabled = !player.turbo_active && ((player.dash_cd > 0) || (turbo_fuel() < 0.25));
     document.getElementById('touch_dash').textContent = 'HOLD TURBO';
     document.getElementById('touch_dash').setAttribute('aria-pressed', String(!!player.turbo_active));
     const boss = enemies.find(v => v.type === 'boss');
     if (boss) {
-        el.boss_fill.style.width = clamp((boss.hp/boss.max_hp)*100, 0, 100) + '%';
+        el.boss_fill.style.width = `${clamp((boss.hp/boss.max_hp)*100, 0, 100)}%`;
     }
-    el.act_label.textContent = 'ACT ' + ['I', 'II', 'III'][Math.floor((wave - 1)/5)] + ' / ' + current_sector().act;
+    el.act_label.textContent = `ACT ${['I', 'II', 'III'][Math.floor((wave - 1)/5)]} / ${current_sector().act}`;
     el.mission_name.textContent = current_sector().name;
-    el.mission_phase.textContent =
-        ((spawn_left > 0) ? 'WAVE ' + phase_index + ' / 3' : 'CLEAR ' + enemies.length + ' SIGNALS') +
-        ((stasis_time > 0) ? ' · STASIS ' + Math.ceil(stasis_time) + 's' : '');
+    const phase = (spawn_left > 0) ? `WAVE ${phase_index} / 3` : `CLEAR ${enemies.length} SIGNALS`;
+    el.mission_phase.textContent = `${phase}${(stasis_time > 0) ? ` · STASIS ${Math.ceil(stasis_time)}s` : ''}`;
     el.run_time.textContent = format_time(run_time);
-    el.sector_progress.style.width = clamp(((phase_index - 1 + Math.min(1, phase_timer/current_sector().duration))/3)*100, 0, 100) + '%';
+    el.sector_progress.style.width = `${clamp(((phase_index - 1 + Math.min(1, phase_timer/current_sector().duration))/3)*100, 0, 100)}%`;
     for (const key of ['medkit', 'emp', 'stasis']) {
-        const b = document.getElementById('quick_' + key);
+        const b = document.getElementById(`quick_${key}`);
         b.querySelector('b').textContent = supplies[key];
         b.disabled = (state !== 'playing') || !supplies[key] || ((key === 'medkit') && (player.hp >= hull_max())) || ((key === 'stasis') && (stasis_time > 0));
     }
     const drone_button = document.getElementById('quick_drones');
     set_hidden(drone_button, arcade.active);
-    drone_button.querySelector('b').textContent = drones_out ? 'OUT ' + drones.length + '/' + drones_owned() : drones_owned();
+    drone_button.querySelector('b').textContent = drones_out ? `OUT ${drones.length}/${drones_owned()}` : drones_owned();
     drone_button.classList.toggle('on', drones_out);
     drone_button.disabled = (state !== 'playing') || (!drones_out && !drones_owned());
-    document.getElementById('quick_magnet').querySelector('b').textContent = 'MAGNET ' + upgrades.magnet + '/7 · ' + format_reading(magnetic_radius()) + ' px';
-    el.map_coordinates.textContent = 'X ' + Math.round(player.x) + ' / Y ' + Math.round(player.y) + ' · ' + world.w + ' × ' + world.h;
+    document.getElementById('quick_magnet').querySelector('b').textContent = `MAGNET ${upgrades.magnet}/7 · ${format_reading(magnetic_radius())} px`;
+    el.map_coordinates.textContent = `X ${Math.round(player.x)} / Y ${Math.round(player.y)} · ${world.w} × ${world.h}`;
     const danger = black_holes.some(v => distance(v, player) < gravity_reach(v));
-    el.navigation_status.textContent =
-        (formation.leader ? 'IN FORMATION · G TO BREAK OFF' : 'FOLLOW ' + (mouse_drive.following ? 'ON · DOUBLE CLICK TO STOP' : 'OFF · DOUBLE CLICK TO START')) +
-        (danger ? ' / GRAVITY WELL · CORE FATAL' : (player.portal_cd > 0) ? ' / GATE COOLDOWN ' + player.portal_cd.toFixed(1) + 's' : '');
+    const steering = formation.leader ? 'IN FORMATION · G TO BREAK OFF' : `FOLLOW ${mouse_drive.following ? 'ON · DOUBLE CLICK TO STOP' : 'OFF · DOUBLE CLICK TO START'}`;
+    const warning = danger ? ' / GRAVITY WELL · CORE FATAL' : (player.portal_cd > 0) ? ` / GATE COOLDOWN ${player.portal_cd.toFixed(1)}s` : '';
+    el.navigation_status.textContent = `${steering}${warning}`;
     el.navigation_status.classList.toggle('danger', danger);
-    el.shield_readout.textContent = 'SHIELD ' + Math.ceil(player.shield) + ' / ' + shield_max();
+    el.shield_readout.textContent = `SHIELD ${Math.ceil(player.shield)} / ${shield_max()}`;
 }
 
 function update_effects(dt)

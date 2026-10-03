@@ -17,10 +17,10 @@ function dev_upgrades_fill()
     }
     const rows = [];
     for (const option of upgrade_options) {
-        rows.push({value: option.key, cells: [option.title, upgrades[option.key] + ' / ' + option.cap, ...dev_step_buttons(option.key, option.cap, upgrades)]});
+        rows.push({value: option.key, cells: [option.title, `${upgrades[option.key]} / ${option.cap}`, ...dev_step_buttons(option.key, option.cap, upgrades)]});
     }
     for (const option of supply_options) {
-        rows.push({value: option.key, cells: [option.title, supplies[option.key] + ' / ' + dev_supply_cap, ...dev_step_buttons(option.key, dev_supply_cap, supplies)]});
+        rows.push({value: option.key, cells: [option.title, `${supplies[option.key]} / ${dev_supply_cap}`, ...dev_step_buttons(option.key, dev_supply_cap, supplies)]});
     }
     dev_table_fill(document.getElementById('dev_upgrades'), ['Module', 'Level', '', ''], rows, null, null);
     const stats = [
@@ -31,9 +31,9 @@ function dev_upgrades_fill()
         ['Magnet radius', Math.round(magnetic_radius())],
         ['Cruise speed', Math.round(cruise_speed())],
         ['Turbo seconds', turbo_duration().toFixed(1)],
-        ['Turbo cooldown', dash_cooldown().toFixed(1) + ' s'],
+        ['Turbo cooldown', `${dash_cooldown().toFixed(1)} s`],
         ['Cargo', cargo_capacity()],
-        ['Radiation protection', Math.round(radiation_protection()*100) + '%'],
+        ['Radiation protection', `${Math.round(radiation_protection()*100)}%`],
     ];
     dev_table_fill(document.getElementById('dev_stats'), ['Stat', 'Value'], stats.map(v => ({value: v[0], cells: v})), null, null);
 }

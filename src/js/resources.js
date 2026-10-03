@@ -62,7 +62,7 @@ function ore_load(v)
     const amount = Math.min(room, v.amount || 1);
     campaign.cargo[key] = (campaign.cargo[key] || 0) + amount;
     if (v.resource && (amount > 0)) {
-        label(v.x, v.y, '+' + amount + ' ' + resource_of(key).name.toUpperCase(), ore_color(v));
+        label(v.x, v.y, `+${amount} ${resource_of(key).name.toUpperCase()}`, ore_color(v));
     }
     if (amount < (v.amount || 1)) {
         label(v.x, v.y + 18, 'CARGO FULL · SALVAGE COLLECTIBLE', gold);
@@ -83,7 +83,7 @@ function render_ore_scanner()
             continue;
         }
         ctx.fillStyle = ore_color(v);
-        ctx.fillText(resource_of(v.resource).name.toUpperCase() + ' ×' + v.amount, v.x, v.y + v.r + 18);
+        ctx.fillText(`${resource_of(v.resource).name.toUpperCase()} ×${v.amount}`, v.x, v.y + v.r + 18);
     }
     ctx.restore();
 }
@@ -136,7 +136,7 @@ function cargo_collect(pickup, quiet)
     const amount = Math.min(pickup.amount, cargo_capacity() - cargo_count());
     campaign.cargo[pickup.key] = (campaign.cargo[pickup.key] || 0) + amount;
     if (!quiet && (amount > 0)) {
-        label(pickup.x, pickup.y, '+' + amount + ' ' + commodities.find(v => v.key === pickup.key).name.toUpperCase(), pickup_color(pickup));
+        label(pickup.x, pickup.y, `+${amount} ${commodities.find(v => v.key === pickup.key).name.toUpperCase()}`, pickup_color(pickup));
     }
 }
 
@@ -154,8 +154,8 @@ function kill_xp_grant(enemy)
     const old_rank = pilot_rank();
     const xp = kill_xp(enemy);
     campaign.xp += xp;
-    label(enemy.x, enemy.y + 22, '+' + xp + ' XP', blue);
+    label(enemy.x, enemy.y + 22, `+${xp} XP`, blue);
     if (pilot_rank() > old_rank) {
-        show_toast('PILOT PROMOTED', rank_names[pilot_rank()].toUpperCase() + ' / NEW HANGAR AND ARSENAL LICENSES', 5);
+        show_toast('PILOT PROMOTED', `${rank_names[pilot_rank()].toUpperCase()} / NEW HANGAR AND ARSENAL LICENSES`, 5);
     }
 }

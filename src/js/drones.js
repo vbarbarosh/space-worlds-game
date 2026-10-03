@@ -47,7 +47,7 @@ function drones_toggle()
         return;
     }
     drones_out = true;
-    show_toast('DRONES OUT', drones_owned() + ' CUTTING / H CALLS THEM BACK / RAIDERS HUNT THEM', 2.5);
+    show_toast('DRONES OUT', `${drones_owned()} CUTTING / H CALLS THEM BACK / RAIDERS HUNT THEM`, 2.5);
 }
 
 // The nearest live rock within 900 m of the ship that no other drone is cutting.
@@ -172,7 +172,7 @@ function drones_update(dt)
             drone.state = 'lost';
             campaign.drones = Math.max(0, drones_owned() - 1);
             explode(drone.x, drone.y, 14, gold);
-            show_toast('DRONE LOST', campaign.drones + ' LEFT / REPLACE THEM AT A STATION', 2.5);
+            show_toast('DRONE LOST', `${campaign.drones} LEFT / REPLACE THEM AT A STATION`, 2.5);
             save_checkpoint();
         }
     }
@@ -215,7 +215,7 @@ function render_drones()
             ctx.globalCompositeOperation = 'source-over';
         }
         // The drawing's accent takes the colour of the ore it carries
-        if ((view_mode !== 'wireframe') && sprite_draw('drone-mining', drone.load ? ore_color(drone.load) : null, 24, drone.x, drone.y, drone.angle)) {
+        if ((view_mode !== 'wireframe') && sprite_draw('drone-mining', drone.load ? ore_color(drone.load) : null, sprite_sizes.drone, drone.x, drone.y, drone.angle)) {
             continue;
         }
         ctx.save();
@@ -250,14 +250,10 @@ function render_drone_shop_card()
     const card = document.createElement('div');
     card.className = 'shop-item';
     card.innerHTML =
-        '<b>⛏ &nbsp;Mining drone</b><span class="item-level">IN BAY ' +
-        owned +
-        ' / ' +
-        drone_bay() +
-        '</span><p>H / cuts rocks near you and brings the ore to your hold. Raiders hunt drones; replace the lost ones here.</p>';
+        `<b>⛏ &nbsp;Mining drone</b><span class="item-level">IN BAY ${owned} / ${drone_bay()}</span><p>H / cuts rocks near you and brings the ore to your hold. Raiders hunt drones; replace the lost ones here.</p>`;
     const b = document.createElement('button');
     b.disabled = capped || (salvage < drone_price);
-    b.textContent = capped ? 'BAY FULL' : 'BUY · ◆ ' + drone_price;
+    b.textContent = capped ? 'BAY FULL' : `BUY · ◆ ${drone_price}`;
     b.addEventListener('click', function () {
         if ((state !== 'upgrade') || (drones_owned() >= drone_bay()) || (salvage < drone_price)) {
             return;

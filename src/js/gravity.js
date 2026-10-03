@@ -1,3 +1,9 @@
+// Whether a point lies in a black hole's pull: a save never keeps a ship there, so a continue cannot drop it back in
+function in_gravity_pull(p)
+{
+    return black_holes.some(v => distance(v, p) < gravity_reach(v));
+}
+
 function gravity_reach(h)
 {
     return Math.max(h.radius*2.8, h.radius + 1700);
@@ -160,7 +166,7 @@ function render_gravity_direction()
     ctx.fillStyle = '#ffc5dd';
     ctx.font = '9px ui-monospace,monospace';
     ctx.textAlign = 'center';
-    ctx.fillText('PULL ' + Math.ceil(v.pull) + ' m/s', 0, 51);
+    ctx.fillText(`PULL ${Math.ceil(v.pull)} m/s`, 0, 51);
     ctx.restore();
 }
 

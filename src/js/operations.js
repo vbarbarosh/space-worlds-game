@@ -57,7 +57,7 @@ for (let i = 0, end = story.length; i < end; ++i) {
     const m = story[i];
     m.stages = expanded_story_stages[i];
     m.reward = Math.round(m.reward*1.8);
-    m.description += ' A multi-stage operation: ' + m.stages.map(v => v.title).join(' → ') + '.';
+    m.description += ` A multi-stage operation: ${m.stages.map(v => v.title).join(' → ')}.`;
 }
 const second_act = [
     [
@@ -157,7 +157,7 @@ for (const v of second_act) {
         target: v[2][0].target,
         reward: v[3],
         stages: v[2],
-        description: 'Chapter II operation: ' + v[2].map(v => v.title).join(' → ') + '.',
+        description: `Chapter II operation: ${v[2].map(v => v.title).join(' → ')}.`,
         level: 2,
     });
 }
@@ -211,11 +211,11 @@ function mission_event(type, n, details = {})
         if (m.stages && (m.stage_index < m.stages.length - 1)) {
             m.stage_index++;
             sync_stage(m);
-            show_toast('NEXT OPERATION STAGE', m.stages[m.stage_index].title + ' / ' + worlds[m.world].name, 4);
+            show_toast('NEXT OPERATION STAGE', `${m.stages[m.stage_index].title} / ${worlds[m.world].name}`, 4);
         }
         else {
             m.ready = true;
-            show_toast('OPERATION COMPLETE', m.title + ' / DOCK TO COLLECT ◆ ' + m.reward, 4);
+            show_toast('OPERATION COMPLETE', `${m.title} / DOCK TO COLLECT ◆ ${m.reward}`, 4);
             sfx('win');
         }
         save_checkpoint();
@@ -275,15 +275,16 @@ function update_operations(dt)
         if (!m.started) {
             m.started = true;
             m.spawn_clock = 0;
+            const hint = (m.type === 'scan')
+                ? 'HOLD WITHIN 150 m TO SCAN'
+                : (m.type === 'recover')
+                    ? 'CLEAR THE AMBUSH, THEN HOLD WITHIN 150 m'
+                    : (m.type === 'defend')
+                        ? 'STAY WITHIN 450 m / CLEAR RAIDERS'
+                        : 'DEFEAT THE MARKED ELITE';
             show_toast(
                 (m.type === 'defend') ? 'RELAY DEFENSE' : (m.type === 'elite') ? 'COMMANDER CONTACT' : 'SIGNAL ACQUIRED',
-                (m.type === 'scan')
-                    ? 'HOLD WITHIN 150 m TO SCAN'
-                    : (m.type === 'recover')
-                        ? 'CLEAR THE AMBUSH, THEN HOLD WITHIN 150 m'
-                        : (m.type === 'defend')
-                            ? 'STAY WITHIN 450 m / CLEAR RAIDERS'
-                            : 'DEFEAT THE MARKED ELITE',
+                hint,
                 3
             );
         }
@@ -421,7 +422,7 @@ function update_escort(dt)
         }
         escort.hp = Math.min(300, escort.hp + 65);
         escort.destination = (escort.leg === 1) ? {...beacons[2]} : {x: station.x + 320, y: station.y - 280};
-        show_toast('CONVOY CHECKPOINT ' + escort.leg + '/3', 'FIELD REPAIR +65 / NEXT ROUTE LEG', 3);
+        show_toast(`CONVOY CHECKPOINT ${escort.leg}/3`, 'FIELD REPAIR +65 / NEXT ROUTE LEG', 3);
     }
     m.escort_state = clone(escort);
 }
@@ -455,7 +456,7 @@ function offered_jobs()
     ];
     out[2].reward *= 2;
     out.push({
-        title: 'Convoy: ' + worlds[id].name + ' relief route',
+        title: `Convoy: ${worlds[id].name} relief route`,
         description: 'Meet the convoy, protect three route legs, then deliver its manifest to another world.',
         reward: 450 + id*80 + level*50,
         stages: [stage('escort', id, 1, 'Protect the relief convoy'), stage('courier', other, 1, 'Deliver the convoy manifest')],
@@ -466,7 +467,7 @@ function offered_jobs()
     });
     if (rank >= 2) {
         out.push({
-            title: 'Commander bounty / ' + worlds[id].faction,
+            title: `Commander bounty / ${worlds[id].faction}`,
             description: 'Track a named commander, destroy its escorts, defeat the armored target, recover proof, then report.',
             reward: 650 + id*110 + level*80,
             type: 'scan',
@@ -484,7 +485,7 @@ function offered_jobs()
     }
     if (rank >= 4) {
         out.push({
-            title: 'Frontier expedition ' + campaign.expedition + ' / ' + worlds[id].name,
+            title: `Frontier expedition ${campaign.expedition} / ${worlds[id].name}`,
             description:
                 'An escalating expedition: survey, defend, defeat an elite, recover an archive, and bring it home. Each completed expedition unlocks the next.',
             reward: 1100 + id*150 + level*140,
@@ -506,7 +507,7 @@ function offered_jobs()
         m.reward = Math.round(m.reward);
         m.level = m.level || level;
         if (m.stages) {
-            m.description += ' ' + m.stages.map(v => v.title).join(' → ') + '.';
+            m.description += ` ${m.stages.map(v => v.title).join(' → ')}.`;
         }
     }
     return out;
@@ -527,7 +528,7 @@ function guide_base_claim_contract(id)
     }
     expedition_base_guide_base_claim_contract(id);
     if (pilot_rank() > old_rank) {
-        show_toast('PILOT PROMOTED', rank_names[pilot_rank()].toUpperCase() + ' / NEW HANGAR AND ARSENAL LICENSES', 5);
+        show_toast('PILOT PROMOTED', `${rank_names[pilot_rank()].toUpperCase()} / NEW HANGAR AND ARSENAL LICENSES`, 5);
     }
 }
 
@@ -539,14 +540,14 @@ function build_guide_context()
         return out;
     }
     if (m.stages) {
-        out.title = m.title + ' · ' + Math.min(m.stage_index + 1, m.stages.length) + '/' + m.stages.length;
+        out.title = `${m.title} · ${Math.min(m.stage_index + 1, m.stages.length)}/${m.stages.length}`;
         const claim = out.plan.filter(v => v.title.startsWith('Collect ◆'));
         out.plan = out.plan.filter(v => !v.title.startsWith('Collect ◆'));
         for (let i = 0, end = m.stages.length; i < end; ++i) {
             const stage = m.stages[i];
             out.plan.push({
-                title: 'STAGE ' + (i + 1) + ' / ' + stage.title,
-                text: worlds[stage.world].name + ' · ' + stage_description(stage, m, i),
+                title: `STAGE ${i + 1} / ${stage.title}`,
+                text: `${worlds[stage.world].name} · ${stage_description(stage, m, i)}`,
                 done: (i < m.stage_index) || m.ready,
             });
         }
@@ -564,11 +565,7 @@ function build_guide_context()
     }
     if ((m.type === 'escort') && (m.world === campaign.world) && escort) {
         out.instruction =
-            'Convoy leg ' +
-            (escort.leg + 1) +
-            '/3 · Hull ' +
-            Math.ceil(escort.hp) +
-            '/300. Stay within 800 m and destroy attackers. Field repairs at each checkpoint.';
+            `Convoy leg ${escort.leg + 1}/3 · Hull ${Math.ceil(escort.hp)}/300. Stay within 800 m and destroy attackers. Field repairs at each checkpoint.`;
     }
     return out;
 }
@@ -578,23 +575,13 @@ function stage_description(v, m, index)
     const current = index === m.stage_index;
     const left = Math.max(0, v.target - (current ? m.progress : 0));
     if (v.type === 'scan') {
-        return (
-            'Hold within 150 m of beacon ' + ((v.beacon || 0) + 1) + ' for ' + Math.ceil(left) + ' seconds. Nearby enemies slow scanning. Progress is saved.'
-        );
+        return `Hold within 150 m of beacon ${(v.beacon || 0) + 1} for ${Math.ceil(left)} seconds. Nearby enemies slow scanning. Progress is saved.`;
     }
     if (v.type === 'defend') {
-        return (
-            'Defend the relay for ' +
-            Math.ceil(left) +
-            ' seconds within 450 m. Raider waves arrive every 12 seconds. Leaving the ring slowly loses defense progress.'
-        );
+        return `Defend the relay for ${Math.ceil(left)} seconds within 450 m. Raider waves arrive every 12 seconds. Leaving the ring slowly loses defense progress.`;
     }
     if (v.type === 'recover') {
-        return (
-            'Clear the marked ambush, then hold within 150 m of the recovery signal for ' +
-            Math.ceil(left) +
-            ' seconds. The sealed recovery item uses no cargo space.'
-        );
+        return `Clear the marked ambush, then hold within 150 m of the recovery signal for ${Math.ceil(left)} seconds. The sealed recovery item uses no cargo space.`;
     }
     if (v.type === 'elite') {
         return 'Approach the combat zone and destroy its marked elite commander. Ion strips shields; railguns bypass thick armor.';
@@ -603,22 +590,18 @@ function stage_description(v, m, index)
         return 'Meet the freighter near the station and protect all three route legs. Stay within 800 m. Convoy position and hull persist when you save or travel.';
     }
     if (v.type === 'courier') {
-        return 'Mission cargo is already aboard. Dock at ' + worlds[v.world].station + ' with R; delivery advances this stage automatically.';
+        return `Mission cargo is already aboard. Dock at ${worlds[v.world].station} with R; delivery advances this stage automatically.`;
     }
     if (v.type === 'trade') {
-        return 'Sell ' + Math.ceil(left) + ' ' + (v.commodity || m.commodity) + ' at ' + worlds[v.world].station + '. This uses your real cargo.';
+        return `Sell ${Math.ceil(left)} ${v.commodity || m.commodity} at ${worlds[v.world].station}. This uses your real cargo.`;
     }
     if (v.type === 'mining') {
-        return (
-            'Mine ' +
-            Math.ceil(left) +
-            ' live ore deposits. FLY TO OBJECTIVE follows the remaining deposits until this stage is complete. A Prospector extracts ore 2.5× faster. You keep the salvage and cargo.'
-        );
+        return `Mine ${Math.ceil(left)} live ore deposits. FLY TO OBJECTIVE follows the remaining deposits until this stage is complete. A Prospector extracts ore 2.5× faster. You keep the salvage and cargo.`;
     }
     if (v.type === 'boss') {
         return 'Approach the marked flagship zone and destroy the warship. Prepare your ship and weapon tier before jumping.';
     }
-    return 'Destroy ' + Math.ceil(left) + ' hostile ships in this world, then continue to the next stage.';
+    return `Destroy ${Math.ceil(left)} hostile ships in this world, then continue to the next stage.`;
 }
 
 function render_contracts(parent, board = false)
@@ -633,19 +616,8 @@ function render_contracts(parent, board = false)
         const p = document.createElement('p');
         p.className = 'contract-guidance';
         p.textContent = contract.stages
-            ? 'STAGE ' +
-              (contract.stage_index + 1) +
-              '/' +
-              contract.stages.length +
-              ' · ' +
-              contract.stages[contract.stage_index].title +
-              ' · ' +
-              Math.floor(contract.progress) +
-              '/' +
-              contract.target +
-              ' · ' +
-              (contract.ready ? 'REPORT AT STATION' : stage_description(contract.stages[contract.stage_index], contract, contract.stage_index))
-            : 'Classic contract · ' + Math.floor(contract.progress) + '/' + contract.target;
+            ? `STAGE ${contract.stage_index + 1}/${contract.stages.length} · ${contract.stages[contract.stage_index].title} · ${Math.floor(contract.progress)}/${contract.target} · ${contract.ready ? 'REPORT AT STATION' : stage_description(contract.stages[contract.stage_index], contract, contract.stage_index)}`
+            : `Classic contract · ${Math.floor(contract.progress)}/${contract.target}`;
         c.append(p);
     }
     if (board) {
@@ -679,33 +651,25 @@ function render_station()
             const selected = f.ship_id === v.id;
             const locked = rank < v.rank;
             const oversize = cargo_count() > v.cargo;
+            function on_select() {
+                fleet_purchase(v.id, 'ship');
+            }
+            const action = selected
+                ? 'ACTIVE SHIP'
+                : locked
+                    ? `REQUIRES ${rank_names[v.rank].toUpperCase()}`
+                    : oversize
+                        ? 'SELL CARGO TO SWITCH'
+                        : owned
+                            ? 'SWITCH SHIP'
+                            : `BUY · ◆ ${v.price}`;
             const c = card(
                 parent,
-                v.name + ' / ' + v.role,
+                `${v.name} / ${v.role}`,
                 v.description,
-                'HULL ' +
-                        v.hull +
-                        ' · SHIELD +' +
-                        v.shield +
-                        ' · SPEED ' +
-                        Math.round(v.speed*100) +
-                        '% · CARGO ' +
-                        v.cargo +
-                        ' · GUN ' +
-                        Math.round(v.damage*100) +
-                        '%',
-                selected
-                    ? 'ACTIVE SHIP'
-                    : locked
-                        ? 'REQUIRES ' + rank_names[v.rank].toUpperCase()
-                        : oversize
-                            ? 'SELL CARGO TO SWITCH'
-                            : owned
-                                ? 'SWITCH SHIP'
-                                : 'BUY · ◆ ' + v.price,
-                function () {
-                    fleet_purchase(v.id, 'ship');
-                },
+                `HULL ${v.hull} · SHIELD +${v.shield} · SPEED ${Math.round(v.speed*100)}% · CARGO ${v.cargo} · GUN ${Math.round(v.damage*100)}%`,
+                action,
+                on_select,
                 selected || locked || oversize || (!owned && (salvage < v.price)),
                 selected ? 'active' : ''
             );
@@ -715,21 +679,11 @@ function render_station()
             c.append(art);
             const note = document.createElement('small');
             note.textContent =
-                'RAD HULL ' +
-                Math.round(v.radiation*100) +
-                '% · EQUIPPED ' +
-                Math.round(radiation_protection(v)*100) +
-                '% · GRAVITY THRUST ×' +
-                v.traction +
-                ' · BRAKES ×' +
-                v.braking +
-                ' · TURBO ' +
-                (8 + v.endurance + upgrades.turbo_tank*3) +
-                's';
+                `RAD HULL ${Math.round(v.radiation*100)}% · EQUIPPED ${Math.round(radiation_protection(v)*100)}% · GRAVITY THRUST ×${v.traction} · BRAKES ×${v.braking} · TURBO ${8 + v.endurance + upgrades.turbo_tank*3}s`;
             c.append(note);
             const match = expedition_conditions.map((e, i) => ((e.ship === v.id) ? worlds[i].name : null)).filter(Boolean);
             const usage = document.createElement('p');
-            usage.textContent = 'Suited to ' + (match.join(', ') || 'specialized expeditions') + '. Protection and engines differ by hull.';
+            usage.textContent = `Suited to ${match.join(', ') || 'specialized expeditions'}. Protection and engines differ by hull.`;
             c.append(usage);
         }
     }
@@ -739,30 +693,23 @@ function render_station()
             const selected = f.weapon_id === v.id;
             const locked = rank < v.rank;
             const level = f.weapon_levels[v.id] || 1;
+            function on_select() {
+                fleet_purchase(v.id, 'weapon');
+            }
             const c = card(
                 parent,
                 v.name,
                 v.description,
-                'TIER ' +
-                        (owned ? level : '—') +
-                        '/5 · DMG ' +
-                        v.damage +
-                        ' · ' +
-                        v.interval.toFixed(2) +
-                        's / SHOT · RANGE ' +
-                        Math.round(v.speed*v.life) +
-                        ' m',
-                selected ? 'EQUIPPED' : locked ? 'REQUIRES ' + rank_names[v.rank].toUpperCase() : owned ? 'EQUIP WEAPON' : 'BUY · ◆ ' + v.price,
-                function () {
-                    fleet_purchase(v.id, 'weapon');
-                },
+                `TIER ${owned ? level : '—'}/5 · DMG ${v.damage} · ${v.interval.toFixed(2)}s / SHOT · RANGE ${Math.round(v.speed*v.life)} m`,
+                selected ? 'EQUIPPED' : locked ? `REQUIRES ${rank_names[v.rank].toUpperCase()}` : owned ? 'EQUIP WEAPON' : `BUY · ◆ ${v.price}`,
+                on_select,
                 selected || locked || (!owned && (salvage < v.price)),
                 selected ? 'active' : ''
             );
             if (owned) {
                 const cost = Math.round((130 + v.price*0.22)*level);
                 const b = document.createElement('button');
-                b.textContent = (level >= 5) ? 'MAXIMUM TIER' : 'UPGRADE TO TIER ' + (level + 1) + ' · ◆ ' + cost;
+                b.textContent = (level >= 5) ? 'MAXIMUM TIER' : `UPGRADE TO TIER ${level + 1} · ◆ ${cost}`;
                 b.disabled = (level >= 5) || (salvage < cost);
                 b.addEventListener('click', function () {
                     upgrade_weapon(v.id);
@@ -775,52 +722,31 @@ function render_station()
         const next = rank_thresholds[rank + 1];
         card(
             parent,
-            rank_names[rank] + ' / PILOT CAREER',
+            `${rank_names[rank]} / PILOT CAREER`,
             'Complete operations to earn experience and permanent ship licenses. Collect mission rewards at stations to receive XP.',
-            'XP ' +
-                campaign.xp +
-                (next ? ' / ' + next + ' · NEXT ' + rank_names[rank + 1] : ' · LEGEND') +
-                ' · CONTRACTS ' +
-                campaign.completed +
-                ' · EXPEDITION ' +
-                campaign.expedition
+            `XP ${campaign.xp}${next ? ` / ${next} · NEXT ${rank_names[rank + 1]}` : ' · LEGEND'} · CONTRACTS ${campaign.completed} · EXPEDITION ${campaign.expedition}`
         );
+        const progress = (rank < 5)
+            ? `Earn ${Math.max(0, rank_thresholds[5] - campaign.xp)} XP to license the Aurora Cruiser. Explore the hangar and arsenal for your current unlocks.`
+            : 'Build a tier-5 arsenal, earn reputation in all eight worlds, and push frontier expedition numbers higher.';
         card(
             parent,
             'Your next goal',
-            (rank < 5)
-                ? 'Earn ' +
-                      Math.max(0, rank_thresholds[5] - campaign.xp) +
-                      ' XP to license the Aurora Cruiser. Explore the hangar and arsenal for your current unlocks.'
-                : 'Build a tier-5 arsenal, earn reputation in all eight worlds, and push frontier expedition numbers higher.',
-            'FLEET ' + f.ships.length + '/6 · WEAPONS ' + f.weapons.length + '/6 · CHAPTERS ' + campaign.story + '/' + story.length
+            progress,
+            `FLEET ${f.ships.length}/6 · WEAPONS ${f.weapons.length}/6 · CHAPTERS ${campaign.story}/${story.length}`
         );
         for (let i = 0, end = worlds.length; i < end; ++i) {
             const world = worlds[i];
             card(
                 parent,
-                world.name + ' / reputation',
+                `${world.name} / reputation`,
                 (campaign.reputation[i] >= 8) ? 'Trusted expedition partner' : (campaign.reputation[i] >= 3) ? 'Established contractor' : 'Independent visitor',
-                campaign.reputation[i] + ' completed local contracts · ' + (campaign.visited.includes(i) ? 'VISITED' : 'UNEXPLORED')
+                `${campaign.reputation[i]} completed local contracts · ${campaign.visited.includes(i) ? 'VISITED' : 'UNEXPLORED'}`
             );
         }
     }
     el.dock_summary.textContent =
-        current_ship().name +
-        ' · ' +
-        rank_names[rank] +
-        ' · ' +
-        current_weapon().name +
-        ' T' +
-        weapon_level() +
-        ' · Cargo ' +
-        cargo_count() +
-        '/' +
-        cargo_capacity() +
-        ' · Story ' +
-        campaign.story +
-        '/' +
-        story.length;
+        `${current_ship().name} · ${rank_names[rank]} · ${current_weapon().name} T${weapon_level()} · Cargo ${cargo_count()}/${cargo_capacity()} · Story ${campaign.story}/${story.length}`;
     if (['hangar', 'arsenal', 'career'].includes(station_tab)) {
         el.dock_status.textContent = 'Ships and weapons remain owned. Modules transfer between ships; switching ships repairs the hull.';
     }
@@ -843,19 +769,7 @@ function wireframe_ship_svg(v)
     const points = ship_outline(v.shape)
         .map(v => v.join(','))
         .join(' ');
-    return (
-        '<svg viewBox="-38 -32 76 64" aria-label="' +
-        v.name +
-        '"><polygon points="' +
-        points +
-        '" fill="' +
-        v.color +
-        '22" stroke="' +
-        v.color +
-        '" stroke-width="1.5"/><path d="M10 0L-4 -5L-9 0L-4 5Z" fill="' +
-        v.color +
-        '"/></svg>'
-    );
+    return `<svg viewBox="-38 -32 76 64" aria-label="${v.name}"><polygon points="${points}" fill="${v.color}22" stroke="${v.color}" stroke-width="1.5"/><path d="M10 0L-4 -5L-9 0L-4 5Z" fill="${v.color}"/></svg>`;
 }
 
 function ship_outline(shape)
@@ -931,7 +845,7 @@ function draw_fleet_ship(x, y, angle, alpha, ghost)
     ctx.rotate(angle);
     ctx.globalAlpha = alpha;
     ctx.strokeStyle = v.color;
-    ctx.fillStyle = ghost ? v.color : v.color + '25';
+    ctx.fillStyle = ghost ? v.color : `${v.color}25`;
     ctx.lineWidth = 1.7;
     ctx.shadowColor = v.color;
     ctx.shadowBlur = (full_fx && !ghost) ? 16 : 0;
@@ -958,7 +872,7 @@ function draw_fleet_ship(x, y, angle, alpha, ghost)
         ctx.lineTo(-4, 4);
         ctx.fill();
         if (!is_player_vessel(x, y)) {
-            ctx.fillStyle = v.color + '88';
+            ctx.fillStyle = `${v.color}88`;
             ctx.beginPath();
             ctx.moveTo(-15, -5);
             ctx.lineTo(-29 - rand(0, 7), 0);
@@ -1013,7 +927,7 @@ function render_navigation_objects()
         ctx.fillStyle = gold;
         ctx.textAlign = 'center';
         ctx.fillText((m.stages?.[m.stage_index]?.title || m.title).toUpperCase(), p.x, p.y - radius - 28);
-        ctx.fillText(Math.floor(m.progress) + ' / ' + m.target + ((m.type === 'elite') ? ' TARGET' : ' SECONDS'), p.x, p.y - radius - 12);
+        ctx.fillText(`${Math.floor(m.progress)} / ${m.target}${(m.type === 'elite') ? ' TARGET' : ' SECONDS'}`, p.x, p.y - radius - 12);
     }
     for (const enemy of enemies.filter(v => v.elite && (v.hp > 0))) {
         ctx.strokeStyle = pink;
@@ -1023,7 +937,7 @@ function render_navigation_objects()
         ctx.fillStyle = pink;
         ctx.font = 'bold 10px ui-monospace,monospace';
         ctx.textAlign = 'center';
-        ctx.fillText('ELITE / ' + Math.ceil(enemy.hp), enemy.x, enemy.y - enemy.r - 20);
+        ctx.fillText(`ELITE / ${Math.ceil(enemy.hp)}`, enemy.x, enemy.y - enemy.r - 20);
     }
     ctx.restore();
 }
@@ -1034,21 +948,7 @@ function render_inventory()
     const c = document.createElement('div');
     c.className = 'inventory-card';
     c.innerHTML =
-        '<b>' +
-        current_ship().name +
-        '</b><span>' +
-        current_weapon().name +
-        ' / TIER ' +
-        weapon_level() +
-        '</span><p>Hull ' +
-        hull_max() +
-        ' · Cargo ' +
-        cargo_count() +
-        '/' +
-        cargo_capacity() +
-        ' · ' +
-        rank_names[pilot_rank()] +
-        ' · Dock at HANGAR / ARSENAL to change equipment.</p>';
+        `<b>${current_ship().name}</b><span>${current_weapon().name} / TIER ${weapon_level()}</span><p>Hull ${hull_max()} · Cargo ${cargo_count()}/${cargo_capacity()} · ${rank_names[pilot_rank()]} · Dock at HANGAR / ARSENAL to change equipment.</p>`;
     el.inventory_grid.append(c);
 }
 
@@ -1085,23 +985,12 @@ function update_hud()
     const m = focused_contract();
     if (m?.stages) {
         el.mission_phase.textContent = m.ready
-            ? 'DOCK TO CLAIM ◆ ' + m.reward
-            : 'STAGE ' + (m.stage_index + 1) + '/' + m.stages.length + ' · ' + Math.floor(m.progress) + '/' + m.target;
-        el.sector_progress.style.width = ((m.stage_index + Math.min(1, m.progress/m.target))/m.stages.length)*100 + '%';
+            ? `DOCK TO CLAIM ◆ ${m.reward}`
+            : `STAGE ${m.stage_index + 1}/${m.stages.length} · ${Math.floor(m.progress)}/${m.target}`;
+        el.sector_progress.style.width = `${((m.stage_index + Math.min(1, m.progress/m.target))/m.stages.length)*100}%`;
     }
     el.shield_readout.textContent =
-        current_ship().name +
-        ' · ' +
-        current_weapon().name +
-        ' T' +
-        weapon_level() +
-        ' · SHIELD ' +
-        Math.ceil(player.shield) +
-        '/' +
-        shield_max() +
-        ' · RAD ' +
-        Math.round(radiation_protection()*100) +
-        '%';
+        `${current_ship().name} · ${current_weapon().name} T${weapon_level()} · SHIELD ${Math.ceil(player.shield)}/${shield_max()} · RAD ${Math.round(radiation_protection()*100)}%`;
     update_expedition_readout();
     if (arcade.active) {
         arcade_update_hud();

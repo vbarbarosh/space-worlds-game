@@ -128,7 +128,7 @@ function ore_veins(v)
 {
     ctx.save();
     ctx.globalCompositeOperation = 'lighter';
-    ctx.strokeStyle = ore_color(v) + 'cc';
+    ctx.strokeStyle = `${ore_color(v)}cc`;
     ctx.lineWidth = Math.max(1.2, v.r*0.06);
     ctx.beginPath();
     ctx.moveTo(-v.r*0.55, -v.r*0.1);
@@ -343,9 +343,9 @@ function explosion_light_draw(explosion, x, y, scale)
 function explosion_fireball(x, y, radius, p, color)
 {
     const fireball = ctx.createRadialGradient(x, y, 0, x, y, Math.max(1, radius));
-    fireball.addColorStop(0, 'rgba(255, 252, 240, ' + (1 - p)*0.95 + ')');
-    fireball.addColorStop(0.15, 'rgba(255, 226, 140, ' + (1 - p)*0.9 + ')');
-    fireball.addColorStop(0.4, 'rgba(255, 140, 60, ' + (1 - p)*0.75 + ')');
+    fireball.addColorStop(0, `rgba(255, 252, 240, ${(1 - p)*0.95})`);
+    fireball.addColorStop(0.15, `rgba(255, 226, 140, ${(1 - p)*0.9})`);
+    fireball.addColorStop(0.4, `rgba(255, 140, 60, ${(1 - p)*0.75})`);
     fireball.addColorStop(0.75, color_with_alpha(color, (1 - p)*0.35));
     fireball.addColorStop(1, 'rgba(0, 0, 0, 0)');
     ctx.globalAlpha = 1;
@@ -369,5 +369,5 @@ function color_with_alpha(color, alpha)
     const r = parseInt(color.slice(1, 3), 16);
     const g = parseInt(color.slice(3, 5), 16);
     const b = parseInt(color.slice(5, 7), 16);
-    return 'rgba(' + r + ', ' + g + ', ' + b + ', ' + alpha + ')';
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }

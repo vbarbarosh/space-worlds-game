@@ -32,8 +32,8 @@ function build_index_html()
 function build_variant_html(variant)
 {
     const template = fs.readFileSync(path.join(src_dir, 'index.html'), 'utf8');
-    const parts = fs.readFileSync(path.join(src_dir, variant + '.html'), 'utf8');
-    fs.writeFileSync(path.join(build_dir, variant + '.html'), html_from_template(template, lines_by_slot_from_text(parts)));
+    const parts = fs.readFileSync(path.join(src_dir, `${variant}.html`), 'utf8');
+    fs.writeFileSync(path.join(build_dir, `${variant}.html`), html_from_template(template, lines_by_slot_from_text(parts)));
 }
 
 // A line `<!-- slot js -->` takes the lines of that slot, or goes away; then
@@ -71,7 +71,7 @@ function html_from_template(template, lines_by_slot)
 // its name without the extension, and every folder in it as an object of its own
 function svgs_js(dir, name)
 {
-    return 'const ' + name + ' = ' + JSON.stringify(svgs_from_dir(path.join(src_dir, dir))) + ';\n';
+    return `const ${name} = ${JSON.stringify(svgs_from_dir(path.join(src_dir, dir)))};\n`;
 }
 
 function svgs_from_dir(dir)

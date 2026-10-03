@@ -7,7 +7,7 @@ const dev_tab_options = [
     {value: 'upgrades', label: 'Upgrades'},
     {value: 'sounds', label: 'Sounds'},
 ];
-const dev_world_options = worlds.map((v, i) => ({value: i, label: (i + 1) + ' · ' + v.name + ' · ' + world_rules[i].name}));
+const dev_world_options = worlds.map((v, i) => ({value: i, label: `${i + 1} · ${v.name} · ${world_rules[i].name}`}));
 const dev_ship_options = ship_catalog.map(v => ({value: v.id, label: v.name}));
 const dev_weapon_options = weapon_catalog.map(v => ({value: v.id, label: v.name}));
 
@@ -56,7 +56,7 @@ function dev_panel_init()
         });
     }
     for (const key of ['god', 'energy', 'spawns']) {
-        const input = document.getElementById('dev_' + key);
+        const input = document.getElementById(`dev_${key}`);
         input.checked = dev_scenario[key];
         input.addEventListener('change', function () {
             dev_scenario[key] = input.checked;
@@ -130,7 +130,7 @@ function dev_panel_refresh_time()
 
 function dev_panel_refresh_readout()
 {
-    const lines = [`fps ${dev_time.fps} · ${dev_time.paused ? 'paused' : 'speed ×' + dev_time.scale} · state ${state}`];
+    const lines = [`fps ${dev_time.fps} · ${dev_time.paused ? 'paused' : `speed ×${dev_time.scale}`} · state ${state}`];
     if (dev_run_active()) {
         const rules = current_world_rules();
         const velocity = Math.round(Math.hypot(player.vx, player.vy));

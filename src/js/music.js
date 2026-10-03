@@ -4,7 +4,7 @@ function enemy_fire(enemy, angle, speed = 210)
     if (!sound.ctx || (state !== 'playing') || (distance(enemy, player) > 900) || (sound.ctx.currentTime < (sound.enemy_next || 0))) {
         return;
     }
-    sfx('enemy_' + enemy.weapon, 0.65, enemy);
+    sfx(`enemy_${enemy.weapon}`, 0.65, enemy);
     sound.enemy_next = sound.ctx.currentTime + 0.16;
 }
 
@@ -59,7 +59,7 @@ function select_world_music()
     sound.environment_next = 0;
     sound.next = now + 0.035;
     sound.step = 0;
-    el.sound_button.title = worlds[id].name + ' / ' + world_audio[id].title + ' / MUSIC + SOUND EFFECTS';
+    el.sound_button.title = `${worlds[id].name} / ${world_audio[id].title} / MUSIC + SOUND EFFECTS`;
 }
 
 function schedule_music()
@@ -259,7 +259,7 @@ function expedition_base_update_hud()
     const out = document.getElementById('gravity_warning');
     out.classList.toggle('hidden', !v);
     if (v) {
-        out.textContent = ((v.d < v.h.radius) ? 'STRONG GRAVITY' : 'OUTER GRAVITY FIELD') + ' · ' + Math.ceil(v.pull) + ' m/s PULL · STEER AWAY / SHIFT TURBO';
+        out.textContent = `${(v.d < v.h.radius) ? 'STRONG GRAVITY' : 'OUTER GRAVITY FIELD'} · ${Math.ceil(v.pull)} m/s PULL · STEER AWAY / SHIFT TURBO`;
     }
-    el.sound_button.title = worlds[campaign.world].name + ' / ' + world_audio[campaign.world].title + ' / MUSIC + SOUND EFFECTS';
+    el.sound_button.title = `${worlds[campaign.world].name} / ${world_audio[campaign.world].title} / MUSIC + SOUND EFFECTS`;
 }

@@ -20,7 +20,7 @@ function update_engine_effects(dt)
         const anchors = art && sprite(art.name) && sprite_anchors(art.name, art.length);
         const nozzles = anchors
             ? ((player.engine_reverse && !boost) ? anchors.flames.reverse : anchors.flames.main).map(v => ({x: v.x, y: v.y}))
-            : [-1, 1].map(side => ({x: (player.engine_reverse && !boost) ? 14 : -17, y: side*((current_ship().shape >= 4) ? 14 : 7)}));
+            : [-1, 1].map(v => ({x: (player.engine_reverse && !boost) ? 14 : -17, y: v*((current_ship().shape >= 4) ? 14 : 7)}));
         for (const nozzle of nozzles) {
             const reverse = player.engine_reverse && !boost;
             const x = nozzle.x;
@@ -88,12 +88,12 @@ function render_engine_plumes()
         const reverse = player.engine_reverse && !boost;
         const flicker = full_fx ? Math.sin(clock*31)*0.08 : 0;
         if (power > 0.03) {
-            sprite_flames(reverse ? anchors.flames.reverse : anchors.flames.main, boost ? 1 : power*0.45, '#90c9ff', flicker);
+            sprite_flames(ctx, reverse ? anchors.flames.reverse : anchors.flames.main, boost ? 1 : power*0.45, '#90c9ff', flicker);
         }
         if (Math.abs(turn) > 0.15) {
             const side = -Math.sign(turn);
             const jets = anchors.flames.side.filter(v => (v.x > 0) ? (Math.sign(v.y) === side) : (Math.sign(v.y) === -side));
-            sprite_flames(jets, clamp(Math.abs(turn)/2, 0.15, 0.65), '#90c9ff', flicker);
+            sprite_flames(ctx, jets, clamp(Math.abs(turn)/2, 0.15, 0.65), '#90c9ff', flicker);
         }
         ctx.restore();
         return;
@@ -119,5 +119,5 @@ function cabin_render_engine_effects()
     const H = height;
     const boost = !!player.turbo_active;
     const power = boost ? 1 : player.engine_thrust || 0;
-    cabin_label(boost ? 'BOOST THRUST' : 'THRUST ' + Math.round(power*100) + '%', W*0.17, H*0.91, (W < 700) ? 7 : 9, boost ? '#a9d4ff' : '#8aafc5');
+    cabin_label(boost ? 'BOOST THRUST' : `THRUST ${Math.round(power*100)}%`, W*0.17, H*0.91, (W < 700) ? 7 : 9, boost ? '#a9d4ff' : '#8aafc5');
 }

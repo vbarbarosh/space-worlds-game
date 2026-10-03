@@ -170,7 +170,7 @@ function fleet_purchase(id, kind)
         return;
     }
     if ((kind === 'ship') && (cargo_count() > v.cargo)) {
-        show_toast('CARGO TOO LARGE', 'SELL CARGO BEFORE SWITCHING TO ' + v.name.toUpperCase(), 3);
+        show_toast('CARGO TOO LARGE', `SELL CARGO BEFORE SWITCHING TO ${v.name.toUpperCase()}`, 3);
         return;
     }
     if (!owned.includes(id)) {
@@ -241,14 +241,15 @@ function fire_equipped_weapon()
             homing: (v.id === 'missile') || (['plasma', 'ion'].includes(v.id) && (upgrades.homing > 0)),
             seeker: v.id === 'missile',
             splash: (v.id === 'missile') ? 115 : 0,
+            width: muzzle.bore,
         });
-        explode(muzzle.x, muzzle.y, 9, v.color, 0, 'muzzle');
+        explode(muzzle.x, muzzle.y, muzzle.bore ? Math.max(3, muzzle.bore*3) : 9, v.color, 0, 'muzzle');
     }
     if (v.id === 'beam') {
         player.energy = Math.max(0, player.energy - 1.8);
     }
     player.shoot_cd = Math.max(0.065, v.interval*(1 - upgrades.rate*0.12));
-    sfx((v.id === 'plasma') ? 'shot' : 'enemy_' + v.id);
+    sfx((v.id === 'plasma') ? 'shot' : `enemy_${v.id}`);
 }
 
 function blast_payload(b, direct)

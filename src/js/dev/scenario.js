@@ -59,7 +59,7 @@ function dev_scenario_save()
     params.set('god', dev_scenario.god ? '1' : '0');
     params.set('energy', dev_scenario.energy ? '1' : '0');
     params.set('spawns', dev_scenario.spawns ? '1' : '0');
-    history.replaceState(null, '', location.pathname + '?' + params.toString());
+    history.replaceState(null, '', `${location.pathname}?${params.toString()}`);
 }
 
 function dev_scenario_start()

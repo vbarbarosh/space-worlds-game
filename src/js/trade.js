@@ -99,7 +99,7 @@ function plan_trade(v)
         nav_tab = 'worlds';
         render_navigation();
     }
-    show_toast('TRADE ROUTE PLANNED', 'BUY AT ' + worlds[v.source].name.toUpperCase() + ' → SELL AT ' + worlds[v.destination].name.toUpperCase(), 4);
+    show_toast('TRADE ROUTE PLANNED', `BUY AT ${worlds[v.source].name.toUpperCase()} → SELL AT ${worlds[v.destination].name.toUpperCase()}`, 4);
 }
 
 function plan_cargo_sale(key, destination)
@@ -133,7 +133,7 @@ function plan_cargo_sale(key, destination)
     else {
         render_station();
     }
-    show_toast('SALE ROUTE PLANNED', 'SELL AT ' + worlds[destination].station.toUpperCase(), 4);
+    show_toast('SALE ROUTE PLANNED', `SELL AT ${worlds[destination].station.toUpperCase()}`, 4);
 }
 
 function advance_trade_plan(key, side, amount)
@@ -150,7 +150,7 @@ function advance_trade_plan(key, side, amount)
             campaign.route_world = p.destination;
             guide_path_key = '';
             guide_context_cache = null;
-            show_toast('CARGO LOADED', 'SELL AT ' + worlds[p.destination].station.toUpperCase(), 4);
+            show_toast('CARGO LOADED', `SELL AT ${worlds[p.destination].station.toUpperCase()}`, 4);
         }
     }
     else if ((p.stage === 'sell') && (side === 'sell')) {
@@ -217,11 +217,11 @@ function render_trade_intel(parent)
                 row.className = 'current';
             }
             const values = [
-                world.name + ' / ' + world.station,
+                `${world.name} / ${world.station}`,
                 commodity.name,
                 market_price(id, i, 'buy'),
                 market_price(id, i, 'sell'),
-                ensure_markets()[id].demand[commodity.key] + ' units',
+                `${ensure_markets()[id].demand[commodity.key]} units`,
                 allowed_world(id) ? 'CLEARED' : requirements(id),
             ];
             for (let n = 0, end = values.length; n < end; ++n) {
@@ -244,13 +244,8 @@ function render_trade_intel(parent)
         card(
             parent,
             'Active cargo route',
-            worlds[t.source].station + ' → ' + worlds[t.destination].station,
-            'NEXT: ' +
-                t.stage.toUpperCase() +
-                ' ' +
-                ((t.stage === 'buy') ? Math.max(0, t.amount - (t.bought || 0)) : t.remaining) +
-                ' ' +
-                commodities.find(v => v.key === t.commodity).name,
+            `${worlds[t.source].station} → ${worlds[t.destination].station}`,
+            `NEXT: ${t.stage.toUpperCase()} ${(t.stage === 'buy') ? Math.max(0, t.amount - (t.bought || 0)) : t.remaining} ${commodities.find(v => v.key === t.commodity).name}`,
             'CANCEL TRADE PLAN',
             function () {
                 campaign.trade_plan = null;
@@ -279,17 +274,9 @@ function render_trade_intel(parent)
             const blocked = route.find(v => !allowed_world(v));
             card(
                 parent,
-                c.name + ' ×' + units + ' → ' + worlds[target.id].name,
-                'Sell the cargo already aboard at ' +
-                    worlds[target.id].station +
-                    '. ' +
-                    ((blocked === undefined) ? 'Your vessel is cleared.' : 'Prepare for ' + worlds[blocked].name + ' before travel.'),
-                'SALE PROCEEDS ◆ ' +
-                    target.proceeds +
-                    ' · DEMAND ' +
-                    ensure_markets()[target.id].demand[c.key] +
-                    ' · ROUTE ' +
-                    route.map(v => worlds[v].name).join(' → '),
+                `${c.name} ×${units} → ${worlds[target.id].name}`,
+                `Sell the cargo already aboard at ${worlds[target.id].station}. ${(blocked === undefined) ? 'Your vessel is cleared.' : `Prepare for ${worlds[blocked].name} before travel.`}`,
+                `SALE PROCEEDS ◆ ${target.proceeds} · DEMAND ${ensure_markets()[target.id].demand[c.key]} · ROUTE ${route.map(v => worlds[v].name).join(' → ')}`,
                 'PLAN SALE OF ONBOARD CARGO',
                 () => plan_cargo_sale(c.key, target.id),
                 false,
@@ -306,32 +293,12 @@ function render_trade_intel(parent)
         const route = [...opportunity.approach, ...opportunity.route.slice(1)];
         const cleared = opportunity.blocked === undefined;
         const description =
-            'Buy ' +
-                c.name +
-                ' at ' +
-                worlds[opportunity.source].station +
-                ' (◆ ' +
-                opportunity.buy +
-                '), sell at ' +
-                worlds[opportunity.destination].station +
-                '. ' +
-                (cleared ? 'Your vessel meets the gate requirements.' : 'Preparation needed: ' + requirements(opportunity.blocked));
+            `Buy ${c.name} at ${worlds[opportunity.source].station} (◆ ${opportunity.buy}), sell at ${worlds[opportunity.destination].station}. ${cleared ? 'Your vessel meets the gate requirements.' : `Preparation needed: ${requirements(opportunity.blocked)}`}`;
         card(
             parent,
-            worlds[opportunity.source].name + ' → ' + worlds[opportunity.destination].name + ' / ' + c.name,
+            `${worlds[opportunity.source].name} → ${worlds[opportunity.destination].name} / ${c.name}`,
             description,
-            'LOAD ' +
-                opportunity.amount +
-                ' · COST ◆ ' +
-                opportunity.amount*opportunity.buy +
-                ' · NET ◆ ' +
-                opportunity.margin +
-                ' · UNIT UP TO +' +
-                opportunity.unit +
-                ' · DEMAND ' +
-                ensure_markets()[opportunity.destination].demand[opportunity.commodity] +
-                '\nROUTE ' +
-                route.map(v => worlds[v].name).join(' → '),
+            `LOAD ${opportunity.amount} · COST ◆ ${opportunity.amount*opportunity.buy} · NET ◆ ${opportunity.margin} · UNIT UP TO +${opportunity.unit} · DEMAND ${ensure_markets()[opportunity.destination].demand[opportunity.commodity]}\nROUTE ${route.map(v => worlds[v].name).join(' → ')}`,
             opportunity.amount ? 'PLAN BUY → SELL' : 'EARN CREDITS / FREE CARGO',
             () => plan_trade(opportunity),
             opportunity.amount === 0,

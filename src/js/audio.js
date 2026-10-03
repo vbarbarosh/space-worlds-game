@@ -354,11 +354,11 @@ function save_audio_settings()
 function sync_audio_controls()
 {
     for (const key of ['master', 'music', 'effects', 'ambience']) {
-        const input = document.getElementById(key + '_volume');
+        const input = document.getElementById(`${key}_volume`);
         const value = Math.round(volume_settings[key]*100);
         input.value = String(value);
-        document.getElementById(key + '_volume_value').textContent = value + '%';
-        input.setAttribute('aria-valuetext', value + ' percent');
+        document.getElementById(`${key}_volume_value`).textContent = `${value}%`;
+        input.setAttribute('aria-valuetext', `${value} percent`);
     }
     document.getElementById('settings_mute').textContent = muted ? 'UNMUTE' : 'MUTE';
     document.getElementById('settings_mute').setAttribute('aria-pressed', String(muted));
@@ -435,7 +435,7 @@ document.getElementById('reset_audio').addEventListener('click', function () {
     sync_settings();
 });
 for (const key of ['master', 'music', 'effects', 'ambience']) {
-    document.getElementById(key + '_volume').addEventListener('input', function (event) {
+    document.getElementById(`${key}_volume`).addEventListener('input', function (event) {
         set_audio_volume(key, event.target.value);
     });
 }

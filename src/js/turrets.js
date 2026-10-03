@@ -25,9 +25,8 @@ function update_ship_orientation(dt, target, dx, dy)
     update_engine_effects(dt);
 }
 
-function turret_mounts()
+function turret_mounts(ship = current_ship())
 {
-    const ship = current_ship();
     // In the rendered view the turrets sit where the drawing marks them
     const art = (view_mode === 'wireframe') ? null : ship_sprite(ship);
     const points = art && sprite(art.name) && sprite_anchors(art.name, art.length).points;
@@ -50,12 +49,40 @@ function turret_mounts()
             ];
 }
 
+// Where shot `index` of a volley leaves, aimed at angle: the turrets take turns, and a turret with several barrels
+// takes turns between them. With the weapon's drawing, at its muzzle mark, and `bore` is the barrel's opening;
+// without, 13 units out along the aim.
 function turret_muzzle(index, angle)
 {
     const mount = turret_mounts()[index % 2];
     const c = Math.cos(player.angle);
     const s = Math.sin(player.angle);
-    return {x: player.x + mount[0]*c - mount[1]*s + Math.cos(angle)*13, y: player.y + mount[0]*s + mount[1]*c + Math.sin(angle)*13};
+    const x = player.x + mount[0]*c - mount[1]*s;
+    const y = player.y + mount[0]*s + mount[1]*c;
+    const muzzles = turret_muzzles(current_ship(), current_weapon());
+    if (!muzzles) {
+        return {x: x + Math.cos(angle)*13, y: y + Math.sin(angle)*13, bore: 0};
+    }
+    const m = muzzles[Math.floor(index/2) % muzzles.length];
+    return {x: x + m.x*Math.cos(angle) - m.y*Math.sin(angle), y: y + m.x*Math.sin(angle) + m.y*Math.cos(angle), bore: m.r};
+}
+
+// A turret's canvas is half the ship's length across
+function turret_box(ship)
+{
+    return ship_sprite(ship).length*0.5;
+}
+
+// The muzzle marks of the weapon's turret on that ship, in game units from the turret's pivot, barrel along +x;
+// null in the wireframe view or without a drawing
+function turret_muzzles(ship, weapon)
+{
+    const name = `weapons/turret-${weapon.id}`;
+    if ((view_mode === 'wireframe') || !sprite(name)) {
+        return null;
+    }
+    const points = sprite_anchors_box(name, turret_box(ship)).points;
+    return Object.keys(points).filter(v => v.startsWith('muzzle-')).sort().map(v => points[v]);
 }
 
 function render_ship_turrets(alpha = 1)
@@ -70,22 +97,32 @@ function render_ship_turrets(alpha = 1)
         ctx.save();
         ctx.translate(mount[0], mount[1]);
         ctx.rotate(angle - player.angle);
-        ctx.fillStyle = '#07101b';
-        ctx.strokeStyle = (view_mode === 'wireframe') ? color : '#b7ced9';
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.arc(0, 0, 4.5, 0, Math.PI*2);
-        ctx.fill();
-        ctx.stroke();
-        const recoil = (player.shoot_cd > 0.08) ? 1.5 : 0;
-        ctx.fillStyle = (view_mode === 'wireframe') ? '#214e5a' : '#8396a7';
-        ctx.fillRect(0, -2, 12 - recoil, 4);
-        ctx.strokeRect(0, -2, 12 - recoil, 4);
-        ctx.fillStyle = color;
-        ctx.fillRect(10 - recoil, -1.3, 3, 2.6);
+        turret_draw(ctx, current_weapon(), turret_box(current_ship()), (player.shoot_cd > 0.08) ? 1.5 : 0);
         ctx.restore();
     }
     ctx.restore();
+}
+
+// One turret at the origin of `draw`, barrel along +x, pulled back by `recoil` after a shot: the weapon's drawing,
+// `box` game units across, in the weapon's colour; the plain turret in the wireframe view or while it loads
+function turret_draw(draw, weapon, box, recoil)
+{
+    if ((view_mode !== 'wireframe') && sprite_draw_box(`weapons/turret-${weapon.id}`, weapon.color, box, -recoil*0.4, 0, 0, 1, 0, draw)) {
+        return;
+    }
+    const color = weapon.color;
+    draw.fillStyle = '#07101b';
+    draw.strokeStyle = (view_mode === 'wireframe') ? color : '#b7ced9';
+    draw.lineWidth = 1;
+    draw.beginPath();
+    draw.arc(0, 0, 4.5, 0, Math.PI*2);
+    draw.fill();
+    draw.stroke();
+    draw.fillStyle = (view_mode === 'wireframe') ? '#214e5a' : '#8396a7';
+    draw.fillRect(0, -2, 12 - recoil, 4);
+    draw.strokeRect(0, -2, 12 - recoil, 4);
+    draw.fillStyle = color;
+    draw.fillRect(10 - recoil, -1.3, 3, 2.6);
 }
 
 function cabin_render_turrets(deck, accent)
@@ -106,7 +143,7 @@ function cabin_render_turrets(deck, accent)
         ctx.fillStyle = accent;
         ctx.fillRect(-W*0.007, -H*0.063, W*0.014, 3);
         if (fire && full_fx) {
-            ctx.fillStyle = accent + '77';
+            ctx.fillStyle = `${accent}77`;
             ctx.beginPath();
             ctx.moveTo(-5, -H*0.061);
             ctx.lineTo(0, -H*0.11);
@@ -115,7 +152,7 @@ function cabin_render_turrets(deck, accent)
         }
         ctx.restore();
     }
-    cabin_label('TURRET ' + Math.round((bearing*180)/Math.PI) + '°', W*0.6, H*0.888, (W < 700) ? 6 : 8, accent, 'center');
+    cabin_label(`TURRET ${Math.round((bearing*180)/Math.PI)}°`, W*0.6, H*0.888, (W < 700) ? 6 : 8, accent, 'center');
 }
 
 function sync_minimap_button()
@@ -129,10 +166,10 @@ function sync_minimap_button()
     const w = (viewport < 800) ? 165 : 186;
     const h = (viewport < 800) ? 125 : 140;
     const k = cockpit ? 1 : scale;
-    button.style.left = (cockpit ? 0 : ox) + (viewport - w - 22)*k + 'px';
-    button.style.top = (cockpit ? 0 : oy) + 87*k + 'px';
-    button.style.width = w*k + 'px';
-    button.style.height = h*k + 'px';
+    button.style.left = `${(cockpit ? 0 : ox) + (viewport - w - 22)*k}px`;
+    button.style.top = `${(cockpit ? 0 : oy) + 87*k}px`;
+    button.style.width = `${w*k}px`;
+    button.style.height = `${h*k}px`;
     button.classList.toggle('hidden', !player || !['playing', 'paused'].includes(state));
 }
 

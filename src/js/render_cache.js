@@ -10,7 +10,7 @@ addEventListener('resize', function () {
 });
 function render_nebula_layer(id, sky)
 {
-    const key = id + ':' + W + ':' + H;
+    const key = `${id}:${W}:${H}`;
     const look = world_looks[id];
     let v = nebula_layers.get(key);
     if (!v) {
@@ -36,9 +36,9 @@ function render_nebula_layer(id, sky)
             const y = cloud.y*H;
             const r = cloud.r*Math.max(W, H);
             const g = draw.createRadialGradient(x, y, 0, x, y, r);
-            g.addColorStop(0, ((i % 2) ? look.second : look.cloud) + ((id === 7) ? '28' : '50'));
-            g.addColorStop(0.5, ((i % 2) ? look.cloud : look.second) + '18');
-            g.addColorStop(1, look.cloud + '00');
+            g.addColorStop(0, `${(i % 2) ? look.second : look.cloud}${(id === 7) ? '28' : '50'}`);
+            g.addColorStop(0.5, `${(i % 2) ? look.cloud : look.second}18`);
+            g.addColorStop(1, `${look.cloud}00`);
             draw.fillStyle = g;
             draw.fillRect(x - r, y - r, r*2, r*2);
         } // Keep just the current sky to avoid retaining high-resolution buffers for every world.
@@ -48,6 +48,21 @@ function render_nebula_layer(id, sky)
     }
     const drift = full_fx ? Math.sin(clock*0.025)*18 : 0;
     ctx.drawImage(v.layer, -v.pad - camera.x*0.018 + drift, -v.pad - camera.y*0.012, v.w, v.h);
+}
+
+// The seeker missile: the designer's rocket, 14 units across its canvas, its band in the shooter's colour, and its
+// flame from the tail mark
+function projectile_missile_draw(v, color)
+{
+    const angle = Math.atan2(v.vy, v.vx);
+    const name = 'weapons/projectile-missile';
+    ctx.save();
+    ctx.translate(v.x, v.y);
+    ctx.rotate(angle);
+    ctx.globalCompositeOperation = 'lighter';
+    sprite_flames(ctx, sprite_anchors_box(name, 14).flames.main, 1, '#ffb27a', Math.sin(clock*40 + v.x)*0.2);
+    ctx.restore();
+    sprite_draw_box(name, color, 14, v.x, v.y, angle);
 }
 
 function render_projectiles()
@@ -61,7 +76,7 @@ function render_projectiles()
             }
             const type = v.weapon || 'plasma';
             const color = v.color || (friendly ? cyan : pink);
-            const key = (friendly ? 'f' : 'h') + type + color;
+            const key = `${friendly ? 'f' : 'h'}${type}${color}`;
             let group = groups.get(key);
             if (!group) {
                 group = {type, color, friendly, items: []};
@@ -72,12 +87,22 @@ function render_projectiles()
     }
     gather(bullets, true);
     gather(hostile, false);
+    // Missiles are drawn rockets when the designer's drawing is there
+    const rocket = (view_mode !== 'wireframe') && sprite('weapons/projectile-missile');
     for (const group of groups.values()) {
+        if (rocket && (group.type === 'missile')) {
+            for (const v of group.items) {
+                projectile_missile_draw(v, group.color);
+            }
+            continue;
+        }
         const missile = !group.friendly && (group.type === 'missile');
         const line = group.friendly || (group.type === 'rail');
         ctx.fillStyle = missile ? '#301a1c' : group.color;
         ctx.strokeStyle = group.color;
-        ctx.lineWidth = missile ? 1.7 : (group.type === 'rail') ? 4 : (group.type === 'beam') ? 5 : 3;
+        // A player's shot is as wide as the bore it left; a raider's by its gun
+        const bore = group.friendly && group.items[0].width;
+        ctx.lineWidth = bore ? Math.max(1.4, bore) : missile ? 1.7 : (group.type === 'rail') ? 4 : (group.type === 'beam') ? 5 : 3;
         ctx.shadowBlur = 0;
         ctx.beginPath();
         const items = group.items;
@@ -105,10 +130,10 @@ function render_projectiles()
         const stroke_width = ctx.lineWidth;
         if (full_fx) {
             ctx.globalAlpha = 0.1;
-            ctx.lineWidth = stroke_width + 9;
+            ctx.lineWidth = bore ? stroke_width*2.2 : stroke_width + 9;
             ctx.stroke();
             ctx.globalAlpha = 0.22;
-            ctx.lineWidth = stroke_width + 4;
+            ctx.lineWidth = bore ? stroke_width*1.6 : stroke_width + 4;
             ctx.stroke();
             ctx.globalAlpha = 1;
             ctx.lineWidth = stroke_width;

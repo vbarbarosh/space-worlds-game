@@ -121,38 +121,28 @@ function cabin_ship_asset(v, friendly = false)
 {
     const color = friendly ? cyan : v.color || pink;
     const shape = friendly ? current_ship().shape : (v.type === 'boss') ? 5 : (v.type === 'tank') ? 4 : (v.type === 'shooter') ? 1 : (v.type === 'splitter') ? 3 : 2;
-    return surface_asset('cabin_ship:' + shape + ':' + color, 256, function (draw) {
+    return surface_asset(`cabin_ship:${shape}:${color}`, 256, function (draw) {
         const wide = (shape >= 4) ? 105 : (shape === 2) ? 94 : 75;
         const tall = (shape >= 4) ? 32 : 20;
-        cabin_path(
-            draw,
-            [
-                [-wide, 18],
-                [-wide*0.65, -tall],
-                [-25, -9],
-                [0, -32],
-                [25, -9],
-                [wide*0.65, -tall],
-                [wide, 18],
-                [40, 27],
-                [0, 36],
-                [-40, 27],
-            ],
-            material_gradient(draw, friendly ? '#728ca0' : '#685567', 100),
-            '#bac5d477',
-            1.5
-        );
+        const hull = [
+            [-wide, 18],
+            [-wide*0.65, -tall],
+            [-25, -9],
+            [0, -32],
+            [25, -9],
+            [wide*0.65, -tall],
+            [wide, 18],
+            [40, 27],
+            [0, 36],
+            [-40, 27],
+        ];
+        cabin_path(draw, hull, material_gradient(draw, friendly ? '#728ca0' : '#685567', 100), '#bac5d477', 1.5);
         for (let i = -1; i <= 1; i += 2) {
             cabin_path(
                 draw,
-                [
-                    [i*32, 0],
-                    [i*wide*0.6, -tall + 4],
-                    [i*(wide - 5), 14],
-                    [i*45, 16],
-                ],
+                [[i*32, 0], [i*wide*0.6, -tall + 4], [i*(wide - 5), 14], [i*45, 16]],
                 '#1e2d40',
-                color + '66'
+                `${color}66`
             );
             material_box(draw, i*wide*0.52 - 9, 9, 18, 8, '#828c9f');
             draw.fillStyle = color;
@@ -163,30 +153,8 @@ function cabin_ship_asset(v, friendly = false)
             draw.lineTo(i*wide*0.8, 12);
             draw.stroke();
         }
-        cabin_path(
-            draw,
-            [
-                [-18, -8],
-                [0, -25],
-                [18, -8],
-                [12, 7],
-                [-12, 7],
-            ],
-            '#112b42',
-            color,
-            1.2
-        );
-        cabin_path(
-            draw,
-            [
-                [-10, -7],
-                [0, -17],
-                [10, -7],
-                [7, 1],
-                [-7, 1],
-            ],
-            color + 'aa'
-        );
+        cabin_path(draw, [[-18, -8], [0, -25], [18, -8], [12, 7], [-12, 7]], '#112b42', color, 1.2);
+        cabin_path(draw, [[-10, -7], [0, -17], [10, -7], [7, 1], [-7, 1]], `${color}aa`);
         material_box(draw, -11, 12, 22, 12, '#687d8f');
         draw.fillStyle = '#daeaff';
         draw.fillRect(-2, 14, 4, 9);
@@ -225,7 +193,7 @@ function cabin_draw_object(item)
         ctx.strokeStyle = color;
         ctx.lineWidth = clamp(radius*0.025, 1, 4);
         ctx.stroke();
-        ctx.fillStyle = color + '12';
+        ctx.fillStyle = `${color}12`;
         ctx.fill();
         for (let i = 0; i < 6; ++i) {
             const a = (i*Math.PI)/3 + clock*0.15;
@@ -233,7 +201,7 @@ function cabin_draw_object(item)
             ctx.fillRect(Math.cos(a)*radius - 2, Math.sin(a)*radius - 2, 4, 4);
         }
         if (full_fx) {
-            ctx.strokeStyle = color + '33';
+            ctx.strokeStyle = `${color}33`;
             ctx.lineWidth = 1;
             ctx.beginPath();
             ctx.arc(0, 0, radius*0.75, clock*0.3, clock*0.3 + Math.PI*1.5);
@@ -244,7 +212,7 @@ function cabin_draw_object(item)
         const asset = cabin_ship_asset(v, item.friendly);
         ctx.drawImage(asset.layer, -size, -size*0.55, size*2, size*1.1);
         if (v.shield > 0) {
-            ctx.strokeStyle = color + '55';
+            ctx.strokeStyle = `${color}55`;
             ctx.lineWidth = 1;
             ctx.beginPath();
             ctx.ellipse(0, 0, radius*1.3, radius*0.65, 0, 0, Math.PI*2);
@@ -293,8 +261,8 @@ function cabin_draw_object(item)
         ctx.drawImage(asset.layer, -radius, -radius, size, size);
     }
     else if (item.type === 'field') {
-        ctx.fillStyle = color + '12';
-        ctx.strokeStyle = color + '88';
+        ctx.fillStyle = `${color}12`;
+        ctx.strokeStyle = `${color}88`;
         ctx.lineWidth = 1.5;
         ctx.setLineDash([6, 8]);
         ctx.beginPath();
@@ -328,13 +296,13 @@ function cabin_draw_object(item)
     }
     ctx.restore();
     if (item.label && (p.depth < 6500) && (p.x > 40) && (p.x < W - 40) && (p.y < H*0.69)) {
-        ctx.font = ((item.type === 'ship') ? '10' : '11') + 'px ui-monospace,monospace';
+        ctx.font = `${(item.type === 'ship') ? '10' : '11'}px ui-monospace,monospace`;
         ctx.textAlign = 'center';
         ctx.fillStyle = color;
         ctx.fillText(item.label, p.x, Math.min(H*0.72, p.y + radius + 18));
         ctx.fillStyle = '#afc7da';
         ctx.font = '9px ui-monospace,monospace';
-        ctx.fillText(Math.round(p.distance) + ' m', p.x, Math.min(H*0.74, p.y + radius + 31));
+        ctx.fillText(`${Math.round(p.distance)} m`, p.x, Math.min(H*0.74, p.y + radius + 31));
     }
 }
 
@@ -358,7 +326,7 @@ function cabin_render_world()
         const ore_node = ore_nodes[i];
         if (ore_node.hp > 0) {
             const scanned = ore_node.resource && (distance(ore_node, player) < 420);
-            add(ore_node, 'rock', ore_node.r, 0, scanned ? resource_of(ore_node.resource).name.toUpperCase() + ' ×' + ore_node.amount : '', ore_color(ore_node), i % 4);
+            add(ore_node, 'rock', ore_node.r, 0, scanned ? `${resource_of(ore_node.resource).name.toUpperCase()} ×${ore_node.amount}` : '', ore_color(ore_node), i % 4);
         }
     }
     for (const drone of drones) {
@@ -369,10 +337,10 @@ function cabin_render_world()
     }
     add(station, 'station', 155, 105, worlds[campaign.world].station.toUpperCase(), cyan);
     for (const portal of portals) {
-        add(portal, 'gate', portal.r, 70, 'LOCAL GATE ' + portal.label, portal.color);
+        add(portal, 'gate', portal.r, 70, `LOCAL GATE ${portal.label}`, portal.color);
     }
     for (const world_gate of world_gates) {
-        add(world_gate, 'gate', 85, 70, 'WORLD GATE → ' + worlds[world_gate.destination].name.toUpperCase(), world_gate.color);
+        add(world_gate, 'gate', 85, 70, `WORLD GATE → ${worlds[world_gate.destination].name.toUpperCase()}`, world_gate.color);
     }
     for (const drifting_debri of drifting_debris) {
         add(
@@ -391,7 +359,7 @@ function cabin_render_world()
             'field',
             world_zone.r,
             0,
-            ((world_zone.type === 'storm') ? 'ION FIELD' : 'SOLAR FIELD') + ' / ' + (phase.active ? 'ACTIVE' : phase.warning ? 'WARNING' : 'CALM'),
+            `${(world_zone.type === 'storm') ? 'ION FIELD' : 'SOLAR FIELD'} / ${phase.active ? 'ACTIVE' : phase.warning ? 'WARNING' : 'CALM'}`,
             (world_zone.type === 'storm') ? blue : '#ff9469'
         );
     }
@@ -400,7 +368,7 @@ function cabin_render_world()
     }
     for (let i = 0, end = beacons.length; i < end; ++i) {
         const beacon = beacons[i];
-        add(beacon, 'beacon', 28, 35, 'SCAN BEACON ' + (i + 1), cyan);
+        add(beacon, 'beacon', 28, 35, `SCAN BEACON ${i + 1}`, cyan);
     }
     for (const enemy of enemies) {
         if (enemy.hp > 0) {
@@ -415,7 +383,7 @@ function cabin_render_world()
         }
     }
     if (escort) {
-        add(escort, 'ship', 35, 0, 'CONVOY / ' + Math.ceil(escort.hp) + ' HULL', cyan, 0, true);
+        add(escort, 'ship', 35, 0, `CONVOY / ${Math.ceil(escort.hp)} HULL`, cyan, 0, true);
     }
     for (const pickup of pickups) {
         add(pickup, 'pickup', (pickup.type === 'artifact') ? 7 : 10, 0, '', pickup_color(pickup));
@@ -498,7 +466,7 @@ function cabin_render_world()
 
 function cabin_label(text, x, y, size = 10, color = cyan, align = 'left')
 {
-    ctx.font = size + 'px ui-monospace,monospace';
+    ctx.font = `${size}px ui-monospace,monospace`;
     ctx.textAlign = align;
     ctx.fillStyle = color;
     ctx.fillText(text, x, y);
@@ -603,8 +571,8 @@ function cabin_render_guidance()
     }
     const y = H*((W < 700) ? 0.54 : 0.7);
     const arrow = (angle > 0) ? 'TURN RIGHT →' : '← TURN LEFT';
-    const caption = ((d < 230) && c.interaction) ? c.interaction + ' / ' + (goal.label || 'OBJECTIVE') : ahead ? 'OBJECTIVE AHEAD' : arrow;
-    cabin_label(caption + ' · ' + Math.round(d) + ' m', W*0.5, y, (W < 700) ? 9 : 12, gold, 'center');
+    const caption = ((d < 230) && c.interaction) ? `${c.interaction} / ${goal.label || 'OBJECTIVE'}` : ahead ? 'OBJECTIVE AHEAD' : arrow;
+    cabin_label(`${caption} · ${Math.round(d)} m`, W*0.5, y, (W < 700) ? 9 : 12, gold, 'center');
 }
 
 function cabin_render_frame()
@@ -617,59 +585,17 @@ function cabin_render_frame()
     g.addColorStop(0, '#344552');
     g.addColorStop(0.12, '#13202c');
     g.addColorStop(1, '#060d16');
+    cabin_path(ctx, [[0, 0], [W*0.105, 0], [W*0.07, H*0.48], [W*0.16, deck], [0, H]], '#0a1420', '#476476', 2);
+    cabin_path(ctx, [[W, 0], [W*0.895, 0], [W*0.93, H*0.48], [W*0.84, deck], [W, H]], '#0a1420', '#476476', 2);
+    cabin_path(ctx, [[0, 0], [W, 0], [W*0.9, H*0.045], [W*0.1, H*0.045]], '#152431', '#5a7688', 1.5);
     cabin_path(
         ctx,
-        [
-            [0, 0],
-            [W*0.105, 0],
-            [W*0.07, H*0.48],
-            [W*0.16, deck],
-            [0, H],
-        ],
-        '#0a1420',
-        '#476476',
-        2
-    );
-    cabin_path(
-        ctx,
-        [
-            [W, 0],
-            [W*0.895, 0],
-            [W*0.93, H*0.48],
-            [W*0.84, deck],
-            [W, H],
-        ],
-        '#0a1420',
-        '#476476',
-        2
-    );
-    cabin_path(
-        ctx,
-        [
-            [0, 0],
-            [W, 0],
-            [W*0.9, H*0.045],
-            [W*0.1, H*0.045],
-        ],
-        '#152431',
-        '#5a7688',
-        1.5
-    );
-    cabin_path(
-        ctx,
-        [
-            [0, H],
-            [0, deck + H*0.06],
-            [W*0.21, deck],
-            [W*0.79, deck],
-            [W, deck + H*0.06],
-            [W, H],
-        ],
+        [[0, H], [0, deck + H*0.06], [W*0.21, deck], [W*0.79, deck], [W, deck + H*0.06], [W, H]],
         g,
         '#668c9d',
         2
     );
-    ctx.strokeStyle = accent + '77';
+    ctx.strokeStyle = `${accent}77`;
     ctx.lineWidth = 1.5;
     ctx.beginPath();
     ctx.moveTo(W*0.13, H*0.73);
@@ -682,15 +608,15 @@ function cabin_render_frame()
         const x = W*(0.26 + i*0.057);
         ctx.fillStyle = '#00000066';
         ctx.fillRect(x, deck + 7, W*0.034, 6);
-        ctx.fillStyle = ((i === 3) || (i === 4)) ? accent + '88' : '#446471';
+        ctx.fillStyle = ((i === 3) || (i === 4)) ? `${accent}88` : '#446471';
         ctx.fillRect(x + 2, deck + 9, W*0.034 - 4, 2);
     }
     const speed = Math.hypot(player.vx, player.vy);
     const heading = (Math.round((cabin.yaw*180)/Math.PI + 90) + 360) % 360;
     cabin_label('VELOCITY', W*0.16, H*0.835, Math.min(9, W*0.012), '#829fb3');
-    cabin_label(Math.round(speed) + ' m/s', W*0.16, H*0.872, Math.min(26, W*0.035), accent);
+    cabin_label(`${Math.round(speed)} m/s`, W*0.16, H*0.872, Math.min(26, W*0.035), accent);
     cabin_label('HEADING', W*0.42, H*0.835, 9, '#829fb3');
-    cabin_label(String(heading).padStart(3, '0') + '°', W*0.42, H*0.872, Math.min(26, W*0.035), '#d6f2ed');
+    cabin_label(`${String(heading).padStart(3, '0')}°`, W*0.42, H*0.872, Math.min(26, W*0.035), '#d6f2ed');
     cabin_label(current_ship().name.toUpperCase(), W*0.6, H*0.838, (W < 700) ? 7 : 10, '#aec6d8', 'center');
     cabin_label(current_weapon().name.toUpperCase(), W*0.6, H*0.862, (W < 700) ? 6 : 9, accent, 'center');
     cabin_label(
@@ -712,7 +638,7 @@ function cabin_render_frame()
     }
     const gravity = nearest_gravity();
     if (gravity) {
-        cabin_label('GRAVITY ' + Math.ceil(gravity.pull) + ' m/s · STEER AWAY', W*0.5, H*0.65, 11, pink, 'center');
+        cabin_label(`GRAVITY ${Math.ceil(gravity.pull)} m/s · STEER AWAY`, W*0.5, H*0.65, 11, pink, 'center');
     }
 }
 
@@ -746,7 +672,7 @@ function render_cabin()
     }
     ctx.globalAlpha = 1;
     cabin_render_world();
-    ctx.strokeStyle = cyan + '55';
+    ctx.strokeStyle = `${cyan}55`;
     ctx.lineWidth = 1;
     const x = W*0.5;
     const y = H*0.4;
@@ -769,21 +695,21 @@ function render_cabin()
         ctx.lineTo(hx, H*((W < 700) ? 0.628 : 0.168));
         ctx.stroke();
     }
-    cabin_label('HEADING / ' + Math.round(zoom*100) + '%', W*0.5, H*((W < 700) ? 0.58 : 0.125), (W < 700) ? 7 : 9, cyan, 'center');
+    cabin_label(`HEADING / ${Math.round(zoom*100)}%`, W*0.5, H*((W < 700) ? 0.58 : 0.125), (W < 700) ? 7 : 9, cyan, 'center');
     cabin_render_engine_effects();
     cabin_render_guidance();
     cabin_render_frame();
     render_minimap();
     if (player.dash_time > 0) {
-        cabin_label('TURBO ' + player.dash_time.toFixed(1) + 's / RELEASE SHIFT TO DISENGAGE', width*0.5, height*0.55, 11, cyan, 'center');
+        cabin_label(`TURBO ${player.dash_time.toFixed(1)}s / RELEASE SHIFT TO DISENGAGE`, width*0.5, height*0.55, 11, cyan, 'center');
     }
     if (joystick.active) {
-        ctx.strokeStyle = cyan + '55';
+        ctx.strokeStyle = `${cyan}55`;
         ctx.lineWidth = 1;
         ctx.beginPath();
         ctx.arc(joystick.x, joystick.y, 55, 0, Math.PI*2);
         ctx.stroke();
-        ctx.fillStyle = cyan + '66';
+        ctx.fillStyle = `${cyan}66`;
         ctx.beginPath();
         ctx.arc(joystick.x + joystick.dx*35, joystick.y + joystick.dy*35, 14, 0, Math.PI*2);
         ctx.fill();
@@ -792,7 +718,7 @@ function render_cabin()
         render_jump();
     }
     if (full_fx && (flash > 0)) {
-        ctx.fillStyle = 'rgba(255,91,175,' + flash*0.3 + ')';
+        ctx.fillStyle = `rgba(255,91,175,${flash*0.3})`;
         ctx.fillRect(0, 0, W, H);
     }
     ctx.restore();

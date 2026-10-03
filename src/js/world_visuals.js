@@ -36,9 +36,9 @@ function create_world_planet(id)
     const random = visual_random_from_seed(418 + id*5349);
     const look = world_looks[id];
     const outer = draw.createRadialGradient(x, y, r - 4, x, y, 318);
-    outer.addColorStop(0, worlds[id].accent + '55');
-    outer.addColorStop(0.45, worlds[id].accent + '18');
-    outer.addColorStop(1, worlds[id].accent + '00');
+    outer.addColorStop(0, `${worlds[id].accent}55`);
+    outer.addColorStop(0.45, `${worlds[id].accent}18`);
+    outer.addColorStop(1, `${worlds[id].accent}00`);
     draw.fillStyle = outer;
     draw.fillRect(0, 0, 640, 640);
     draw.save();
@@ -352,7 +352,7 @@ function wireframe_render_map()
     const id = campaign.world;
     const look = world_looks[id];
     ctx.save();
-    ctx.strokeStyle = worlds[id].accent + '44';
+    ctx.strokeStyle = `${worlds[id].accent}44`;
     ctx.lineWidth = 3;
     ctx.strokeRect(12, 12, world.w - 24, world.h - 24);
     for (let i = 0, ii = scenery.length; i < ii; ++i) {
@@ -473,7 +473,7 @@ function wireframe_render_world_ore(v)
     const color = (v.flash > 0) ? '#fff5b4' : look.material;
     const sides = (id === 3) ? 4 : (id === 5) ? 5 : (id === 7) ? 3 : 7;
     polygon(v.x, v.y, v.r, sides, v.angle, color, (id === 5) ? '#39576e99' : (id === 1) ? '#223728' : (id === 6) ? '#321c21' : (id === 7) ? '#181023' : '#25222b');
-    ctx.strokeStyle = (id === 6) ? '#ffa34a' : color + '99';
+    ctx.strokeStyle = (id === 6) ? '#ffa34a' : `${color}99`;
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.moveTo(v.x - v.r*0.5, v.y);
@@ -501,7 +501,7 @@ function wireframe_render_world_station()
     const look = world_looks[id];
     ctx.save();
     ctx.translate(station.x, station.y);
-    ctx.strokeStyle = w.accent + '18';
+    ctx.strokeStyle = `${w.accent}18`;
     ctx.lineWidth = 1;
     ctx.setLineDash([5, 15]);
     ctx.beginPath();
@@ -660,7 +660,7 @@ function wireframe_render_world_station()
     ctx.textAlign = 'center';
     ctx.fillText(w.station.toUpperCase(), 0, 165);
     ctx.font = '9px ui-monospace,monospace';
-    ctx.fillText(look.station.toUpperCase() + ' / R DOCK', 0, 183);
+    ctx.fillText(`${look.station.toUpperCase()} / R DOCK`, 0, 183);
     ctx.restore();
 }
 
@@ -675,6 +675,6 @@ function physics_base_update_hud()
 {
     visual_base_update_hud();
     if (player) {
-        el.act_label.textContent = worlds[campaign.world].name.toUpperCase() + ' / ' + world_looks[campaign.world].biome + ' / THREAT ' + (campaign.world + 1);
+        el.act_label.textContent = `${worlds[campaign.world].name.toUpperCase()} / ${world_looks[campaign.world].biome} / THREAT ${campaign.world + 1}`;
     }
 }

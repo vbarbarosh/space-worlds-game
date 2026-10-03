@@ -158,7 +158,7 @@ function update_world_environment(dt)
     }
     if (campaign.world === 1) {
         const flow = world_flow(player);
-        physics_status = 'CURRENT ' + ((flow.x > 0) ? 'E' : 'W') + ' / ' + ((flow.y > 0) ? 'S' : 'N') + ' · ' + Math.round(Math.hypot(flow.x, flow.y)) + ' m/s';
+        physics_status = `CURRENT ${(flow.x > 0) ? 'E' : 'W'} / ${(flow.y > 0) ? 'S' : 'N'} · ${Math.round(Math.hypot(flow.x, flow.y))} m/s`;
         const drifting_lists = [enemies, pickups, ore_nodes];
         for (let j = 0, jj = drifting_lists.length; j < jj; ++j) {
             const items = drifting_lists[j];
@@ -173,19 +173,16 @@ function update_world_environment(dt)
     }
     else if (campaign.world === 6) {
         physics_status =
-            (player.overheated ? 'OVERHEATED / COOLING' : 'HEAT ' + Math.round(player.heat) + '/100') +
-            ' · COOL ' +
-            (10 + upgrades.reactor*2 + upgrades.cooling*5 + current_ship().cooling*8) +
-            '/s';
+            `${player.overheated ? 'OVERHEATED / COOLING' : `HEAT ${Math.round(player.heat)}/100`} · COOL ${10 + upgrades.reactor*2 + upgrades.cooling*5 + current_ship().cooling*8}/s`;
     }
     else if (r.inertial) {
-        physics_status = 'COAST ' + Math.round(Math.hypot(player.vx, player.vy)) + ' m/s · HOLD B TO BRAKE';
+        physics_status = `COAST ${Math.round(Math.hypot(player.vx, player.vy))} m/s · HOLD B TO BRAKE`;
     }
     else if (campaign.world === 7) {
         physics_status = 'PULSE −1.8/s · TURBO COST 12 · MAGNET ×0.72';
     }
     else {
-        physics_status = 'CRUISE ×' + r.speed + ' · GRAVITY ×' + r.gravity;
+        physics_status = `CRUISE ×${r.speed} · GRAVITY ×${r.gravity}`;
     }
     for (const world_zone of world_zones) {
         if ((distance(player, world_zone) > world_zone.r) || (distance(player, station) < 500)) {
@@ -193,7 +190,7 @@ function update_world_environment(dt)
         }
         const s = zone_state(world_zone);
         if (s.warning) {
-            physics_status = ((world_zone.type === 'storm') ? 'STORM' : 'SOLAR FLARE') + ' IN ' + Math.ceil(s.remaining - 4) + 's';
+            physics_status = `${(world_zone.type === 'storm') ? 'STORM' : 'SOLAR FLARE'} IN ${Math.ceil(s.remaining - 4)}s`;
         }
         if (!s.active) {
             continue;

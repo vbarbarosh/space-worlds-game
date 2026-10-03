@@ -37,7 +37,7 @@ function base_render_navigation_objects()
         ctx.fillStyle = '#ffd16e88';
         ctx.font = '10px ui-monospace,monospace';
         ctx.textAlign = 'center';
-        ctx.fillText('MINING FIELD ' + String(mining_field.id + 1).padStart(2, '0'), mining_field.x, mining_field.y - mining_field.r - 20);
+        ctx.fillText(`MINING FIELD ${String(mining_field.id + 1).padStart(2, '0')}`, mining_field.x, mining_field.y - mining_field.r - 20);
         ctx.restore();
     }
     for (const ore_node of ore_nodes) {
@@ -66,8 +66,8 @@ function base_render_navigation_objects()
         ctx.arc(0, 0, portal.r + 15, -clock, -clock + Math.PI*1.6);
         ctx.stroke();
         const g = ctx.createRadialGradient(0, 0, 2, 0, 0, portal.r);
-        g.addColorStop(0, portal.color + '88');
-        g.addColorStop(1, portal.color + '04');
+        g.addColorStop(0, `${portal.color}88`);
+        g.addColorStop(1, `${portal.color}04`);
         ctx.fillStyle = g;
         ctx.beginPath();
         ctx.arc(0, 0, portal.r, 0, Math.PI*2);
@@ -78,7 +78,7 @@ function base_render_navigation_objects()
         ctx.fillStyle = portal.color;
         ctx.fillText(portal.label, 0, 5);
         ctx.font = '9px ui-monospace,monospace';
-        ctx.fillText('JUMP GATE ' + portal.label, 0, portal.r + 34);
+        ctx.fillText(`JUMP GATE ${portal.label}`, 0, portal.r + 34);
         ctx.restore();
     }
     for (const black_hole of black_holes) {
@@ -158,7 +158,7 @@ function visual_base_render_map()
             ctx.font = '9px ui-monospace,monospace';
             ctx.fillStyle = color;
             ctx.textAlign = 'center';
-            ctx.fillText('RELAY / ' + Math.floor(v.x/100) + '-' + Math.floor(v.y/100), v.x, v.y);
+            ctx.fillText(`RELAY / ${Math.floor(v.x/100)}-${Math.floor(v.y/100)}`, v.x, v.y);
         }
         else if (v.type === 1) {
             ctx.strokeStyle = color;
@@ -178,7 +178,7 @@ function visual_base_render_map()
     ctx.textAlign = 'left';
     for (let x = Math.floor(camera.x/800)*800; x < camera.x + W/zoom + 800; x += 800) {
         for (let y = Math.floor(camera.y/800)*800; y < camera.y + H/zoom + 800; y += 800) {
-            ctx.fillText('GRID ' + Math.floor(x/800) + ' : ' + Math.floor(y/800), x + 16, y + 22);
+            ctx.fillText(`GRID ${Math.floor(x/800)} : ${Math.floor(y/800)}`, x + 16, y + 22);
         }
     }
     ctx.restore();
@@ -388,6 +388,7 @@ function render()
     }
     ctx.globalAlpha = 1;
     ctx.restore();
+    render_hostile_marks();
     render_enemies();
     render_explosions();
     render_pickups();
@@ -398,14 +399,14 @@ function render()
             ctx.strokeStyle = '#6cf8ec55';
             ctx.lineWidth = 1;
             ctx.beginPath();
-            ctx.arc(player.x, player.y, 26 + Math.sin(clock*10)*2, 0, Math.PI*2);
+            ctx.arc(player.x, player.y, ship_halo() + Math.sin(clock*10)*2, 0, Math.PI*2);
             ctx.stroke();
         }
         ship(player.x, player.y, player.angle, (player.invincible > 0) ? 0.65 + Math.sin(clock*25)*0.25 : 1);
         if (player.energy >= 100) {
             ctx.strokeStyle = '#ff5baf55';
             ctx.beginPath();
-            ctx.arc(player.x, player.y, 32, clock*2, clock*2 + Math.PI*1.4);
+            ctx.arc(player.x, player.y, ship_halo() + 6, clock*2, clock*2 + Math.PI*1.4);
             ctx.stroke();
         }
     }
@@ -438,7 +439,7 @@ function render()
     ctx.restore();
     render_screen_controls();
     if (full_fx && (flash > 0)) {
-        ctx.fillStyle = 'rgba(255,91,175,' + flash*0.35 + ')';
+        ctx.fillStyle = `rgba(255,91,175,${flash*0.35})`;
         ctx.fillRect(0, 0, W, H);
     }
     ctx.restore();
@@ -486,16 +487,16 @@ function render_equipment()
         ctx.setLineDash([]);
         ctx.strokeStyle = '#ffd16e70';
         ctx.beginPath();
-        ctx.arc(player.x, player.y, 39, clock*1.5, clock*1.5 + 0.8);
+        ctx.arc(player.x, player.y, ship_halo() + 13, clock*1.5, clock*1.5 + 0.8);
         ctx.stroke();
     }
     if (player.shield > 0) {
         ctx.strokeStyle = '#8d9cff88';
         ctx.lineWidth = 2;
         ctx.beginPath();
-        ctx.arc(player.x, player.y, 29, -Math.PI/2, -Math.PI/2 + (Math.PI*2*player.shield)/shield_max());
+        ctx.arc(player.x, player.y, ship_halo() + 3, -Math.PI/2, -Math.PI/2 + (Math.PI*2*player.shield)/shield_max());
         ctx.stroke();
-        shield_shimmer(player, 29);
+        shield_shimmer(player, ship_halo() + 3);
     }
     for (let i = 0; i < upgrades.drone; ++i) {
         const a = time*1.7 + (i/upgrades.drone)*Math.PI*2;
@@ -520,7 +521,7 @@ function render_hazards()
         ctx.font = '9px ui-monospace,monospace';
         ctx.textAlign = 'center';
         ctx.fillStyle = active ? pink : gold;
-        ctx.fillText(active ? 'ION SURGE' : 'SURGE IN ' + Math.ceil(hazard.life - 1.8), hazard.x, hazard.y);
+        ctx.fillText(active ? 'ION SURGE' : `SURGE IN ${Math.ceil(hazard.life - 1.8)}`, hazard.x, hazard.y);
         ctx.restore();
     }
 }

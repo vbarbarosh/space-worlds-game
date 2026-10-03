@@ -129,7 +129,7 @@ function start_phase()
     spawn_left = current_sector().count + (phase_index - 1)*2;
     spawn_timer = 1.3;
     if (phase_index > 1) {
-        show_toast('WAVE ' + phase_index + ' / 3', current_sector().name, 1.7);
+        show_toast(`WAVE ${phase_index} / 3`, current_sector().name, 1.7);
         ring(player.x, player.y, blue, 100, 0.6);
     }
     if (current_sector().boss && (phase_index === 3)) {
@@ -278,7 +278,7 @@ function base_damage_enemy(enemy, damage)
         (enemy.type === 'boss') ? 450 : 190
     );
     ring(enemy.x, enemy.y, (enemy.type === 'shooter') ? gold : pink, enemy.r*3, 0.35);
-    label(enemy.x, enemy.y - 10, '+' + points);
+    label(enemy.x, enemy.y - 10, `+${points}`);
     shake = Math.max(shake, arcade.active ? arcade_kill_shake(enemy) : ((enemy.type === 'boss') ? 22 : 4));
     if (arcade.active && (enemy.type === 'boss')) {
         arcade.slowmo = 1.4;

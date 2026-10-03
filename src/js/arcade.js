@@ -141,7 +141,7 @@ function arcade_update(dt)
     }
     if (arcade.wave < arcade_waves) {
         arcade.pause = 2.5;
-        show_toast('WAVE ' + arcade.wave + ' CLEAR', 'NEXT WAVE INBOUND', 2);
+        show_toast(`WAVE ${arcade.wave} CLEAR`, 'NEXT WAVE INBOUND', 2);
         return;
     }
     arcade_world_clear();
@@ -155,7 +155,7 @@ function arcade_wave_start(n)
     phase_index = n;
     phase_timer = 0;
     spawn_left = arcade_wave_size(n);
-    show_toast('WAVE ' + n + ' / ' + arcade_waves + ' · ' + arcade_wave_names[n], worlds[campaign.world].name.toUpperCase() + ' · ' + current_world_rules().name.toUpperCase(), 2);
+    show_toast(`WAVE ${n} / ${arcade_waves} · ${arcade_wave_names[n]}`, `${worlds[campaign.world].name.toUpperCase()} · ${current_world_rules().name.toUpperCase()}`, 2);
     if (n === arcade_waves) {
         arcade_flagship_spawn();
     }
@@ -259,7 +259,7 @@ function arcade_flagship_spawn()
     boss_spawned = true;
     boss_defeated = false;
     arcade.phase = 1;
-    el.bossbar.querySelector('.meter-row').textContent = worlds[campaign.world].faction.toUpperCase() + ' FLAGSHIP';
+    el.bossbar.querySelector('.meter-row').textContent = `${worlds[campaign.world].faction.toUpperCase()} FLAGSHIP`;
     set_hidden(el.bossbar, false);
 }
 
@@ -338,7 +338,7 @@ function arcade_interact()
         return;
     }
     if (enemies.some(v => (v.hp > 0) && (distance(v, player) < arcade_depot_safe_range))) {
-        show_toast('DEPOT CLOSED', 'RAIDERS WITHIN ' + arcade_depot_safe_range + ' m · CLEAR THEM FIRST', 2);
+        show_toast('DEPOT CLOSED', `RAIDERS WITHIN ${arcade_depot_safe_range} m · CLEAR THEM FIRST`, 2);
         return;
     }
     arcade_depot_open();
@@ -364,15 +364,15 @@ function arcade_depot_fill()
     const cleared = arcade.between_worlds;
     const next = cleared ? worlds[cleared.world + 1] : null;
     document.getElementById('arcade_depot_eyebrow').textContent = cleared
-        ? worlds[cleared.world].name.toUpperCase() + ' CLEARED · BONUS ◆ ' + cleared.bonus + ' · WEAPON TIER ' + weapon_level()
-        : 'ARCADE DEPOT · ' + worlds[campaign.world].station.toUpperCase();
-    document.getElementById('arcade_depot_launch').textContent = next ? 'NEXT: ' + next.name.toUpperCase() + ' ↗' : 'LAUNCH ↗';
-    document.getElementById('arcade_depot_next').textContent = next ? 'Next: ' + next.name + ', ' + world_rules[cleared.world + 1].summary + '.' : '';
+        ? `${worlds[cleared.world].name.toUpperCase()} CLEARED · BONUS ◆ ${cleared.bonus} · WEAPON TIER ${weapon_level()}`
+        : `ARCADE DEPOT · ${worlds[campaign.world].station.toUpperCase()}`;
+    document.getElementById('arcade_depot_launch').textContent = next ? `NEXT: ${next.name.toUpperCase()} ↗` : 'LAUNCH ↗';
+    document.getElementById('arcade_depot_next').textContent = next ? `Next: ${next.name}, ${world_rules[cleared.world + 1].summary}.` : '';
     document.getElementById('arcade_depot_wallet').textContent =
-        '◆ ' + salvage + ' salvage · ' + current_weapon().name + ' T' + weapon_level() + ' · hull ' + Math.ceil(player.hp) + ' / ' + hull_max();
+        `◆ ${salvage} salvage · ${current_weapon().name} T${weapon_level()} · hull ${Math.ceil(player.hp)} / ${hull_max()}`;
     const items = [];
     if (player.hp < hull_max()) {
-        items.push({icon: '✚', title: 'Full repair', text: 'The hull back to ' + hull_max() + '.', price: 60, buy: function () {
+        items.push({icon: '✚', title: 'Full repair', text: `The hull back to ${hull_max()}.`, price: 60, buy: function () {
             player.hp = hull_max();
         }});
     }
@@ -387,7 +387,7 @@ function arcade_depot_fill()
         }});
     }
     for (const option of upgrade_options.filter(v => upgrades[v.key] < v.cap)) {
-        items.push({icon: option.icon, title: option.title + ' Lv ' + (upgrades[option.key] + 1), text: option.description, price: module_cost(option), buy: function () {
+        items.push({icon: option.icon, title: `${option.title} Lv ${upgrades[option.key] + 1}`, text: option.description, price: module_cost(option), buy: function () {
             grant_upgrade(option);
         }});
     }
@@ -396,9 +396,9 @@ function arcade_depot_fill()
     for (const item of items) {
         const card = document.createElement('div');
         card.className = 'shop-item';
-        card.innerHTML = '<b>' + item.icon + ' &nbsp;' + item.title + '</b><p>' + item.text + '</p>';
+        card.innerHTML = `<b>${item.icon} &nbsp;${item.title}</b><p>${item.text}</p>`;
         const button = document.createElement('button');
-        button.textContent = 'BUY · ◆ ' + item.price;
+        button.textContent = `BUY · ◆ ${item.price}`;
         button.disabled = salvage < item.price;
         button.addEventListener('click', function () {
             arcade_depot_buy(item);
@@ -448,11 +448,11 @@ function arcade_finish(won)
     el.result_eyebrow.textContent = won ? 'ARCADE · FRONTIER CLEARED' : 'ARCADE · SIGNAL LOST';
     el.result_title.textContent = won ? 'All eight worlds.' : 'One more run?';
     el.result_description.textContent = won
-        ? 'Eight worlds, eight flagships, ' + format_time(run_time) + '.'
-        : 'You reached ' + worlds[campaign.world].name + ', wave ' + arcade.wave + ' of ' + arcade_waves + '.';
+        ? `Eight worlds, eight flagships, ${format_time(run_time)}.`
+        : `You reached ${worlds[campaign.world].name}, wave ${arcade.wave} of ${arcade_waves}.`;
     el.result_score.textContent = score.toLocaleString();
-    el.result_sector.textContent = (campaign.world + 1) + ' / ' + worlds.length;
-    el.result_best.textContent = (record ? 'NEW PERSONAL BEST · ' : 'PERSONAL BEST · ') + best.toLocaleString() + '  /  ' + kills + ' ELIMINATIONS · ' + format_time(run_time);
+    el.result_sector.textContent = `${campaign.world + 1} / ${worlds.length}`;
+    el.result_best.textContent = `${record ? 'NEW PERSONAL BEST · ' : 'PERSONAL BEST · '}${best.toLocaleString()}  /  ${kills} ELIMINATIONS · ${format_time(run_time)}`;
     document.getElementById('restart_button').focus();
 }
 
@@ -475,10 +475,10 @@ function arcade_kill_shake(enemy)
 
 function arcade_update_hud()
 {
-    el.act_label.textContent = 'ARCADE · WORLD ' + (campaign.world + 1) + ' / ' + worlds.length + ' · ' + world_looks[campaign.world].biome;
+    el.act_label.textContent = `ARCADE · WORLD ${campaign.world + 1} / ${worlds.length} · ${world_looks[campaign.world].biome}`;
     el.mission_name.textContent = worlds[campaign.world].name.toUpperCase();
-    el.mission_phase.textContent = (arcade.pause > 0) ? 'WAVE ' + arcade.wave + ' CLEAR' : 'WAVE ' + Math.max(1, arcade.wave) + ' / ' + arcade_waves;
+    el.mission_phase.textContent = (arcade.pause > 0) ? `WAVE ${arcade.wave} CLEAR` : `WAVE ${Math.max(1, arcade.wave)} / ${arcade_waves}`;
     const total = arcade_wave_size(arcade.wave);
     const left = spawn_left + enemies.filter(v => v.hp > 0).length;
-    el.sector_progress.style.width = clamp((((arcade.wave - 1) + (1 - Math.min(1, left/Math.max(1, total))))/arcade_waves)*100, 0, 100) + '%';
+    el.sector_progress.style.width = `${clamp((((arcade.wave - 1) + (1 - Math.min(1, left/Math.max(1, total))))/arcade_waves)*100, 0, 100)}%`;
 }

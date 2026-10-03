@@ -44,7 +44,7 @@ function format_progress(v)
 
 function format_time(v)
 {
-    return String(Math.floor(v/60)).padStart(2, '0') + ':' + String(Math.floor(v % 60)).padStart(2, '0');
+    return `${String(Math.floor(v/60)).padStart(2, '0')}:${String(Math.floor(v % 60)).padStart(2, '0')}`;
 }
 
 function current_sector()
@@ -57,7 +57,7 @@ try {
 }
 catch {
 }
-el.best_intro.textContent = 'BEST ' + String(best).padStart(6, '0');
+el.best_intro.textContent = `BEST ${String(best).padStart(6, '0')}`;
 function rand(a, b)
 {
     return a + Math.random()*(b - a);

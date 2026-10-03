@@ -10,7 +10,7 @@ function sync_view_button()
     b.textContent = title.toUpperCase();
     b.classList.toggle('rendered', view_mode !== 'wireframe');
     b.classList.toggle('cockpit', view_mode === 'cockpit');
-    b.setAttribute('aria-label', 'View mode: ' + title + '. Click to cycle views.');
+    b.setAttribute('aria-label', `View mode: ${title}. Click to cycle views.`);
     document.body.setAttribute('data-view', view_mode);
 }
 
@@ -46,7 +46,7 @@ function color_from_shade(hex, amount)
     const r = clamp((n >> 16) + amount, 0, 255);
     const g = clamp(((n >> 8) & 255) + amount, 0, 255);
     const b = clamp((n & 255) + amount, 0, 255);
-    return '#' + [r, g, b].map(v => Math.round(v).toString(16).padStart(2, '0')).join('');
+    return `#${[r, g, b].map(v => Math.round(v).toString(16).padStart(2, '0')).join('')}`;
 }
 
 function surface_asset(key, size, paint)
@@ -117,7 +117,7 @@ function material_box(draw, x, y, w, h, color)
 
 function ship_surface(shape, color, enemy = false, type = '')
 {
-    return surface_asset('ship:' + shape + ':' + color + ':' + enemy + ':' + type, 160, function (draw) {
+    return surface_asset(`ship:${shape}:${color}:${enemy}:${type}`, 160, function (draw) {
         draw.scale(2, 2);
         const points = ship_outline(shape);
         draw.save();
@@ -140,26 +140,8 @@ function ship_surface(shape, color, enemy = false, type = '')
         draw.closePath();
         draw.clip();
         for (let i = -1; i <= 1; i += 2) {
-            plate(
-                draw,
-                [
-                    [13, i*4],
-                    [-2, i*8],
-                    [-22, i*22],
-                    [-17, i*5],
-                ],
-                enemy ? '#443744' : '#394c5b'
-            );
-            plate(
-                draw,
-                [
-                    [5, i*5],
-                    [-11, i*14],
-                    [-17, i*13],
-                    [-1, i*3],
-                ],
-                color_from_shade(color, -45)
-            );
+            plate(draw, [[13, i*4], [-2, i*8], [-22, i*22], [-17, i*5]], enemy ? '#443744' : '#394c5b');
+            plate(draw, [[5, i*5], [-11, i*14], [-17, i*13], [-1, i*3]], color_from_shade(color, -45));
             draw.strokeStyle = '#111b2788';
             draw.lineWidth = 0.8;
             for (let j = 0; j < 4; ++j) {
@@ -169,18 +151,7 @@ function ship_surface(shape, color, enemy = false, type = '')
                 draw.stroke();
             }
         }
-        plate(
-            draw,
-            [
-                [22, 0],
-                [1, -5],
-                [-17, -4],
-                [-21, 0],
-                [-17, 4],
-                [1, 5],
-            ],
-            enemy ? '#937c81' : '#adbac5'
-        );
+        plate(draw, [[22, 0], [1, -5], [-17, -4], [-21, 0], [-17, 4], [1, 5]], enemy ? '#937c81' : '#adbac5');
         material_box(draw, -19, -4, 6, 8, '#263b46');
         const glass = draw.createLinearGradient(0, -4, 8, 5);
         glass.addColorStop(0, '#e5fcff');
@@ -235,7 +206,7 @@ function render_surface_ship(x, y, angle, alpha = 1, ghost = false, definition =
             ctx.rotate(angle);
             ctx.globalCompositeOperation = 'lighter';
             ctx.globalAlpha = alpha;
-            sprite_flames(sprite_anchors(art.name, art.length).flames.main, 0.45, definition?.enemy ? color : '#9bcfff', full_fx ? Math.sin(clock*24 + x)*0.15 : 0);
+            sprite_flames(ctx, sprite_anchors(art.name, art.length).flames.main, 0.45, definition?.enemy ? color : '#9bcfff', full_fx ? Math.sin(clock*24 + x)*0.15 : 0);
             ctx.restore();
         }
         return;
@@ -252,7 +223,7 @@ function render_surface_ship(x, y, angle, alpha = 1, ghost = false, definition =
         const length = ((player && (Math.hypot(player.vx, player.vy) > 30)) ? 13 : 7) + (full_fx ? Math.sin(clock*24)*2 : 0);
         for (let i = -1; i <= 1; i += 2) {
             const y = i*((shape >= 4) ? 14 : (shape === 2) ? 10 : 7)*size;
-            ctx.fillStyle = color + '33';
+            ctx.fillStyle = `${color}33`;
             ctx.beginPath();
             ctx.moveTo(-18*size, y - 3*size);
             ctx.lineTo((-23 - length)*size, y);
@@ -282,6 +253,32 @@ function ship(x, y, angle, alpha = 1, ghost = false)
     }
 }
 
+// Every hostile ship sits in a red ring of four turning arcs, under its hull, so the ones to shoot stand out from
+// freighters and other friendly traffic; elites get a heavier ring
+function render_hostile_marks()
+{
+    ctx.save();
+    ctx.strokeStyle = '#ff4d5e';
+    ctx.globalAlpha = 0.75;
+    ctx.lineCap = 'round';
+    for (const enemy of enemies) {
+        if ((enemy.hp <= 0) || !in_view(enemy, enemy.r*2 + 40)) {
+            continue;
+        }
+        const r = enemy_sprite(enemy).length*0.55 + 4;
+        const turn = clock*0.6 + enemy.x*0.01;
+        ctx.lineWidth = (enemy.elite ? 2.6 : 1.6)/zoom;
+        ctx.beginPath();
+        for (let i = 0; i < 4; ++i) {
+            const a = turn + (i*Math.PI)/2;
+            ctx.moveTo(enemy.x + Math.cos(a)*r, enemy.y + Math.sin(a)*r);
+            ctx.arc(enemy.x, enemy.y, r, a, a + Math.PI/3);
+        }
+        ctx.stroke();
+    }
+    ctx.restore();
+}
+
 function render_enemies()
 {
     if (view_mode === 'wireframe') {
@@ -305,7 +302,7 @@ function render_enemies()
         });
         ctx.save();
         if ((enemy.type === 'lancer') && (enemy.charge_cd < 0.7) && (enemy.charge_time <= 0)) {
-            ctx.strokeStyle = gold + '66';
+            ctx.strokeStyle = `${gold}66`;
             ctx.setLineDash([5, 5]);
             ctx.beginPath();
             ctx.moveTo(enemy.x, enemy.y);
@@ -314,7 +311,7 @@ function render_enemies()
         }
         ctx.setLineDash([]);
         if (enemy.shield > 0) {
-            ctx.strokeStyle = color + '66';
+            ctx.strokeStyle = `${color}66`;
             ctx.lineWidth = 2;
             ctx.beginPath();
             ctx.arc(enemy.x, enemy.y, enemy.r + 8, clock, clock + (Math.PI*2*enemy.shield)/enemy.max_shield);
@@ -340,7 +337,7 @@ function render_enemies()
 
 function rock_surface(id, variant = 0)
 {
-    return surface_asset('rock:' + id + ':' + variant, 160, function (draw) {
+    return surface_asset(`rock:${id}:${variant}`, 160, function (draw) {
         const random = visual_random_from_seed(2387 + id*179 + variant*591);
         const ice = id === 5;
         const crystal = (id === 3) || (id === 7);
@@ -415,7 +412,7 @@ function scenery_surface(id, variant)
     if ([2, 5, 6, 7].includes(id)) {
         return rock_surface(id, variant);
     }
-    return surface_asset('scenery:' + id + ':' + variant, 160, function (draw) {
+    return surface_asset(`scenery:${id}:${variant}`, 160, function (draw) {
         if (id === 1) {
             const g = draw.createRadialGradient(-10, -15, 3, 0, 0, 57);
             g.addColorStop(0, '#a0b568');
@@ -440,36 +437,9 @@ function scenery_surface(id, variant)
             return;
         }
         if (id === 3) {
-            plate(
-                draw,
-                [
-                    [0, -62],
-                    [26, -14],
-                    [13, 49],
-                    [-14, 62],
-                    [-27, 8],
-                ],
-                '#789abb'
-            );
-            plate(
-                draw,
-                [
-                    [0, -62],
-                    [0, 23],
-                    [-14, 62],
-                    [-27, 8],
-                ],
-                '#284676'
-            );
-            plate(
-                draw,
-                [
-                    [0, -62],
-                    [26, -14],
-                    [0, 23],
-                ],
-                '#bddae8'
-            );
+            plate(draw, [[0, -62], [26, -14], [13, 49], [-14, 62], [-27, 8]], '#789abb');
+            plate(draw, [[0, -62], [0, 23], [-14, 62], [-27, 8]], '#284676');
+            plate(draw, [[0, -62], [26, -14], [0, 23]], '#bddae8');
             draw.fillStyle = '#9cffff';
             draw.fillRect(-3, -18, 6, 23);
             return;
@@ -513,7 +483,7 @@ function render_map()
         return;
     }
     ctx.save();
-    ctx.strokeStyle = worlds[campaign.world].accent + '22';
+    ctx.strokeStyle = `${worlds[campaign.world].accent}22`;
     ctx.lineWidth = 2;
     ctx.strokeRect(12, 12, world.w - 24, world.h - 24);
     for (let i = 0, end = scenery.length; i < end; ++i) {
@@ -521,13 +491,18 @@ function render_map()
         if (!in_view(v, v.r + 30)) {
             continue;
         }
-        const asset = scenery_surface(campaign.world, i % 7);
         const size = v.r*1.45;
+        // Rocks that are only scenery recede, so they never pass for asteroids you can hit or mine.
+        const alpha = [2, 5, 6, 7].includes(campaign.world) ? 0.08 : 0.68;
+        const art = world_art(`satellite-${(i % 3) + 1}`);
+        if (art && sprite_draw_box(art, null, size, v.x, v.y, v.angle, alpha)) {
+            continue;
+        }
+        const asset = scenery_surface(campaign.world, i % 7);
         ctx.save();
         ctx.translate(v.x, v.y);
         ctx.rotate(v.angle);
-        // Rocks that are only scenery recede, so they never pass for asteroids you can hit or mine.
-        ctx.globalAlpha = [2, 5, 6, 7].includes(campaign.world) ? 0.08 : 0.68;
+        ctx.globalAlpha = alpha;
         ctx.drawImage(asset.layer, -size/2, -size/2, size, size);
         ctx.restore();
     }
@@ -544,6 +519,21 @@ function render_world_ore(v)
         return;
     }
     const variant = Math.abs(Math.floor(v.angle*11)) % 7;
+    // The designer's asteroids: a rich one shows veins of the world's resource in its colour, and flashes when hit
+    const art = world_art(v.resource ? `asteroid-rich-${(variant % 3) + 1}` : `asteroid-${(variant % 4) + 1}`);
+    if (art && sprite_draw_box(art, v.resource ? ore_color(v) : null, v.r*2.5, v.x, v.y, v.angle)) {
+        if (v.flash > 0) {
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+            ctx.fillStyle = '#fff7c633';
+            ctx.beginPath();
+            ctx.arc(v.x, v.y, v.r*0.9, 0, Math.PI*2);
+            ctx.fill();
+            ctx.restore();
+        }
+        ore_hp_bar(v);
+        return;
+    }
     const asset = rock_surface(campaign.world, variant);
     const size = v.r*2.55;
     ore_glow(v);
@@ -564,6 +554,11 @@ function render_world_ore(v)
     ctx.fill();
     ctx.stroke();
     ctx.restore();
+    ore_hp_bar(v);
+}
+
+function ore_hp_bar(v)
+{
     if (v.hp < v.max_hp) {
         ctx.fillStyle = '#0b1222';
         ctx.fillRect(v.x - v.r, v.y - v.r - 9, v.r*2, 3);
@@ -574,7 +569,7 @@ function render_world_ore(v)
 
 function station_surface(id)
 {
-    return surface_asset('station:' + id, 512, function (draw) {
+    return surface_asset(`station:${id}`, 512, function (draw) {
         const accent = worlds[id].accent;
         const base = (id === 2) ? '#847262' : (id === 5) ? '#8bafc0' : (id === 7) ? '#514560' : '#77838f';
         const random = visual_random_from_seed(781 + id*18);
@@ -631,24 +626,8 @@ function station_surface(id)
             for (let i = 0; i < 8; ++i) {
                 draw.save();
                 draw.rotate((i/8)*Math.PI*2);
-                plate(
-                    draw,
-                    [
-                        [21, -17],
-                        [178, 0],
-                        [21, 17],
-                    ],
-                    base
-                );
-                plate(
-                    draw,
-                    [
-                        [28, -9],
-                        [153, 0],
-                        [28, 5],
-                    ],
-                    '#251e35'
-                );
+                plate(draw, [[21, -17], [178, 0], [21, 17]], base);
+                plate(draw, [[28, -9], [153, 0], [28, 5]], '#251e35');
                 draw.restore();
             }
         }
@@ -663,7 +642,7 @@ function station_surface(id)
             draw.beginPath();
             draw.arc(0, 0, (id === 3) ? 110 : 94, 0, Math.PI*2);
             draw.stroke();
-            draw.strokeStyle = accent + '66';
+            draw.strokeStyle = `${accent}66`;
             draw.lineWidth = 3;
             draw.beginPath();
             draw.arc(0, 0, (id === 3) ? 103 : 88, 0.2, Math.PI*1.6);
@@ -724,26 +703,38 @@ function render_world_station()
     const asset = station_surface(campaign.world);
     const w = worlds[campaign.world];
     ctx.save();
-    ctx.strokeStyle = w.accent + '18';
+    ctx.strokeStyle = `${w.accent}18`;
     ctx.setLineDash([5, 15]);
     ctx.beginPath();
     ctx.arc(station.x, station.y, 500, 0, Math.PI*2);
     ctx.stroke();
     ctx.setLineDash([]);
-    ctx.drawImage(asset.layer, station.x - 230, station.y - 230, 460, 460);
+    // The designer's station turns its habitat ring slowly; its berths reach the edge, so the name goes below them
+    const art = world_art('station');
+    const drawn = art && sprite_draw_box(art, w.accent, 460, station.x, station.y, 0, 1, clock*0.04);
+    if (!drawn) {
+        ctx.drawImage(asset.layer, station.x - 230, station.y - 230, 460, 460);
+    }
+    const label = drawn ? 262 : 180;
     ctx.fillStyle = w.accent;
     ctx.font = 'bold 12px ui-monospace,monospace';
     ctx.textAlign = 'center';
-    ctx.fillText(w.station.toUpperCase(), station.x, station.y + 180);
+    ctx.fillText(w.station.toUpperCase(), station.x, station.y + label);
     ctx.font = '9px ui-monospace,monospace';
-    ctx.fillText('STATION / R DOCK', station.x, station.y + 198);
+    ctx.fillText('STATION / R DOCK', station.x, station.y + label + 18);
     ctx.restore();
 }
 
+// The gate's frame; true when it is the designer's drawing
 function render_gate_shell(v, world_gate)
 {
     const radius = world_gate ? 82 : 55;
-    const asset = surface_asset('gate:' + v.color, 192, function (draw) {
+    // The designer's gates, in the colour of where they lead; the inner ring turns, a jump gate's lights run backwards
+    const art = world_art(world_gate ? 'world-gate' : 'jump-gate');
+    if (art && sprite_draw_box(art, v.color, radius*2.9, v.x, v.y, 0, 1, clock*(world_gate ? 0.15 : -0.25))) {
+        return true;
+    }
+    const asset = surface_asset(`gate:${v.color}`, 192, function (draw) {
         draw.strokeStyle = '#050c18';
         draw.lineWidth = 20;
         draw.beginPath();
@@ -762,6 +753,7 @@ function render_gate_shell(v, world_gate)
         }
     });
     ctx.drawImage(asset.layer, v.x - radius*1.45, v.y - radius*1.45, radius*2.9, radius*2.9);
+    return false;
 }
 
 function render_singularity_surface(v)
@@ -790,13 +782,20 @@ function render_singularity_surface(v)
         draw.stroke();
     });
     const size = v.core*7.2;
-    ctx.drawImage(asset.layer, v.x - size/2, v.y - size/2, size, size);
+    // The designer's black hole, its core as wide as the fatal core, its accretion disk turning
+    const art = world_art('black-hole');
+    const drawn = art && sprite_draw_box(art, null, v.core*5.3, v.x, v.y, 0, 1, clock*0.35 + v.phase);
+    if (!drawn) {
+        ctx.drawImage(asset.layer, v.x - size/2, v.y - size/2, size, size);
+    }
     ctx.save();
     ctx.strokeStyle = '#ff9b7555';
     ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.ellipse(v.x, v.y, v.core*2.6, v.core*0.9, -0.23, clock*0.2, clock*0.2 + Math.PI*0.9);
-    ctx.stroke();
+    if (!drawn) {
+        ctx.beginPath();
+        ctx.ellipse(v.x, v.y, v.core*2.6, v.core*0.9, -0.23, clock*0.2, clock*0.2 + Math.PI*0.9);
+        ctx.stroke();
+    }
     ctx.fillStyle = pink;
     ctx.font = 'bold 10px ui-monospace,monospace';
     ctx.textAlign = 'center';
@@ -809,24 +808,14 @@ function ship_svg(v)
     if (view_mode === 'wireframe') {
         return wireframe_ship_svg(v);
     }
+    // The designer's sprite, alive: see hangar_preview.js
+    if (sprite(ship_sprite(v).name)) {
+        return hangar_preview_html(v);
+    }
     const points = ship_outline(v.shape)
         .map(v => v.join(','))
         .join(' ');
-    return (
-        '<svg viewBox="-38 -32 76 64" aria-label="' +
-        v.name +
-        '"><defs><linearGradient id="hull_' +
-        v.id +
-        '" x1="0" y1="0" x2=".7" y2="1"><stop stop-color="#dce6ee"/><stop offset=".4" stop-color="#8496a8"/><stop offset="1" stop-color="#293846"/></linearGradient></defs><polygon points="' +
-        points +
-        '" fill="url(#hull_' +
-        v.id +
-        ')" stroke="#c8d5df" stroke-width=".7"/><path d="M19 0L-5 -5L-19 -3L-19 3L-5 5Z" fill="#c4d0d9"/><path d="M12 0L-4 -4L-7 0L-4 4Z" fill="' +
-        v.color +
-        '"/><path d="M-21 -7L-32 -7M-21 7L-32 7" stroke="' +
-        v.color +
-        '" stroke-width="3"/></svg>'
-    );
+    return `<svg viewBox="-38 -32 76 64" aria-label="${v.name}"><defs><linearGradient id="hull_${v.id}" x1="0" y1="0" x2=".7" y2="1"><stop stop-color="#dce6ee"/><stop offset=".4" stop-color="#8496a8"/><stop offset="1" stop-color="#293846"/></linearGradient></defs><polygon points="${points}" fill="url(#hull_${v.id})" stroke="#c8d5df" stroke-width=".7"/><path d="M19 0L-5 -5L-19 -3L-19 3L-5 5Z" fill="#c4d0d9"/><path d="M12 0L-4 -4L-7 0L-4 4Z" fill="${v.color}"/><path d="M-21 -7L-32 -7M-21 7L-32 7" stroke="${v.color}" stroke-width="3"/></svg>`;
 }
 
 function render_pickups()
@@ -841,22 +830,21 @@ function render_pickups()
             continue;
         }
         const color = pickup_color(pickup);
-        const asset = surface_asset('pickup:' + pickup.type + (pickup.key ? ':' + pickup.key : ''), 64, function (draw) {
+        const art = world_art(pickup_art(pickup));
+        if (art) {
+            const ore = (pickup.type === 'cargo') && resource_of(pickup.key);
+            const alpha = (pickup.life < 5) ? 0.5 + Math.sin(clock*10)*0.3 : 1;
+            if (sprite_draw_box(art, ore ? color : null, sprite_sizes.pickup, pickup.x, pickup.y, Math.sin(clock*1.5 + pickup.x)*0.25, alpha)) {
+                pickup_tether(pickup, color, radius);
+                continue;
+            }
+        }
+        const asset = surface_asset(`pickup:${pickup.type}${pickup.key ? `:${pickup.key}` : ''}`, 64, function (draw) {
             material_box(draw, -13, -11, 26, 22, '#55616e');
             material_box(draw, -10, -8, 20, 16, '#152635');
             draw.fillStyle = color;
             if (pickup.type === 'artifact') {
-                plate(
-                    draw,
-                    [
-                        [0, -8],
-                        [7, 0],
-                        [0, 8],
-                        [-7, 0],
-                    ],
-                    '#a68733',
-                    gold
-                );
+                plate(draw, [[0, -8], [7, 0], [0, 8], [-7, 0]], '#a68733', gold);
                 draw.fillStyle = '#ffe8a4';
                 draw.fillRect(-1, -4, 2, 5);
             }
@@ -889,18 +877,35 @@ function render_pickups()
         ctx.save();
         ctx.globalAlpha = (pickup.life < 5) ? 0.5 + Math.sin(clock*10)*0.3 : 1;
         ctx.drawImage(asset.layer, pickup.x - size/2, pickup.y - size/2, size, size);
-        if (full_fx && (distance(pickup, player) < radius)) {
-            ctx.globalAlpha = 0.16;
-            ctx.strokeStyle = color;
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.moveTo(pickup.x, pickup.y);
-            ctx.lineTo(player.x, player.y);
-            ctx.stroke();
-        }
         ctx.restore();
+        pickup_tether(pickup, color, radius);
     }
     render_pickup_glints();
+}
+
+// The pickup's file among a world's drawings: a cargo canister of the world's resource is an ore chunk
+function pickup_art(pickup)
+{
+    if (pickup.type === 'cargo') {
+        return resource_of(pickup.key) ? 'pickup-ore' : 'pickup-cargo';
+    }
+    return `pickup-${{health: 'repair', artifact: 'salvage'}[pickup.type] || pickup.type}`;
+}
+
+// A faint line from a pickup within the magnet's reach to the ship
+function pickup_tether(pickup, color, radius)
+{
+    if (full_fx && (distance(pickup, player) < radius)) {
+        ctx.save();
+        ctx.globalAlpha = 0.16;
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(pickup.x, pickup.y);
+        ctx.lineTo(player.x, player.y);
+        ctx.stroke();
+        ctx.restore();
+    }
 }
 
 function wireframe_render_pickups()
@@ -999,7 +1004,7 @@ function wireframe_render_enemies()
         }
         ctx.shadowBlur = 0;
         if (enemy.shield > 0) {
-            ctx.strokeStyle = enemy.color + '99';
+            ctx.strokeStyle = `${enemy.color}99`;
             ctx.lineWidth = 2;
             ctx.beginPath();
             ctx.arc(enemy.x, enemy.y, enemy.r + 7, clock, clock + (Math.PI*2*enemy.shield)/enemy.max_shield);

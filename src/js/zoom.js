@@ -1,6 +1,6 @@
 function sync_zoom_controls()
 {
-    document.getElementById('zoom_reset').textContent = Math.round(zoom*100) + '%';
+    document.getElementById('zoom_reset').textContent = `${Math.round(zoom*100)}%`;
     document.getElementById('zoom_out').disabled = zoom <= 0.5;
     document.getElementById('zoom_in').disabled = zoom >= 2;
 }
@@ -61,17 +61,7 @@ document.getElementById('zoom_in').addEventListener('click', function () {
 document.getElementById('zoom_reset').addEventListener('click', function () {
     set_zoom(1);
 });
-canvas.addEventListener(
-    'wheel',
-    function (event) {
-        if (settings_open || !['playing', 'paused'].includes(state) || !event.deltaY) {
-            return;
-        }
-        event.preventDefault();
-        set_zoom(zoom*Math.exp(clamp(-event.deltaY*0.0015, -0.18, 0.18)));
-    },
-    {passive: false}
-);
+canvas.addEventListener('wheel', on_wheel, {passive: false});
 addEventListener('keydown', function (event) {
     if (
         settings_open ||
@@ -97,3 +87,12 @@ addEventListener('keydown', function (event) {
     }
 });
 sync_zoom_controls();
+
+function on_wheel(event)
+{
+    if (settings_open || !['playing', 'paused'].includes(state) || !event.deltaY) {
+        return;
+    }
+    event.preventDefault();
+    set_zoom(zoom*Math.exp(clamp(-event.deltaY*0.0015, -0.18, 0.18)));
+}

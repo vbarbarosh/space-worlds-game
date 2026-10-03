@@ -6,7 +6,7 @@ function dev_sounds_fill()
         const play = dev_button('Play', function () {
             dev_sound_play(kind);
         });
-        rows.push({value: kind, cells: [kind, sfx_by_kind[kind].limit + ' s', play]});
+        rows.push({value: kind, cells: [kind, `${sfx_by_kind[kind].limit} s`, play]});
     }
     dev_table_fill(document.getElementById('dev_sounds'), ['Sound', 'Cooldown', ''], rows, null, null);
 }

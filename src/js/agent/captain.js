@@ -33,14 +33,14 @@ function captain_status()
     out.near_station = distance(player, station) < 230;
     out.salvage = salvage;
     out.score = score;
-    out.hull = Math.ceil(player.hp) + ' / ' + hull_max();
-    out.shield = Math.ceil(player.shield) + ' / ' + shield_max();
+    out.hull = `${Math.ceil(player.hp)} / ${hull_max()}`;
+    out.shield = `${Math.ceil(player.shield)} / ${shield_max()}`;
     out.energy = Math.round(player.energy);
     out.heat = Math.round(player.heat || 0);
     out.radiation_dose = Math.round(player.radiation_dose || 0);
     out.ship = ship.name;
     out.ships_owned = fleet.ships;
-    out.weapon = current_weapon().name + ' T' + weapon_level();
+    out.weapon = `${current_weapon().name} T${weapon_level()}`;
     out.rank = rank_names[pilot_rank()];
     out.xp = campaign.xp;
     out.reputation = campaign.reputation[campaign.world] || 0;
@@ -54,7 +54,7 @@ function captain_status()
             type: contract.type,
             world: worlds[contract.world].name,
             stage: contract.stages ? contract.stages[contract.stage_index].title : null,
-            progress: Math.floor(contract.progress) + ' / ' + contract.target,
+            progress: `${Math.floor(contract.progress)} / ${contract.target}`,
             ready: !!contract.ready,
             reward: contract.reward,
         });
@@ -62,7 +62,7 @@ function captain_status()
     out.objective = context.goal ? {title: context.title, kind: context.kind, distance: Math.round(distance(player, context.goal))} : null;
     out.autopilot = captain_pilot.on ? (guide_flying ? 'flying' : 'on') : 'off';
     if (arcade.active) {
-        out.arcade = {world: (campaign.world + 1) + ' / ' + worlds.length, wave: arcade.wave + ' / ' + arcade_waves};
+        out.arcade = {world: `${campaign.world + 1} / ${worlds.length}`, wave: `${arcade.wave} / ${arcade_waves}`};
     }
     out.enemies_near = enemies.filter(v => (v.hp > 0) && (distance(v, player) < 900)).length;
     out.run_time = format_time(run_time);
@@ -93,7 +93,7 @@ function captain_thinking_refresh()
     const waiting = captain_waiting_states.includes(state) && (seconds >= 2);
     set_hidden(banner, !waiting);
     if (waiting) {
-        banner.textContent = 'THE AGENT IS THINKING · ' + seconds + ' s';
+        banner.textContent = `THE AGENT IS THINKING · ${seconds} s`;
     }
 }
 

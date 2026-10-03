@@ -26,7 +26,7 @@ function guide_base_track_world(id)
         return;
     }
     const gate = world_gates.find(v => v.destination === route[1]);
-    waypoint = {...gate, label: 'GATE TO ' + worlds[route[1]].name};
+    waypoint = {...gate, label: `GATE TO ${worlds[route[1]].name}`};
 }
 
 function guide_base_track_contract(m)
@@ -85,18 +85,7 @@ function guide_base_render_navigation()
         b.classList.toggle('selected', b.dataset.nav === nav_tab);
     }
     document.getElementById('nav_summary').textContent =
-        'CURRENT ' +
-        worlds[campaign.world].name +
-        ' · WEAPON RATING ' +
-        attack_rating() +
-        ' · DEFENSE ' +
-        defense_rating() +
-        ' · ' +
-        campaign.visited.length +
-        '/8 worlds visited · Cargo ' +
-        cargo_count() +
-        '/' +
-        cargo_capacity();
+        `CURRENT ${worlds[campaign.world].name} · WEAPON RATING ${attack_rating()} · DEFENSE ${defense_rating()} · ${campaign.visited.length}/8 worlds visited · Cargo ${cargo_count()}/${cargo_capacity()}`;
     if (nav_tab === 'jobs') {
         render_contracts(parent);
         return;
@@ -116,12 +105,12 @@ function guide_base_render_navigation()
         for (const world_gate of world_gates) {
             card(
                 parent,
-                'Gate → ' + worlds[world_gate.destination].name,
+                `Gate → ${worlds[world_gate.destination].name}`,
                 worlds[world_gate.destination].weapons,
-                'R within 155 units · ' + requirements(world_gate.destination),
+                `R within 155 units · ${requirements(world_gate.destination)}`,
                 'SET WAYPOINT',
                 function () {
-                    waypoint = {...world_gate, label: 'GATE TO ' + worlds[world_gate.destination].name};
+                    waypoint = {...world_gate, label: `GATE TO ${worlds[world_gate.destination].name}`};
                     toggle_navigation();
                 }
             );
@@ -129,12 +118,12 @@ function guide_base_render_navigation()
         for (const f of mining_fields.filter(v => ore_nodes.some(vv => vv.field === v.id))) {
             card(
                 parent,
-                'Mining field ' + (f.id + 1),
+                `Mining field ${f.id + 1}`,
                 'Automatic cannons extract ore and artifacts.',
-                'Remaining rocks ' + ore_nodes.filter(v => v.field === f.id).length,
+                `Remaining rocks ${ore_nodes.filter(v => v.field === f.id).length}`,
                 'SET WAYPOINT',
                 function () {
-                    waypoint = {...f, label: 'MINING FIELD ' + (f.id + 1)};
+                    waypoint = {...f, label: `MINING FIELD ${f.id + 1}`};
                     toggle_navigation();
                 }
             );
@@ -143,12 +132,12 @@ function guide_base_render_navigation()
             const beacon = beacons[i];
             card(
                 parent,
-                'Survey beacon ' + (i + 1),
+                `Survey beacon ${i + 1}`,
                 'Approach within 120 units to scan for active contracts.',
-                'X ' + Math.round(beacon.x) + ' / Y ' + Math.round(beacon.y),
+                `X ${Math.round(beacon.x)} / Y ${Math.round(beacon.y)}`,
                 'SET WAYPOINT',
                 function () {
-                    waypoint = {...beacon, label: 'BEACON ' + (i + 1)};
+                    waypoint = {...beacon, label: `BEACON ${i + 1}`};
                     toggle_navigation();
                 }
             );
@@ -159,16 +148,17 @@ function guide_base_render_navigation()
         const world = worlds[i];
         const route = route_to(i);
         const current = i === campaign.world;
+        function on_track() {
+            track_world(i);
+            toggle_navigation();
+        }
         card(
             parent,
-            String(i + 1).padStart(2, '0') + ' / ' + world.name,
-            world.faction + ' · ' + world.weapons,
-            requirements(i) + ' · ROUTE ' + route.map(v => worlds[v].name).join(' → '),
+            `${String(i + 1).padStart(2, '0')} / ${world.name}`,
+            `${world.faction} · ${world.weapons}`,
+            `${requirements(i)} · ROUTE ${route.map(v => worlds[v].name).join(' → ')}`,
             current ? 'TRACK STATION' : 'TRACK JUMP ROUTE',
-            function () {
-                track_world(i);
-                toggle_navigation();
-            },
+            on_track,
             false,
             current ? 'active' : allowed_world(i) ? '' : 'locked'
         );
@@ -178,22 +168,7 @@ function guide_base_render_navigation()
 function requirements(id)
 {
     const w = worlds[id];
-    return (
-        (allowed_world(id) ? 'FLIGHT CLEARED' : 'UPGRADE REQUIRED') +
-        ' · WEAPONS ' +
-        attack_rating() +
-        '/' +
-        w.attack +
-        ' · DEFENSE ' +
-        defense_rating() +
-        '/' +
-        w.defense +
-        ' · RAD ' +
-        Math.round(radiation_protection()*100) +
-        '%/' +
-        Math.round(expedition_conditions[id].required*100) +
-        '%'
-    );
+    return `${allowed_world(id) ? 'FLIGHT CLEARED' : 'UPGRADE REQUIRED'} · WEAPONS ${attack_rating()}/${w.attack} · DEFENSE ${defense_rating()}/${w.defense} · RAD ${Math.round(radiation_protection()*100)}%/${Math.round(expedition_conditions[id].required*100)}%`;
 }
 
 function interact()
@@ -212,10 +187,10 @@ function interact()
     const g = world_gates.find(v => distance(player, v) < 155);
     if (g) {
         if (!allowed_world(g.destination)) {
-            show_toast('SHUTTLE NOT PREPARED', requirements(g.destination) + ' / DOCK AT THE OUTFITTER', 5);
+            show_toast('SHUTTLE NOT PREPARED', `${requirements(g.destination)} / DOCK AT THE OUTFITTER`, 5);
             return;
         }
-        start_jump({world: g.destination, color: g.color, label: 'JUMP TO ' + worlds[g.destination].name});
+        start_jump({world: g.destination, color: g.color, label: `JUMP TO ${worlds[g.destination].name}`});
     }
 }
 
@@ -283,7 +258,7 @@ function guide_base_update_jump(dt)
         if (mouse_drive.following) {
             set_mouse_destination({x: mouse_drive.screen_x, y: mouse_drive.screen_y});
         }
-        (previous.world !== undefined) ? show_world_arrival(previous.label) : show_toast(previous.label, 'LOCAL ARRIVAL / ' + current_world_rules().name, 3);
+        (previous.world !== undefined) ? show_world_arrival(previous.label) : show_toast(previous.label, `LOCAL ARRIVAL / ${current_world_rules().name}`, 3);
         save_checkpoint();
     }
 }
@@ -296,7 +271,7 @@ function render_jump()
     const p = jump.t/jump.duration;
     const envelope = Math.sin(Math.PI*p);
     ctx.save();
-    ctx.fillStyle = 'rgba(3,6,20,' + envelope*0.94 + ')';
+    ctx.fillStyle = `rgba(3,6,20,${envelope*0.94})`;
     ctx.fillRect(0, 0, W, H);
     ctx.translate(W/2, H/2);
     ctx.strokeStyle = jump.color;
@@ -405,18 +380,18 @@ function guide_base_update_hud()
     }
     const w = worlds[campaign.world];
     const m = campaign.contracts.find(v => !v.ready) || campaign.contracts[0];
-    const sector_html = String(campaign.world + 1).padStart(2, '0') + ' <small>/ 8</small>';
+    const sector_html = `${String(campaign.world + 1).padStart(2, '0')} <small>/ 8</small>`;
     if (el.sector.innerHTML !== sector_html) {
         el.sector.innerHTML = sector_html;
     }
-    el.act_label.textContent = w.name.toUpperCase() + ' / THREAT ' + (campaign.world + 1);
-    el.mission_name.textContent = m ? m.title : 'FREE FLIGHT / ' + w.station;
+    el.act_label.textContent = `${w.name.toUpperCase()} / THREAT ${campaign.world + 1}`;
+    el.mission_name.textContent = m ? m.title : `FREE FLIGHT / ${w.station}`;
     el.mission_phase.textContent = m
         ? m.ready
-            ? 'DOCK TO CLAIM ◆ ' + m.reward
-            : worlds[m.world].name + ' · ' + format_progress(m.progress) + '/' + m.target
+            ? `DOCK TO CLAIM ◆ ${m.reward}`
+            : `${worlds[m.world].name} · ${format_progress(m.progress)}/${m.target}`
         : 'R DOCK · J NAVIGATION';
-    el.sector_progress.style.width = m ? Math.min(100, (m.progress/m.target)*100) + '%' : '0%';
+    el.sector_progress.style.width = m ? `${Math.min(100, (m.progress/m.target)*100)}%` : '0%';
     const b = document.getElementById('dock_button');
     const g = world_gates.find(v => distance(player, v) < 155);
     b.disabled = (state !== 'playing') || !((distance(player, station) < 230) || g);
@@ -426,7 +401,7 @@ function guide_base_update_hud()
         el.navigation_status.textContent += ' / R DOCK';
     }
     else if (g) {
-        el.navigation_status.textContent += ' / ' + requirements(g.destination);
+        el.navigation_status.textContent += ` / ${requirements(g.destination)}`;
     }
 }
 
@@ -436,8 +411,8 @@ function expedition_base_render_inventory()
     card(
         el.inventory_grid,
         'Cargo hold',
-        commodities.filter((v, i) => (i < 3) || campaign.cargo[v.key]).map(v => v.name + ': ' + campaign.cargo[v.key]).join(' · '),
-        'CAPACITY ' + cargo_count() + '/' + cargo_capacity() + ' · WEAPONS ' + attack_rating() + ' · DEFENSE ' + defense_rating()
+        commodities.filter((v, i) => (i < 3) || campaign.cargo[v.key]).map(v => `${v.name}: ${campaign.cargo[v.key]}`).join(' · '),
+        `CAPACITY ${cargo_count()}/${cargo_capacity()} · WEAPONS ${attack_rating()} · DEFENSE ${defense_rating()}`
     );
 }
 
@@ -459,6 +434,17 @@ function finish(won)
     document.getElementById('dock_button').classList.add('hidden');
 }
 
+// The gate's name and status, `y` below its centre
+function world_gate_label(world_gate, y)
+{
+    ctx.fillStyle = world_gate.color;
+    ctx.font = 'bold 11px ui-monospace,monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(`WORLD GATE → ${worlds[world_gate.destination].name.toUpperCase()}`, world_gate.x, world_gate.y + y);
+    ctx.font = '9px ui-monospace,monospace';
+    ctx.fillText(`R JUMP · ${allowed_world(world_gate.destination) ? 'CLEARED' : 'UPGRADES REQUIRED'}`, world_gate.x, world_gate.y + y + 19);
+}
+
 function physics_base_render_navigation_objects()
 {
     base_render_navigation_objects();
@@ -469,8 +455,17 @@ function physics_base_render_navigation_objects()
         if (!in_view(world_gate, 200)) {
             continue;
         }
-        if (view_mode === 'rendered') {
-            render_gate_shell(world_gate, true);
+        if ((view_mode === 'rendered') && render_gate_shell(world_gate, true)) {
+            // The drawing has its own rings; a glow fills its opening in the colour of where it leads
+            const g = ctx.createRadialGradient(world_gate.x, world_gate.y, 4, world_gate.x, world_gate.y, 78);
+            g.addColorStop(0, `${world_gate.color}55`);
+            g.addColorStop(1, `${world_gate.color}00`);
+            ctx.fillStyle = g;
+            ctx.beginPath();
+            ctx.arc(world_gate.x, world_gate.y, 78, 0, Math.PI*2);
+            ctx.fill();
+            world_gate_label(world_gate, 138);
+            continue;
         }
         ctx.strokeStyle = world_gate.color;
         ctx.lineWidth = 3;
@@ -483,19 +478,17 @@ function physics_base_render_navigation_objects()
         }
         ctx.shadowBlur = 0;
         polygon(world_gate.x, world_gate.y, 34, 6, -clock*0.4, world_gate.color, '#102233');
-        ctx.fillStyle = world_gate.color;
-        ctx.font = 'bold 11px ui-monospace,monospace';
-        ctx.textAlign = 'center';
-        ctx.fillText('WORLD GATE → ' + worlds[world_gate.destination].name.toUpperCase(), world_gate.x, world_gate.y + 115);
-        ctx.font = '9px ui-monospace,monospace';
-        ctx.fillText('R JUMP · ' + (allowed_world(world_gate.destination) ? 'CLEARED' : 'UPGRADES REQUIRED'), world_gate.x, world_gate.y + 134);
+        world_gate_label(world_gate, 115);
     }
     for (let i = 0, end = beacons.length; i < end; ++i) {
         const beacon = beacons[i];
         if (!in_view(beacon)) {
             continue;
         }
-        polygon(beacon.x, beacon.y, 24, 4, clock*0.2, cyan, '#142c35');
+        const art = world_art('beacon');
+        if (!art || !sprite_draw_box(art, null, 50, beacon.x, beacon.y, clock*0.2)) {
+            polygon(beacon.x, beacon.y, 24, 4, clock*0.2, cyan, '#142c35');
+        }
         ctx.strokeStyle = '#6cf8ec44';
         ctx.beginPath();
         ctx.arc(beacon.x, beacon.y, 50 + ((clock*20) % 45), 0, Math.PI*2);
@@ -503,7 +496,7 @@ function physics_base_render_navigation_objects()
         ctx.fillStyle = cyan;
         ctx.font = '10px ui-monospace,monospace';
         ctx.textAlign = 'center';
-        ctx.fillText('SCAN BEACON ' + (i + 1), beacon.x, beacon.y + 65);
+        ctx.fillText(`SCAN BEACON ${i + 1}`, beacon.x, beacon.y + 65);
     }
     if (escort) {
         const angle = Math.atan2(escort.destination.y - escort.y, escort.destination.x - escort.x);
@@ -511,12 +504,12 @@ function physics_base_render_navigation_objects()
             ship(escort.x, escort.y, angle);
         }
         else {
-            render_surface_ship(escort.x, escort.y, angle, 1, false, {...current_ship(), sprite: {name: 'freighter', length: 64}});
+            render_surface_ship(escort.x, escort.y, angle, 1, false, {...current_ship(), sprite: {name: 'freighter', length: sprite_sizes.freighter}});
         }
         ctx.fillStyle = gold;
         ctx.font = '10px ui-monospace,monospace';
         ctx.textAlign = 'center';
-        ctx.fillText('FREIGHTER · ' + Math.ceil(escort.hp) + ' HULL', escort.x, escort.y - 35);
+        ctx.fillText(`FREIGHTER · ${Math.ceil(escort.hp)} HULL`, escort.x, escort.y - 35);
     }
     if (waypoint) {
         ctx.strokeStyle = gold;
@@ -577,7 +570,7 @@ function guide_base_render_screen_controls()
         ctx.fillStyle = gold;
         ctx.font = '10px ui-monospace,monospace';
         ctx.textAlign = 'center';
-        ctx.fillText(waypoint.label.toUpperCase() + ' · ' + d + ' m', x, y - 20);
+        ctx.fillText(`${waypoint.label.toUpperCase()} · ${d} m`, x, y - 20);
         const a = Math.atan2(py - y, px - x);
         ctx.translate(x, y);
         ctx.rotate(a);

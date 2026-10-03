@@ -1,6 +1,6 @@
 document.getElementById('quick_drones').addEventListener('click', drones_toggle);
 for (const key of ['medkit', 'emp', 'stasis']) {
-    document.getElementById('quick_' + key).addEventListener('click', function () {
+    document.getElementById(`quick_${key}`).addEventListener('click', function () {
         use_supply(key);
     });
 }
@@ -13,16 +13,7 @@ function base_render_inventory()
         const card = document.createElement('div');
         card.className = 'inventory-card';
         card.innerHTML =
-            '<b>' +
-            v.icon +
-            ' &nbsp;' +
-            v.title +
-            '</b><span>' +
-            (is_supply ? 'CARGO ×' + supplies[v.key] : 'LEVEL ' + upgrades[v.key] + ' / ' + v.cap) +
-            ((v.key === 'magnet') ? ' · ALWAYS ACTIVE · ' + format_reading(magnetic_radius()) + ' px' : '') +
-            '</span><p>' +
-            v.description +
-            '</p>';
+            `<b>${v.icon} &nbsp;${v.title}</b><span>${is_supply ? `CARGO ×${supplies[v.key]}` : `LEVEL ${upgrades[v.key]} / ${v.cap}`}${(v.key === 'magnet') ? ` · ALWAYS ACTIVE · ${format_reading(magnetic_radius())} px` : ''}</span><p>${v.description}</p>`;
         el.inventory_grid.append(card);
     }
 }

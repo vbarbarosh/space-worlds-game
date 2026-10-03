@@ -130,7 +130,7 @@ function collect_pickup(v, quiet = false)
         score += 25;
         player.energy = Math.min(100, player.energy + 2);
         if (!quiet) {
-            label(v.x, v.y, '◆ +' + amount, gold);
+            label(v.x, v.y, `◆ +${amount}`, gold);
         }
     }
     else if (v.type === 'health') {
@@ -148,7 +148,7 @@ function collect_pickup(v, quiet = false)
     else if (supplies[v.type] !== undefined) {
         supplies[v.type] = Math.min(8, supplies[v.type] + 1);
         if (!quiet) {
-            label(v.x, v.y, '+' + v.type.toUpperCase(), blue);
+            label(v.x, v.y, `+${v.type.toUpperCase()}`, blue);
         }
     }
     v.life = 0;
@@ -191,15 +191,7 @@ function render_draft()
         b.className = 'choice';
         b.disabled = dock_free_chosen;
         b.innerHTML =
-            '<span class="icon">' +
-            option.icon +
-            '</span><b>' +
-            option.title +
-            ' <small>Lv ' +
-            (upgrades[option.key] + 1) +
-            '</small></b><span>' +
-            option.description +
-            '</span>';
+            `<span class="icon">${option.icon}</span><b>${option.title} <small>Lv ${upgrades[option.key] + 1}</small></b><span>${option.description}</span>`;
         b.addEventListener('click', function () {
             if ((state !== 'upgrade') || dock_free_chosen) {
                 return;
@@ -210,7 +202,7 @@ function render_draft()
             for (const c of Array.from(el.choices.children)) {
                 c.disabled = true;
             }
-            dock_message = option.title + ' installed. Spend salvage or launch when ready.';
+            dock_message = `${option.title} installed. Spend salvage or launch when ready.`;
             render_shop();
             save_checkpoint('dock');
         });
@@ -230,18 +222,10 @@ function base_render_shop()
         const card = document.createElement('div');
         card.className = 'shop-item';
         card.innerHTML =
-            '<b>' +
-            v.icon +
-            ' &nbsp;' +
-            v.title +
-            '</b><span class="item-level">' +
-            (is_supply ? 'IN CARGO ' + level + ' / ' + v.cap : 'LEVEL ' + level + ' / ' + v.cap) +
-            '</span><p>' +
-            v.description +
-            '</p>';
+            `<b>${v.icon} &nbsp;${v.title}</b><span class="item-level">${is_supply ? `IN CARGO ${level} / ${v.cap}` : `LEVEL ${level} / ${v.cap}`}</span><p>${v.description}</p>`;
         const b = document.createElement('button');
         b.disabled = !dock_free_chosen || capped || (salvage < price);
-        b.textContent = capped ? 'FULLY STOCKED' : (is_supply ? 'BUY' : 'INSTALL') + ' · ◆ ' + price;
+        b.textContent = capped ? 'FULLY STOCKED' : `${is_supply ? 'BUY' : 'INSTALL'} · ◆ ${price}`;
         b.addEventListener('click', function () {
             if ((state !== 'upgrade') || !dock_free_chosen || (salvage < price) || (level >= v.cap)) {
                 return;
@@ -254,7 +238,7 @@ function base_render_shop()
             else {
                 grant_upgrade(v);
             }
-            dock_message = v.title + (is_supply ? ' added to cargo.' : ' installed.');
+            dock_message = `${v.title}${is_supply ? ' added to cargo.' : ' installed.'}`;
             render_shop();
             save_checkpoint('dock');
             update_hud();
@@ -264,7 +248,7 @@ function base_render_shop()
     }
     el.dock_status.textContent = dock_message;
     el.next_sector.disabled = !dock_free_chosen;
-    el.next_sector.textContent = 'LAUNCH SECTOR ' + String(wave + 1).padStart(2, '0') + ' ↗';
+    el.next_sector.textContent = `LAUNCH SECTOR ${String(wave + 1).padStart(2, '0')} ↗`;
     update_hud();
 }
 
@@ -294,7 +278,7 @@ function choose_upgrade(restored = false)
         const reward = 30 + wave*5;
         salvage += reward;
         dock_free_chosen = false;
-        dock_message = 'Choose your free module above. Sector bonus: ◆ ' + reward + '.';
+        dock_message = `Choose your free module above. Sector bonus: ◆ ${reward}.`;
         const options = upgrade_options.filter(v => upgrades[v.key] < v.cap);
         for (let i = options.length - 1; i > 0; --i) {
             const j = Math.floor(Math.random()*(i + 1));
@@ -318,7 +302,7 @@ function choose_upgrade(restored = false)
         v.classList.toggle('selected', v.dataset.filter === 'all');
     }
     el.dock_summary.textContent =
-        'Sector ' + String(wave).padStart(2, '0') + ' cleared · +30 hull · ' + format_time(run_time) + ' elapsed. Select one free module, then shop.';
+        `Sector ${String(wave).padStart(2, '0')} cleared · +30 hull · ${format_time(run_time)} elapsed. Select one free module, then shop.`;
     render_draft();
     render_shop();
     set_hidden(el.upgrade_overlay, false);

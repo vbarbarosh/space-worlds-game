@@ -20,7 +20,7 @@ function expedition_base_offered_jobs()
             world: id,
             target: 8 + id*2,
             reward: 125 + scale*55,
-            description: 'Destroy ' + (8 + id*2) + ' hostile ships in ' + t.name + '.',
+            description: `Destroy ${8 + id*2} hostile ships in ${t.name}.`,
         },
         {
             title: 'Survey-grade extraction',
@@ -28,15 +28,15 @@ function expedition_base_offered_jobs()
             world: id,
             target: 6 + id,
             reward: 95 + scale*40,
-            description: 'Mine ' + (6 + id) + ' ore rocks in ' + t.name + '. Ore remains yours to trade.',
+            description: `Mine ${6 + id} ore rocks in ${t.name}. Ore remains yours to trade.`,
         },
         {
-            title: 'Sealed dispatch to ' + worlds[other].name,
+            title: `Sealed dispatch to ${worlds[other].name}`,
             type: 'courier',
             world: other,
             target: 1,
             reward: 160 + scale*45,
-            description: 'Dock at ' + worlds[other].station + ' with the sealed package. Check destination requirements first.',
+            description: `Dock at ${worlds[other].station} with the sealed package. Check destination requirements first.`,
         },
         {
             title: 'Map the frontier',
@@ -44,7 +44,7 @@ function expedition_base_offered_jobs()
             world: id,
             target: 3,
             reward: 160 + scale*40,
-            description: 'Scan three marked beacons in ' + t.name + '.',
+            description: `Scan three marked beacons in ${t.name}.`,
         },
         {
             title: 'Escort a freight shuttle',
@@ -56,13 +56,13 @@ function expedition_base_offered_jobs()
                 'Meet the shuttle near the station, then protect it along a 1,600-unit route. Hostile ships attack it too. Press G, or double click the shuttle, to fly in formation behind it. Leaving the world resets the escort.',
         },
         {
-            title: 'Market supply: ' + commodities[id % 3].name,
+            title: `Market supply: ${commodities[id % 3].name}`,
             type: 'trade',
             world: id,
             commodity: commodities[id % 3].key,
             target: 8,
             reward: 130 + scale*35,
-            description: 'Sell eight units of ' + commodities[id % 3].name + ' at this station after accepting. Mining or importing cargo both count.',
+            description: `Sell eight units of ${commodities[id % 3].name} at this station after accepting. Mining or importing cargo both count.`,
         },
     ];
 }
@@ -111,7 +111,7 @@ function expedition_base_guide_base_claim_contract(id)
 function card(parent, title, text, meta, button_label, action, disabled = false, className = '')
 {
     const c = document.createElement('div');
-    c.className = 'frontier-card ' + className;
+    c.className = `frontier-card ${className}`;
     const h = document.createElement('h3');
     h.textContent = title;
     c.append(h);
@@ -136,40 +136,34 @@ function guide_base_render_contracts(parent, board = false)
 {
     for (const contract of campaign.contracts) {
         const meta =
-            worlds[contract.world].name +
-            ' · ' +
-            format_progress(contract.progress) +
-            '/' +
-            contract.target +
-            ' · ◆ ' +
-            contract.reward +
-            (contract.main ? ' · STORY' : '');
+            `${worlds[contract.world].name} · ${format_progress(contract.progress)}/${contract.target} · ◆ ${contract.reward}${contract.main ? ' · STORY' : ''}`;
+        function on_action() {
+            if (contract.ready && board) {
+                claim_contract(contract.id);
+            }
+            else if (board) {
+                campaign.contracts = campaign.contracts.filter(v => v.id !== contract.id);
+                escort = null;
+                save_checkpoint();
+                render_station();
+            }
+            else {
+                if (contract.ready) {
+                    waypoint = {...station, label: worlds[campaign.world].station};
+                }
+                else {
+                    track_contract(contract);
+                }
+                toggle_navigation();
+            }
+        }
         const c = card(
             parent,
             contract.title,
             contract.description,
             meta,
             (contract.ready && board) ? 'COLLECT REWARD' : board ? 'ABANDON CONTRACT' : 'TRACK OBJECTIVE',
-            function () {
-                if (contract.ready && board) {
-                    claim_contract(contract.id);
-                }
-                else if (board) {
-                    campaign.contracts = campaign.contracts.filter(v => v.id !== contract.id);
-                    escort = null;
-                    save_checkpoint();
-                    render_station();
-                }
-                else {
-                    if (contract.ready) {
-                        waypoint = {...station, label: worlds[campaign.world].station};
-                    }
-                    else {
-                        track_contract(contract);
-                    }
-                    toggle_navigation();
-                }
-            },
+            on_action,
             false,
             contract.ready ? 'active' : ''
         );
@@ -179,9 +173,9 @@ function guide_base_render_contracts(parent, board = false)
             const m = story[campaign.story];
             card(
                 parent,
-                'STORY ' + (campaign.story + 1) + ' / ' + story.length + ' · ' + m.title,
+                `STORY ${campaign.story + 1} / ${story.length} · ${m.title}`,
                 m.description,
-                worlds[m.world].name + ' · ◆ ' + m.reward,
+                `${worlds[m.world].name} · ◆ ${m.reward}`,
                 'ACCEPT STORY CONTRACT',
                 () => accept_contract(m, true),
                 campaign.contracts.length >= 3
@@ -192,7 +186,7 @@ function guide_base_render_contracts(parent, board = false)
                 parent,
                 m.title,
                 m.description,
-                worlds[m.world].name + ' · ◆ ' + m.reward,
+                `${worlds[m.world].name} · ◆ ${m.reward}`,
                 'ACCEPT CONTRACT',
                 () => accept_contract(m),
                 (campaign.contracts.length >= 3) || campaign.contracts.some(v => v.title === m.title)
@@ -261,20 +255,7 @@ function guide_base_render_station()
 {
     const w = worlds[campaign.world];
     el.dock_summary.textContent =
-        w.faction +
-        ' · ' +
-        w.weapons +
-        ' · Cargo ' +
-        cargo_count() +
-        '/' +
-        cargo_capacity() +
-        ' · Story ' +
-        campaign.story +
-        '/' +
-        story.length +
-        ' · ' +
-        campaign.completed +
-        ' contracts completed.';
+        `${w.faction} · ${w.weapons} · Cargo ${cargo_count()}/${cargo_capacity()} · Story ${campaign.story}/${story.length} · ${campaign.completed} contracts completed.`;
     for (const b of document.querySelectorAll('[data-station]')) {
         b.classList.toggle('selected', b.dataset.station === station_tab);
     }
@@ -353,15 +334,14 @@ function render_market(parent)
         const sell = market_price(campaign.world, i, 'sell');
         const max_buy = Math.max(0, Math.min(cargo_capacity() - cargo_count(), Math.floor(salvage/price)));
         const owned = campaign.cargo[commodity.key];
+        const about = resource
+            ? `Mined, never sold here: ${worlds[resource.world].name} pays 60% of its worth, and each world farther away 30% more.`
+            : `Station demand: ${ensure_markets()[campaign.world].demand[commodity.key]} units. Demand pays +6 per unit until filled. Open TRADE INTEL to compare all stations.`;
         const cardel = card(
             parent,
             commodity.name,
-            resource
-                ? 'Mined, never sold here: ' + worlds[resource.world].name + ' pays 60% of its worth, and each world farther away 30% more.'
-                : 'Station demand: ' +
-                    ensure_markets()[campaign.world].demand[commodity.key] +
-                    ' units. Demand pays +6 per unit until filled. Open TRADE INTEL to compare all stations.',
-            'CARGO ' + owned + (resource ? '' : ' · BUY ◆ ' + price) + ' / SELL ◆ ' + sell
+            about,
+            `CARGO ${owned}${resource ? '' : ` · BUY ◆ ${price}`} / SELL ◆ ${sell}`
         );
         const label = document.createElement('label');
         label.className = 'market-quantity';
@@ -371,7 +351,7 @@ function render_market(parent)
         input.setAttribute('min', '1');
         input.setAttribute('max', String(cargo_capacity()));
         input.setAttribute('step', '1');
-        input.setAttribute('aria-label', commodity.name + ' trade quantity');
+        input.setAttribute('aria-label', `${commodity.name} trade quantity`);
         input.value = String(market_quantity[commodity.key] || 1);
         label.append(input);
         cardel.append(label);
@@ -385,8 +365,8 @@ function render_market(parent)
             if (valid) {
                 market_quantity[commodity.key] = n;
             }
-            buy.textContent = 'BUY ' + (valid ? n : '—') + ' · ◆ ' + (valid ? n*price : '—');
-            sellb.textContent = 'SELL ' + (valid ? n : '—') + ' · ◆ ' + (valid ? trade_total(campaign.world, commodity.key, 'sell', n) : '—');
+            buy.textContent = `BUY ${valid ? n : '—'} · ◆ ${valid ? n*price : '—'}`;
+            sellb.textContent = `SELL ${valid ? n : '—'} · ◆ ${valid ? trade_total(campaign.world, commodity.key, 'sell', n) : '—'}`;
             buy.disabled = !valid || (n > max_buy) || !!resource;
             buy.hidden = !!resource;
             sellb.disabled = !valid || (n > owned);
@@ -402,7 +382,7 @@ function render_market(parent)
         shortcuts.className = 'market-shortcuts';
         for (const n of [1, 10, 50]) {
             const b = document.createElement('button');
-            b.textContent = '×' + n;
+            b.textContent = `×${n}`;
             b.disabled = n > cargo_capacity();
             b.addEventListener('click', function () {
                 input.value = String(n);
@@ -414,14 +394,14 @@ function render_market(parent)
         const max_actions = document.createElement('div');
         max_actions.className = 'market-max-actions';
         const buy_max = document.createElement('button');
-        buy_max.textContent = 'BUY MAX ' + max_buy + ' · ◆ ' + max_buy*price;
+        buy_max.textContent = `BUY MAX ${max_buy} · ◆ ${max_buy*price}`;
         buy_max.disabled = max_buy <= 0;
         buy_max.addEventListener('click', function () {
             trade_cargo(commodity.key, 'buy', 'all');
         });
         max_actions.append(buy_max);
         const sell_all = document.createElement('button');
-        sell_all.textContent = 'SELL ALL ' + owned + ' · ◆ ' + trade_total(campaign.world, commodity.key, 'sell', owned);
+        sell_all.textContent = `SELL ALL ${owned} · ◆ ${trade_total(campaign.world, commodity.key, 'sell', owned)}`;
         sell_all.disabled = owned <= 0;
         sell_all.addEventListener('click', function () {
             trade_cargo(commodity.key, 'sell', 'all');
@@ -431,7 +411,7 @@ function render_market(parent)
         const note = document.createElement('small');
         note.className = 'market-total';
         note.textContent =
-            'Free cargo ' + Math.max(0, cargo_capacity() - cargo_count()) + '/' + cargo_capacity() + ' · Can afford ' + Math.floor(salvage/price) + ' units';
+            `Free cargo ${Math.max(0, cargo_capacity() - cargo_count())}/${cargo_capacity()} · Can afford ${Math.floor(salvage/price)} units`;
         cardel.append(note);
         refresh_buttons();
     }
