@@ -63,7 +63,8 @@ is running, ask them to run `bin/captain start`; do not start it yourself.
     bin/captain stop               close the window
 
 `press` and `key` print the screen after the action, so you see the result at
-once. Button numbers change with the screen: use the numbers from the last
+once. `press` first says what it pressed (`PRESSED ACCEPT CONTRACT · Clear the
+patrol lanes`): check it is what you meant. Button numbers change with the screen: use the numbers from the last
 screen you read, or press by label.
 
 ## How the game works, in short

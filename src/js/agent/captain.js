@@ -2,6 +2,9 @@
 const captain_news = [];
 const captain_base_show_toast = show_toast;
 const captain_pilot = {on: true, idle: 0, keys: []};
+// The game waits for the agent on these screens; the window says so, so a pause never looks like a freeze.
+const captain_waiting_states = ['upgrade', 'arcade_draft', 'dead', 'won', 'menu'];
+let captain_last_command = Date.now();
 const captain_tick_ms = 250;
 
 show_toast = function (title, sub, duration) {
@@ -11,7 +14,7 @@ show_toast = function (title, sub, duration) {
     }
     captain_base_show_toast(title, sub, duration);
 };
-window.captain = {status: captain_status, news: captain_news_since, autopilot: captain_autopilot_set};
+window.captain = {status: captain_status, news: captain_news_since, autopilot: captain_autopilot_set, touch: captain_touch};
 setInterval(captain_pilot_tick, captain_tick_ms);
 
 function captain_status()
@@ -70,6 +73,22 @@ function captain_news_since(n)
     return captain_news.filter(v => v.n > n);
 }
 
+function captain_touch()
+{
+    captain_last_command = Date.now();
+}
+
+function captain_thinking_refresh()
+{
+    const banner = document.getElementById('agent_thinking');
+    const seconds = Math.floor((Date.now() - captain_last_command)/1000);
+    const waiting = captain_waiting_states.includes(state) && (seconds >= 2);
+    set_hidden(banner, !waiting);
+    if (waiting) {
+        banner.textContent = 'THE AGENT IS THINKING · ' + seconds + ' s';
+    }
+}
+
 function captain_autopilot_set(on)
 {
     captain_pilot.on = on;
@@ -84,6 +103,7 @@ function captain_autopilot_set(on)
 // dock and through the gates; in the arcade the pilot keeps the ship alive. Decisions stay with the agent.
 function captain_pilot_tick()
 {
+    captain_thinking_refresh();
     if (!captain_pilot.on || !player || (state !== 'playing') || jump) {
         captain_pilot_keys_set([]);
         return;

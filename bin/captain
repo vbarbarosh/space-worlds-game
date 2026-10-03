@@ -205,12 +205,18 @@ async function captain_press(page, target)
             throw new Error(`No button with "${target}" on the screen. Run bin/captain screen.`);
         }
     }
+    const pressed = await button.evaluate(function (v) {
+        const holder = v.closest('.frontier-card, .shop-item');
+        const title = holder ? (holder.querySelector('h3, b') || {textContent: ''}).textContent : '';
+        return v.innerText.trim() + (title ? ' · ' + title.trim() : '');
+    });
     try {
         await button.click({timeout: 3000});
     }
     catch {
         throw new Error(`Could not press "${target}": something covers it. Run bin/captain screen.`);
     }
+    console.log('PRESSED ' + pressed);
     await sleep(700);
     console.log(await screen_text(page));
 }
@@ -300,6 +306,7 @@ async function page_run(fn)
             if (!page) {
                 throw new Error('The game window has no agent.html page; bin/captain stop, then start');
             }
+            await page.evaluate(() => window.captain && window.captain.touch && window.captain.touch());
             await fn(page);
         }
         finally {

@@ -1,0 +1,14 @@
+.agent-thinking {
+    position: fixed;
+    top: 16px;
+    left: 50%;
+    z-index: 1000;
+    transform: translateX(-50%);
+    padding: 8px 16px;
+    border: 1px solid var(--cyan);
+    border-radius: 8px;
+    background: #080b17e6;
+    color: var(--cyan);
+    font: 12px ui-monospace, monospace;
+    letter-spacing: 0.1em;
+}
