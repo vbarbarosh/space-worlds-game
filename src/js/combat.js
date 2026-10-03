@@ -52,6 +52,7 @@ function base_reset_run(resume = false)
     for (const v of document.querySelectorAll('[data-mode]')) {
         v.classList.toggle('selected', v.dataset.mode === difficulty);
     }
+    sync_mode_note();
     player = {
         x: W/2,
         y: H/2,
@@ -319,14 +320,14 @@ function base_damage_enemy(enemy, damage)
             drop_pickup(enemy.x, enemy.y, 'artifact', 2 + Math.floor(wave/4));
         }
         const drop = Math.random();
-        if (drop < 0.1) {
+        if ((drop < 0.1) && repair_drop_allowed()) {
             drop_pickup(enemy.x, enemy.y, 'health');
         }
         else if (drop < 0.22) {
             drop_pickup(enemy.x, enemy.y, 'energy');
         }
         else if ((drop < 0.24) && !enemy.child) {
-            drop_pickup(enemy.x, enemy.y, ['medkit', 'emp', 'stasis'][Math.floor(rand(0, 3))]);
+            drop_pickup(enemy.x, enemy.y, repair_drop_allowed() ? ['medkit', 'emp', 'stasis'][Math.floor(rand(0, 3))] : ['emp', 'stasis'][Math.floor(rand(0, 2))]);
         }
     }
 }

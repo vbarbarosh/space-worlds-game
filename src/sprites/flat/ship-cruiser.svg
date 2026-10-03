@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+<g id="hull" stroke="#1b1f27" stroke-width="6" stroke-linejoin="round" stroke-linecap="round"><rect x="94.84" y="223.35" width="66.33" height="18.65" fill="#5d6874" />
+<path d="M128 14 L140.44 43.02 L144.58 96.91 L161.16 107.27 L163.24 159.09 L188.11 175.67 L188.11 210.91 L163.24 217.13 L157.02 231.64 L98.98 231.64 L92.76 217.13 L67.89 210.91 L67.89 175.67 L92.76 159.09 L94.84 107.27 L111.42 96.91 L115.56 43.02 Z" fill="#d8dde3" />
+<path d="M67.89 175.67 L92.76 161.16 L92.76 215.05 L67.89 210.91 Z" fill="#a9b3be" />
+<path d="M188.11 175.67 L163.24 161.16 L163.24 215.05 L188.11 210.91 Z" fill="#a9b3be" />
+<rect x="117.64" y="49.24" width="20.73" height="174.11" fill="#a9b3be" />
+<path d="M109.35 161.16 L146.65 161.16 L150.8 192.25 L105.2 192.25 Z" fill="#5d6874" />
+<circle cx="128" cy="80.33" r="13.47" fill="#5d6874" stroke-width="5" />
+<circle cx="128" cy="130.07" r="15.55" fill="#5d6874" stroke-width="5" />
+<path d="M128 14 L140.44 43.02 L144.58 96.91 L161.16 107.27 L163.24 159.09 L188.11 175.67 L188.11 210.91 L163.24 217.13 L157.02 231.64 L128 231.64 Z" stroke="none" fill="#1b1f27" fill-opacity="0.14" />
+</g>
+<g id="accent" stroke="#1b1f27" stroke-width="6" stroke-linejoin="round" stroke-linecap="round"><path d="M128 14 L136.29 32.65 L119.71 32.65 Z" fill="#e8743b" />
+<rect x="113.49" y="169.45" width="29.02" height="10.36" fill="#e8743b" />
+<circle cx="80.33" cy="196.4" r="6.22" stroke-width="4" fill="#e8743b" /><circle cx="175.67" cy="196.4" r="6.22" stroke-width="4" fill="#e8743b" /></g>
+<g id="anchors"><line id="flame-main-1" x1="103.13" y1="242" x2="103.13" y2="268.95" stroke="#ff0000" stroke-width="12.44" /><line id="flame-main-2" x1="119.71" y1="242" x2="119.71" y2="268.95" stroke="#ff0000" stroke-width="12.44" /><line id="flame-main-3" x1="136.29" y1="242" x2="136.29" y2="268.95" stroke="#ff0000" stroke-width="12.44" /><line id="flame-main-4" x1="152.87" y1="242" x2="152.87" y2="268.95" stroke="#ff0000" stroke-width="12.44" /><line id="flame-reverse-1" x1="116.6" y1="53.38" x2="116.6" y2="30.58" stroke="#ff0000" stroke-width="6.22" /><line id="flame-reverse-2" x1="139.4" y1="53.38" x2="139.4" y2="30.58" stroke="#ff0000" stroke-width="6.22" /><line id="flame-side-1" x1="93.8" y1="111.42" x2="75.15" y2="111.42" stroke="#ff0000" stroke-width="6.22" /><line id="flame-side-2" x1="162.2" y1="111.42" x2="180.85" y2="111.42" stroke="#ff0000" stroke-width="6.22" /><line id="flame-side-3" x1="67.89" y1="194.33" x2="49.24" y2="194.33" stroke="#ff0000" stroke-width="6.22" /><line id="flame-side-4" x1="188.11" y1="194.33" x2="206.76" y2="194.33" stroke="#ff0000" stroke-width="6.22" /><circle id="turret-1" cx="128" cy="80.33" r="6" fill="#0000ff" /><circle id="turret-2" cx="128" cy="130.07" r="6" fill="#0000ff" /></g>
+</svg>

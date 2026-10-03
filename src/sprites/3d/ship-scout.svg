@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+<defs>
+<linearGradient id="fus" x1="0" y1="0" x2="1" y2="0">
+<stop offset="0" stop-color="#f4f7fa"/><stop offset="0.42" stop-color="#d3dae2"/><stop offset="0.7" stop-color="#909cab"/><stop offset="1" stop-color="#55606d"/>
+</linearGradient>
+<linearGradient id="shadeV" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0" stop-color="#ffffff" stop-opacity="0.18"/><stop offset="0.55" stop-color="#ffffff" stop-opacity="0"/><stop offset="1" stop-color="#0a0f16" stop-opacity="0.35"/>
+</linearGradient>
+<linearGradient id="wingL" x1="1" y1="0" x2="0" y2="1">
+<stop offset="0" stop-color="#e3e8ee"/><stop offset="1" stop-color="#8592a0"/>
+</linearGradient>
+<linearGradient id="wingR" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0" stop-color="#a7b1bc"/><stop offset="1" stop-color="#4a5562"/>
+</linearGradient>
+<linearGradient id="dark" x1="0" y1="0" x2="1" y2="0">
+<stop offset="0" stop-color="#6d7987"/><stop offset="1" stop-color="#2c343e"/>
+</linearGradient>
+<radialGradient id="glass" cx="0.35" cy="0.28" r="0.85">
+<stop offset="0" stop-color="#8fd0f0"/><stop offset="0.35" stop-color="#2f6a92"/><stop offset="1" stop-color="#0b1824"/>
+</radialGradient>
+<radialGradient id="mount" cx="0.35" cy="0.35" r="0.75">
+<stop offset="0" stop-color="#c3ccd6"/><stop offset="1" stop-color="#3b4652"/>
+</radialGradient>
+<radialGradient id="nozzle" cx="0.5" cy="0.2" r="0.9">
+<stop offset="0" stop-color="#ffd59a"/><stop offset="0.35" stop-color="#e2742f"/><stop offset="1" stop-color="#2a1a14"/>
+</radialGradient>
+<linearGradient id="accent-fill" x1="0" y1="0" x2="1" y2="1">
+<stop id="accent-light" offset="0" stop-color="#ffa36b"/><stop id="accent-base" offset="0.55" stop-color="#e8743b"/><stop id="accent-dark" offset="1" stop-color="#9c4119"/>
+</linearGradient>
+</defs>
+<g id="hull" stroke="#141a22" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+<path d="M112 112 L40 186 Q35 199 46 204 L108 194 Z" fill="url(#wingL)"/>
+<path d="M144 112 L216 186 Q221 199 210 204 L148 194 Z" fill="url(#wingR)"/>
+<path d="M112 112 L40 186 L49 187 L113 124 Z" fill="#ffffff" fill-opacity="0.55" stroke="none"/>
+<path d="M144 112 L216 186 L207 187 L143 124 Z" fill="#ffffff" fill-opacity="0.25" stroke="none"/>
+<path d="M46 204 L108 194 L108 184 L54 194 Z" fill="#0a0f16" fill-opacity="0.25" stroke="none"/>
+<path d="M210 204 L148 194 L148 184 L202 194 Z" fill="#0a0f16" fill-opacity="0.3" stroke="none"/>
+<path d="M100 136 L66 190 M156 136 L190 190" fill="none" stroke="#3b4652" stroke-width="2.5"/>
+<path d="M114 210 L142 210 L139 238 L117 238 Z" fill="url(#dark)"/>
+<ellipse cx="128" cy="234" rx="8" ry="3.5" fill="url(#nozzle)" stroke="none"/>
+<path d="M128 14 Q140 40 146 96 L150 160 Q152 196 140 222 L116 222 Q104 196 106 160 L110 96 Q116 40 128 14 Z" fill="url(#fus)"/>
+<path d="M128 14 Q140 40 146 96 L150 160 Q152 196 140 222 L116 222 Q104 196 106 160 L110 96 Q116 40 128 14 Z" fill="url(#shadeV)" stroke="none"/>
+<path d="M109 118 L103 150 L109 162 L113 130 Z" fill="#1c232c" stroke-width="2.5"/>
+<path d="M147 118 L153 150 L147 162 L143 130 Z" fill="#1c232c" stroke-width="2.5"/>
+<path d="M109 134 Q128 140 147 134" fill="none" stroke="#3b4652" stroke-width="2.5"/>
+<path d="M107 178 Q128 184 149 178" fill="none" stroke="#3b4652" stroke-width="2.5"/>
+<path d="M128 36 L131 110 L129.5 190 L126.5 190 L125 110 Z" fill="#ffffff" fill-opacity="0.6" stroke="none"/>
+<path d="M116 194 L140 194 L138 216 L118 216 Z" fill="url(#dark)" stroke-width="3"/>
+<path d="M121 200 L135 200 M121 207 L135 207" fill="none" stroke="#141a22" stroke-width="2.5"/>
+<ellipse cx="128" cy="84" rx="13" ry="30" fill="#3a4552" stroke-width="3"/>
+<ellipse cx="128" cy="85" rx="9.5" ry="25" fill="url(#glass)" stroke="none"/>
+<ellipse cx="124" cy="73" rx="3" ry="9" fill="#ffffff" fill-opacity="0.85" stroke="none"/>
+<circle cx="77" cy="172" r="10" fill="url(#mount)" stroke-width="3"/>
+<circle cx="179" cy="172" r="10" fill="url(#mount)" stroke-width="3"/>
+</g>
+<g id="accent" stroke="#141a22" stroke-width="4" stroke-linejoin="round">
+<path d="M40 186 L57 169 L62 201 L46 204 Q35 199 40 186 Z" fill="url(#accent-fill)"/>
+<path d="M216 186 L199 169 L194 201 L210 204 Q221 199 216 186 Z" fill="url(#accent-fill)"/>
+<path d="M110 148 L128 158 L146 148 L147 160 L128 170 L109 160 Z" fill="url(#accent-fill)" stroke-width="3"/>
+</g>
+<g id="anchors">
+<line id="flame-main-1" x1="128" y1="238" x2="128" y2="272" stroke="#ff0000" stroke-width="22"/>
+<line id="flame-reverse-1" x1="121" y1="46" x2="121" y2="24" stroke="#ff0000" stroke-width="5"/>
+<line id="flame-reverse-2" x1="135" y1="46" x2="135" y2="24" stroke="#ff0000" stroke-width="5"/>
+<line id="flame-side-1" x1="110" y1="100" x2="92" y2="100" stroke="#ff0000" stroke-width="5"/>
+<line id="flame-side-2" x1="146" y1="100" x2="164" y2="100" stroke="#ff0000" stroke-width="5"/>
+<line id="flame-side-3" x1="41" y1="195" x2="23" y2="195" stroke="#ff0000" stroke-width="5"/>
+<line id="flame-side-4" x1="215" y1="195" x2="233" y2="195" stroke="#ff0000" stroke-width="5"/>
+<circle id="turret-1" cx="77" cy="172" r="6" fill="#0000ff"/>
+<circle id="turret-2" cx="179" cy="172" r="6" fill="#0000ff"/>
+</g>
+</svg>

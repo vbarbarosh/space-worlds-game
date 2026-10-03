@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+<g id="hull" stroke="#1b1f27" stroke-width="6" stroke-linejoin="round" stroke-linecap="round"><rect x="119.78" y="59.19" width="16.43" height="156.11" fill="#5d6874" />
+<rect x="103.35" y="227.62" width="18.49" height="14.38" fill="#5d6874" />
+<rect x="134.16" y="227.62" width="18.49" height="14.38" fill="#5d6874" />
+<rect x="99.24" y="209.14" width="57.51" height="24.65" rx="4.11" fill="#a9b3be" />
+<path d="M105.41 65.35 L107.46 32.49 Q128 14 148.54 32.49 L150.59 65.35 Z" fill="#d8dde3" />
+<rect x="86.92" y="73.57" width="36.97" height="41.08" rx="3.08" fill="#a9b3be" />
+<rect x="132.11" y="73.57" width="36.97" height="41.08" rx="3.08" fill="#a9b3be" />
+<rect x="86.92" y="168.05" width="36.97" height="41.08" rx="3.08" fill="#a9b3be" />
+<rect x="132.11" y="168.05" width="36.97" height="41.08" rx="3.08" fill="#a9b3be" />
+<path d="M115.68 34.54 L140.32 34.54 L143.41 48.92 L112.59 48.92 Z" fill="#22394a" stroke-width="5" />
+<path d="M128 23.24 Q138.27 23.24 148.54 32.49 L150.59 65.35 L128 65.35 Z" stroke="none" fill="#1b1f27" fill-opacity="0.14" />
+<rect x="132.11" y="73.57" width="36.97" height="41.08" rx="3.08" stroke="none" fill="#1b1f27" fill-opacity="0.14" />
+<rect x="132.11" y="168.05" width="36.97" height="41.08" rx="3.08" stroke="none" fill="#1b1f27" fill-opacity="0.14" />
+<path d="M128 209.14 L152.65 209.14 Q156.76 209.14 156.76 213.24 L156.76 229.68 Q156.76 233.78 152.65 233.78 L128 233.78 Z" stroke="none" fill="#1b1f27" fill-opacity="0.14" />
+</g>
+<g id="accent" stroke="#1b1f27" stroke-width="6" stroke-linejoin="round" stroke-linecap="round"><rect x="86.92" y="120.81" width="36.97" height="41.08" rx="3.08" fill="#e8743b" />
+<rect x="132.11" y="120.81" width="36.97" height="41.08" rx="3.08" fill="#e8743b" />
+<rect x="108.49" y="55.08" width="39.03" height="6.16" fill="#e8743b" />
+</g>
+<g id="anchors"><line id="flame-main-1" x1="112.59" y1="242" x2="112.59" y2="268.7" stroke="#ff0000" stroke-width="16.43" /><line id="flame-main-2" x1="143.41" y1="242" x2="143.41" y2="268.7" stroke="#ff0000" stroke-width="16.43" /></g>
+</svg>

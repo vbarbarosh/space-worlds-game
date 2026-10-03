@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+<g id="hull" stroke="#1b1f27" stroke-width="6" stroke-linejoin="round" stroke-linecap="round"><rect x="62" y="146" width="132" height="36" rx="6" fill="#a9b3be" />
+<rect x="77" y="221" width="21" height="21" fill="#5d6874" />
+<rect x="158" y="221" width="21" height="21" fill="#5d6874" />
+<rect x="71" y="113" width="33" height="120" rx="15" fill="#d8dde3" />
+<rect x="152" y="113" width="33" height="120" rx="15" fill="#d8dde3" />
+<path d="M128 14 L152 59 L158 164 L149 236 L107 236 L98 164 L104 59 Z" fill="#d8dde3" />
+<rect x="107" y="104" width="42" height="99" rx="7.5" fill="#a9b3be" stroke-width="5" />
+<ellipse cx="128" cy="59" rx="12" ry="22.5" fill="#22394a" stroke-width="5" />
+<circle cx="128" cy="128" r="13.5" fill="#5d6874" stroke-width="4" />
+<circle cx="128" cy="179" r="13.5" fill="#5d6874" stroke-width="4" />
+<path d="M128 14 L152 59 L158 164 L149 236 L128 236 Z" stroke="none" fill="#1b1f27" fill-opacity="0.14" />
+<path d="M87.5 113 Q104 113 104 128 L104 218 Q104 233 87.5 233 Z" stroke="none" fill="#1b1f27" fill-opacity="0.14" />
+<path d="M168.5 113 Q185 113 185 128 L185 218 Q185 233 168.5 233 Z" stroke="none" fill="#1b1f27" fill-opacity="0.14" />
+</g>
+<g id="accent" stroke="#1b1f27" stroke-width="6" stroke-linejoin="round" stroke-linecap="round"><path d="M71 143 L71 128 Q71 113 87.5 113 Q104 113 104 128 L104 143 Z" fill="#e8743b" />
+<path d="M152 143 L152 128 Q152 113 168.5 113 Q185 113 185 128 L185 143 Z" fill="#e8743b" />
+<path d="M104 80 L152 80 L153.5 95 L102.5 95 Z" fill="#e8743b" />
+</g>
+<g id="anchors"><line id="flame-main-1" x1="87.5" y1="242" x2="87.5" y2="293" stroke="#ff0000" stroke-width="21" /><line id="flame-main-2" x1="168.5" y1="242" x2="168.5" y2="293" stroke="#ff0000" stroke-width="21" /><line id="flame-reverse-1" x1="87.5" y1="113" x2="87.5" y2="83" stroke="#ff0000" stroke-width="9" /><line id="flame-reverse-2" x1="168.5" y1="113" x2="168.5" y2="83" stroke="#ff0000" stroke-width="9" /><line id="flame-side-1" x1="104" y1="71" x2="77" y2="71" stroke="#ff0000" stroke-width="7.5" /><line id="flame-side-2" x1="152" y1="71" x2="179" y2="71" stroke="#ff0000" stroke-width="7.5" /><line id="flame-side-3" x1="62" y1="164" x2="35" y2="164" stroke="#ff0000" stroke-width="7.5" /><line id="flame-side-4" x1="194" y1="164" x2="221" y2="164" stroke="#ff0000" stroke-width="7.5" /><circle id="turret-1" cx="128" cy="128" r="6" fill="#0000ff" /><circle id="turret-2" cx="128" cy="179" r="6" fill="#0000ff" /></g>
+</svg>

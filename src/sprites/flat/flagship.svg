@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+<g id="hull" stroke="#1b1f27" stroke-width="6" stroke-linejoin="round" stroke-linecap="round"><rect x="72.44" y="201.76" width="17.24" height="15.33" fill="#3a414a" />
+<rect x="166.32" y="201.76" width="17.24" height="15.33" fill="#3a414a" />
+<path d="M105.01 130.87 L34.12 197.93 L39.87 219.01 L110.76 203.68 Z" fill="#5d6670" />
+<path d="M150.99 130.87 L221.88 197.93 L216.13 219.01 L145.24 203.68 Z" fill="#5d6670" />
+<rect x="85.85" y="102.13" width="84.3" height="28.74" fill="#5d6670" />
+<path d="M85.85 44.66 L97.34 25.5 L105.01 44.66 L105.01 121.29 L85.85 121.29 Z" fill="#5d6670" />
+<path d="M170.15 44.66 L158.66 25.5 L150.99 44.66 L150.99 121.29 L170.15 121.29 Z" fill="#5d6670" />
+<rect x="105.01" y="224.76" width="17.24" height="17.24" fill="#3a414a" />
+<rect x="133.75" y="224.76" width="17.24" height="17.24" fill="#3a414a" />
+<path d="M128 14 L145.24 54.24 L149.08 121.29 L168.24 140.45 L164.4 207.51 L149.08 232.42 L106.92 232.42 L91.6 207.51 L87.76 140.45 L106.92 121.29 L110.76 54.24 Z" fill="#8a929c" />
+<circle cx="128" cy="174.94" r="17.24" fill="#3a414a" stroke-width="5" />
+<circle cx="95.43" cy="113.63" r="9.58" fill="#3a414a" stroke-width="5" />
+<circle cx="160.57" cy="113.63" r="9.58" fill="#3a414a" stroke-width="5" />
+<circle cx="128" cy="138.54" r="9.58" fill="#3a414a" stroke-width="5" />
+<path d="M128 14 L145.24 54.24 L149.08 121.29 L168.24 140.45 L164.4 207.51 L149.08 232.42 L128 232.42 Z" stroke="none" fill="#1b1f27" fill-opacity="0.14" />
+<path d="M150.99 130.87 L221.88 197.93 L216.13 219.01 L145.24 203.68 Z" stroke="none" fill="#1b1f27" fill-opacity="0.14" />
+<path d="M170.15 44.66 L158.66 25.5 L150.99 44.66 L150.99 121.29 L170.15 121.29 Z" stroke="none" fill="#1b1f27" fill-opacity="0.14" />
+</g>
+<g id="accent" stroke="#1b1f27" stroke-width="6" stroke-linejoin="round" stroke-linecap="round"><path d="M85.85 44.66 L97.34 25.5 L105.01 44.66 Z" fill="#6cf8ec" />
+<path d="M170.15 44.66 L158.66 25.5 L150.99 44.66 Z" fill="#6cf8ec" />
+<path d="M34.12 197.93 L57.11 175.9 L62.86 213.26 L39.87 219.01 Z" fill="#6cf8ec" />
+<path d="M221.88 197.93 L198.89 175.9 L193.14 213.26 L216.13 219.01 Z" fill="#6cf8ec" />
+<path d="M116.5 69.56 L139.5 69.56 L136.62 88.72 L119.38 88.72 Z" fill="#6cf8ec" />
+<circle cx="128" cy="174.94" r="7.66" stroke-width="4" fill="#6cf8ec" />
+</g>
+<g id="anchors"><line id="flame-main-1" x1="113.63" y1="242" x2="113.63" y2="270.74" stroke="#ff0000" stroke-width="17.24" /><line id="flame-main-2" x1="142.37" y1="242" x2="142.37" y2="270.74" stroke="#ff0000" stroke-width="17.24" /><line id="flame-main-3" x1="81.06" y1="217.09" x2="81.06" y2="240.08" stroke="#ff0000" stroke-width="13.41" /><line id="flame-main-4" x1="174.94" y1="217.09" x2="174.94" y2="240.08" stroke="#ff0000" stroke-width="13.41" /></g>
+</svg>

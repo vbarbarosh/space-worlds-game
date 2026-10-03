@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+<g id="hull" stroke="#1b1f27" stroke-width="6" stroke-linejoin="round" stroke-linecap="round"><rect x="35.51" y="125.85" width="21.51" height="81.74" rx="3.23" fill="#3b3431" />
+<rect x="198.98" y="125.85" width="21.51" height="81.74" rx="3.23" fill="#3b3431" />
+<rect x="87.13" y="220.49" width="23.66" height="21.51" fill="#3b3431" />
+<rect x="116.17" y="220.49" width="23.66" height="21.51" fill="#3b3431" />
+<rect x="145.21" y="220.49" width="23.66" height="21.51" fill="#3b3431" />
+<path d="M128 14 L175.32 74.23 L201.13 160.26 L205.43 229.09 L50.57 229.09 L54.87 160.26 L80.68 74.23 Z" fill="#6e625b" />
+<path d="M128 33.36 L160.26 80.68 L177.47 160.26 L177.47 209.74 L78.53 209.74 L78.53 160.26 L95.74 80.68 Z" fill="#a3948a" />
+<rect x="115.09" y="61.32" width="25.81" height="15.06" fill="#22394a" stroke-width="5" />
+<rect x="91.43" y="110.79" width="73.13" height="75.28" rx="4.3" fill="#3b3431" stroke-width="5" />
+<path d="M128 14 L175.32 74.23 L201.13 160.26 L205.43 229.09 L128 229.09 Z" stroke="none" fill="#1b1f27" fill-opacity="0.14" />
+</g>
+<g id="accent" stroke="#1b1f27" stroke-width="6" stroke-linejoin="round" stroke-linecap="round"><rect x="97.89" y="119.4" width="60.23" height="10.75" fill="#ff9469" />
+<rect x="97.89" y="140.91" width="60.23" height="10.75" fill="#ff9469" />
+<rect x="97.89" y="162.42" width="60.23" height="10.75" fill="#ff9469" />
+<rect x="35.51" y="125.85" width="21.51" height="15.06" fill="#ff9469" />
+<rect x="198.98" y="125.85" width="21.51" height="15.06" fill="#ff9469" />
+<path d="M128 14 L140.91 31.21 L115.09 31.21 Z" fill="#ff9469" />
+</g>
+<g id="anchors"><line id="flame-main-1" x1="98.96" y1="242" x2="98.96" y2="274.26" stroke="#ff0000" stroke-width="19.36" /><line id="flame-main-2" x1="128" y1="242" x2="128" y2="274.26" stroke="#ff0000" stroke-width="19.36" /><line id="flame-main-3" x1="157.04" y1="242" x2="157.04" y2="274.26" stroke="#ff0000" stroke-width="19.36" /></g>
+</svg>

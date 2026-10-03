@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+<defs><radialGradient id="glass" cx="0.35" cy="0.28" r="0.85"><stop offset="0" stop-color="#8fd0f0"/><stop offset="0.35" stop-color="#2f6a92"/><stop offset="1" stop-color="#0b1824"/></radialGradient><linearGradient id="shade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff" stop-opacity="0.16"/><stop offset="0.55" stop-color="#ffffff" stop-opacity="0"/><stop offset="1" stop-color="#05080c" stop-opacity="0.38"/></linearGradient><radialGradient id="nozzle" cx="0.5" cy="0.25" r="0.9"><stop offset="0" stop-color="#ffd59a"/><stop offset="0.4" stop-color="#e2742f"/><stop offset="1" stop-color="#2a1a14"/></radialGradient><linearGradient id="l5d6670" x1="0" y1="0" x2="1" y2="0.35"><stop offset="0" stop-color="#9ba0a6"/><stop offset="0.45" stop-color="#5d6670"/><stop offset="1" stop-color="#30353a"/></linearGradient><linearGradient id="l3a414a" x1="0" y1="0" x2="1" y2="0.35"><stop offset="0" stop-color="#85898f"/><stop offset="0.45" stop-color="#3a414a"/><stop offset="1" stop-color="#1e2226"/></linearGradient><linearGradient id="l8a929c" x1="0" y1="0" x2="1" y2="0.35"><stop offset="0" stop-color="#b6bbc2"/><stop offset="0.45" stop-color="#8a929c"/><stop offset="1" stop-color="#484c51"/></linearGradient><linearGradient id="accent-fill" x1="0" y1="0" x2="1" y2="1"><stop id="accent-light" offset="0" stop-color="#aefbf5"/><stop id="accent-base" offset="0.5" stop-color="#6cf8ec"/><stop id="accent-dark" offset="1" stop-color="#41958e"/></linearGradient></defs>
+<g id="hull" stroke="#141a22" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"><path d="M110.68 149.65 L76.05 230.46 L87.59 242 L113.57 207.37 Z" fill="url(#l5d6670)" />
+<path d="M145.32 149.65 L179.95 230.46 L168.41 242 L142.43 207.37 Z" fill="url(#l5d6670)" />
+<path d="M122.23 80.38 L122.23 31.32 L128 14 L133.77 31.32 L133.77 80.38 Z" fill="url(#l3a414a)" />
+<rect x="115.01" y="221.8" width="25.97" height="20.2" fill="url(#l3a414a)" />
+<path d="M128 68.84 L145.32 97.7 L148.2 192.94 L139.54 230.46 L116.46 230.46 L107.8 192.94 L110.68 97.7 Z" fill="url(#l8a929c)" />
+<path d="M128 68.84 L145.32 97.7 L148.2 192.94 L139.54 230.46 L116.46 230.46 L107.8 192.94 L110.68 97.7 Z" fill="url(#shade)" stroke="none" /><path d="M128 85 L130.5 141.57 L129.3 207.83 L126.7 207.83 L125.5 141.57 Z" fill="#ffffff" fill-opacity="0.45" stroke="none" /><path d="M110.68 135.22 Q128 140.99 145.32 135.22 M110.68 198.71 Q128 204.48 145.32 198.71" fill="none" stroke="#3b4652" stroke-width="2.5" />
+<path d="M110.68 149.65 L76.05 230.46 L83.27 230.46 L113.57 164.08 Z" fill="#ffffff" fill-opacity="0.45" stroke="none" />
+<path d="M110.68 97.7 L107.8 192.94 L113.57 192.94 L116.46 100.58 Z" fill="#ffffff" fill-opacity="0.45" stroke="none" />
+<ellipse cx="128" cy="238.5" rx="7.68" ry="3.2" fill="url(#nozzle)" stroke="none" /></g>
+<g id="accent" stroke="#141a22" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"><path d="M122.23 31.32 L128 14 L133.77 31.32 Z" fill="url(#accent-fill)" />
+<path d="M109.24 161.19 L146.76 161.19 L146.76 178.51 L109.24 178.51 Z" fill="url(#accent-fill)" />
+<path d="M119.34 100.58 L136.66 100.58 L133.77 120.78 L122.23 120.78 Z" fill="url(#accent-fill)" />
+<path d="M76.05 230.46 L83.27 213.14 L96.25 224.68 L87.59 242 Z" fill="url(#accent-fill)" />
+<path d="M179.95 230.46 L172.73 213.14 L159.75 224.68 L168.41 242 Z" fill="url(#accent-fill)" />
+</g>
+<g id="anchors"><line id="flame-main-1" x1="128" y1="242" x2="128" y2="291.06" stroke="#ff0000" stroke-width="20.2" /></g>
+</svg>

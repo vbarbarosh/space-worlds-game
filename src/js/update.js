@@ -275,7 +275,7 @@ function update(dt)
     drop_timer -= dt;
     if (drop_timer <= 0) {
         drop_timer = 18;
-        drop_pickup(player.x + rand(-W*0.35, W*0.35), player.y + rand(-H*0.35, H*0.35), (player.hp < 65) ? 'health' : 'energy');
+        drop_pickup(player.x + rand(-W*0.35, W*0.35), player.y + rand(-H*0.35, H*0.35), ((player.hp < 65) && repair_drop_allowed()) ? 'health' : 'energy');
     }
     update_equipment(dt);
     update_hazards(dt);
@@ -317,7 +317,7 @@ function update(dt)
                     enemy_fire(v, (j/count)*Math.PI*2 + v.age*0.65, 125 + wave*2 + ((v.hp < v.max_hp*0.45) ? 25 : 0));
                 }
                 enemy_fire(v, a, 260);
-                v.fire_cd = (v.hp < v.max_hp*0.45) ? 0.85 : 1.2;
+                v.fire_cd = v.overdrive ? 0.6 : (v.hp < v.max_hp*0.45) ? 0.85 : 1.2;
                 ring(v.x, v.y, pink, 90, 0.4);
             }
             if ((Math.floor(v.age/7) > Math.floor((v.age - enemy_dt)/7)) && (enemies.length < 16)) {
@@ -473,7 +473,7 @@ function update(dt)
             continue;
         }
         if (distance(b, player) < player.r + b.r) {
-            damage_player(b.damage || 13);
+            damage_player((b.damage || 13)*(arcade.active ? arcade_mode().hits : 1));
             if (b.weapon === 'ion') {
                 player.energy = Math.max(0, player.energy - 8);
             }

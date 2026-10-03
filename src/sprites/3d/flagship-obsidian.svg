@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+<defs><radialGradient id="glass" cx="0.35" cy="0.28" r="0.85"><stop offset="0" stop-color="#8fd0f0"/><stop offset="0.35" stop-color="#2f6a92"/><stop offset="1" stop-color="#0b1824"/></radialGradient><linearGradient id="shade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff" stop-opacity="0.16"/><stop offset="0.55" stop-color="#ffffff" stop-opacity="0"/><stop offset="1" stop-color="#05080c" stop-opacity="0.38"/></linearGradient><radialGradient id="nozzle" cx="0.5" cy="0.25" r="0.9"><stop offset="0" stop-color="#ffd59a"/><stop offset="0.4" stop-color="#e2742f"/><stop offset="1" stop-color="#2a1a14"/></radialGradient><linearGradient id="l5a5f6c" x1="0" y1="0" x2="1" y2="0.35"><stop offset="0" stop-color="#999ca4"/><stop offset="0.45" stop-color="#5a5f6c"/><stop offset="1" stop-color="#2f3138"/></linearGradient><linearGradient id="l3a3d47" x1="0" y1="0" x2="1" y2="0.35"><stop offset="0" stop-color="#85878d"/><stop offset="0.45" stop-color="#3a3d47"/><stop offset="1" stop-color="#1e2025"/></linearGradient><linearGradient id="l7a7f8e" x1="0" y1="0" x2="1" y2="0.35"><stop offset="0" stop-color="#adb0b9"/><stop offset="0.45" stop-color="#7a7f8e"/><stop offset="1" stop-color="#3f424a"/></linearGradient><linearGradient id="l9aa0b0" x1="0" y1="0" x2="1" y2="0.35"><stop offset="0" stop-color="#c0c4ce"/><stop offset="0.45" stop-color="#9aa0b0"/><stop offset="1" stop-color="#50535c"/></linearGradient><linearGradient id="accent-fill" x1="0" y1="0" x2="1" y2="1"><stop id="accent-light" offset="0" stop-color="#f5c6e5"/><stop id="accent-base" offset="0.5" stop-color="#ed97cf"/><stop id="accent-dark" offset="1" stop-color="#8e5b7c"/></linearGradient></defs>
+<g id="hull" stroke="#141a22" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"><path d="M99.26 169.19 L39.87 184.52 L43.7 205.6 L101.18 196.02 Z" fill="url(#l5a5f6c)" />
+<path d="M156.74 169.19 L216.13 184.52 L212.3 205.6 L154.82 196.02 Z" fill="url(#l5a5f6c)" />
+<rect x="110.76" y="226.67" width="13.41" height="15.33" fill="url(#l3a3d47)" />
+<rect x="131.83" y="226.67" width="13.41" height="15.33" fill="url(#l3a3d47)" />
+<path d="M128 14 L149.08 75.31 L156.74 171.11 L183.56 194.1 L179.73 219.01 L149.08 213.26 L139.5 234.34 L116.5 234.34 L106.92 213.26 L76.27 219.01 L72.44 194.1 L99.26 171.11 L106.92 75.31 Z" fill="url(#l5a5f6c)" />
+<path d="M128 14 L149.08 75.31 L156.74 171.11 L183.56 194.1 L179.73 219.01 L149.08 213.26 L139.5 234.34 L116.5 234.34 L106.92 213.26 L76.27 219.01 L72.44 194.1 L99.26 171.11 L106.92 75.31 Z" fill="url(#shade)" stroke="none" /><path d="M128 36.03 L130.5 113.15 L129.3 203.49 L126.7 203.49 L125.5 113.15 Z" fill="#ffffff" fill-opacity="0.45" stroke="none" /><path d="M128 35.08 L141.41 82.97 L145.24 161.53 L110.76 161.53 L114.59 82.97 Z" fill="url(#l7a7f8e)" />
+<path d="M128 61.9 L135.66 92.55 L136.62 142.37 L119.38 142.37 L120.34 92.55 Z" fill="url(#l9aa0b0)" />
+<path d="M128 35.08 L114.59 82.97 L110.76 161.53 L114.59 161.53 L118.42 84.89 L128 46.57 Z" fill="#ffffff" fill-opacity="0.45" stroke="none" />
+<rect x="116.5" y="196.02" width="22.99" height="3.35" fill="#0e1318" stroke="none" />
+<rect x="116.5" y="202.72" width="22.99" height="3.35" fill="#0e1318" stroke="none" />
+<path d="M99.26 171.11 L43.7 186.44 L44.66 191.23 L100.22 176.86 Z" fill="#ffffff" fill-opacity="0.45" stroke="none" />
+<ellipse cx="117.46" cy="238.5" rx="5.1" ry="3.2" fill="url(#nozzle)" stroke="none" /><ellipse cx="138.54" cy="238.5" rx="5.1" ry="3.2" fill="url(#nozzle)" stroke="none" /></g>
+<g id="accent" stroke="#141a22" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"><path d="M39.87 184.52 L55.19 180.69 L59.03 202.72 L43.7 205.6 Z" fill="url(#accent-fill)" />
+<path d="M216.13 184.52 L200.81 180.69 L196.97 202.72 L212.3 205.6 Z" fill="url(#accent-fill)" />
+<path d="M118.42 167.28 L137.58 167.28 L133.75 180.69 L122.25 180.69 Z" fill="url(#accent-fill)" />
+<path d="M128 14 L133.75 31.24 L122.25 31.24 Z" fill="url(#accent-fill)" />
+<rect x="80.1" y="197.93" width="9.58" height="9.58" fill="url(#accent-fill)" />
+<rect x="166.32" y="197.93" width="9.58" height="9.58" fill="url(#accent-fill)" />
+</g>
+<g id="anchors"><line id="flame-main-1" x1="117.46" y1="242" x2="117.46" y2="268.82" stroke="#ff0000" stroke-width="13.41" /><line id="flame-main-2" x1="138.54" y1="242" x2="138.54" y2="268.82" stroke="#ff0000" stroke-width="13.41" /></g>
+</svg>

@@ -214,6 +214,10 @@ function render_drones()
             ctx.stroke();
             ctx.globalCompositeOperation = 'source-over';
         }
+        // The drawing's accent takes the colour of the ore it carries
+        if ((view_mode !== 'wireframe') && sprite_draw('drone-mining', drone.load ? ore_color(drone.load) : null, 24, drone.x, drone.y, drone.angle)) {
+            continue;
+        }
         ctx.save();
         ctx.translate(drone.x, drone.y);
         ctx.rotate(drone.angle);

@@ -341,11 +341,11 @@ function guide_base_update_frontier(dt)
         if (enemy.since_hit > 6) {
             enemy.shield = Math.min(enemy.max_shield || 0, (enemy.shield || 0) + dt*10);
         }
-        if ((enemy.type !== 'shooter') && (enemy.type !== 'boss') && (enemy.weapon !== 'plasma')) {
+        if ((enemy.type !== 'shooter') && (enemy.type !== 'boss') && ((enemy.weapon !== 'plasma') || (arcade.active && arcade_mode().armed))) {
             enemy.gun_cd -= dt;
             if ((enemy.gun_cd <= 0) && (distance(enemy, player) < 900)) {
                 enemy_fire(enemy, Math.atan2(player.y - enemy.y, player.x - enemy.x));
-                enemy.gun_cd = (enemy.type === 'tank') ? 2.8 : 3.6;
+                enemy.gun_cd = ((enemy.type === 'tank') ? 2.8 : 3.6)*(arcade.active ? arcade_mode().gun_gap : 1);
             }
         }
     }
@@ -506,7 +506,13 @@ function physics_base_render_navigation_objects()
         ctx.fillText('SCAN BEACON ' + (i + 1), beacon.x, beacon.y + 65);
     }
     if (escort) {
-        ship(escort.x, escort.y, Math.atan2(escort.destination.y - escort.y, escort.destination.x - escort.x));
+        const angle = Math.atan2(escort.destination.y - escort.y, escort.destination.x - escort.x);
+        if (view_mode === 'wireframe') {
+            ship(escort.x, escort.y, angle);
+        }
+        else {
+            render_surface_ship(escort.x, escort.y, angle, 1, false, {...current_ship(), sprite: {name: 'freighter', length: 64}});
+        }
         ctx.fillStyle = gold;
         ctx.font = '10px ui-monospace,monospace';
         ctx.textAlign = 'center';

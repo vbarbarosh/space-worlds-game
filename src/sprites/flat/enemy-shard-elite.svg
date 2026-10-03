@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+<g id="hull" stroke="#1b1f27" stroke-width="6" stroke-linejoin="round" stroke-linecap="round"><rect x="109.44" y="183.67" width="37.12" height="42.42" fill="#3a414a" />
+<path d="M128 14 L196.93 242 L128 204.88 L59.07 242 Z" fill="#8a929c" />
+<path d="M128 14 L196.93 242 L128 204.88 Z" stroke="none" fill="#1b1f27" fill-opacity="0.14" /><path d="M88.23 173.07 L167.77 173.07 L178.37 204.88 L77.63 204.88 Z" fill="#3a414a" />
+<path d="M90.88 130.65 L27.26 88.23 L80.28 173.07 Z" fill="#5d6670" />
+<path d="M165.12 130.65 L228.74 88.23 L175.72 173.07 Z" fill="#5d6670" />
+</g>
+<g id="accent" stroke="#1b1f27" stroke-width="6" stroke-linejoin="round" stroke-linecap="round"><path d="M128 14 L146.56 74.98 L109.44 74.98 Z" fill="#6cf8ec" />
+<circle cx="128" cy="151.86" r="18.56" fill="#6cf8ec" />
+<path d="M98.84 183.67 L157.16 183.67 L159.81 196.93 L96.19 196.93 Z" fill="#6cf8ec" />
+</g>
+<g id="anchors"><line id="flame-main-1" x1="128" y1="226.09" x2="128" y2="310.93" stroke="#ff0000" stroke-width="31.81" /></g>
+</svg>

@@ -7,6 +7,7 @@ const path = require('node:path');
 const build_dir = path.join(__dirname, '..', 'build');
 const include_regex = /^<!-- include (.+) -->\n$/;
 const slot_regex = /^<!-- slot (.+) -->\n$/;
+const svgs_regex = /^<!-- svgs (.+) as (.+) -->\n$/;
 const src_dir = path.join(__dirname, '..', 'src');
 const variants = ['dev', 'agent'];
 
@@ -52,14 +53,39 @@ function html_from_template(template, lines_by_slot)
     const parts = [];
     for (const line of lines) {
         const match = line.match(include_regex);
+        const svgs = line.match(svgs_regex);
         if (match) {
             parts.push(fs.readFileSync(path.join(src_dir, match[1]), 'utf8'));
+        }
+        else if (svgs) {
+            parts.push(svgs_js(svgs[1], svgs[2]));
         }
         else {
             parts.push(line);
         }
     }
     return parts.join('');
+}
+
+// A `<!-- svgs sprites as sprite_svgs -->` line becomes `const sprite_svgs = {...};`: every .svg of src/sprites/ by
+// its name without the extension, and every folder in it as an object of its own
+function svgs_js(dir, name)
+{
+    return 'const ' + name + ' = ' + JSON.stringify(svgs_from_dir(path.join(src_dir, dir))) + ';\n';
+}
+
+function svgs_from_dir(dir)
+{
+    const out = {};
+    for (const entry of fs.readdirSync(dir, {withFileTypes: true}).sort((a, b) => a.name.localeCompare(b.name))) {
+        if (entry.isDirectory()) {
+            out[entry.name] = svgs_from_dir(path.join(dir, entry.name));
+        }
+        else if (entry.name.endsWith('.svg')) {
+            out[entry.name.slice(0, -4)] = fs.readFileSync(path.join(dir, entry.name), 'utf8').trim();
+        }
+    }
+    return out;
 }
 
 // src/dev.html, src/agent.html: a `<!-- slot name -->` line opens a slot; the lines after it fill it

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+<defs><radialGradient id="glass" cx="0.35" cy="0.28" r="0.85"><stop offset="0" stop-color="#8fd0f0"/><stop offset="0.35" stop-color="#2f6a92"/><stop offset="1" stop-color="#0b1824"/></radialGradient><linearGradient id="shade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff" stop-opacity="0.16"/><stop offset="0.55" stop-color="#ffffff" stop-opacity="0"/><stop offset="1" stop-color="#05080c" stop-opacity="0.38"/></linearGradient><radialGradient id="nozzle" cx="0.5" cy="0.25" r="0.9"><stop offset="0" stop-color="#ffd59a"/><stop offset="0.4" stop-color="#e2742f"/><stop offset="1" stop-color="#2a1a14"/></radialGradient><linearGradient id="l9aa6b4" x1="0" y1="0" x2="1" y2="0.35"><stop offset="0" stop-color="#c0c8d0"/><stop offset="0.45" stop-color="#9aa6b4"/><stop offset="1" stop-color="#50565e"/></linearGradient><linearGradient id="l4e5968" x1="0" y1="0" x2="1" y2="0.35"><stop offset="0" stop-color="#9198a1"/><stop offset="0.45" stop-color="#4e5968"/><stop offset="1" stop-color="#292e36"/></linearGradient><linearGradient id="le4e7ec" x1="0" y1="0" x2="1" y2="0.35"><stop offset="0" stop-color="#eef0f3"/><stop offset="0.45" stop-color="#e4e7ec"/><stop offset="1" stop-color="#77787b"/></linearGradient><linearGradient id="accent-fill" x1="0" y1="0" x2="1" y2="1"><stop id="accent-light" offset="0" stop-color="#aefbf5"/><stop id="accent-base" offset="0.5" stop-color="#6cf8ec"/><stop id="accent-dark" offset="1" stop-color="#41958e"/></linearGradient></defs>
+<g id="hull" stroke="#141a22" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"><path d="M87.91 116.73 L35.3 154.31 L37.8 191.89 L82.9 186.88 Z" fill="url(#l9aa6b4)" />
+<path d="M168.09 116.73 L220.7 154.31 L218.2 191.89 L173.1 186.88 Z" fill="url(#l9aa6b4)" />
+<rect x="100.44" y="221.96" width="22.55" height="20.04" fill="url(#l4e5968)" />
+<rect x="133.01" y="221.96" width="22.55" height="20.04" fill="url(#l4e5968)" />
+<path d="M128 14 L168.09 54.09 L175.6 166.84 L155.56 229.47 L100.44 229.47 L80.4 166.84 L87.91 54.09 Z" fill="url(#le4e7ec)" />
+<path d="M128 14 L168.09 54.09 L175.6 166.84 L155.56 229.47 L100.44 229.47 L80.4 166.84 L87.91 54.09 Z" fill="url(#shade)" stroke="none" /><path d="M128 35.55 L130.5 110.96 L129.3 199.3 L126.7 199.3 L125.5 110.96 Z" fill="#ffffff" fill-opacity="0.45" stroke="none" /><ellipse cx="128" cy="66.62" rx="12.53" ry="20.04" fill="url(#glass)" stroke-width="3.5" />
+<ellipse cx="123.99" cy="59.41" rx="3.26" ry="8.02" fill="#ffffff" fill-opacity="0.8" stroke="none" /><path d="M90.42 129.25 Q128 136.77 165.58 129.25 M92.92 201.91 Q128 209.43 163.08 201.91" fill="none" stroke="#3b4652" stroke-width="2.5" />
+<path d="M87.91 116.73 L35.3 154.31 L40.31 158.07 L87.91 126.75 Z" fill="#ffffff" fill-opacity="0.45" stroke="none" />
+<path d="M168.09 116.73 L220.7 154.31 L215.69 158.07 L168.09 126.75 Z" fill="#ffffff" fill-opacity="0.18" stroke="none" />
+<path d="M87.91 139.27 L82.9 161.82 L87.91 174.35 L92.92 146.79 Z" fill="#1c232c" stroke="#141a22" stroke-width="2.5" />
+<path d="M168.09 139.27 L173.1 161.82 L168.09 174.35 L163.08 146.79 Z" fill="#1c232c" stroke="#141a22" stroke-width="2.5" />
+<ellipse cx="111.71" cy="238.5" rx="6.67" ry="3.2" fill="url(#nozzle)" stroke="none" /><ellipse cx="144.29" cy="238.5" rx="6.67" ry="3.2" fill="url(#nozzle)" stroke="none" /></g>
+<g id="accent" stroke="#141a22" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"><rect x="97.93" y="99.19" width="27.56" height="12.53" fill="url(#accent-fill)" />
+<rect x="130.51" y="99.19" width="27.56" height="12.53" fill="url(#accent-fill)" />
+<path d="M97.93 166.84 L128 151.8 L158.07 166.84 L158.07 181.87 L128 166.84 L97.93 181.87 Z" fill="url(#accent-fill)" />
+<path d="M35.3 154.31 L50.33 143.03 L52.84 189.38 L37.8 191.89 Z" fill="url(#accent-fill)" />
+<path d="M220.7 154.31 L205.67 143.03 L203.16 189.38 L218.2 191.89 Z" fill="url(#accent-fill)" />
+</g>
+<g id="anchors"><line id="flame-main-1" x1="111.71" y1="242" x2="111.71" y2="279.58" stroke="#ff0000" stroke-width="17.54" /><line id="flame-main-2" x1="144.29" y1="242" x2="144.29" y2="279.58" stroke="#ff0000" stroke-width="17.54" /></g>
+</svg>

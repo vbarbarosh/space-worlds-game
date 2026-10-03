@@ -304,6 +304,17 @@
     background: #322b22cc;
 }
 
+#sprites_button {
+    font-size: 9px;
+    letter-spacing: 0.06em;
+    min-width: 46px;
+    color: #ffe1aa;
+}
+
+body[data-view='wireframe'] #sprites_button {
+    display: none;
+}
+
 body[data-view='rendered'] .scanlines {
     opacity: 0.025;
 }

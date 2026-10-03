@@ -16,10 +16,15 @@ function update_engine_effects(dt)
         player.engine_emit = 0;
         const c = Math.cos(player.angle);
         const s = Math.sin(player.angle);
-        for (const side of [-1, 1]) {
+        const art = (view_mode === 'wireframe') ? null : ship_sprite(current_ship());
+        const anchors = art && sprite(art.name) && sprite_anchors(art.name, art.length);
+        const nozzles = anchors
+            ? ((player.engine_reverse && !boost) ? anchors.flames.reverse : anchors.flames.main).map(v => ({x: v.x, y: v.y}))
+            : [-1, 1].map(side => ({x: (player.engine_reverse && !boost) ? 14 : -17, y: side*((current_ship().shape >= 4) ? 14 : 7)}));
+        for (const nozzle of nozzles) {
             const reverse = player.engine_reverse && !boost;
-            const x = reverse ? 14 : -17;
-            const y = side*((current_ship().shape >= 4) ? 14 : 7);
+            const x = nozzle.x;
+            const y = nozzle.y;
             const direction = reverse ? 1 : -1;
             const life = boost ? 0.24 : 0.12;
             particles.push({
@@ -73,6 +78,25 @@ function render_engine_plumes()
             ctx.fillRect(-6, -7, 14, 14);
         }
         ctx.restore();
+    }
+    const art = (view_mode === 'wireframe') ? null : ship_sprite(current_ship());
+    const anchors = art && sprite(art.name) && sprite_anchors(art.name, art.length);
+    if (anchors) {
+        // The drawing's own nozzles: a full-thrust flame is as long as its anchor, cruising thrust under half of it.
+        // Turning fires a steering jet at the nose on one side and at the tail on the other.
+        ctx.globalCompositeOperation = 'lighter';
+        const reverse = player.engine_reverse && !boost;
+        const flicker = full_fx ? Math.sin(clock*31)*0.08 : 0;
+        if (power > 0.03) {
+            sprite_flames(reverse ? anchors.flames.reverse : anchors.flames.main, boost ? 1 : power*0.45, '#90c9ff', flicker);
+        }
+        if (Math.abs(turn) > 0.15) {
+            const side = -Math.sign(turn);
+            const jets = anchors.flames.side.filter(v => (v.x > 0) ? (Math.sign(v.y) === side) : (Math.sign(v.y) === -side));
+            sprite_flames(jets, clamp(Math.abs(turn)/2, 0.15, 0.65), '#90c9ff', flicker);
+        }
+        ctx.restore();
+        return;
     }
     if (power > 0.03) {
         const y = (current_ship().shape >= 4) ? 14 : 7;

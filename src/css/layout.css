@@ -171,6 +171,11 @@ body {
     margin-top: 14px;
 }
 
+.intro .mode-note {
+    margin: 8px 0 0;
+    max-width: 460px;
+}
+
 .intro .start-row {
     margin: 20px 0 16px;
     gap: 9px;

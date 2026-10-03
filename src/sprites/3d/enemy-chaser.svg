@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+<defs>
+<linearGradient id="body" x1="0" y1="0" x2="1" y2="0">
+<stop offset="0" stop-color="#c3cad3"/><stop offset="0.45" stop-color="#8a949f"/><stop offset="1" stop-color="#2c333b"/>
+</linearGradient>
+<linearGradient id="plate" x1="0" y1="0" x2="1" y2="0">
+<stop offset="0" stop-color="#dde2e8"/><stop offset="0.5" stop-color="#9aa4ae"/><stop offset="1" stop-color="#3d454e"/>
+</linearGradient>
+<linearGradient id="shadeV" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0" stop-color="#ffffff" stop-opacity="0.15"/><stop offset="0.5" stop-color="#ffffff" stop-opacity="0"/><stop offset="1" stop-color="#05080c" stop-opacity="0.4"/>
+</linearGradient>
+<linearGradient id="bladeL" x1="1" y1="0" x2="0" y2="1">
+<stop offset="0" stop-color="#a3acb6"/><stop offset="1" stop-color="#3f4750"/>
+</linearGradient>
+<linearGradient id="bladeR" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0" stop-color="#79838e"/><stop offset="1" stop-color="#262c33"/>
+</linearGradient>
+<linearGradient id="dark" x1="0" y1="0" x2="1" y2="0">
+<stop offset="0" stop-color="#5a6470"/><stop offset="1" stop-color="#20262d"/>
+</linearGradient>
+<radialGradient id="nozzle" cx="0.5" cy="0.2" r="0.9">
+<stop offset="0" stop-color="#ffd59a"/><stop offset="0.35" stop-color="#e2742f"/><stop offset="1" stop-color="#2a1a14"/>
+</radialGradient>
+<linearGradient id="accent-fill" x1="0" y1="0" x2="1" y2="1">
+<stop id="accent-light" offset="0" stop-color="#c8fffa"/><stop id="accent-base" offset="0.5" stop-color="#6cf8ec"/><stop id="accent-dark" offset="1" stop-color="#1f9c93"/>
+</linearGradient>
+</defs>
+<g id="hull" stroke="#11161c" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+<path d="M104 104 L30 212 Q33 223 46 218 L98 170 Z" fill="url(#bladeL)"/>
+<path d="M152 104 L226 212 Q223 223 210 218 L158 170 Z" fill="url(#bladeR)"/>
+<path d="M46 218 L98 170 L98 158 L52 204 Z" fill="#05080c" fill-opacity="0.3" stroke="none"/>
+<path d="M210 218 L158 170 L158 158 L204 204 Z" fill="#05080c" fill-opacity="0.35" stroke="none"/>
+<path d="M98 132 L56 200 M158 132 L200 200" fill="none" stroke="#1f252c" stroke-width="2.5"/>
+<path d="M118 218 L138 218 L135 240 L121 240 Z" fill="url(#dark)"/>
+<ellipse cx="128" cy="236" rx="7" ry="3.5" fill="url(#nozzle)" stroke="none"/>
+<path d="M128 18 Q150 70 156 130 L150 196 L136 226 L120 226 L106 196 L100 130 Q106 70 128 18 Z" fill="url(#body)"/>
+<path d="M128 18 Q150 70 156 130 L150 196 L136 226 L120 226 L106 196 L100 130 Q106 70 128 18 Z" fill="url(#shadeV)" stroke="none"/>
+<path d="M128 44 Q138 80 142 128 L138 180 L118 180 L114 128 Q118 80 128 44 Z" fill="url(#plate)" stroke-width="3"/>
+<path d="M128 56 L131 120 L129.5 172 L126.5 172 L125 120 Z" fill="#ffffff" fill-opacity="0.5" stroke="none"/>
+<rect x="120" y="186" width="16" height="4" fill="#0e1318" stroke="none"/>
+<rect x="120" y="194" width="16" height="4" fill="#0e1318" stroke="none"/>
+<rect x="121" y="202" width="14" height="4" fill="#0e1318" stroke="none"/>
+</g>
+<g id="accent" stroke="#11161c" stroke-width="4" stroke-linejoin="round">
+<path d="M104 104 L30 212 L41 210 L106 122 Z" fill="url(#accent-fill)"/>
+<path d="M152 104 L226 212 L215 210 L150 122 Z" fill="url(#accent-fill)"/>
+<path d="M116 96 L140 96 L136 116 L120 116 Z" fill="url(#accent-fill)" stroke-width="3"/>
+</g>
+<g id="anchors">
+<line id="flame-main-1" x1="128" y1="240" x2="128" y2="272" stroke="#ff0000" stroke-width="14"/>
+</g>
+</svg>

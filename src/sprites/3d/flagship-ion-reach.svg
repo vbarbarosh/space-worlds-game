@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+<defs><radialGradient id="glass" cx="0.35" cy="0.28" r="0.85"><stop offset="0" stop-color="#8fd0f0"/><stop offset="0.35" stop-color="#2f6a92"/><stop offset="1" stop-color="#0b1824"/></radialGradient><linearGradient id="shade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff" stop-opacity="0.16"/><stop offset="0.55" stop-color="#ffffff" stop-opacity="0"/><stop offset="1" stop-color="#05080c" stop-opacity="0.38"/></linearGradient><radialGradient id="nozzle" cx="0.5" cy="0.25" r="0.9"><stop offset="0" stop-color="#ffd59a"/><stop offset="0.4" stop-color="#e2742f"/><stop offset="1" stop-color="#2a1a14"/></radialGradient><linearGradient id="l444a62" x1="0" y1="0" x2="1" y2="0.35"><stop offset="0" stop-color="#8b8f9e"/><stop offset="0.45" stop-color="#444a62"/><stop offset="1" stop-color="#232633"/></linearGradient><radialGradient id="r7e86a3" cx="0.35" cy="0.32" r="0.8"><stop offset="0" stop-color="#b8bccc"/><stop offset="0.5" stop-color="#7e86a3"/><stop offset="1" stop-color="#3f4352"/></radialGradient><radialGradient id="r444a62" cx="0.35" cy="0.32" r="0.8"><stop offset="0" stop-color="#989ba9"/><stop offset="0.5" stop-color="#444a62"/><stop offset="1" stop-color="#222531"/></radialGradient><linearGradient id="l7e86a3" x1="0" y1="0" x2="1" y2="0.35"><stop offset="0" stop-color="#afb4c6"/><stop offset="0.45" stop-color="#7e86a3"/><stop offset="1" stop-color="#424655"/></linearGradient><radialGradient id="rb7bdd0" cx="0.35" cy="0.32" r="0.8"><stop offset="0" stop-color="#d7dbe5"/><stop offset="0.5" stop-color="#b7bdd0"/><stop offset="1" stop-color="#5c5e68"/></radialGradient><linearGradient id="accent-fill" x1="0" y1="0" x2="1" y2="1"><stop id="accent-light" offset="0" stop-color="#c0c9ff"/><stop id="accent-base" offset="0.5" stop-color="#8d9cff"/><stop id="accent-dark" offset="1" stop-color="#555e99"/></linearGradient></defs>
+<g id="hull" stroke="#141a22" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"><rect x="98.44" y="218.78" width="21.11" height="23.22" fill="url(#l444a62)" />
+<rect x="136.44" y="218.78" width="21.11" height="23.22" fill="url(#l444a62)" />
+<path d="M113.22 62.56 L117.44 26.67 L128 14 L138.56 26.67 L142.78 62.56 Z" fill="url(#l444a62)" />
+<circle cx="128" cy="142.78" r="88.67" fill="url(#r7e86a3)" />
+<circle cx="128" cy="142.78" r="88.67" fill="url(#shade)" stroke="none" /><circle cx="128" cy="142.78" r="61.22" fill="url(#r444a62)" stroke-width="3.5" />
+<rect x="120.61" y="83.67" width="14.78" height="118.22" fill="url(#l7e86a3)" stroke-width="2.8" />
+<rect x="68.89" y="135.39" width="118.22" height="14.78" fill="url(#l7e86a3)" stroke-width="2.8" />
+<circle cx="128" cy="142.78" r="27.44" fill="url(#rb7bdd0)" stroke-width="3.5" />
+<circle cx="75.22" cy="90" r="14.78" fill="url(#rb7bdd0)" stroke-width="3.5" />
+<circle cx="180.78" cy="90" r="14.78" fill="url(#rb7bdd0)" stroke-width="3.5" />
+<circle cx="75.22" cy="195.56" r="14.78" fill="url(#rb7bdd0)" stroke-width="3.5" />
+<circle cx="180.78" cy="195.56" r="14.78" fill="url(#rb7bdd0)" stroke-width="3.5" />
+<path d="M56.22 113.22 A76 76 0 0 1 98.44 68.89 L100.56 75.22 A69.67 69.67 0 0 0 62.56 115.33 Z" fill="#ffffff" fill-opacity="0.45" stroke="none" />
+<path d="M54.11 176.56 L68.89 172.33 M201.89 176.56 L187.11 172.33 M96.33 214.56 L102.67 201.89 M159.67 214.56 L153.33 201.89" fill="none" stroke="#3b4652" stroke-width="2.5" />
+<ellipse cx="109" cy="238.5" rx="6.42" ry="3.2" fill="url(#nozzle)" stroke="none" /><ellipse cx="147" cy="238.5" rx="6.42" ry="3.2" fill="url(#nozzle)" stroke="none" /></g>
+<g id="accent" stroke="#141a22" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"><circle cx="128" cy="142.78" r="12.67" stroke-width="2.8" fill="url(#accent-fill)" />
+<circle cx="75.22" cy="90" r="6.33" stroke-width="2.5" fill="url(#accent-fill)" />
+<circle cx="180.78" cy="90" r="6.33" stroke-width="2.5" fill="url(#accent-fill)" />
+<circle cx="75.22" cy="195.56" r="6.33" stroke-width="2.5" fill="url(#accent-fill)" />
+<circle cx="180.78" cy="195.56" r="6.33" stroke-width="2.5" fill="url(#accent-fill)" />
+<path d="M117.44 26.67 L128 14 L138.56 26.67 Z" fill="url(#accent-fill)" />
+<rect x="43.56" y="136.44" width="19" height="12.67" fill="url(#accent-fill)" />
+<rect x="193.44" y="136.44" width="19" height="12.67" fill="url(#accent-fill)" />
+</g>
+<g id="anchors"><line id="flame-main-1" x1="109" y1="242" x2="109" y2="273.67" stroke="#ff0000" stroke-width="16.89" /><line id="flame-main-2" x1="147" y1="242" x2="147" y2="273.67" stroke="#ff0000" stroke-width="16.89" /></g>
+</svg>

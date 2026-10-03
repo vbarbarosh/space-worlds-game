@@ -226,6 +226,20 @@ function render_surface_ship(x, y, angle, alpha = 1, ghost = false, definition =
     const v = definition || current_ship();
     const shape = v.shape || 0;
     const color = v.color || cyan;
+    // The designer's sprite when there is one; the painted hull below while it loads, or for a ship with none
+    const art = definition ? definition.sprite : ship_sprite(v);
+    if (art && sprite_draw(art.name, definition?.enemy ? color : null, art.length, x, y, angle, alpha)) {
+        if (!ghost && !is_player_vessel(x, y)) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(angle);
+            ctx.globalCompositeOperation = 'lighter';
+            ctx.globalAlpha = alpha;
+            sprite_flames(sprite_anchors(art.name, art.length).flames.main, 0.45, definition?.enemy ? color : '#9bcfff', full_fx ? Math.sin(clock*24 + x)*0.15 : 0);
+            ctx.restore();
+        }
+        return;
+    }
     const asset = ship_surface(shape, color, !!v.enemy, v.type || '');
     ctx.save();
     ctx.translate(x, y);
@@ -287,6 +301,7 @@ function render_enemies()
             scale,
             enemy: true,
             type: enemy.type,
+            sprite: enemy_sprite(enemy),
         });
         ctx.save();
         if ((enemy.type === 'lancer') && (enemy.charge_cd < 0.7) && (enemy.charge_time <= 0)) {

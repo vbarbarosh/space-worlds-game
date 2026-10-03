@@ -28,6 +28,12 @@ function update_ship_orientation(dt, target, dx, dy)
 function turret_mounts()
 {
     const ship = current_ship();
+    // In the rendered view the turrets sit where the drawing marks them
+    const art = (view_mode === 'wireframe') ? null : ship_sprite(ship);
+    const points = art && sprite(art.name) && sprite_anchors(art.name, art.length).points;
+    if (points?.['turret-1'] && points['turret-2']) {
+        return [points['turret-1'], points['turret-2']].map(v => [v.x, v.y]);
+    }
     return (ship.shape >= 4)
         ? [
             [3, -13],

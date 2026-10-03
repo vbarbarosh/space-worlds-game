@@ -461,5 +461,6 @@ for (const v of document.querySelectorAll('[data-mode]')) {
         for (const v of document.querySelectorAll('[data-mode]')) {
             v.classList.toggle('selected', v.dataset.mode === difficulty);
         }
+        sync_mode_note();
     });
 }

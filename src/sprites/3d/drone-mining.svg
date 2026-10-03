@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+<defs><radialGradient id="glass" cx="0.35" cy="0.28" r="0.85"><stop offset="0" stop-color="#8fd0f0"/><stop offset="0.35" stop-color="#2f6a92"/><stop offset="1" stop-color="#0b1824"/></radialGradient><linearGradient id="shade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff" stop-opacity="0.16"/><stop offset="0.55" stop-color="#ffffff" stop-opacity="0"/><stop offset="1" stop-color="#05080c" stop-opacity="0.38"/></linearGradient><radialGradient id="nozzle" cx="0.5" cy="0.25" r="0.9"><stop offset="0" stop-color="#ffd59a"/><stop offset="0.4" stop-color="#e2742f"/><stop offset="1" stop-color="#2a1a14"/></radialGradient><radialGradient id="ra9b3be" cx="0.35" cy="0.32" r="0.8"><stop offset="0" stop-color="#d0d5db"/><stop offset="0.5" stop-color="#a9b3be"/><stop offset="1" stop-color="#545a5f"/></radialGradient><radialGradient id="r3a424c" cx="0.35" cy="0.32" r="0.8"><stop offset="0" stop-color="#93979d"/><stop offset="0.5" stop-color="#3a424c"/><stop offset="1" stop-color="#1d2126"/></radialGradient><linearGradient id="l5d6874" x1="0" y1="0" x2="1" y2="0.35"><stop offset="0" stop-color="#9ba1a9"/><stop offset="0.45" stop-color="#5d6874"/><stop offset="1" stop-color="#30363c"/></linearGradient><linearGradient id="la9b3be" x1="0" y1="0" x2="1" y2="0.35"><stop offset="0" stop-color="#cad0d7"/><stop offset="0.45" stop-color="#a9b3be"/><stop offset="1" stop-color="#585d63"/></linearGradient><linearGradient id="ld8dde3" x1="0" y1="0" x2="1" y2="0.35"><stop offset="0" stop-color="#e7eaee"/><stop offset="0.45" stop-color="#d8dde3"/><stop offset="1" stop-color="#707376"/></linearGradient><linearGradient id="accent-fill" x1="0" y1="0" x2="1" y2="1"><stop id="accent-light" offset="0" stop-color="#f3d89b"/><stop id="accent-base" offset="0.5" stop-color="#e9b949"/><stop id="accent-dark" offset="1" stop-color="#8c6f2c"/></linearGradient></defs>
+<g id="hull" stroke="#141a22" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"><path d="M56 74 L200 206 M200 74 L56 206" fill="none" stroke-width="9.8" />
+<path d="M56 74 L200 206 M200 74 L56 206" fill="none" stroke="#5d6874" stroke-width="4.9" />
+<circle cx="56" cy="74" r="36" fill="url(#ra9b3be)" stroke-width="3.5" />
+<circle cx="200" cy="74" r="36" fill="url(#ra9b3be)" stroke-width="3.5" />
+<circle cx="56" cy="206" r="36" fill="url(#ra9b3be)" stroke-width="3.5" />
+<circle cx="200" cy="206" r="36" fill="url(#ra9b3be)" stroke-width="3.5" />
+<circle cx="56" cy="74" r="15" fill="url(#r3a424c)" stroke="none" />
+<circle cx="200" cy="74" r="15" fill="url(#r3a424c)" stroke="none" />
+<circle cx="56" cy="206" r="15" fill="url(#r3a424c)" stroke="none" />
+<circle cx="200" cy="206" r="15" fill="url(#r3a424c)" stroke="none" />
+<rect x="110" y="14" width="36" height="72" fill="url(#l5d6874)" stroke-width="3.5" />
+<rect x="92" y="44" width="72" height="24" fill="url(#la9b3be)" stroke-width="3.5" />
+<rect x="68" y="80" width="120" height="120" rx="27" fill="url(#ld8dde3)" stroke-width="3.5" />
+<rect x="68" y="80" width="120" height="120" rx="27" fill="url(#shade)" stroke="none" /><circle cx="128" cy="119" r="21" fill="url(#glass)" stroke-width="2.8" />
+<ellipse cx="121.28" cy="111.44" rx="5.46" ry="8.4" fill="#ffffff" fill-opacity="0.8" stroke="none" /><rect x="77" y="98" width="9" height="84" fill="#ffffff" fill-opacity="0.45" stroke="none" />
+<ellipse cx="56" cy="238.5" rx="11.4" ry="3.2" fill="url(#nozzle)" stroke="none" /><ellipse cx="200" cy="238.5" rx="11.4" ry="3.2" fill="url(#nozzle)" stroke="none" /></g>
+<g id="accent" stroke="#141a22" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"><rect x="86" y="155" width="84" height="27" stroke-width="2.8" fill="url(#accent-fill)" />
+</g>
+<g id="anchors"><line id="flame-main-1" x1="56" y1="242" x2="56" y2="308" stroke="#ff0000" stroke-width="30" /><line id="flame-main-2" x1="200" y1="242" x2="200" y2="308" stroke="#ff0000" stroke-width="30" /><circle id="beam" cx="128" cy="14" r="6" fill="#0000ff" /></g>
+</svg>

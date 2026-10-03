@@ -6,8 +6,19 @@ const arcade_radiation = 0.35;
 const arcade_defense = 0.5;
 const arcade_wave_names = ['', 'SCOUTS', 'ASSAULT', 'FLAGSHIP'];
 const arcade_depot_safe_range = 700;
+// What each difficulty changes in the arcade: extra raiders per squadron and per wave, the gap between squadrons, the
+// first world with elites, the share of repairs that still drop, the medkits a run starts with, whether every raider
+// fires its world's gun (Haven's plasma included), how often (a factor on the gun's cooldown), and how hard its shots
+// hit, the raiders' hull, the blast damage you take, raiders that grow with your weapon tier, and the flagship's
+// overdrive. CHILL is the run as it was before.
+const arcade_modes = {
+    chill: {squad: 0, wave: 0, gap: 1, elite_world: 1, repairs: 1, medkits: 2, armed: false, gun_gap: 1, hits: 1, hull: 1, blast: 0.8, tier_hp: false, overdrive: false},
+    normal: {squad: 1, wave: 3, gap: 0.8, elite_world: 0, repairs: 0.35, medkits: 1, armed: true, gun_gap: 0.45, hits: 2, hull: 1.5, blast: 0.8, tier_hp: false, overdrive: false},
+    overload: {squad: 2, wave: 5, gap: 0.7, elite_world: 0, repairs: 0, medkits: 1, armed: true, gun_gap: 0.4, hits: 2.2, hull: 1.8, blast: 1.2, tier_hp: true, overdrive: true},
+};
 
 document.getElementById('arcade_depot_launch').addEventListener('click', arcade_depot_close);
+sync_mode_note();
 
 function arcade_start(world = 0)
 {
@@ -33,7 +44,7 @@ function arcade_start(world = 0)
         artifacts_count: 0,
         run_time: 0,
         upgrades: initial_upgrades(),
-        supplies: {medkit: 2, emp: 1, stasis: 1},
+        supplies: {medkit: arcade_mode().medkits, emp: 1, stasis: 1},
         difficulty,
         hp: ship_catalog[0].hull,
         energy: 35,
@@ -52,6 +63,36 @@ function arcade_start(world = 0)
     };
     reset_run(true);
     checkpoint = arcade.campaign_checkpoint;
+}
+
+// One line under the menu's difficulty switch on what the mode does.
+function sync_mode_note()
+{
+    document.getElementById('mode_note').textContent = {
+        chill: 'Slower, weaker raiders; hits hurt a third less.',
+        normal: 'Arcade: every raider fires, squadrons are bigger, elites from Haven on, repairs mostly at the depot.',
+        overload: 'Faster, tougher raiders. Arcade: they grow with your weapon and drop no repairs; flagships go into overdrive.',
+    }[difficulty] || '';
+}
+
+function arcade_mode()
+{
+    return arcade_modes[difficulty] || arcade_modes.normal;
+}
+
+// Whether a repair may drop: always outside the arcade; in it, as often as the mode allows.
+function repair_drop_allowed()
+{
+    return !arcade.active || (Math.random() < arcade_mode().repairs);
+}
+
+// A raider's hull by the mode (the flagship has its own scale); on OVERLOAD it also grows as your weapon's tier does,
+// by the same 22% a tier adds to your damage.
+function arcade_hull_scale(enemy)
+{
+    const k = ((enemy.type === 'boss') ? 1 : arcade_mode().hull)*(arcade_mode().tier_hp ? 1 + (weapon_level() - 1)*0.22 : 1);
+    enemy.hp = Math.round(enemy.hp*k);
+    enemy.max_hp = Math.round(enemy.max_hp*k);
 }
 
 function arcade_stop()
@@ -73,6 +114,7 @@ function arcade_update(dt)
             enemy.armor = (enemy.armor || 0)*arcade_defense;
             enemy.shield = (enemy.shield || 0)*arcade_defense;
             enemy.max_shield = (enemy.max_shield || 0)*arcade_defense;
+            arcade_hull_scale(enemy);
         }
     }
     if (arcade.world !== campaign.world) {
@@ -121,7 +163,7 @@ function arcade_wave_start(n)
 
 function arcade_wave_size(n)
 {
-    return 10 + campaign.world*2 + (n - 1)*4;
+    return 10 + campaign.world*2 + (n - 1)*4 + arcade_mode().wave;
 }
 
 // Raiders come in squadrons from one side, not one by one; a squadron waits while the sky is crowded.
@@ -132,20 +174,21 @@ function arcade_squads_update(dt)
     if ((spawn_left <= 0) || (arcade.squad_timer > 0) || (alive > 14)) {
         return;
     }
-    const size = Math.min(spawn_left, 3 + Math.min(3, Math.floor(campaign.world/2)) + (arcade.wave - 1));
+    const size = Math.min(spawn_left, 3 + Math.min(3, Math.floor(campaign.world/2)) + (arcade.wave - 1) + arcade_mode().squad);
     arcade_squad_spawn(size);
     spawn_left -= size;
-    arcade.squad_timer = Math.max(2.6, 5.5 - campaign.world*0.3);
+    arcade.squad_timer = Math.max(2.6, 5.5 - campaign.world*0.3)*arcade_mode().gap;
 }
 
-// One type per squadron, in a line across its heading; from the second world on every second one has an elite leader.
+// One type per squadron, in a line across its heading; from the mode's first elite world on, every second one has an
+// elite leader.
 function arcade_squad_spawn(size)
 {
     const type = (arcade.wave === 1) ? ((Math.random() < 0.7) ? 'chaser' : 'shooter') : enemy_type();
     const angle = Math.random()*Math.PI*2;
     const cx = player.x + Math.cos(angle)*640;
     const cy = player.y + Math.sin(angle)*640;
-    const elite = (campaign.world >= 1) && (arcade.wave >= 2) && (arcade.squads % 2 === 1);
+    const elite = (campaign.world >= arcade_mode().elite_world) && (arcade.wave >= 2) && (arcade.squads % 2 === 1);
     arcade.squads++;
     for (let i = 0; i < size; ++i) {
         const enemy = spawn_enemy(type);
@@ -170,10 +213,12 @@ function arcade_elite_make(enemy)
     enemy.armor = (enemy.armor || 0)*arcade_defense;
     enemy.max_shield = 40 + campaign.world*25;
     enemy.shield = enemy.max_shield;
-    enemy.drop_on_death = 'medkit';
+    arcade_hull_scale(enemy);
+    enemy.drop_on_death = repair_drop_allowed() ? 'medkit' : 'emp';
 }
 
-// The flagship turns at 66% (escorts) and at 33% (a last stand with more of them).
+// The flagship turns at 66% (escorts) and at 33% (a last stand with more of them); on OVERLOAD, at 15% it goes into
+// overdrive: it fires faster and calls an elite squadron.
 function arcade_flagship_update()
 {
     const boss = enemies.find(v => (v.type === 'boss') && (v.hp > 0));
@@ -192,6 +237,16 @@ function arcade_flagship_update()
         shake = Math.max(shake, 14);
         ring(boss.x, boss.y, pink, 260, 0.6);
         arcade_squad_spawn(4 + Math.min(2, Math.floor(campaign.world/3)));
+    }
+    if ((arcade.phase === 3) && arcade_mode().overdrive && (boss.hp < boss.max_hp*0.15)) {
+        arcade.phase = 4;
+        boss.overdrive = true;
+        show_toast('FLAGSHIP · OVERDRIVE', 'IT WILL NOT GO QUIETLY', 2);
+        flash = 0.4;
+        shake = Math.max(shake, 18);
+        ring(boss.x, boss.y, pink, 320, 0.7);
+        arcade.squads = 1;
+        arcade_squad_spawn(3 + Math.min(2, Math.floor(campaign.world/3)));
     }
 }
 
@@ -259,7 +314,7 @@ function arcade_blasts_update(dt)
         }
         const d = distance(player, blast);
         if (d < blast.radius + player.r) {
-            damage_player(blast.damage*0.8*(1 - Math.min(1, d/blast.radius)));
+            damage_player(blast.damage*arcade_mode().blast*(1 - Math.min(1, d/blast.radius)));
         }
     }
 }

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+<g id="hull" stroke="#1b1f27" stroke-width="6" stroke-linejoin="round" stroke-linecap="round"><rect x="69.22" y="14" width="21.38" height="78.38" fill="#3a414a" />
+<rect x="165.41" y="14" width="21.38" height="78.38" fill="#3a414a" />
+<rect x="60.31" y="78.12" width="39.19" height="117.56" rx="12.47" fill="#5d6670" />
+<rect x="156.5" y="78.12" width="39.19" height="117.56" rx="12.47" fill="#5d6670" />
+<rect x="110.19" y="217.06" width="35.62" height="24.94" fill="#3a414a" />
+<path d="M128 35.38 L160.06 78.12 L167.19 167.19 L145.81 231.31 L110.19 231.31 L88.81 167.19 L95.94 78.12 Z" fill="#8a929c" />
+<path d="M128 35.38 L160.06 78.12 L167.19 167.19 L145.81 231.31 L128 231.31 Z" stroke="none" fill="#1b1f27" fill-opacity="0.14" />
+<path d="M176.09 78.12 L183.22 78.12 Q195.69 78.12 195.69 90.59 L195.69 183.22 Q195.69 195.69 183.22 195.69 L176.09 195.69 Z" stroke="none" fill="#1b1f27" fill-opacity="0.14" />
+</g>
+<g id="accent" stroke="#1b1f27" stroke-width="6" stroke-linejoin="round" stroke-linecap="round"><path d="M60.31 110.19 L60.31 90.59 Q60.31 78.12 72.78 78.12 L92.38 78.12 L92.38 110.19 Z" fill="#6cf8ec" />
+<path d="M163.62 110.19 L163.62 78.12 L183.22 78.12 Q195.69 78.12 195.69 90.59 L195.69 110.19 Z" fill="#6cf8ec" />
+<path d="M110.19 88.81 L145.81 88.81 L138.69 117.31 L117.31 117.31 Z" fill="#6cf8ec" />
+</g>
+<g id="anchors"><line id="flame-main-1" x1="128" y1="242" x2="128" y2="295.44" stroke="#ff0000" stroke-width="28.5" /></g>
+</svg>

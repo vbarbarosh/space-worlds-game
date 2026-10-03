@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+<defs><radialGradient id="glass" cx="0.35" cy="0.28" r="0.85"><stop offset="0" stop-color="#8fd0f0"/><stop offset="0.35" stop-color="#2f6a92"/><stop offset="1" stop-color="#0b1824"/></radialGradient><linearGradient id="shade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff" stop-opacity="0.16"/><stop offset="0.55" stop-color="#ffffff" stop-opacity="0"/><stop offset="1" stop-color="#05080c" stop-opacity="0.38"/></linearGradient><radialGradient id="nozzle" cx="0.5" cy="0.25" r="0.9"><stop offset="0" stop-color="#ffd59a"/><stop offset="0.4" stop-color="#e2742f"/><stop offset="1" stop-color="#2a1a14"/></radialGradient><linearGradient id="la9b3be" x1="0" y1="0" x2="1" y2="0.35"><stop offset="0" stop-color="#cad0d7"/><stop offset="0.45" stop-color="#a9b3be"/><stop offset="1" stop-color="#585d63"/></linearGradient><linearGradient id="l5d6874" x1="0" y1="0" x2="1" y2="0.35"><stop offset="0" stop-color="#9ba1a9"/><stop offset="0.45" stop-color="#5d6874"/><stop offset="1" stop-color="#30363c"/></linearGradient><linearGradient id="ld8dde3" x1="0" y1="0" x2="1" y2="0.35"><stop offset="0" stop-color="#e7eaee"/><stop offset="0.45" stop-color="#d8dde3"/><stop offset="1" stop-color="#707376"/></linearGradient><radialGradient id="r5d6874" cx="0.35" cy="0.32" r="0.8"><stop offset="0" stop-color="#a6acb3"/><stop offset="0.5" stop-color="#5d6874"/><stop offset="1" stop-color="#2e343a"/></radialGradient><linearGradient id="accent-fill" x1="0" y1="0" x2="1" y2="1"><stop id="accent-light" offset="0" stop-color="#f2b393"/><stop id="accent-base" offset="0.5" stop-color="#e8743b"/><stop id="accent-dark" offset="1" stop-color="#8b4623"/></linearGradient></defs>
+<g id="hull" stroke="#141a22" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"><rect x="62" y="146" width="132" height="36" rx="6" fill="url(#la9b3be)" />
+<rect x="77" y="221" width="21" height="21" fill="url(#l5d6874)" />
+<rect x="158" y="221" width="21" height="21" fill="url(#l5d6874)" />
+<rect x="71" y="113" width="33" height="120" rx="15" fill="url(#ld8dde3)" />
+<rect x="152" y="113" width="33" height="120" rx="15" fill="url(#ld8dde3)" />
+<path d="M128 14 L152 59 L158 164 L149 236 L107 236 L98 164 L104 59 Z" fill="url(#ld8dde3)" />
+<path d="M128 14 L152 59 L158 164 L149 236 L107 236 L98 164 L104 59 Z" fill="url(#shade)" stroke="none" /><path d="M128 36.2 L130.5 113.9 L129.3 204.92 L126.7 204.92 L125.5 113.9 Z" fill="#ffffff" fill-opacity="0.45" stroke="none" /><rect x="107" y="104" width="42" height="99" rx="7.5" fill="url(#la9b3be)" stroke-width="3.5" />
+<ellipse cx="128" cy="59" rx="12" ry="22.5" fill="url(#glass)" stroke-width="3.5" />
+<ellipse cx="124.16" cy="50.9" rx="3.12" ry="9" fill="#ffffff" fill-opacity="0.8" stroke="none" /><circle cx="128" cy="128" r="13.5" fill="url(#r5d6874)" stroke-width="2.8" />
+<circle cx="128" cy="179" r="13.5" fill="url(#r5d6874)" stroke-width="2.8" />
+<path d="M110 153.5 L146 153.5" fill="none" stroke="#3b4652" stroke-width="2.5" />
+<path d="M74 167 L101 167 M155 167 L182 167 M74 203 L101 203 M155 203 L182 203" fill="none" stroke="#3b4652" stroke-width="2.5" />
+<rect x="75.5" y="146" width="4.5" height="78" fill="#ffffff" fill-opacity="0.45" stroke="none" />
+<rect x="156.5" y="146" width="4.5" height="78" fill="#ffffff" fill-opacity="0.45" stroke="none" />
+<rect x="65" y="149" width="6" height="30" fill="#ffffff" fill-opacity="0.45" stroke="none" />
+<path d="M104 104 L98 149 L102.5 164 L107 116 Z" fill="#1c232c" stroke="#141a22" stroke-width="2.5" />
+<path d="M152 104 L158 149 L153.5 164 L149 116 Z" fill="#1c232c" stroke="#141a22" stroke-width="2.5" />
+<ellipse cx="87.5" cy="238.5" rx="7.98" ry="3.2" fill="url(#nozzle)" stroke="none" /><ellipse cx="168.5" cy="238.5" rx="7.98" ry="3.2" fill="url(#nozzle)" stroke="none" /></g>
+<g id="accent" stroke="#141a22" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"><path d="M71 143 L71 128 Q71 113 87.5 113 Q104 113 104 128 L104 143 Z" fill="url(#accent-fill)" />
+<path d="M152 143 L152 128 Q152 113 168.5 113 Q185 113 185 128 L185 143 Z" fill="url(#accent-fill)" />
+<path d="M104 80 L152 80 L153.5 95 L102.5 95 Z" fill="url(#accent-fill)" />
+</g>
+<g id="anchors"><line id="flame-main-1" x1="87.5" y1="242" x2="87.5" y2="293" stroke="#ff0000" stroke-width="21" /><line id="flame-main-2" x1="168.5" y1="242" x2="168.5" y2="293" stroke="#ff0000" stroke-width="21" /><line id="flame-reverse-1" x1="87.5" y1="113" x2="87.5" y2="83" stroke="#ff0000" stroke-width="9" /><line id="flame-reverse-2" x1="168.5" y1="113" x2="168.5" y2="83" stroke="#ff0000" stroke-width="9" /><line id="flame-side-1" x1="104" y1="71" x2="77" y2="71" stroke="#ff0000" stroke-width="7.5" /><line id="flame-side-2" x1="152" y1="71" x2="179" y2="71" stroke="#ff0000" stroke-width="7.5" /><line id="flame-side-3" x1="62" y1="164" x2="35" y2="164" stroke="#ff0000" stroke-width="7.5" /><line id="flame-side-4" x1="194" y1="164" x2="221" y2="164" stroke="#ff0000" stroke-width="7.5" /><circle id="turret-1" cx="128" cy="128" r="6" fill="#0000ff" /><circle id="turret-2" cx="128" cy="179" r="6" fill="#0000ff" /></g>
+</svg>
