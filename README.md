@@ -60,7 +60,7 @@ for the dev page.
     src/js/worlds/   one file per world: map, look, flight rules, expedition, music
     src/js/ships/    one file per ship class: catalog entry and hull profile
     src/js/sfx/      one file per sound effect: its cooldown and its synth calls
-    src/sprites/     ship drawings (SVG), one folder per set: 3d, flat; a
+    src/sprites/     drawings (SVG): ships in 3d and flat, weapons, pickups, worlds/<world>; a
                      `<!-- svgs sprites as sprite_svgs -->` line packs them
                      into the page, and the 3D / FLAT button switches the set
     src/dev.html     what the dev page adds into the slots of src/index.html

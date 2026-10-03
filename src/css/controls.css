@@ -128,10 +128,16 @@
     margin: 10px 0 0;
 }
 
-.dock-footer #station_audio {
+.dock-footer #station_audio,
+.dock-footer #sell_all_button {
     padding: 10px 13px;
     font-size: 10px;
     white-space: nowrap;
+}
+
+.dock-footer #sell_all_button:not(:disabled) {
+    color: var(--gold, #ffd16e);
+    border-color: #ffd16e66;
 }
 
 @media (max-width: 720px) {

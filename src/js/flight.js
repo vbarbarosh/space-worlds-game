@@ -266,6 +266,10 @@ function block_hostile_ore(b, previous)
 
 function fire()
 {
+    // The main engines' boost takes the reactor: the guns hold fire until it ends
+    if (player.turbo_active) {
+        return;
+    }
     if ((campaign.world === 6) && player.overheated) {
         player.shoot_cd = 0.2;
         return;

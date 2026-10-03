@@ -163,6 +163,7 @@ function expedition_base_guide_context()
         const cost = purchases.reduce((n, v) => n + v.price, 0);
         out.goal = {...station, label: worlds[campaign.world].station};
         out.kind = 'prepare';
+        out.purchases = purchases;
         out.action = (effective_state === 'upgrade') ? 'OPEN OUTFITTER' : 'FLY TO STATION';
         out.instruction =
             `Prepare for ${worlds[blocked].name}: ${purchases.map(v => `${v.title} Lv ${v.level}`).join(', ')}. Dock at ${worlds[campaign.world].station} and use OUTFITTER.`;

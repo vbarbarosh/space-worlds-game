@@ -276,7 +276,7 @@ function update_operations(dt)
             m.started = true;
             m.spawn_clock = 0;
             const hint = (m.type === 'scan')
-                ? 'HOLD WITHIN 150 m TO SCAN'
+                ? 'A SURVEY ROBOT LAUNCHES AT THE BEACON · GUARD IT'
                 : (m.type === 'recover')
                     ? 'CLEAR THE AMBUSH, THEN HOLD WITHIN 150 m'
                     : (m.type === 'defend')
@@ -305,13 +305,7 @@ function update_operations(dt)
         }
         const raiders = enemies.some(v => (v.hp > 0) && (v.operation_id === m.id) && (v.operation_stage === stage_index));
         if (m.type === 'scan') {
-            if (!m.ambush) {
-                m.ambush = true;
-                spawn_operation_enemy(m, 'shooter', point);
-            }
-            if (d < 150) {
-                mission_event('scan', dt*(nearest_enemy(player, 240) ? 0.3 : 1), {contract_id: m.id});
-            }
+            survey_update(m, point, d, dt);
         }
         if ((m.type === 'recover') && !raiders && (d < 150)) {
             mission_event('recover', dt, {contract_id: m.id});
@@ -575,7 +569,7 @@ function stage_description(v, m, index)
     const current = index === m.stage_index;
     const left = Math.max(0, v.target - (current ? m.progress : 0));
     if (v.type === 'scan') {
-        return `Hold within 150 m of beacon ${(v.beacon || 0) + 1} for ${Math.ceil(left)} seconds. Nearby enemies slow scanning. Progress is saved.`;
+        return `Within ${survey_launch_range} m of beacon ${(v.beacon || 0) + 1} you launch a survey robot. Guard it while it scans: ${Math.ceil(left)} seconds of scanning left. Raiders go for it, and it scans only while you are within ${survey_cover_range} m. Progress is saved.`;
     }
     if (v.type === 'defend') {
         return `Defend the relay for ${Math.ceil(left)} seconds within 450 m. Raider waves arrive every 12 seconds. Leaving the ring slowly loses defense progress.`;
@@ -634,6 +628,7 @@ function render_station()
 {
     ensure_career();
     expedition_base_render_station();
+    sync_sell_all_button();
     const parent = document.getElementById('station_content');
     const rank = pilot_rank();
     const f = campaign.fleet;

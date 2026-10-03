@@ -13,8 +13,8 @@ const arcade_depot_safe_range = 700;
 // overdrive. CHILL is the run as it was before.
 const arcade_modes = {
     chill: {squad: 0, wave: 0, gap: 1, elite_world: 1, repairs: 1, medkits: 2, armed: false, gun_gap: 1, hits: 1, hull: 1, blast: 0.8, tier_hp: false, overdrive: false},
-    normal: {squad: 1, wave: 3, gap: 0.8, elite_world: 0, repairs: 0.35, medkits: 1, armed: true, gun_gap: 0.45, hits: 2, hull: 1.5, blast: 0.8, tier_hp: false, overdrive: false},
-    overload: {squad: 2, wave: 5, gap: 0.7, elite_world: 0, repairs: 0, medkits: 1, armed: true, gun_gap: 0.4, hits: 2.2, hull: 1.8, blast: 1.2, tier_hp: true, overdrive: true},
+    normal: {squad: 1, wave: 3, gap: 0.8, elite_world: 0, repairs: 0.35, medkits: 1, armed: true, gun_gap: 0.45, hits: 1.6, hull: 1.5, blast: 0.8, tier_hp: false, overdrive: false},
+    overload: {squad: 2, wave: 5, gap: 0.7, elite_world: 0, repairs: 0, medkits: 1, armed: true, gun_gap: 0.4, hits: 1.75, hull: 1.8, blast: 1.2, tier_hp: true, overdrive: true},
 };
 
 document.getElementById('arcade_depot_launch').addEventListener('click', arcade_depot_close);

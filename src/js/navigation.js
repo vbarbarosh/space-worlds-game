@@ -196,6 +196,9 @@ function interact()
 
 function start_jump(destination)
 {
+    waypoints_clear();
+    survey_robot = null;
+    structures_leave();
     if ((state !== 'playing') || jump) {
         return;
     }
@@ -316,10 +319,15 @@ function guide_base_update_frontier(dt)
         if (enemy.since_hit > 6) {
             enemy.shield = Math.min(enemy.max_shield || 0, (enemy.shield || 0) + dt*10);
         }
-        if ((enemy.type !== 'shooter') && (enemy.type !== 'boss') && ((enemy.weapon !== 'plasma') || (arcade.active && arcade_mode().armed))) {
+        // Every raider fires its world's gun, Haven's plasma included; the CHILL arcade keeps plasma raiders unarmed,
+        // as the arcade was before its modes; shards are pieces and only ram
+        const armed = (enemy.weapon !== 'plasma') || !arcade.active || arcade_mode().armed;
+        if ((enemy.type !== 'shooter') && (enemy.type !== 'boss') && (enemy.type !== 'shard') && armed) {
             enemy.gun_cd -= dt;
-            if ((enemy.gun_cd <= 0) && (distance(enemy, player) < 900)) {
-                enemy_fire(enemy, Math.atan2(player.y - enemy.y, player.x - enemy.x));
+            // a raider sent for the survey robot shoots at it
+            const target = structure_prey(enemy) || ((enemy.robot_raider && survey_robot) ? survey_robot : player);
+            if ((enemy.gun_cd <= 0) && (distance(enemy, target) < 900)) {
+                enemy_fire(enemy, Math.atan2(target.y - enemy.y, target.x - enemy.x));
                 enemy.gun_cd = ((enemy.type === 'tank') ? 2.8 : 3.6)*(arcade.active ? arcade_mode().gun_gap : 1);
             }
         }
@@ -362,6 +370,7 @@ function guide_base_update_frontier(dt)
     }
     update_escort(dt);
     drones_update(dt);
+    structures_update(dt);
     if (waypoint && (distance(player, waypoint) < 110)) {
         waypoint = null;
     }

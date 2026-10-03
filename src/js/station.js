@@ -209,6 +209,7 @@ function dock_station()
         return;
     }
     state = 'upgrade';
+    waypoints_clear();
     drones_recall_now();
     stop_turbo();
     touch_boost_hold = false;
@@ -286,10 +287,50 @@ function guide_base_render_shop()
 {
     base_render_shop();
     render_drone_shop_card();
+    render_builder_shop_card();
     el.next_sector.textContent = 'UNDOCK ↗';
     el.next_sector.disabled = false;
 }
 const market_quantity = {ore: 1, cells: 1, relics: 1};
+// Cargo a trade contract still has to deliver to another world: SELL ALL keeps it aboard
+function cargo_reserved()
+{
+    return campaign.contracts.filter(v => !v.ready && (v.type === 'trade') && (v.world !== campaign.world)).map(v => v.commodity);
+}
+
+// What SELL ALL sells here, and what it pays
+function sell_all_offer()
+{
+    const reserved = cargo_reserved();
+    const keys = commodities.map(v => v.key).filter(v => (campaign.cargo[v] > 0) && !reserved.includes(v));
+    return {keys, total: keys.reduce((n, v) => n + trade_total(campaign.world, v, 'sell', campaign.cargo[v]), 0), units: keys.reduce((n, v) => n + campaign.cargo[v], 0)};
+}
+
+// One button for a pilot who doesn't want to trade: everything aboard, sold here
+function sell_all_cargo()
+{
+    const offer = sell_all_offer();
+    if ((state !== 'upgrade') || !offer.keys.length) {
+        return;
+    }
+    const before = salvage;
+    for (const key of offer.keys) {
+        trade_cargo(key, 'sell', 'all');
+    }
+    show_toast('CARGO SOLD', `${offer.units} UNITS · ◆ ${salvage - before}`, 2.5);
+}
+
+document.getElementById('sell_all_button').addEventListener('click', sell_all_cargo);
+
+function sync_sell_all_button()
+{
+    const b = document.getElementById('sell_all_button');
+    const offer = sell_all_offer();
+    set_hidden(b, arcade.active);
+    b.disabled = !offer.keys.length;
+    b.textContent = offer.keys.length ? `SELL ALL CARGO · ◆ ${offer.total}` : 'NOTHING TO SELL';
+}
+
 function trade_cargo(key, side, requested)
 {
     if (state !== 'upgrade') {

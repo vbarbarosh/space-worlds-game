@@ -352,3 +352,50 @@ body {
         font-size: 11px;
     }
 }
+
+.guide-purchases {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 4px 0 12px;
+}
+
+.shop-item.wanted {
+    border-color: #ffd16e;
+    box-shadow: 0 0 0 1px #ffd16e66, 0 0 18px #ffd16e22;
+}
+
+.save-slots {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 14px 0;
+}
+
+.save-slot {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border: 1px solid #6cf8ec33;
+    border-radius: 10px;
+    background: #0b1726aa;
+}
+
+.save-slot > div {
+    flex: 1;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+}
+
+.save-slot span {
+    font-size: 12px;
+    color: #8aa4b8;
+}
+
+.save-slot.empty b {
+    color: #6d8193;
+}

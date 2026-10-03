@@ -185,6 +185,43 @@ function shield_shimmer(target, radius)
     ctx.restore();
 }
 
+// A shot the shield took: a bright arc on the shield where it struck, fading over 0.4 s, and a few sparks
+const shield_impacts = [];
+
+function shield_impact(target, shot, radius)
+{
+    const angle = Math.atan2(shot.y - target.y, shot.x - target.x);
+    shield_impacts.push({target, angle, radius, time: clock});
+    explode(target.x + Math.cos(angle)*radius, target.y + Math.sin(angle)*radius, 7, '#bfe4ff', 0, 'muzzle');
+}
+
+function render_shield_impacts()
+{
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.lineCap = 'round';
+    for (let i = shield_impacts.length - 1; i >= 0; --i) {
+        const v = shield_impacts[i];
+        const age = (clock - v.time)/0.4;
+        if ((age < 0) || (age >= 1)) {
+            shield_impacts.splice(i, 1);
+            continue;
+        }
+        const spread = 0.35 + age*0.5;
+        ctx.globalAlpha = 1 - age;
+        ctx.strokeStyle = '#d6efff';
+        ctx.lineWidth = 3.5 - age*2;
+        ctx.beginPath();
+        ctx.arc(v.target.x, v.target.y, v.radius + age*3, v.angle - spread, v.angle + spread);
+        ctx.stroke();
+        ctx.strokeStyle = '#8d9cff';
+        ctx.lineWidth = 8;
+        ctx.globalAlpha = (1 - age)*0.25;
+        ctx.stroke();
+    }
+    ctx.restore();
+}
+
 // A shield that takes a hit shimmers; one that breaks bursts in blue.
 function shield_hit_show(target, before)
 {

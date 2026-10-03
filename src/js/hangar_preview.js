@@ -95,7 +95,7 @@ function hangar_preview_draw(canvas, preview, dt)
     preview.cooldown -= dt;
     preview.recoil = Math.max(0, preview.recoil - dt*12);
     const mounts = turret_mounts(preview.ship);
-    if (preview.firing && (preview.cooldown <= 0)) {
+    if (preview.firing && !boost && (preview.cooldown <= 0)) {
         preview.cooldown = Math.max(0.12, weapon.interval);
         preview.recoil = 1.5;
         const muzzles = turret_muzzles(preview.ship, weapon) || [{x: 13, y: 0, r: 0}];

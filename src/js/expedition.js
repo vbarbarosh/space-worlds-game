@@ -272,15 +272,31 @@ function generate_drifting_debris()
     }
 }
 
+// Radiation: the ship's lining is a shield that soaks the field up. RAD SHIELD (100 less the dose) falls while you fly
+// in a field, the faster the weaker the lining, and refills beside a station or outside the field. While any is left
+// the hull is safe; once it is gone the field burns the hull. Alerts at these shares left say when to leave.
+const radiation_alerts = [50, 25, 10, 0];
+let radiation_briefed_world = null;
+
+// Dose per second here, 0 beside the station or in a world without a field
+function radiation_rate()
+{
+    const c = expedition_conditions[campaign.world];
+    const radiation = arcade.active ? c.radiation*arcade_radiation : c.radiation;
+    return (distance(player, station) < 500) ? 0 : radiation*(1 - radiation_protection())*2.5;
+}
+
 function update_expedition_environment(dt)
 {
     const c = expedition_conditions[campaign.world];
     const safe = distance(player, station) < 500;
     const protection = radiation_protection();
     const radiation = arcade.active ? c.radiation*arcade_radiation : c.radiation;
-    player.radiation_dose = clamp((player.radiation_dose || 0) + ((safe || !radiation) ? -6 : radiation*(1 - protection)*5)*dt, 0, 100);
-    if (!safe && radiation) {
-        const damage = radiation*(1 - protection)*(0.4 + player.radiation_dose/80)*dt;
+    const rate = radiation_rate();
+    player.radiation_dose = clamp((player.radiation_dose || 0) + (rate ? rate : -6)*dt, 0, 100);
+    radiation_alert(rate);
+    if (!safe && radiation && (player.radiation_dose >= 100)) {
+        const damage = radiation*(1 - protection)*1.65*dt;
         player.hp = Math.max(0, player.hp - damage);
         if (player.hp <= 0) {
             finish(false);
@@ -407,6 +423,55 @@ function render_drifting_debris()
     ctx.restore();
 }
 
+// One alert per threshold crossed on the way down, and one on arriving in a radioactive world; the alerts start over
+// once the shield is back above 60%. From 25% left the screen edge pulses, from 0% faster and red.
+function radiation_alert(rate)
+{
+    const left = 100 - (player.radiation_dose || 0);
+    if (rate && (radiation_briefed_world !== campaign.world)) {
+        radiation_briefed_world = campaign.world;
+        show_toast('RADIOACTIVE WORLD', `RAD SHIELD LASTS ABOUT ${format_time(left/rate)} OUT HERE · STATIONS RECHARGE IT`, 4);
+    }
+    if (left > 60) {
+        player.radiation_alert = null;
+    }
+    // The lowest threshold crossed, when several are at once
+    const level = radiation_alerts.filter(v => (left <= v) && ((player.radiation_alert ?? 101) > v)).at(-1);
+    if (rate && (level !== undefined)) {
+        player.radiation_alert = level;
+        const time = format_time(left/rate);
+        const share = `SHIELD ${Math.round(left)}%`;
+        const alerts = {
+            50: [`RADIATION · ${share}`, `ABOUT ${time} LEFT · PLAN YOUR WAY OUT`],
+            25: [`RADIATION DANGER · ${share}`, `ABOUT ${time} LEFT · HEAD FOR THE STATION OR A GATE`],
+            10: [`RADIATION CRITICAL · ${share}`, 'LEAVE NOW · THE HULL BURNS WHEN IT RUNS OUT'],
+            0: ['HULL EXPOSED', 'RADIATION IS BURNING THE HULL · DOCK OR LEAVE THIS WORLD'],
+        };
+        show_toast(...alerts[level], 4);
+        sfx('hit');
+    }
+}
+
+// The screen's edge glows while the radiation shield runs low: a slow green-yellow pulse from 25% left, a fast red one
+// once it is gone
+function render_radiation_edge()
+{
+    if (!player || (state !== 'playing') || !radiation_rate()) {
+        return;
+    }
+    const left = 100 - (player.radiation_dose || 0);
+    if (left > 25) {
+        return;
+    }
+    const burn = left <= 0;
+    const pulse = 0.5 + Math.sin(clock*(burn ? 10 : 5))*0.5;
+    const g = ctx.createRadialGradient(W/2, H/2, Math.min(W, H)*0.32, W/2, H/2, Math.max(W, H)*0.72);
+    g.addColorStop(0, burn ? 'rgba(255, 91, 58, 0)' : 'rgba(200, 255, 58, 0)');
+    g.addColorStop(1, burn ? `rgba(255, 91, 58, ${0.25 + pulse*0.3})` : `rgba(200, 255, 58, ${0.12 + pulse*0.22})`);
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, W, H);
+}
+
 function update_expedition_readout()
 {
     const readout = document.getElementById('expedition_readout');
@@ -415,8 +480,10 @@ function update_expedition_readout()
     const speed = Math.round(Math.hypot(player.vx, player.vy));
     let text = `FLIGHT ${speed} m/s · TURBO ${turbo_duration()}s`;
     if (c.radiation) {
-        text +=
-            `\n☢ ${safe ? 'STATION SANCTUARY' : `${c.radiation.toFixed(1)}/s FIELD`} · LINING ${Math.round(radiation_protection()*100)}% · DOSE ${Math.round(player.radiation_dose || 0)}%`;
+        const left = Math.round(100 - (player.radiation_dose || 0));
+        const rate = radiation_rate();
+        const shield = safe ? `RAD SHIELD ${left}% · RECHARGING` : rate ? `RAD SHIELD ${left}% · ~${format_time((100 - (player.radiation_dose || 0))/rate)}` : `RAD SHIELD ${left}%`;
+        text += `\n☢ ${safe ? 'STATION SANCTUARY' : `${c.radiation.toFixed(1)}/s FIELD`} · LINING ${Math.round(radiation_protection()*100)}% · ${shield}`;
     }
     else {
         text += `\nNO RADIATION · ${Math.round(world.w/1000)} × ${Math.round(world.h/1000)} km`;
@@ -428,5 +495,5 @@ function update_expedition_readout()
     }
     readout.textContent = text;
     readout.style.whiteSpace = 'pre-line';
-    readout.classList.toggle('danger', (!safe && (c.radiation > 0) && (radiation_protection() + 0.001 < c.required)) || ((player.radiation_dose || 0) > 60));
+    readout.classList.toggle('danger', (!safe && (c.radiation > 0) && (radiation_protection() + 0.001 < c.required)) || ((player.radiation_dose || 0) > 75));
 }

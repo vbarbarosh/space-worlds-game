@@ -40,6 +40,12 @@ function base_update_hud()
         b.querySelector('b').textContent = supplies[key];
         b.disabled = (state !== 'playing') || !supplies[key] || ((key === 'medkit') && (player.hp >= hull_max())) || ((key === 'stasis') && (stasis_time > 0));
     }
+    set_hidden(document.getElementById('quick_build'), arcade.active);
+    set_hidden(document.getElementById('quick_route'), arcade.active);
+    const convoy = document.getElementById('quick_convoy');
+    set_hidden(convoy, !formation_candidates().some(v => distance(v, player) < 1500));
+    convoy.querySelector('b').textContent = formation.leader ? 'BREAK OFF' : 'FOLLOW';
+    convoy.classList.toggle('on', !!formation.leader);
     const drone_button = document.getElementById('quick_drones');
     set_hidden(drone_button, arcade.active);
     drone_button.querySelector('b').textContent = drones_out ? `OUT ${drones.length}/${drones_owned()}` : drones_owned();
@@ -133,7 +139,7 @@ function update(dt)
     // Closing on a clicked point, turbo stays out so the ship can brake; a held input relights only once let go and pressed again.
     const click_arrival =
         mouse_drive.active && !mouse_drive.following && !mouse_drive.held &&
-            (distance(player, mouse_drive) < Math.max(180, Math.hypot(player.vx, player.vy)*0.8));
+            (distance(player, mouse_drive) < Math.max(180, Math.hypot(player.vx, player.vy)*0.8)) && (waypoints.length < 2);
     mouse_drive.arriving = click_arrival;
     if (click_arrival && turbo_input) {
         mouse_drive.arrival_hold = true;
@@ -172,6 +178,7 @@ function update(dt)
             }
         }
     }
+    waypoint_steer();
     if ((Math.hypot(dx, dy) === 0) && mouse_drive.active) {
         if (mouse_drive.following || mouse_drive.held) {
             set_mouse_destination({x: mouse_drive.screen_x, y: mouse_drive.screen_y});
@@ -289,11 +296,31 @@ function update(dt)
         }
         v.age += enemy_dt;
         v.flash = Math.max(0, v.flash - dt);
-        const waypoint = (v.escort_raider && escort) ? escort : (drones.length && drone_prey(v)) || enemy_waypoint(v);
+        const prey = (v.escort_raider && escort) ? escort : (v.robot_raider && survey_robot) ? survey_robot : structure_prey(v);
+        const waypoint = prey || (drones.length && drone_prey(v)) || enemy_waypoint(v);
         const a = Math.atan2(waypoint.y - v.y, waypoint.x - v.x);
         const d = distance(v, player);
-        v.angle = a;
+        let heading = a;
         let move = 1;
+        // Chasers and splitters fly attack runs instead of ramming: they close to gun range and circle you, and every
+        // few seconds one cuts straight across you, then pulls out to circle again
+        if (['chaser', 'splitter'].includes(v.type) && (waypoint === player)) {
+            v.run_cd = (v.run_cd ?? rand(2, 5)) - enemy_dt;
+            if ((v.run_cd <= 0) && (d < 420)) {
+                v.run_time = 1.5;
+                v.run_cd = rand(3.5, 6.5);
+            }
+            if (v.run_time > 0) {
+                v.run_time -= enemy_dt;
+                move = 1.4;
+            }
+            else if (d < 330) {
+                const side = (v.phase > Math.PI) ? 1 : -1;
+                heading = a + side*clamp(Math.PI/2 - (d - 230)/260, 0.35, 2.4);
+                move = 0.85;
+            }
+        }
+        v.angle = heading;
         if (v.type === 'shooter') {
             move = (d < 220) ? -0.6 : (d < 320) ? 0.18 : 1;
             v.fire_cd -= enemy_dt;
@@ -313,7 +340,7 @@ function update(dt)
             if ((v.fire_cd <= 0) && (v.age > 1)) {
                 const count = ((wave === 5) ? 10 : (wave === 10) ? 14 : 18) + ((v.hp < v.max_hp*0.45) ? 4 : 0);
                 for (let j = 0; j < count; ++j) {
-                    enemy_fire(v, (j/count)*Math.PI*2 + v.age*0.65, 125 + wave*2 + ((v.hp < v.max_hp*0.45) ? 25 : 0));
+                    enemy_fire(v, (j/count)*Math.PI*2 + v.age*0.65, 125 + wave*2 + ((v.hp < v.max_hp*0.45) ? 25 : 0), true);
                 }
                 enemy_fire(v, a, 260);
                 v.fire_cd = v.overdrive ? 0.6 : (v.hp < v.max_hp*0.45) ? 0.85 : 1.2;
@@ -343,8 +370,8 @@ function update(dt)
                 move = 0;
             }
         }
-        v.x += Math.cos(a)*v.speed*move*enemy_dt;
-        v.y += Math.sin(a)*v.speed*move*enemy_dt;
+        v.x += Math.cos(heading)*v.speed*move*enemy_dt;
+        v.y += Math.sin(heading)*v.speed*move*enemy_dt;
         v.x = clamp(v.x, 24, world.w - 24);
         v.y = clamp(v.y, 24, world.h - 24);
         update_enemy_portal(v, enemy_dt);
@@ -471,8 +498,17 @@ function update(dt)
         if (block_hostile_ore(b, previous)) {
             continue;
         }
-        if (distance(b, player) < player.r + b.r) {
-            damage_player((b.damage || 13)*(arcade.active ? arcade_mode().hits : 1));
+        // A shield is a bubble: it takes the shot at its edge, and the hull only once it is gone. The bubble is a wider
+        // target than the hull, so a shot it takes counts by the ratio of the two: the shield drains as fast as if
+        // only shots that would have hit the hull reached it.
+        const shielded = player.shield > 0;
+        const reach = (shielded ? ship_halo() + 3 : player.r) + b.r;
+        if (distance(b, player) < reach) {
+            const share = shielded ? (player.r + b.r)/reach : 1;
+            damage_player((b.damage || 13)*(arcade.active ? arcade_mode().hits : 1)*share);
+            if (shielded) {
+                shield_impact(player, b, ship_halo() + 3);
+            }
             if (b.weapon === 'ion') {
                 player.energy = Math.max(0, player.energy - 8);
             }

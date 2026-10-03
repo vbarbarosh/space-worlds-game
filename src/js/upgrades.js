@@ -210,39 +210,50 @@ function render_draft()
     }
 }
 
+// Buys one level of a module or one supply for salvage at the station's depot; false when it cannot
+function shop_buy(v)
+{
+    const is_supply = supplies[v.key] !== undefined;
+    const level = is_supply ? supplies[v.key] : upgrades[v.key];
+    const price = is_supply ? v.cost : module_cost(v);
+    if ((state !== 'upgrade') || !dock_free_chosen || (salvage < price) || (level >= v.cap)) {
+        return false;
+    }
+    salvage -= price;
+    if (is_supply) {
+        supplies[v.key]++;
+        sfx('pickup');
+    }
+    else {
+        grant_upgrade(v);
+    }
+    dock_message = `${v.title}${is_supply ? ' added to cargo.' : ' installed.'}`;
+    render_shop();
+    save_checkpoint('dock');
+    update_hud();
+    return true;
+}
+
 function base_render_shop()
 {
     el.shop_wallet.textContent = salvage;
     el.shop_grid.replaceChildren();
+    // What the guide says the next world needs stands out
+    const wanted = new Set((guide_context().purchases || []).map(v => v.key));
     for (const v of upgrade_options.concat(supply_options).filter(v => (shop_filter === 'all') || (v.group === shop_filter))) {
         const is_supply = supplies[v.key] !== undefined;
         const level = is_supply ? supplies[v.key] : upgrades[v.key];
         const price = is_supply ? v.cost : module_cost(v);
         const capped = level >= v.cap;
         const card = document.createElement('div');
-        card.className = 'shop-item';
+        card.className = wanted.has(v.key) ? 'shop-item wanted' : 'shop-item';
+        card.dataset.key = v.key;
         card.innerHTML =
             `<b>${v.icon} &nbsp;${v.title}</b><span class="item-level">${is_supply ? `IN CARGO ${level} / ${v.cap}` : `LEVEL ${level} / ${v.cap}`}</span><p>${v.description}</p>`;
         const b = document.createElement('button');
         b.disabled = !dock_free_chosen || capped || (salvage < price);
         b.textContent = capped ? 'FULLY STOCKED' : `${is_supply ? 'BUY' : 'INSTALL'} · ◆ ${price}`;
-        b.addEventListener('click', function () {
-            if ((state !== 'upgrade') || !dock_free_chosen || (salvage < price) || (level >= v.cap)) {
-                return;
-            }
-            salvage -= price;
-            if (is_supply) {
-                supplies[v.key]++;
-                sfx('pickup');
-            }
-            else {
-                grant_upgrade(v);
-            }
-            dock_message = `${v.title}${is_supply ? ' added to cargo.' : ' installed.'}`;
-            render_shop();
-            save_checkpoint('dock');
-            update_hud();
-        });
+        b.addEventListener('click', () => shop_buy(v));
         card.append(b);
         el.shop_grid.append(card);
     }

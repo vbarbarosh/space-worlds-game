@@ -50,6 +50,8 @@ function formation_stop(toast = true)
     }
 }
 
+document.getElementById('quick_convoy').addEventListener('click', formation_toggle);
+
 // G: fly behind the nearest friendly ship within 1,500 m, or break off.
 function formation_toggle()
 {

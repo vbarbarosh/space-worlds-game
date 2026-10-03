@@ -1,7 +1,7 @@
 // Sprites: the SVGs of src/sprites/, packed into sprite_svgs by bin/build. Ships come in two sets, 3d and flat, picked
-// with the sprites button; weapons/ holds the turrets and the missile, worlds/<world>/ a world's objects. A ship is
-// nose up on a 256 canvas, its longest side 228 units; an anchors layer marks flames (lines from the nozzle, as long
-// as a full-thrust flame) and points (turrets, muzzles, berths, beam).
+// with the sprites button; weapons/ holds the turrets and the missile, drones/ the orbit, builder and survey drones,
+// structures/ what the builder builds, pickups/ the loot of every world, worlds/<world>/ a world's objects. A ship is nose up on a 256 canvas, its longest side 228 units; an anchors layer marks flames
+// (lines from the nozzle, as long as a full-thrust flame) and points (turrets, muzzles, berths, beam).
 const sprite_cache = new Map();
 // How big things are drawn, in game units, in one place so the proportions are tuned together: ship classes by
 // length, from the 42-unit interceptor to the 104-unit cruiser; raiders and flagships by their radius; the rest
@@ -11,7 +11,6 @@ const sprite_sizes = {
     raider: 2.9,
     flagship: 3.2,
     freighter: 120,
-    drone: 20,
     pickup: 15,
 };
 const sprite_span = 228;
@@ -53,7 +52,7 @@ function sync_sprites_button()
 
 // The parsed drawing, its anchors as fractions of the canvas from its centre, and its rasters; null for a name with
 // no file. A plain name is a ship of the chosen set; a path (weapons/turret-ion, worlds/haven/station) is that file.
-// Ships, turrets and the missile point their nose up and are turned to +x; world objects keep their orientation.
+// Ships, turrets, the missile and drones point their nose up and are turned to +x; the rest keep their orientation.
 function sprite(name)
 {
     const key = name.includes('/') ? name : `${sprite_set}:${name}`;
@@ -67,7 +66,7 @@ function sprite(name)
     }
     const svg = new DOMParser().parseFromString(text, 'image/svg+xml').documentElement;
     const box = Number(svg.getAttribute('viewBox').split(/\s+/)[2]);
-    const turned = !name.startsWith('worlds/');
+    const turned = !name.includes('/') || /^(weapons|drones)\//.test(name);
     // A drawing's point as a fraction of the canvas from its centre, in the game's frame
     function at(x, y) {
         return turned ? {x: (box/2 - y)/box, y: (x - box/2)/box} : {x: (x - box/2)/box, y: (y - box/2)/box};

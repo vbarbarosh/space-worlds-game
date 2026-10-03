@@ -1,6 +1,7 @@
-function enemy_fire(enemy, angle, speed = 210)
+// pattern: a shot of a flagship's ring, which stays slow enough to weave through
+function enemy_fire(enemy, angle, speed = 210, pattern = false)
 {
-    world_audio_base_enemy_fire(enemy, angle, speed);
+    world_audio_base_enemy_fire(enemy, angle, speed, pattern);
     if (!sound.ctx || (state !== 'playing') || (distance(enemy, player) > 900) || (sound.ctx.currentTime < (sound.enemy_next || 0))) {
         return;
     }

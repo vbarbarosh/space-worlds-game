@@ -3,6 +3,18 @@
 let drones = [];
 let drones_out = false;
 const drone_price = 45;
+// Drone tiers, bought at a station for the whole fleet (campaign.drone_tier): faster flight, a faster beam, a tougher
+// hull, and more units drilled before the trip home
+const drone_tiers = [
+    {name: 'Cutter', mark: 'MK I', speed: 260, back: 320, cut: 1, hp: 30, carry: 3, size: 20, price: 0},
+    {name: 'Hauler', mark: 'MK II', speed: 360, back: 420, cut: 1.8, hp: 55, carry: 6, size: 24, price: 220},
+    {name: 'Harvester', mark: 'MK III', speed: 460, back: 520, cut: 3, hp: 90, carry: 10, size: 28, price: 520},
+];
+
+function drone_tier()
+{
+    return drone_tiers[Number.isInteger(campaign.drone_tier) ? clamp(campaign.drone_tier, 0, drone_tiers.length - 1) : 0];
+}
 
 function drone_bay()
 {
@@ -18,10 +30,10 @@ function drones_owned()
     return campaign.drones;
 }
 
-// Cutting speed per drone; the miner's mining factor makes its drones cut faster.
+// Cutting speed per drone; the miner's mining factor and the drones' tier make it faster.
 function drone_cut_rate()
 {
-    return 11*(current_ship().mining || 1);
+    return 11*(current_ship().mining || 1)*drone_tier().cut;
 }
 
 // H: launch the drones at the rocks within 900 m, or call them back.
@@ -50,13 +62,13 @@ function drones_toggle()
     show_toast('DRONES OUT', `${drones_owned()} CUTTING / H CALLS THEM BACK / RAIDERS HUNT THEM`, 2.5);
 }
 
-// The nearest live rock within 900 m of the ship that no other drone is cutting.
+// The nearest live rock within 900 m of the ship; a deposit is big enough for several drones.
 function drone_next_rock(from)
 {
     let best = null;
     let near = Infinity;
     for (const rock of ore_nodes) {
-        if ((rock.hp <= 0) || (distance(rock, player) > 900) || drones.some(v => v.target === rock)) {
+        if ((rock.hp <= 0) || (distance(rock, player) > 900)) {
             continue;
         }
         const d = distance(rock, from);
@@ -71,7 +83,7 @@ function drone_next_rock(from)
 function drone_launch()
 {
     const a = drones.length*2.1 + player.angle;
-    drones.push({x: player.x + Math.cos(a)*20, y: player.y + Math.sin(a)*20, angle: a, state: 'out', target: null, load: null, hp: 30, beam: 0});
+    drones.push({x: player.x + Math.cos(a)*20, y: player.y + Math.sin(a)*20, angle: a, state: 'out', target: null, loads: [], hp: drone_tier().hp, beam: 0});
 }
 
 // Returns a drone in reach of a raider and closer than the ship, for it to hunt.
@@ -89,7 +101,7 @@ function drone_prey(enemy)
     return best;
 }
 
-function drone_fly(drone, to, dt, speed = 260)
+function drone_fly(drone, to, dt, speed = drone_tier().speed)
 {
     const dx = to.x - drone.x;
     const dy = to.y - drone.y;
@@ -105,9 +117,11 @@ function drone_fly(drone, to, dt, speed = 260)
 
 function drone_unload(drone)
 {
-    if (drone.load) {
-        ore_load({...drone.load, x: player.x, y: player.y - 26});
-        drone.load = null;
+    if (drone.loads.length) {
+        for (const load of drone.loads) {
+            ore_load({...load, x: player.x, y: player.y - 26});
+        }
+        drone.loads = [];
         save_checkpoint();
     }
 }
@@ -139,18 +153,23 @@ function drones_update(dt)
             else {
                 drone.angle = Math.atan2(rock.y - drone.y, rock.x - drone.x);
                 drone.beam = 1;
+                // A chunk at a time into the load; full, the drone flies home, and a rock drilled empty sends it on
+                // to the next one near it while it has room
                 rock.cutter = drone;
-                damage_ore(rock, drone_cut_rate()*dt);
+                const got = ore_chip(rock, drone_cut_rate()*dt);
                 rock.cutter = null;
-                if (rock.hp <= 0) {
-                    drone.load = {resource: rock.resource, amount: rock.amount || 1};
-                    drone.target = null;
-                    drone.state = 'back';
+                if (got) {
+                    drone.loads.push({resource: rock.resource, amount: got});
+                }
+                const full = drone.loads.length >= drone_tier().carry;
+                if (full || (rock.hp <= 0)) {
+                    drone.target = full ? null : drone_next_rock(drone);
+                    drone.state = drone.target ? 'out' : 'back';
                 }
             }
         }
         if (drone.state === 'back') {
-            if (drone_fly(drone, player, dt, 320) < 22) {
+            if (drone_fly(drone, player, dt, drone_tier().back) < 22) {
                 drone_unload(drone);
                 const next = drones_out ? drone_next_rock(player) : null;
                 drone.state = next ? 'out' : 'docked';
@@ -215,13 +234,13 @@ function render_drones()
             ctx.globalCompositeOperation = 'source-over';
         }
         // The drawing's accent takes the colour of the ore it carries
-        if ((view_mode !== 'wireframe') && sprite_draw('drone-mining', drone.load ? ore_color(drone.load) : null, sprite_sizes.drone, drone.x, drone.y, drone.angle)) {
+        if ((view_mode !== 'wireframe') && sprite_draw('drone-mining', drone.loads.length ? ore_color(drone.loads[0]) : null, drone_tier().size, drone.x, drone.y, drone.angle)) {
             continue;
         }
         ctx.save();
         ctx.translate(drone.x, drone.y);
         ctx.rotate(drone.angle);
-        ctx.fillStyle = drone.load ? ore_color(drone.load) : '#0d192b';
+        ctx.fillStyle = drone.loads.length ? ore_color(drone.loads[0]) : '#0d192b';
         ctx.strokeStyle = cyan;
         ctx.lineWidth = 2;
         ctx.shadowColor = cyan;
@@ -250,7 +269,7 @@ function render_drone_shop_card()
     const card = document.createElement('div');
     card.className = 'shop-item';
     card.innerHTML =
-        `<b>⛏ &nbsp;Mining drone</b><span class="item-level">IN BAY ${owned} / ${drone_bay()}</span><p>H / cuts rocks near you and brings the ore to your hold. Raiders hunt drones; replace the lost ones here.</p>`;
+        `<b>⛏ &nbsp;Mining drone · ${drone_tier().mark}</b><span class="item-level">IN BAY ${owned} / ${drone_bay()}</span><p>H / cuts rocks near you and brings the ore to your hold. Raiders hunt drones; replace the lost ones here.</p>`;
     const b = document.createElement('button');
     b.disabled = capped || (salvage < drone_price);
     b.textContent = capped ? 'BAY FULL' : `BUY · ◆ ${drone_price}`;
@@ -267,4 +286,35 @@ function render_drone_shop_card()
     });
     card.append(b);
     el.shop_grid.prepend(card);
+    render_drone_tier_card(card);
+}
+
+// The next drone tier, for the whole fleet, right after the drone card
+function render_drone_tier_card(after)
+{
+    const tier = Number.isInteger(campaign.drone_tier) ? campaign.drone_tier : 0;
+    const next = drone_tiers[tier + 1];
+    const now = drone_tier();
+    const card = document.createElement('div');
+    card.className = 'shop-item';
+    card.innerHTML = next
+        ? `<b>⛏ &nbsp;${next.name} drones · ${next.mark}</b><span class="item-level">YOURS: ${now.name.toUpperCase()} ${now.mark}</span><p>Every drone in the bay: ${Math.round((next.speed/now.speed - 1)*100)}% faster, drills ${next.cut}× as fast as the first drones, ${next.hp} hull, carries ${next.carry} units a trip.</p>`
+        : `<b>⛏ &nbsp;${now.name} drones · ${now.mark}</b><span class="item-level">TOP TIER</span><p>Your drones are the best there are: fast, tough, ${now.carry} units a trip.</p>`;
+    const b = document.createElement('button');
+    b.disabled = !next || (salvage < next.price);
+    b.textContent = next ? `UPGRADE · ◆ ${next.price}` : 'FULLY UPGRADED';
+    b.addEventListener('click', on_upgrade);
+    card.append(b);
+    after.after(card);
+    function on_upgrade() {
+        if ((state !== 'upgrade') || !next || (salvage < next.price)) {
+            return;
+        }
+        salvage -= next.price;
+        campaign.drone_tier = tier + 1;
+        sfx('upgrade');
+        dock_message = `Drones upgraded to ${next.name} ${next.mark}.`;
+        render_shop();
+        save_checkpoint('dock');
+    }
 }

@@ -494,7 +494,7 @@ function render_map()
         const size = v.r*1.45;
         // Rocks that are only scenery recede, so they never pass for asteroids you can hit or mine.
         const alpha = [2, 5, 6, 7].includes(campaign.world) ? 0.08 : 0.68;
-        const art = world_art(`satellite-${(i % 3) + 1}`);
+        const art = world_art(`scenery-${(i % 3) + 1}`);
         if (art && sprite_draw_box(art, null, size, v.x, v.y, v.angle, alpha)) {
             continue;
         }
@@ -830,8 +830,8 @@ function render_pickups()
             continue;
         }
         const color = pickup_color(pickup);
-        const art = world_art(pickup_art(pickup));
-        if (art) {
+        const art = `pickups/${pickup_art(pickup)}`;
+        if ((view_mode !== 'wireframe') && sprite(art)) {
             const ore = (pickup.type === 'cargo') && resource_of(pickup.key);
             const alpha = (pickup.life < 5) ? 0.5 + Math.sin(clock*10)*0.3 : 1;
             if (sprite_draw_box(art, ore ? color : null, sprite_sizes.pickup, pickup.x, pickup.y, Math.sin(clock*1.5 + pickup.x)*0.25, alpha)) {
@@ -883,7 +883,7 @@ function render_pickups()
     render_pickup_glints();
 }
 
-// The pickup's file among a world's drawings: a cargo canister of the world's resource is an ore chunk
+// The pickup's file among the drawings, the same in every world: a cargo canister of a resource is an ore chunk
 function pickup_art(pickup)
 {
     if (pickup.type === 'cargo') {

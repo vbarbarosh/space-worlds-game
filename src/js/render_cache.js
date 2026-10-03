@@ -97,7 +97,8 @@ function render_projectiles()
             continue;
         }
         const missile = !group.friendly && (group.type === 'missile');
-        const line = group.friendly || (group.type === 'rail');
+        // Every shot but a missile is a bolt along its flight, a raider's too: no slow round blobs
+        const line = !missile;
         ctx.fillStyle = missile ? '#301a1c' : group.color;
         ctx.strokeStyle = group.color;
         // A player's shot is as wide as the bore it left; a raider's by its gun

@@ -203,19 +203,22 @@ function spawn_enemy(type)
     return enemy;
 }
 
-function world_audio_base_enemy_fire(enemy, angle, speed = 210)
+// Raiders' shots fly 2.4 times their old speed, well past a cruising ship; a flagship's ring shots 1.4 times. Their
+// lifetime shrinks to keep the old reach.
+function world_audio_base_enemy_fire(enemy, angle, speed = 210, pattern = false)
 {
+    const fast = pattern ? 1.4 : 2.4;
     const w = enemy.weapon || 'plasma';
     const spread = (w === 'scatter') ? [-0.23, 0, 0.23] : ((w === 'missile') && (campaign.world >= 6)) ? [-0.2, 0.2] : [0];
     for (const offset of spread) {
         const a = angle + offset;
-        const s = (w === 'rail') ? 520 : (w === 'missile') ? 190 : (w === 'ion') ? 275 : speed;
+        const s = ((w === 'rail') ? 520 : (w === 'missile') ? 190 : (w === 'ion') ? 275 : speed)*fast;
         hostile.push({
             x: enemy.x + Math.cos(a)*enemy.r,
             y: enemy.y + Math.sin(a)*enemy.r,
             vx: Math.cos(a)*s,
             vy: Math.sin(a)*s,
-            life: 6,
+            life: 6/fast,
             r: (w === 'missile') ? 7 : (w === 'rail') ? 3 : 5,
             weapon: w,
             escort_target: !!enemy.escort_raider,
@@ -264,6 +267,9 @@ function physics_base_damage_ore(v, amount)
         if (!v.cutter) {
             ore_load(v);
         }
-        mission_event('mining', 1);
+        // a deposit drilled empty counted its units as they were mined
+        if (!v.depleted) {
+            mission_event('mining', 1);
+        }
     }
 }

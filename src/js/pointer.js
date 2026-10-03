@@ -37,6 +37,10 @@ canvas.addEventListener('pointermove', function (event) {
     }
     else {
         update_pointer(p);
+        if (waypoint_drawing && (event.buttons & 1)) {
+            waypoint_draw_move(p);
+            return;
+        }
         mouse_drive.held = mouse_drive.held && !!(event.buttons & 1);
         if ((mouse_drive.following || mouse_drive.held) && (state === 'playing')) {
             set_mouse_destination(p);
@@ -65,7 +69,21 @@ canvas.addEventListener('pointerdown', function (event) {
     }
     else if (event.pointerType !== 'touch') {
         update_pointer(p);
+        if (build_placing && (event.button === 2)) {
+            build_placing = null;
+            return;
+        }
+        if ((event.button === 0) && build_click({x: pointer.x, y: pointer.y})) {
+            return;
+        }
+        if ((event.button === 0) && (event.ctrlKey || waypoints_by_button)) {
+            waypoint_draw_start(p);
+            canvas.setPointerCapture(event.pointerId);
+            canvas.focus();
+            return;
+        }
         if (event.button === 0) {
+            waypoints_clear();
             formation_stop();
             set_mouse_destination(p);
             canvas.focus();
@@ -78,7 +96,7 @@ canvas.addEventListener('pointerdown', function (event) {
     }
 });
 canvas.addEventListener('dblclick', function (event) {
-    if ((state !== 'playing') || (event.pointerType === 'touch') || event.sourceCapabilities?.firesTouchEvents) {
+    if ((state !== 'playing') || (event.pointerType === 'touch') || event.sourceCapabilities?.firesTouchEvents || event.ctrlKey) {
         return;
     }
     const p = pointer_position(event);
@@ -105,6 +123,7 @@ canvas.addEventListener('dblclick', function (event) {
 });
 function release_pointer(event)
 {
+    waypoint_draw_end();
     if (event.pointerType !== 'touch') {
         mouse_drive.turbo_since = -1;
         mouse_drive.held = false;

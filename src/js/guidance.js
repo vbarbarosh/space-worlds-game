@@ -111,6 +111,7 @@ function guide_action()
     if ((c.kind === 'prepare') && (state === 'upgrade')) {
         station_tab = 'outfit';
         render_station();
+        el.shop_grid.querySelector(`[data-key="${c.purchases[0]?.key}"]`)?.scrollIntoView({block: 'center', behavior: 'smooth'});
         return;
     }
     if ((c.kind === 'claim') && (state === 'upgrade')) {
@@ -129,6 +130,7 @@ function guide_action()
         interact();
         return;
     }
+    waypoints_clear();
     guide_flying = true;
     guide_path_key = '';
     refresh_guidance();
@@ -308,11 +310,41 @@ function render_guide_plan(parent, c)
         }
         parent.append(list);
     }
+    if ((c.kind === 'prepare') && (state === 'upgrade')) {
+        parent.append(guide_purchase_buttons(c.purchases));
+    }
     const action = document.createElement('button');
     action.className = 'primary';
     action.textContent = guide_action_label(c);
     action.addEventListener('click', guide_action);
     parent.append(action);
+}
+
+// What the next world needs, as buttons that buy it here: the next level of each module is for sale now, later
+// levels wait for it, and one you cannot afford says how much is missing
+function guide_purchase_buttons(purchases)
+{
+    const out = document.createElement('div');
+    out.className = 'guide-purchases';
+    for (const p of purchases) {
+        const option = upgrade_options.find(v => v.key === p.key);
+        const next = p.level === upgrades[p.key] + 1;
+        const b = document.createElement('button');
+        b.textContent = !next
+            ? `${p.title.toUpperCase()} LV ${p.level} · AFTER LV ${p.level - 1}`
+            : (salvage < p.price)
+                ? `${p.title.toUpperCase()} LV ${p.level} · NEED ◆ ${p.price}, YOU HAVE ◆ ${salvage}`
+                : `BUY ${p.title.toUpperCase()} LV ${p.level} · ◆ ${p.price}`;
+        b.disabled = !next || (salvage < p.price);
+        b.addEventListener('click', on_buy);
+        out.append(b);
+        function on_buy() {
+            if (shop_buy(option)) {
+                render_station();
+            }
+        }
+    }
+    return out;
 }
 
 function expedition_base_render_contracts(parent, board = false)

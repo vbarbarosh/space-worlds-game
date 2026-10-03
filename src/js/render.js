@@ -388,6 +388,9 @@ function render()
     }
     ctx.globalAlpha = 1;
     ctx.restore();
+    render_structures();
+    render_waypoints();
+    render_survey_robot();
     render_hostile_marks();
     render_enemies();
     render_explosions();
@@ -442,7 +445,14 @@ function render()
         ctx.fillStyle = `rgba(255,91,175,${flash*0.35})`;
         ctx.fillRect(0, 0, W, H);
     }
+    render_radiation_edge();
     ctx.restore();
+}
+
+// Orbit drones circle just outside the rings around the ship, whatever its size
+function orbit_drone_radius()
+{
+    return (view_mode === 'wireframe') ? 46 : Math.max(46, ship_halo() + 18);
 }
 
 function update_equipment(dt)
@@ -452,8 +462,8 @@ function update_equipment(dt)
         drone_cd = 0.42;
         for (let i = 0; i < upgrades.drone; ++i) {
             const a = time*1.7 + (i/upgrades.drone)*Math.PI*2;
-            const x = player.x + Math.cos(a)*46;
-            const y = player.y + Math.sin(a)*46;
+            const x = player.x + Math.cos(a)*orbit_drone_radius();
+            const y = player.y + Math.sin(a)*orbit_drone_radius();
             let target = null;
             let near = 550;
             for (const enemy of enemies) {
@@ -498,9 +508,15 @@ function render_equipment()
         ctx.stroke();
         shield_shimmer(player, ship_halo() + 3);
     }
+    render_shield_impacts();
     for (let i = 0; i < upgrades.drone; ++i) {
         const a = time*1.7 + (i/upgrades.drone)*Math.PI*2;
-        polygon(player.x + Math.cos(a)*46, player.y + Math.sin(a)*46, 6, 4, -a, blue, '#18263c');
+        const x = player.x + Math.cos(a)*orbit_drone_radius();
+        const y = player.y + Math.sin(a)*orbit_drone_radius();
+        // the designer's combat drone, flying along its orbit in the player ships' colour
+        if ((view_mode === 'wireframe') || !sprite_draw('drones/orbit-drone', '#e8743b', 18, x, y, a + Math.PI/2)) {
+            polygon(x, y, 6, 4, -a, blue, '#18263c');
+        }
     }
     ctx.restore();
 }

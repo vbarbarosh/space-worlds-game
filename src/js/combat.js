@@ -36,6 +36,9 @@ function base_reset_run(resume = false)
     run_time = 0;
     upgrades = initial_upgrades();
     supplies = {medkit: 2, emp: 1, stasis: 1};
+    waypoints_clear();
+    survey_robot = null;
+    structures_leave();
     let hp = hull_max();
     if (resume && checkpoint) {
         wave = checkpoint.wave;
