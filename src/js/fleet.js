@@ -128,6 +128,13 @@ function current_ship()
     return ship_catalog.find(v => v.id === f.ship_id) || ship_catalog[0];
 }
 
+// How far the current weapon's shots fly, at most a screen's width.
+function gun_reach()
+{
+    const weapon = current_weapon();
+    return Math.min(900, weapon.speed*weapon.life);
+}
+
 function current_weapon()
 {
     const f = ensure_career();

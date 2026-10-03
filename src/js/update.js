@@ -245,8 +245,8 @@ function update(dt)
         }
     }
     update_ship_orientation(dt, target, dx, dy);
-    const at_debris = drifting_debris.includes(target);
-    if ((player.shoot_cd <= 0) && (enemies.length || at_debris || (arcade.active && ore_nodes.some(v => (v.hp > 0) && (distance(v, player) < 750))))) {
+    // The guns fire only at a target in their reach: a raider, debris about to hit, or (arcade) a rock; never into empty space.
+    if ((player.shoot_cd <= 0) && target && (near < gun_reach())) {
         fire();
     }
     if (Math.hypot(player.vx, player.vy) > 20) {

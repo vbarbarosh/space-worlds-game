@@ -18,7 +18,7 @@ window.dev_state = function () {
         debris: drifting_debris.map(v => ({x: Math.round(v.x), y: Math.round(v.y), r: Math.round(v.r), kind: v.kind})),
         scenery: scenery.map(v => ({x: Math.round(v.x), y: Math.round(v.y), r: Math.round(v.r)})),
         escort: escort ? {x: escort.x, y: escort.y, hp: escort.hp, active: escort.active} : null, formation: !!formation.leader,
-        cargo: {...campaign.cargo}, drones: {owned: drones_owned(), out: drones_out, flying: drones.map(v => ({x: Math.round(v.x), y: Math.round(v.y), state: v.state, hp: v.hp}))}, salvage, kills, xp: campaign.xp, turbo: !!player?.turbo_active, canisters: pickups.filter(v => v.type === 'cargo').map(v => ({x: Math.round(v.x), y: Math.round(v.y), key: v.key, amount: v.amount}))};
+        cargo: {...campaign.cargo}, drones: {owned: drones_owned(), out: drones_out, flying: drones.map(v => ({x: Math.round(v.x), y: Math.round(v.y), state: v.state, hp: v.hp}))}, salvage, kills, xp: campaign.xp, turbo: !!player?.turbo_active, bullets: bullets.length, canisters: pickups.filter(v => v.type === 'cargo').map(v => ({x: Math.round(v.x), y: Math.round(v.y), key: v.key, amount: v.amount}))};
 };
 
 dev_panel_init();
