@@ -291,9 +291,10 @@ function update_expedition_environment(dt)
     const c = expedition_conditions[campaign.world];
     const safe = distance(player, station) < 500;
     const protection = radiation_protection();
-    player.radiation_dose = clamp((player.radiation_dose || 0) + ((safe || !c.radiation) ? -6 : c.radiation*(1 - protection)*5)*dt, 0, 100);
-    if (!safe && c.radiation) {
-        const damage = c.radiation*(1 - protection)*(0.4 + player.radiation_dose/80)*dt;
+    const radiation = arcade.active ? c.radiation*arcade_radiation : c.radiation;
+    player.radiation_dose = clamp((player.radiation_dose || 0) + ((safe || !radiation) ? -6 : radiation*(1 - protection)*5)*dt, 0, 100);
+    if (!safe && radiation) {
+        const damage = radiation*(1 - protection)*(0.4 + player.radiation_dose/80)*dt;
         player.hp = Math.max(0, player.hp - damage);
         if (player.hp <= 0) {
             finish(false);

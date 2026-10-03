@@ -1,7 +1,8 @@
 function base_generate_map()
 {
-    world.w = world_extents[campaign.world][0];
-    world.h = world_extents[campaign.world][1];
+    const extent = arcade.active ? arcade_extent : world_extents[campaign.world];
+    world.w = extent[0];
+    world.h = extent[1];
     scenery = [];
     pickups = [];
     black_holes = [];

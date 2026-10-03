@@ -198,7 +198,7 @@ function requirements(id)
 
 function interact()
 {
-    if (state !== 'playing') {
+    if ((state !== 'playing') || arcade.active) {
         return;
     }
     if (distance(player, station) < 230) {
@@ -345,7 +345,7 @@ function guide_base_update_frontier(dt)
         }
     }
     patrol_timer -= dt;
-    if (patrol_timer <= 0) {
+    if ((patrol_timer <= 0) && !arcade.active) {
         patrol_timer = (campaign.world === 0) ? 11 : Math.max(4.5, 10 - campaign.world*0.6);
         if ((distance(player, station) > 550) && (enemies.length < 12)) {
             for (let i = 0; i < 1 + Math.floor(campaign.world/3); ++i) {
@@ -353,9 +353,9 @@ function guide_base_update_frontier(dt)
             }
         }
     }
-    // Stations provide sanctuary: hostile fleets cannot swarm the docking ring.
+    // Stations provide sanctuary: hostile fleets cannot swarm the docking ring. The arcade has no sanctuary.
     for (const enemy of enemies) {
-        if (distance(enemy, station) < 500) {
+        if ((distance(enemy, station) < 500) && !arcade.active) {
             const a = Math.atan2(enemy.y - station.y, enemy.x - station.x);
             enemy.x = station.x + Math.cos(a)*510;
             enemy.y = station.y + Math.sin(a)*510;
@@ -437,6 +437,10 @@ function expedition_base_render_inventory()
 
 function finish(won)
 {
+    if (arcade.active) {
+        arcade_finish(won);
+        return;
+    }
     base_finish(won);
     document.getElementById('retry_sector').textContent = 'CONTINUE SAVED FLIGHT ↗';
     el.result_sector.textContent = worlds[campaign.world].name;

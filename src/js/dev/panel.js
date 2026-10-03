@@ -27,6 +27,7 @@ function dev_panel_init()
     document.getElementById('dev_pause').addEventListener('click', dev_time_pause_toggle);
     document.getElementById('dev_step').addEventListener('click', dev_time_step);
     document.getElementById('dev_start').addEventListener('click', dev_scenario_start);
+    document.getElementById('dev_arcade').addEventListener('click', dev_arcade_start);
     document.getElementById('dev_clear').addEventListener('click', dev_cheats_clear_enemies);
     document.getElementById('dev_enemy_spawn').addEventListener('click', function () {
         dev_enemy_spawn(false);

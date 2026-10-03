@@ -43,7 +43,6 @@ function dev_cheats_apply()
         player.overheated = false;
     }
     if (!dev_scenario.spawns) {
-        spawn_left = 0;
         patrol_timer = 60;
     }
 }

@@ -72,6 +72,7 @@ function dev_scenario_start()
     }
     dev_scenario.started = true;
     difficulty = dev_scenario.difficulty;
+    arcade_stop();
     checkpoint = {
         version: 4,
         wave: worlds[world].wave,
@@ -109,6 +110,14 @@ function dev_scenario_start()
     reset_run(true);
     dev_view_set(dev_scenario.view);
     dev_scenario_save();
+    dev_panel_refresh();
+}
+
+function dev_arcade_start()
+{
+    difficulty = dev_scenario.difficulty;
+    arcade_start(dev_scenario.world);
+    dev_view_set(dev_scenario.view);
     dev_panel_refresh();
 }
 

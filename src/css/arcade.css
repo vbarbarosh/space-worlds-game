@@ -1,0 +1,13 @@
+body.arcade #nav_button,
+body.arcade #dock_button,
+body.arcade .navigation-status,
+body.arcade .mission-route,
+body.arcade .mission-instruction,
+body.arcade #guide_plan,
+body.arcade #guide_action {
+    display: none;
+}
+
+.arcade-panel {
+    width: min(860px, 100%);
+}

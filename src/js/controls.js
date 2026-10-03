@@ -74,13 +74,28 @@ function toggle_pause()
 }
 el.pause_button.addEventListener('click', toggle_pause);
 document.getElementById('resume_button').addEventListener('click', toggle_pause);
-for (const id of ['start_button', 'restart_button', 'restart_pause']) {
+document.getElementById('start_button').addEventListener('click', function () {
+    el.pause_button.textContent = 'Ⅱ';
+    arcade_stop();
+    reset_run();
+});
+document.getElementById('arcade_button').addEventListener('click', function () {
+    el.pause_button.textContent = 'Ⅱ';
+    arcade_start();
+});
+for (const id of ['restart_button', 'restart_pause']) {
     document.getElementById(id).addEventListener('click', function () {
         el.pause_button.textContent = 'Ⅱ';
-        reset_run();
+        if (arcade.active) {
+            arcade_start();
+        }
+        else {
+            reset_run();
+        }
     });
 }
 document.getElementById('menu_button').addEventListener('click', function () {
+    arcade_stop();
     state = 'menu';
     document.body.classList.remove('in-game');
     set_hidden(el.result_overlay, true);
@@ -88,7 +103,7 @@ document.getElementById('menu_button').addEventListener('click', function () {
     for (const v of [el.hud, el.bottom_hud, el.bossbar, el.touch_buttons, el.pause_button, el.mission, el.loadout, el.inventory_button]) {
         set_hidden(v, true);
     }
-    document.getElementById('start_button').focus();
+    document.getElementById('arcade_button').focus();
 });
 addEventListener('keydown', function (event) {
     if (settings_open) {

@@ -1,6 +1,6 @@
 function save_checkpoint()
 {
-    if (loading_campaign || !player || (player.hp <= 0)) {
+    if (arcade.active || loading_campaign || !player || (player.hp <= 0)) {
         return;
     }
     store_world();

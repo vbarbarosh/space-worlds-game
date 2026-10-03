@@ -1103,4 +1103,7 @@ function update_hud()
         Math.round(radiation_protection()*100) +
         '%';
     update_expedition_readout();
+    if (arcade.active) {
+        arcade_update_hud();
+    }
 }

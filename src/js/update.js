@@ -227,6 +227,9 @@ function update(dt)
     update_equipment(dt);
     update_hazards(dt);
     update_frontier(dt);
+    if (arcade.active) {
+        arcade_update(dt);
+    }
     for (let i = 0, end = enemies.length; i < end; ++i) {
         const v = enemies[i];
         if (v.hp <= 0) {
