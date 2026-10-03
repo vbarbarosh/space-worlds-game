@@ -304,6 +304,7 @@ function render_enemies()
             ctx.beginPath();
             ctx.arc(enemy.x, enemy.y, enemy.r + 8, clock, clock + (Math.PI*2*enemy.shield)/enemy.max_shield);
             ctx.stroke();
+            shield_shimmer(enemy, enemy.r + 8);
         }
         if (enemy.armor > 0) {
             ctx.strokeStyle = '#e4dcad88';
@@ -510,7 +511,8 @@ function render_map()
         ctx.save();
         ctx.translate(v.x, v.y);
         ctx.rotate(v.angle);
-        ctx.globalAlpha = 0.68;
+        // Rocks that are only scenery recede, so they never pass for asteroids you can hit or mine.
+        ctx.globalAlpha = [2, 5, 6, 7].includes(campaign.world) ? 0.08 : 0.68;
         ctx.drawImage(asset.layer, -size/2, -size/2, size, size);
         ctx.restore();
     }
@@ -529,10 +531,12 @@ function render_world_ore(v)
     const variant = Math.abs(Math.floor(v.angle*11)) % 7;
     const asset = rock_surface(campaign.world, variant);
     const size = v.r*2.55;
+    ore_glow(v);
     ctx.save();
     ctx.translate(v.x, v.y);
     ctx.rotate(v.angle);
     ctx.drawImage(asset.layer, -size/2, -size/2, size, size);
+    ore_veins(v);
     ctx.fillStyle = (v.flash > 0) ? '#fff7c6' : '#dfb857';
     ctx.strokeStyle = '#fff1b666';
     ctx.lineWidth = 1;
@@ -821,8 +825,8 @@ function render_pickups()
         if (!in_view(pickup, radius)) {
             continue;
         }
-        const color = (pickup.type === 'artifact') ? gold : ((pickup.type === 'health') || (pickup.type === 'medkit')) ? cyan : (pickup.type === 'energy') ? pink : blue;
-        const asset = surface_asset('pickup:' + pickup.type, 64, function (draw) {
+        const color = pickup_color(pickup);
+        const asset = surface_asset('pickup:' + pickup.type + (pickup.key ? ':' + pickup.key : ''), 64, function (draw) {
             material_box(draw, -13, -11, 26, 22, '#55616e');
             material_box(draw, -10, -8, 20, 16, '#152635');
             draw.fillStyle = color;
@@ -845,6 +849,10 @@ function render_pickups()
                 draw.fillRect(-6, -1, 12, 2);
                 if ((pickup.type === 'medkit') || (pickup.type === 'health')) {
                     draw.fillRect(-1, -6, 2, 12);
+                }
+                else if (pickup.type === 'cargo') {
+                    draw.fillRect(-6, -5, 12, 2);
+                    draw.fillRect(-6, 3, 12, 2);
                 }
                 else if (pickup.type === 'energy') {
                     draw.beginPath();
@@ -877,6 +885,7 @@ function render_pickups()
         }
         ctx.restore();
     }
+    render_pickup_glints();
 }
 
 function wireframe_render_pickups()
@@ -885,7 +894,7 @@ function wireframe_render_pickups()
         if (!in_view(pickup, magnetic_radius())) {
             continue;
         }
-        const color = (pickup.type === 'artifact') ? gold : ((pickup.type === 'health') || (pickup.type === 'medkit')) ? cyan : (pickup.type === 'energy') ? pink : blue;
+        const color = pickup_color(pickup);
         ctx.globalAlpha = (pickup.life < 5) ? 0.5 + Math.sin(clock*10)*0.3 : 1;
         const size = (pickup.type === 'artifact') ? 7 : 11;
         polygon(pickup.x, pickup.y, size + Math.sin(clock*4 + pickup.phase)*1.5, (pickup.type === 'artifact') ? 6 : 4, Math.PI/4, color, '#102b30');
@@ -916,6 +925,7 @@ function wireframe_render_pickups()
         }
         ctx.globalAlpha = 1;
     }
+    render_pickup_glints();
 }
 sync_view_button();
 function wireframe_render_enemies()
@@ -979,6 +989,7 @@ function wireframe_render_enemies()
             ctx.beginPath();
             ctx.arc(enemy.x, enemy.y, enemy.r + 7, clock, clock + (Math.PI*2*enemy.shield)/enemy.max_shield);
             ctx.stroke();
+            shield_shimmer(enemy, enemy.r + 7);
         }
         if (enemy.armor > 0) {
             ctx.strokeStyle = '#e4dcad77';

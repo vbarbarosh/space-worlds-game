@@ -41,12 +41,16 @@ function base_update_hud()
         b.querySelector('b').textContent = supplies[key];
         b.disabled = (state !== 'playing') || !supplies[key] || ((key === 'medkit') && (player.hp >= hull_max())) || ((key === 'stasis') && (stasis_time > 0));
     }
+    const drone_button = document.getElementById('quick_drones');
+    set_hidden(drone_button, arcade.active);
+    drone_button.querySelector('b').textContent = drones_out ? 'OUT ' + drones.length + '/' + drones_owned() : drones_owned();
+    drone_button.classList.toggle('on', drones_out);
+    drone_button.disabled = (state !== 'playing') || (!drones_out && !drones_owned());
     document.getElementById('quick_magnet').querySelector('b').textContent = 'MAGNET ' + upgrades.magnet + '/7 · ' + format_reading(magnetic_radius()) + ' px';
     el.map_coordinates.textContent = 'X ' + Math.round(player.x) + ' / Y ' + Math.round(player.y) + ' · ' + world.w + ' × ' + world.h;
     const danger = black_holes.some(v => distance(v, player) < gravity_reach(v));
     el.navigation_status.textContent =
-        'FOLLOW ' +
-        (mouse_drive.following ? 'ON · DOUBLE CLICK TO STOP' : 'OFF · DOUBLE CLICK TO START') +
+        (formation.leader ? 'IN FORMATION · G TO BREAK OFF' : 'FOLLOW ' + (mouse_drive.following ? 'ON · DOUBLE CLICK TO STOP' : 'OFF · DOUBLE CLICK TO START')) +
         (danger ? ' / GRAVITY WELL · CORE FATAL' : (player.portal_cd > 0) ? ' / GATE COOLDOWN ' + player.portal_cd.toFixed(1) + 's' : '');
     el.navigation_status.classList.toggle('danger', danger);
     el.shield_readout.textContent = 'SHIELD ' + Math.ceil(player.shield) + ' / ' + shield_max();
@@ -123,6 +127,28 @@ function update(dt)
     if (combo_timer <= 0) {
         combo = 1;
     }
+    // Turbo burns while its input is held and fuel lasts; let go and it stops and recharges at once.
+    const mouse_turbo = mouse_drive.following && (mouse_drive.turbo_since >= 0) && (clock - mouse_drive.turbo_since > 0.15);
+    const braking = keys.has('KeyB') || (player.brake_time > 0);
+    const turbo_input = keys.has('ShiftLeft') || keys.has('ShiftRight') || touch_boost_hold || mouse_turbo;
+    // Closing on a clicked point, turbo stays out so the ship can brake; a held input relights only once let go and pressed again.
+    const click_arrival =
+        mouse_drive.active && !mouse_drive.following && !mouse_drive.held &&
+            (distance(player, mouse_drive) < Math.max(180, Math.hypot(player.vx, player.vy)*0.8));
+    mouse_drive.arriving = click_arrival;
+    if (click_arrival && turbo_input) {
+        mouse_drive.arrival_hold = true;
+    }
+    if (!turbo_input) {
+        mouse_drive.arrival_hold = false;
+    }
+    const turbo_held = turbo_input && !braking && !click_arrival && !mouse_drive.arrival_hold;
+    if (turbo_held && !player.turbo_active) {
+        dash(true);
+    }
+    else if (!turbo_held && player.turbo_active) {
+        stop_turbo();
+    }
     let dx = ((keys.has('KeyD') || keys.has('ArrowRight')) ? 1 : 0) - ((keys.has('KeyA') || keys.has('ArrowLeft')) ? 1 : 0);
     let dy = ((keys.has('KeyS') || keys.has('ArrowDown')) ? 1 : 0) - ((keys.has('KeyW') || keys.has('ArrowUp')) ? 1 : 0);
     if (view_mode === 'cockpit') {
@@ -134,14 +160,27 @@ function update(dt)
         dx = joystick.dx;
         dy = joystick.dy;
     }
+    if (formation.leader && (Math.hypot(dx, dy) > 0)) {
+        formation_stop();
+    }
+    else if (formation.leader) {
+        const steer = formation_steer(dt);
+        if (steer) {
+            dx = steer.x;
+            dy = steer.y;
+            if ((view_mode === 'cockpit') && (Math.hypot(dx, dy) > 0.04)) {
+                cabin.yaw = cabin_angle_from_delta(cabin.yaw + cabin_angle_from_delta(Math.atan2(dy, dx) - cabin.yaw)*(1 - Math.exp(-3.5*dt)));
+            }
+        }
+    }
     if ((Math.hypot(dx, dy) === 0) && mouse_drive.active) {
-        if (mouse_drive.following) {
+        if (mouse_drive.following || mouse_drive.held) {
             set_mouse_destination({x: mouse_drive.screen_x, y: mouse_drive.screen_y});
         }
         const mx = mouse_drive.x - player.x;
         const my = mouse_drive.y - player.y;
         const md = Math.hypot(mx, my);
-        if ((md < 5) && !mouse_drive.following) {
+        if ((md < 5) && !mouse_drive.following && !mouse_drive.held) {
             mouse_drive.active = false;
             player.vx = 0;
             player.vy = 0;
@@ -183,7 +222,19 @@ function update(dt)
             target = v;
         }
     }
+    // With no raider close, the turret shoots debris drifting at the ship before it hits.
     if (near > 600) {
+        for (const piece of drifting_debris) {
+            const d = distance(piece, player);
+            const closing = ((player.x - piece.x)*(piece.vx - player.vx) + (player.y - piece.y)*(piece.vy - player.vy)) > 0;
+            if ((d < 450) && closing && (d < near)) {
+                near = d;
+                target = piece;
+            }
+        }
+    }
+    // Guns mine only in the arcade; in the campaign rocks are the drones' work.
+    if ((near > 600) && arcade.active) {
         for (let i = 0; i < ore_nodes.length; ++i) {
             const v = ore_nodes[i];
             const d = distance(v, player);
@@ -194,7 +245,8 @@ function update(dt)
         }
     }
     update_ship_orientation(dt, target, dx, dy);
-    if ((player.shoot_cd <= 0) && (enemies.length || ore_nodes.some(v => (v.hp > 0) && (distance(v, player) < 750)))) {
+    const at_debris = drifting_debris.includes(target);
+    if ((player.shoot_cd <= 0) && (enemies.length || at_debris || (arcade.active && ore_nodes.some(v => (v.hp > 0) && (distance(v, player) < 750))))) {
         fire();
     }
     if (Math.hypot(player.vx, player.vy) > 20) {
@@ -238,7 +290,7 @@ function update(dt)
         }
         v.age += enemy_dt;
         v.flash = Math.max(0, v.flash - dt);
-        const waypoint = (v.escort_raider && escort) ? escort : enemy_waypoint(v);
+        const waypoint = (v.escort_raider && escort) ? escort : (drones.length && drone_prey(v)) || enemy_waypoint(v);
         const a = Math.atan2(waypoint.y - v.y, waypoint.x - v.x);
         const d = distance(v, player);
         v.angle = a;
@@ -359,6 +411,7 @@ function update(dt)
                 hit_with_weapon(v, b);
                 b.life = 0;
                 burst(b.x, b.y, b.color || cyan, 3, 70);
+                explode(b.x, b.y, 10, b.color || cyan, 0, 'spark');
                 break;
             }
         }
@@ -373,11 +426,25 @@ function update(dt)
                     (v.y <= Math.max(py, b.y) + v.r + b.r) &&
                     (segment_distance(v, {x: px, y: py}, b) < v.r + b.r)
                 ) {
-                    damage_ore(v, b.damage*(current_ship().mining || 1));
+                    if (arcade.active) {
+                        damage_ore(v, b.damage*(current_ship().mining || 1));
+                    }
+                    else {
+                        explode(b.x, b.y, 8, ore_color(v), 0, 'spark');
+                    }
                     b.life = 0;
                     if (b.splash) {
                         blast_payload(b, null);
                     }
+                    break;
+                }
+            }
+        }
+        if (b.life > 0) {
+            for (const piece of drifting_debris) {
+                if ((Math.abs(piece.x - b.x) < piece.r + 60) && (Math.abs(piece.y - b.y) < piece.r + 60) && (segment_distance(piece, {x: px, y: py}, b) < piece.r + b.r)) {
+                    drifting_debris_hit(piece, b.damage);
+                    b.life = 0;
                     break;
                 }
             }
@@ -419,12 +486,17 @@ function update(dt)
     for (const pickup of pickups) {
         pickup.life -= dt;
         const d = distance(pickup, player);
-        if (d < magnetic_radius()) {
+        const takes = pickup_takes(pickup);
+        if (!takes && (d < 30) && !pickup.full_said) {
+            pickup.full_said = true;
+            label(pickup.x, pickup.y, 'CARGO FULL', gold);
+        }
+        if (takes && (d < magnetic_radius())) {
             const pull = 1 - Math.exp(-(4 + upgrades.magnet*1.7)*dt);
             pickup.x += (player.x - pickup.x)*pull;
             pickup.y += (player.y - pickup.y)*pull;
         }
-        if (distance(pickup, player) < 24) {
+        if (takes && (distance(pickup, player) < 24)) {
             collect_pickup(pickup);
         }
     }

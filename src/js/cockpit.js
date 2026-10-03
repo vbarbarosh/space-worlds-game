@@ -278,9 +278,18 @@ function cabin_draw_object(item)
         const asset = rock_surface(campaign.world, item.variant || 0);
         ctx.rotate(v.angle || 0);
         ctx.drawImage(asset.layer, -radius, -radius, size, size);
+        // Gold for ore you can mine, red for an asteroid that drifts and hits hard
+        ctx.strokeStyle = (item.color === gold) ? '#ffd16e99' : '#ff7a5c88';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(0, 0, radius*1.05, 0, Math.PI*2);
+        ctx.stroke();
     }
     else if (item.type === 'scenery') {
         const asset = scenery_surface(campaign.world, item.variant || 0);
+        if ((v.kind !== 'wreck') && [2, 5, 6, 7].includes(campaign.world)) {
+            ctx.globalAlpha *= 0.3;
+        }
         ctx.drawImage(asset.layer, -radius, -radius, size, size);
     }
     else if (item.type === 'field') {
@@ -348,8 +357,12 @@ function cabin_render_world()
     for (let i = 0, end = ore_nodes.length; i < end; ++i) {
         const ore_node = ore_nodes[i];
         if (ore_node.hp > 0) {
-            add(ore_node, 'rock', ore_node.r, 0, '', gold, i % 4);
+            const scanned = ore_node.resource && (distance(ore_node, player) < 420);
+            add(ore_node, 'rock', ore_node.r, 0, scanned ? resource_of(ore_node.resource).name.toUpperCase() + ' ×' + ore_node.amount : '', ore_color(ore_node), i % 4);
         }
+    }
+    for (const drone of drones) {
+        add(drone, 'ship', 9, 25, '', cyan, 0, true);
     }
     for (const black_hole of black_holes) {
         add(black_hole, 'black_hole', black_hole.core*2.3, 80, 'FATAL CORE / GRAVITY', pink);
@@ -405,7 +418,7 @@ function cabin_render_world()
         add(escort, 'ship', 35, 0, 'CONVOY / ' + Math.ceil(escort.hp) + ' HULL', cyan, 0, true);
     }
     for (const pickup of pickups) {
-        add(pickup, 'pickup', (pickup.type === 'artifact') ? 7 : 10, 0, '', (pickup.type === 'artifact') ? gold : (pickup.type === 'energy') ? pink : cyan);
+        add(pickup, 'pickup', (pickup.type === 'artifact') ? 7 : 10, 0, '', pickup_color(pickup));
     }
     items.sort((a, b) => b.depth - a.depth);
     for (const item of items) {

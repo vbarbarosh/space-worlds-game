@@ -51,6 +51,25 @@ function base_finish(won)
     update_hud();
 }
 
+// Back to the main menu from the results or the pause panel; an arcade run ends here, a campaign was saved before.
+function menu_open()
+{
+    arcade_stop();
+    stop_turbo();
+    keys.clear();
+    state = 'menu';
+    document.body.classList.remove('in-game');
+    for (const v of [el.result_overlay, el.pause_overlay, el.inventory_overlay]) {
+        set_hidden(v, true);
+    }
+    set_hidden(el.intro, false);
+    for (const v of [el.hud, el.bottom_hud, el.bossbar, el.touch_buttons, el.pause_button, el.mission, el.loadout, el.inventory_button]) {
+        set_hidden(v, true);
+    }
+    sync_minimap_button();
+    document.getElementById('arcade_button').focus();
+}
+
 function toggle_pause()
 {
     if (state === 'playing') {
@@ -94,16 +113,10 @@ for (const id of ['restart_button', 'restart_pause']) {
         }
     });
 }
-document.getElementById('menu_button').addEventListener('click', function () {
-    arcade_stop();
-    state = 'menu';
-    document.body.classList.remove('in-game');
-    set_hidden(el.result_overlay, true);
-    set_hidden(el.intro, false);
-    for (const v of [el.hud, el.bottom_hud, el.bossbar, el.touch_buttons, el.pause_button, el.mission, el.loadout, el.inventory_button]) {
-        set_hidden(v, true);
-    }
-    document.getElementById('arcade_button').focus();
+document.getElementById('menu_button').addEventListener('click', menu_open);
+document.getElementById('pause_menu_button').addEventListener('click', function () {
+    save_checkpoint();
+    menu_open();
 });
 addEventListener('keydown', function (event) {
     if (settings_open) {
@@ -163,6 +176,12 @@ addEventListener('keydown', function (event) {
     if (event.code === 'KeyF') {
         use_supply('stasis');
     }
+    if (event.code === 'KeyG') {
+        formation_toggle();
+    }
+    if (event.code === 'KeyH') {
+        drones_toggle();
+    }
     if ((event.code === 'KeyP') || (event.code === 'Escape')) {
         if (state === 'navigation') {
             toggle_navigation();
@@ -174,7 +193,7 @@ addEventListener('keydown', function (event) {
             toggle_pause();
         }
     }
-    if ((event.code === 'ShiftLeft') || (event.code === 'ShiftRight')) {
+    if (((event.code === 'ShiftLeft') || (event.code === 'ShiftRight')) && !mouse_drive.arriving) {
         dash();
     }
     if ((event.code === 'Space') && (state === 'playing')) {
@@ -195,12 +214,12 @@ addEventListener('blur', function () {
     stop_turbo();
     touch_boost_hold = false;
     keys.clear();
-    if (state === 'playing') {
+    if (pause_on_blur && (state === 'playing')) {
         toggle_pause();
     }
 });
 document.addEventListener('visibilitychange', function () {
-    if (document.hidden && (state === 'playing')) {
+    if (pause_on_blur && document.hidden && (state === 'playing')) {
         toggle_pause();
     }
 });

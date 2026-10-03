@@ -43,6 +43,8 @@ function base_render_navigation_objects()
     for (const ore_node of ore_nodes) {
         render_world_ore(ore_node);
     }
+    render_ore_scanner();
+    render_drones();
     for (const portal of portals) {
         if (!in_view(portal, 120)) {
             continue;
@@ -493,6 +495,7 @@ function render_equipment()
         ctx.beginPath();
         ctx.arc(player.x, player.y, 29, -Math.PI/2, -Math.PI/2 + (Math.PI*2*player.shield)/shield_max());
         ctx.stroke();
+        shield_shimmer(player, 29);
     }
     for (let i = 0; i < upgrades.drone; ++i) {
         const a = time*1.7 + (i/upgrades.drone)*Math.PI*2;

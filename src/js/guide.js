@@ -144,7 +144,7 @@ function expedition_base_guide_context()
             guide_manual.label +
             '. ' +
             ((guide_manual.portal !== undefined) ? 'Fly into the ring to use the portal. ' : '') +
-            'Click to move, or use WASD. The route uses local portals when they save flight time.';
+            'Click or hold to move, or use WASD. The route uses local portals when they save flight time.';
         out.action = 'FLY TO MARKER';
         return out;
     }
@@ -255,7 +255,7 @@ function expedition_base_guide_context()
         if (m.type === 'mining') {
             goal = mining_objective() || station;
             description =
-                'Fly to the marked live ore deposit. Your cannon mines automatically. FLY TO OBJECTIVE continues to the next deposit until this stage is complete. Extract ' +
+                'Fly to the marked live ore deposit and press H: your drones cut the rocks and bring the ore aboard, and raiders hunt them. FLY TO OBJECTIVE launches them on arrival and continues to the next deposit. Extract ' +
                 format_progress(m.target - m.progress) +
                 ' more rocks; you keep the ore and artifacts.';
         }

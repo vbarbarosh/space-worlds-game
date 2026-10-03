@@ -374,7 +374,7 @@ function update_escort(dt)
     }
     if (!escort.active && (distance(player, escort) < 250)) {
         escort.active = true;
-        show_toast('CONVOY UNDERWAY', 'PROTECT THREE ROUTE LEGS / KEEP WITHIN 800 m', 4);
+        show_toast('CONVOY UNDERWAY', 'PROTECT THREE ROUTE LEGS / KEEP WITHIN 800 m / G FLIES BEHIND IT', 4);
     }
     if (!escort.active) {
         m.escort_state = clone(escort);

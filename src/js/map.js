@@ -127,7 +127,7 @@ function base_generate_map()
             const r = 40 + seeded()*210;
             const size = 22 + seeded()*24;
             const hp = 30 + size + wave*3;
-            ore_nodes.push({x: x + Math.cos(a)*r, y: y + Math.sin(a)*r, r: size, hp, max_hp: hp, type: 'ore', field: i, angle: seeded()*6.28, flash: 0});
+            ore_nodes.push(ore_resource_assign({x: x + Math.cos(a)*r, y: y + Math.sin(a)*r, r: size, hp, max_hp: hp, type: 'ore', field: i, angle: seeded()*6.28, flash: 0}, i));
         }
     }
 }

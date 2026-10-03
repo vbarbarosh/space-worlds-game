@@ -8,8 +8,10 @@ Two modes:
 
 - **Arcade**: one run through the eight worlds, three waves each, the world's
   flagship in the third. Raiders come in squadrons; from the second world
-  on, elites lead some of them; the flagship turns at 66% and 33%. A card between worlds adds a module or a new weapon,
-  and the weapon grows a tier per world. Score, combo and a best score; no
+  on, elites lead some of them; the flagship turns at 66% and 33%. A ship
+  that explodes hurts what is close to it. The salvage you collect buys
+  repairs, weapons, supplies and modules at the station's depot (R). A cleared world pays a fixed bonus, the weapon
+  grows a tier, and the depot opens before the next world. Score, combo and a best score; no
   stations, contracts or saves.
 - **Campaign**: the stations, contracts, trading and story chapters; see
   [docs/scenario/](docs/scenario/README.md).

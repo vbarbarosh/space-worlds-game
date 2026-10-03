@@ -11,6 +11,16 @@ const dev_world_options = worlds.map((v, i) => ({value: i, label: (i + 1) + ' ·
 const dev_ship_options = ship_catalog.map(v => ({value: v.id, label: v.name}));
 const dev_weapon_options = weapon_catalog.map(v => ({value: v.id, label: v.name}));
 
+// Read-only view of the world for tests and debugging: bin-less checks call window.dev_state() from a browser driver.
+window.dev_state = function () {
+    return {state, view_mode, zoom, camera: {...camera}, player: player ? {x: player.x, y: player.y} : null, station: {...station}, world: {...world},
+        ore: ore_nodes.filter(v => v.hp > 0).map(v => ({x: Math.round(v.x), y: Math.round(v.y), r: v.r, resource: v.resource || null})),
+        debris: drifting_debris.map(v => ({x: Math.round(v.x), y: Math.round(v.y), r: Math.round(v.r), kind: v.kind})),
+        scenery: scenery.map(v => ({x: Math.round(v.x), y: Math.round(v.y), r: Math.round(v.r)})),
+        escort: escort ? {x: escort.x, y: escort.y, hp: escort.hp, active: escort.active} : null, formation: !!formation.leader,
+        cargo: {...campaign.cargo}, drones: {owned: drones_owned(), out: drones_out, flying: drones.map(v => ({x: Math.round(v.x), y: Math.round(v.y), state: v.state, hp: v.hp}))}, salvage, kills, xp: campaign.xp, turbo: !!player?.turbo_active, canisters: pickups.filter(v => v.type === 'cargo').map(v => ({x: Math.round(v.x), y: Math.round(v.y), key: v.key, amount: v.amount}))};
+};
+
 dev_panel_init();
 
 function dev_panel_init()
@@ -29,6 +39,10 @@ function dev_panel_init()
     document.getElementById('dev_start').addEventListener('click', dev_scenario_start);
     document.getElementById('dev_arcade').addEventListener('click', dev_arcade_start);
     document.getElementById('dev_clear').addEventListener('click', dev_cheats_clear_enemies);
+    document.getElementById('dev_salvage').addEventListener('click', function () {
+        salvage += 500;
+        update_hud();
+    });
     document.getElementById('dev_enemy_spawn').addEventListener('click', function () {
         dev_enemy_spawn(false);
     });

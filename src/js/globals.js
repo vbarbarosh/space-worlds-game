@@ -63,7 +63,10 @@ const gold = '#ffd16e';
 const blue = '#8d9cff';
 const keys = new Set();
 const pointer = {x: 0, y: 0, screen_x: 0, screen_y: 0, last: -100, active: false};
-const mouse_drive = {active: false, following: false, id: null, x: 0, y: 0, screen_x: 0, screen_y: 0};
+// turbo_since: when the left button went down in follow mode; held 0.15 s it counts as turbo
+// held: the left button is down outside follow mode; the ship steers to the cursor until it is let go
+// arriving: closing on a clicked point, where turbo stays out; arrival_hold: turbo input held through an arrival, not relit
+const mouse_drive = {turbo_since: -1, active: false, following: false, held: false, arriving: false, arrival_hold: false, id: null, x: 0, y: 0, screen_x: 0, screen_y: 0};
 const world = {w: 4160, h: 3320};
 const camera = {x: 0, y: 0};
 let scenery = [];
@@ -111,6 +114,8 @@ try {
 catch {
 }
 let state = 'menu';
+// A window that loses focus pauses the game; the agent's window plays on, since nobody there is looking away.
+let pause_on_blur = true;
 let difficulty = 'normal';
 let muted = false;
 let full_fx = !matchMedia('(prefers-reduced-motion: reduce)').matches;

@@ -1,10 +1,13 @@
 // Arcade: one run through the eight worlds, three waves each, the world's flagship in the third; no stations, contracts or saves.
-const arcade = {active: false, world: -1, wave: 0, pause: 0, squad_timer: 0, squads: 0, phase: 0, campaign_checkpoint: null};
+const arcade = {active: false, world: -1, wave: 0, pause: 0, squad_timer: 0, squads: 0, phase: 0, slowmo: 0, depot_hint: false, blasts: [], between_worlds: null, campaign_checkpoint: null};
 const arcade_extent = [7200, 5600];
 const arcade_waves = 3;
 const arcade_radiation = 0.35;
 const arcade_defense = 0.5;
 const arcade_wave_names = ['', 'SCOUTS', 'ASSAULT', 'FLAGSHIP'];
+const arcade_depot_safe_range = 700;
+
+document.getElementById('arcade_depot_launch').addEventListener('click', arcade_depot_close);
 
 function arcade_start(world = 0)
 {
@@ -12,8 +15,11 @@ function arcade_start(world = 0)
     arcade.world = -1;
     arcade.wave = 0;
     arcade.pause = 0;
+    arcade.depot_hint = false;
+    arcade.blasts = [];
+    arcade.between_worlds = null;
     document.body.classList.add('arcade');
-    set_hidden(document.getElementById('arcade_overlay'), true);
+    set_hidden(document.getElementById('arcade_depot'), true);
     document.getElementById('restart_button').textContent = 'PLAY AGAIN';
     document.getElementById('result_sector_label').textContent = 'WORLD REACHED';
     // A run starts as a resumed checkpoint made up on the spot; the campaign's own checkpoint is put back after.
@@ -51,8 +57,9 @@ function arcade_start(world = 0)
 function arcade_stop()
 {
     arcade.active = false;
+    arcade.between_worlds = null;
     document.body.classList.remove('arcade');
-    set_hidden(document.getElementById('arcade_overlay'), true);
+    set_hidden(document.getElementById('arcade_depot'), true);
     document.getElementById('restart_button').textContent = 'NEW EXPEDITION';
     document.getElementById('result_sector_label').textContent = 'SECTOR REACHED';
 }
@@ -80,8 +87,13 @@ function arcade_update(dt)
         }
         return;
     }
+    arcade_blasts_update(dt);
     arcade_squads_update(dt);
     arcade_flagship_update();
+    if (!arcade.depot_hint && (salvage > 0)) {
+        arcade.depot_hint = true;
+        show_toast('SALVAGE ◆', 'SPEND IT AT THE STATION · FLY IN AND PRESS R', 3.5);
+    }
     if ((spawn_left > 0) || enemies.some(v => v.hp > 0)) {
         return;
     }
@@ -141,6 +153,7 @@ function arcade_squad_spawn(size)
         enemy.x = clamp(cx - Math.sin(angle)*offset, 40, world.w - 40);
         enemy.y = clamp(cy + Math.cos(angle)*offset, 40, world.h - 40);
         ring(enemy.x, enemy.y, enemy.color || pink, 40, 0.4);
+        explode(enemy.x, enemy.y, 26, '#a8e4ff', i*0.05, 'warp');
         if (elite && (i === 0)) {
             arcade_elite_make(enemy);
         }
@@ -195,6 +208,7 @@ function arcade_flagship_spawn()
     set_hidden(el.bossbar, false);
 }
 
+// A world cleared pays a fixed bonus, the weapon grows a tier, and the depot opens before the jump to the next world.
 function arcade_world_clear()
 {
     if (campaign.world === worlds.length - 1) {
@@ -202,70 +216,168 @@ function arcade_world_clear()
         victory_timer = 2.5;
         return;
     }
-    state = 'arcade_draft';
+    const bonus = arcade_clear_bonus();
+    salvage += bonus;
+    ensure_career().weapon_levels[current_weapon().id] = Math.min(5, weapon_level() + 1);
+    set_hidden(el.bossbar, true);
+    arcade.between_worlds = {world: campaign.world, bonus};
+    arcade_depot_open();
+}
+
+function arcade_clear_bonus()
+{
+    return 80 + campaign.world*40;
+}
+
+// A ship that dies hurts what is close to it, raiders and you alike, less with distance; a blast that kills sets off
+// the next one, so a crowded squadron can go up in a chain.
+function arcade_blast_from_kill(enemy)
+{
+    const sizes = {shard: 26, tank: 72, splitter: 48, lancer: 48, shooter: 46, boss: 220};
+    const damages = {shard: 6, chaser: 10, shooter: 12, splitter: 14, lancer: 14, tank: 26, boss: 50};
+    const size = sizes[enemy.type] || 40;
+    const damage = (damages[enemy.type] || 10)*(enemy.elite ? 1.5 : 1);
+    arcade.blasts.push({x: enemy.x, y: enemy.y, radius: size*1.8, damage, t: (enemy.type === 'boss') ? 1.25 : 0.12, source: enemy});
+}
+
+function arcade_blasts_update(dt)
+{
+    const due = [];
+    for (const blast of arcade.blasts) {
+        blast.t -= dt;
+        if (blast.t <= 0) {
+            due.push(blast);
+        }
+    }
+    arcade.blasts = arcade.blasts.filter(v => v.t > 0);
+    for (const blast of due) {
+        for (const enemy of enemies.slice()) {
+            const d = distance(enemy, blast);
+            if ((enemy !== blast.source) && (enemy.hp > 0) && (d < blast.radius + enemy.r)) {
+                damage_enemy(enemy, blast.damage*(1 - Math.min(1, d/blast.radius)));
+            }
+        }
+        const d = distance(player, blast);
+        if (d < blast.radius + player.r) {
+            damage_player(blast.damage*0.8*(1 - Math.min(1, d/blast.radius)));
+        }
+    }
+}
+
+// A new weapon keeps the tier the old one had reached.
+function arcade_weapon_take(weapon)
+{
+    const fleet = ensure_career();
+    const tier = weapon_level();
+    if (!fleet.weapons.includes(weapon.id)) {
+        fleet.weapons.push(weapon.id);
+    }
+    fleet.weapon_id = weapon.id;
+    fleet.weapon_levels[weapon.id] = tier;
+}
+
+// R at the station opens the depot, unless raiders are close: the depot is a shop, not a hiding place.
+function arcade_interact()
+{
+    if (distance(player, station) > 230) {
+        return;
+    }
+    if (enemies.some(v => (v.hp > 0) && (distance(v, player) < arcade_depot_safe_range))) {
+        show_toast('DEPOT CLOSED', 'RAIDERS WITHIN ' + arcade_depot_safe_range + ' m · CLEAR THEM FIRST', 2);
+        return;
+    }
+    arcade_depot_open();
+}
+
+function arcade_depot_open()
+{
+    state = 'arcade_depot';
     stop_turbo();
     keys.clear();
     mouse_drive.active = false;
     mouse_drive.following = false;
     joystick.active = false;
-    set_hidden(el.bossbar, true);
-    arcade_draft_show();
+    arcade_depot_fill();
+    set_hidden(document.getElementById('arcade_depot'), false);
+    document.getElementById('arcade_depot_launch').focus();
+    sfx('pickup');
 }
 
-// Three cards between worlds: modules not yet at their cap, and a new weapon after every second world.
-function arcade_draft_show()
+// Repair, the other weapons, supplies and the next level of every module, for the salvage collected in the run
+function arcade_depot_fill()
 {
-    const next = worlds[campaign.world + 1];
-    const modules = upgrade_options.filter(v => upgrades[v.key] < v.cap);
-    for (let i = modules.length - 1; i > 0; --i) {
-        const j = Math.floor(Math.random()*(i + 1));
-        [modules[i], modules[j]] = [modules[j], modules[i]];
+    const cleared = arcade.between_worlds;
+    const next = cleared ? worlds[cleared.world + 1] : null;
+    document.getElementById('arcade_depot_eyebrow').textContent = cleared
+        ? worlds[cleared.world].name.toUpperCase() + ' CLEARED · BONUS ◆ ' + cleared.bonus + ' · WEAPON TIER ' + weapon_level()
+        : 'ARCADE DEPOT · ' + worlds[campaign.world].station.toUpperCase();
+    document.getElementById('arcade_depot_launch').textContent = next ? 'NEXT: ' + next.name.toUpperCase() + ' ↗' : 'LAUNCH ↗';
+    document.getElementById('arcade_depot_next').textContent = next ? 'Next: ' + next.name + ', ' + world_rules[cleared.world + 1].summary + '.' : '';
+    document.getElementById('arcade_depot_wallet').textContent =
+        '◆ ' + salvage + ' salvage · ' + current_weapon().name + ' T' + weapon_level() + ' · hull ' + Math.ceil(player.hp) + ' / ' + hull_max();
+    const items = [];
+    if (player.hp < hull_max()) {
+        items.push({icon: '✚', title: 'Full repair', text: 'The hull back to ' + hull_max() + '.', price: 60, buy: function () {
+            player.hp = hull_max();
+        }});
     }
-    const cards = modules.slice(0, 3).map(v => ({icon: v.icon, title: v.title, level: 'Lv ' + (upgrades[v.key] + 1), description: v.description, module: v}));
-    const weapons = weapon_catalog.filter(v => v.id !== current_weapon().id);
-    if ((campaign.world % 2 === 1) && weapons.length) {
-        const weapon = weapons[Math.floor(Math.random()*weapons.length)];
-        cards[cards.length - 1] = {icon: '⚔', title: weapon.name, level: 'Weapon', description: weapon.description, weapon};
+    for (const weapon of weapon_catalog.filter(v => v.id !== current_weapon().id)) {
+        items.push({icon: '⚔', title: weapon.name, text: weapon.description, price: 120 + weapon.rating*45, buy: function () {
+            arcade_weapon_take(weapon);
+        }});
     }
-    document.getElementById('arcade_eyebrow').textContent = worlds[campaign.world].name.toUpperCase() + ' CLEARED · WORLD ' + (campaign.world + 1) + ' / ' + worlds.length;
-    const tier = Math.min(5, weapon_level() + 1);
-    document.getElementById('arcade_description').textContent = 'Weapon tier ' + tier + ' · next: ' + next.name + ', ' + world_rules[campaign.world + 1].summary;
-    const parent = document.getElementById('arcade_choices');
-    parent.replaceChildren();
-    for (const card of cards) {
+    for (const option of supply_options.filter(v => supplies[v.key] < 8)) {
+        items.push({icon: option.icon, title: option.title, text: option.description, price: option.cost, buy: function () {
+            supplies[option.key]++;
+        }});
+    }
+    for (const option of upgrade_options.filter(v => upgrades[v.key] < v.cap)) {
+        items.push({icon: option.icon, title: option.title + ' Lv ' + (upgrades[option.key] + 1), text: option.description, price: module_cost(option), buy: function () {
+            grant_upgrade(option);
+        }});
+    }
+    const grid = document.getElementById('arcade_depot_grid');
+    grid.replaceChildren();
+    for (const item of items) {
+        const card = document.createElement('div');
+        card.className = 'shop-item';
+        card.innerHTML = '<b>' + item.icon + ' &nbsp;' + item.title + '</b><p>' + item.text + '</p>';
         const button = document.createElement('button');
-        button.className = 'choice';
-        button.innerHTML = '<span class="icon">' + card.icon + '</span><b>' + card.title + ' <small>' + card.level + '</small></b><span>' + card.description + '</span>';
+        button.textContent = 'BUY · ◆ ' + item.price;
+        button.disabled = salvage < item.price;
         button.addEventListener('click', function () {
-            arcade_card_take(card);
+            arcade_depot_buy(item);
         });
-        parent.append(button);
+        card.append(button);
+        grid.append(card);
     }
-    set_hidden(document.getElementById('arcade_overlay'), false);
-    parent.firstChild.focus();
 }
 
-function arcade_card_take(card)
+function arcade_depot_buy(item)
 {
-    if (state !== 'arcade_draft') {
+    if ((state !== 'arcade_depot') || (salvage < item.price)) {
         return;
     }
-    // The weapon grows one tier per world cleared; a new weapon keeps the tier reached.
-    const fleet = ensure_career();
-    const tier = Math.min(5, weapon_level() + 1);
-    if (card.module) {
-        grant_upgrade(card.module);
+    salvage -= item.price;
+    item.buy();
+    sfx('upgrade');
+    update_hud();
+    arcade_depot_fill();
+}
+
+function arcade_depot_close()
+{
+    if (state !== 'arcade_depot') {
+        return;
     }
-    else {
-        fleet.weapons.push(card.weapon.id);
-        fleet.weapon_id = card.weapon.id;
-        sfx('upgrade');
-    }
-    fleet.weapon_levels[fleet.weapon_id] = tier;
-    set_hidden(document.getElementById('arcade_overlay'), true);
+    set_hidden(document.getElementById('arcade_depot'), true);
     state = 'playing';
-    const next = campaign.world + 1;
-    start_jump({world: next, label: worlds[next].name, color: worlds[next].accent});
+    const cleared = arcade.between_worlds;
+    arcade.between_worlds = null;
+    if (cleared) {
+        const next = cleared.world + 1;
+        start_jump({world: next, label: worlds[next].name, color: worlds[next].accent});
+    }
 }
 
 function arcade_finish(won)
@@ -287,6 +399,23 @@ function arcade_finish(won)
     el.result_sector.textContent = (campaign.world + 1) + ' / ' + worlds.length;
     el.result_best.textContent = (record ? 'NEW PERSONAL BEST · ' : 'PERSONAL BEST · ') + best.toLocaleString() + '  /  ' + kills + ' ELIMINATIONS · ' + format_time(run_time);
     document.getElementById('restart_button').focus();
+}
+
+// A flagship's death plays at 30% speed for a moment; elsewhere the clock runs as it is.
+function arcade_time_step(dt)
+{
+    if (arcade.slowmo <= 0) {
+        return dt;
+    }
+    arcade.slowmo -= dt;
+    return dt*0.3;
+}
+
+// A kill shakes the screen by the size of what died.
+function arcade_kill_shake(enemy)
+{
+    const strength = {shard: 1.5, chaser: 3, shooter: 4, splitter: 4.5, lancer: 4.5, tank: 9, boss: 26}[enemy.type] || 3;
+    return enemy.elite ? strength*1.6 : strength;
 }
 
 function arcade_update_hud()

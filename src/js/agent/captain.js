@@ -1,11 +1,12 @@
 // The agent's hook: bin/captain reads the game state and the news through window.captain; it acts through the page's own buttons and keys.
 const captain_news = [];
 const captain_base_show_toast = show_toast;
-const captain_pilot = {on: true, idle: 0, keys: []};
+const captain_pilot = {on: true, idle: 0, keys: [], dock: false};
 // The game waits for the agent on these screens; the window says so, so a pause never looks like a freeze.
-const captain_waiting_states = ['upgrade', 'arcade_draft', 'dead', 'won', 'menu'];
+const captain_waiting_states = ['upgrade', 'arcade_depot', 'dead', 'won', 'menu'];
 let captain_last_command = Date.now();
 const captain_tick_ms = 250;
+pause_on_blur = false;
 
 show_toast = function (title, sub, duration) {
     captain_news.push({n: captain_news.length + 1, time: Math.round(run_time), title, sub});
@@ -14,7 +15,7 @@ show_toast = function (title, sub, duration) {
     }
     captain_base_show_toast(title, sub, duration);
 };
-window.captain = {status: captain_status, news: captain_news_since, autopilot: captain_autopilot_set, touch: captain_touch};
+window.captain = {status: captain_status, news: captain_news_since, autopilot: captain_autopilot_set, touch: captain_touch, dock: captain_dock};
 setInterval(captain_pilot_tick, captain_tick_ms);
 
 function captain_status()
@@ -73,6 +74,13 @@ function captain_news_since(n)
     return captain_news.filter(v => v.n > n);
 }
 
+// In the arcade: fly to the station and open the depot as soon as no raider is close.
+function captain_dock()
+{
+    captain_pilot.dock = arcade.active;
+    return captain_pilot.dock;
+}
+
 function captain_touch()
 {
     captain_last_command = Date.now();
@@ -106,6 +114,10 @@ function captain_pilot_tick()
     captain_thinking_refresh();
     if (!captain_pilot.on || !player || (state !== 'playing') || jump) {
         captain_pilot_keys_set([]);
+        return;
+    }
+    if (arcade.active && captain_pilot.dock) {
+        captain_arcade_dock();
         return;
     }
     if (arcade.active) {
@@ -221,6 +233,36 @@ function captain_arcade_pilot()
     }
     if ((player.hp < hull_max()*0.3) && nearest && (distance(nearest, player) < 420)) {
         held.push('ShiftLeft');
+    }
+    captain_pilot_keys_set(held);
+}
+
+function captain_arcade_dock()
+{
+    const d = distance(player, station);
+    if (d < 200) {
+        captain_pilot_keys_set(['KeyB']);
+        if (!enemies.some(v => (v.hp > 0) && (distance(v, player) < arcade_depot_safe_range))) {
+            captain_pilot.dock = false;
+            captain_pilot_keys_set([]);
+            arcade_interact();
+        }
+        return;
+    }
+    const x = (station.x - player.x)/d;
+    const y = (station.y - player.y)/d;
+    const held = [];
+    if (x > 0.38) {
+        held.push('KeyD');
+    }
+    if (x < -0.38) {
+        held.push('KeyA');
+    }
+    if (y > 0.38) {
+        held.push('KeyS');
+    }
+    if (y < -0.38) {
+        held.push('KeyW');
     }
     captain_pilot_keys_set(held);
 }

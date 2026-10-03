@@ -26,7 +26,8 @@ game:
 - **Trader**: buy where a good is cheap, sell where it is dear; few fights.
 - **Hunter**: hunt raiders and their commanders for bounties.
 - **Escort**: protect freighters and convoys.
-- **Prospector**: mine ore and sell it.
+- **Prospector**: mine with your drones and sell the ore far from where it
+  was mined.
 - **Story pilot**: follow the story chapters through the eight worlds.
 
 Write your choice and the reason at the top of your diary.
@@ -77,6 +78,9 @@ screen you read, or press by label.
     `COLLECT REWARD`.
   - CARGO MARKET buys and sells ore, energy cells and relic components. The
     price differs from world to world, so carry goods to where they are dear.
+    It also buys each world's own resource (Haven iron, Spore resin, ...),
+    which pays little at home and more the farther you carry it.
+  - MODULES also sells mining drones, when you have lost some.
   - TRADE INTEL compares the stations.
   - MODULES are upgrades, HANGAR sells ships and ARSENAL weapons. Ranks
     unlock ships and weapons.
@@ -90,6 +94,13 @@ screen you read, or press by label.
     `key KeyR` docks, near a world gate `key KeyR` jumps.
   - `key Space` fires the pulse when energy is full. `key KeyQ` uses a
     repair kit, `key KeyE` an EMP, `key KeyF` a stasis cell.
+  - Your cannons do not mine. `key KeyH` near a mining field sends your
+    mining drones to cut the rocks and bring the ore aboard; raiders hunt
+    them. The autopilot launches them when it reaches a mining objective.
+  - Raiders you destroy earn experience, which licenses better ships, and
+    some spill cargo canisters: fly over them to load them.
+  - `key KeyG` near a convoy flies in formation behind it; steering breaks
+    off.
   - `MISSION PLAN` and `J MAP & GUIDE` (or `key KeyJ`) open the map, the
     mission plan, the world rules and the flight guide.
 - **Death**: the screen `result_overlay` offers `CONTINUE SAVED FLIGHT`.
@@ -101,18 +112,25 @@ there is a decision to make.
 ## The arcade
 
 `ARCADE` is a run through the eight worlds: three waves of raiders in each,
-the world's flagship in the third, and a choice of one card between worlds.
+the world's flagship in the third, and the depot between worlds.
 In the arcade the autopilot flies for you: it keeps the nearest raider at gun
 range, sidesteps, collects pickups when the sky is clear and keeps away from
 gravity wells. Your guns fire on their own.
 
 Your part:
 
-- **The cards.** When the screen is `arcade_overlay`, press the card you want:
-  a module, or a new weapon every second world. This is the main decision of
-  the run; think about the next world's rules, shown above the cards.
+- **The depot.** The salvage you collect buys repairs, weapons, supplies and
+  modules. After each world the depot opens by itself (screen
+  `arcade_depot`), with a bonus for the world cleared: this is the main
+  decision of the run, so think about the next world's rules, shown under
+  your salvage. Press what you buy, then `NEXT: <WORLD>`. Mid-world,
+  `bin/captain dock` sends the pilot to the station; the depot opens as soon
+  as no raider is within 700 m, and `LAUNCH` returns to the fight.
 - **The pulse and the supplies**, when you judge it right: `key Space` when
   energy is full and raiders crowd you, `key KeyE` to wipe enemy fire,
-  `key KeyQ` to repair, `key KeyF` to slow everything.
+  `key KeyQ` to repair, `key KeyF` to slow everything. The pilot also uses
+  them when its survival depends on it.
+- A ship that explodes hurts what is close to it, you included; the pilot
+  keeps its distance.
 - `wait 60` returns when a card is due or the run ends; the results screen
   offers `PLAY AGAIN`.

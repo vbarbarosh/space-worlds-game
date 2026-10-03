@@ -31,6 +31,7 @@ const usage = `usage: bin/captain <command>
     wait [s]           let the game run up to s seconds (default 60); it returns as soon as something needs you:
                        docked, a card to pick, a contract complete, low hull, nothing to fly to, death
     autopilot on|off   standing orders (on by default): fly stage after stage, dock, jump; in the arcade, dodge and fight
+    dock               in the arcade: fly to the station and open the depot once no raider is close
     news               what the game announced since you last asked
     shot               save a screenshot and print its path
 
@@ -75,6 +76,12 @@ async function main()
     case 'wait':
         await page_run(function (page) {
             return captain_wait(page, Number(args[0]) || 60);
+        });
+        break;
+    case 'dock':
+        await page_run(async function (page) {
+            const ordered = await page.evaluate(() => window.captain.dock());
+            console.log(ordered ? 'Flying to the station; the depot opens once no raider is within 700 m. Use wait.' : 'Only in the arcade.');
         });
         break;
     case 'autopilot':

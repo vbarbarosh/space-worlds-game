@@ -58,7 +58,7 @@ function valid_checkpoint(candidate)
             );
         }) &&
         candidate.campaign.cargo &&
-        commodities.every(v => Number.isInteger(candidate.campaign.cargo[v.key]) && (candidate.campaign.cargo[v.key] >= 0)) &&
+        Object.values(candidate.campaign.cargo).every(v => Number.isInteger(v) && (v >= 0)) &&
         (Object.values(candidate.campaign.cargo).reduce((a, b) => a + b, 0) <=
             (ship_catalog.find(v => v.id === candidate.campaign.fleet?.ship_id)?.cargo || 40)) &&
         (candidate.wave === worlds[candidate.campaign.world].wave) &&
@@ -90,6 +90,9 @@ function guide_base_reset_run(resume = false)
     campaign = saved
         ? clone(saved.campaign)
         : {world: 0, story: 0, contracts: [], completed: 0, visited: [0], cargo: {ore: 0, cells: 0, relics: 0}, maps: {}, serial: 0, board: 0};
+    cargo_normalize(campaign.cargo);
+    drones = [];
+    drones_out = false;
     jump = null;
     escort = null;
     waypoint = null;
@@ -214,6 +217,7 @@ function world_audio_base_enemy_fire(enemy, angle, speed = 210)
             color: enemy.color,
         });
     }
+    explode(enemy.x + Math.cos(angle)*enemy.r, enemy.y + Math.sin(angle)*enemy.r, 11, enemy.color || pink, 0, 'muzzle');
 }
 
 function expedition_base_damage_enemy(enemy, damage)
@@ -222,8 +226,10 @@ function expedition_base_damage_enemy(enemy, damage)
         return;
     }
     enemy.since_hit = 0;
+    const shield_before = enemy.shield || 0;
     const absorbed = Math.min(enemy.shield || 0, damage);
     enemy.shield = Math.max(0, (enemy.shield || 0) - absorbed);
+    shield_hit_show(enemy, shield_before);
     const hull = (damage - absorbed)*(1 - (enemy.armor || 0));
     if (hull <= 0) {
         enemy.flash = 0.08;
@@ -232,6 +238,10 @@ function expedition_base_damage_enemy(enemy, damage)
     const alive = enemy.hp > 0;
     base_damage_enemy(enemy, hull);
     if (alive && (enemy.hp <= 0)) {
+        if (!arcade.active) {
+            cargo_spill(enemy);
+            kill_xp_grant(enemy);
+        }
         mission_event('hunt', 1);
         if ((enemy.type === 'boss') && enemy.mission_boss) {
             mission_event('boss', 1);
@@ -245,11 +255,8 @@ function physics_base_damage_ore(v, amount)
     base_damage_ore(v, amount);
     if (alive && (v.hp <= 0)) {
         mark_mining_changed();
-        if (cargo_count() < cargo_capacity()) {
-            campaign.cargo.ore++;
-        }
-        else {
-            label(v.x, v.y, 'CARGO FULL · SALVAGE COLLECTIBLE', gold);
+        if (!v.cutter) {
+            ore_load(v);
         }
         mission_event('mining', 1);
     }

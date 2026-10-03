@@ -1,3 +1,4 @@
+document.getElementById('quick_drones').addEventListener('click', drones_toggle);
 for (const key of ['medkit', 'emp', 'stasis']) {
     document.getElementById('quick_' + key).addEventListener('click', function () {
         use_supply(key);

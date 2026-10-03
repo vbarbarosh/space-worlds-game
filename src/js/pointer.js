@@ -24,6 +24,7 @@ function set_mouse_destination(p)
     mouse_drive.screen_x = p.x;
     mouse_drive.screen_y = p.y;
     mouse_drive.active = true;
+    mouse_drive.arrival_hold = false;
     pointer.last = -100;
 }
 canvas.addEventListener('pointermove', function (event) {
@@ -36,7 +37,8 @@ canvas.addEventListener('pointermove', function (event) {
     }
     else {
         update_pointer(p);
-        if (mouse_drive.following && (state === 'playing')) {
+        mouse_drive.held = mouse_drive.held && !!(event.buttons & 1);
+        if ((mouse_drive.following || mouse_drive.held) && (state === 'playing')) {
             set_mouse_destination(p);
         }
         else {
@@ -64,8 +66,11 @@ canvas.addEventListener('pointerdown', function (event) {
     else if (event.pointerType !== 'touch') {
         update_pointer(p);
         if (event.button === 0) {
+            formation_stop();
             set_mouse_destination(p);
             canvas.focus();
+            mouse_drive.turbo_since = mouse_drive.following ? clock : -1;
+            mouse_drive.held = !mouse_drive.following;
         }
         if (event.button === 2) {
             pulse();
@@ -78,6 +83,13 @@ canvas.addEventListener('dblclick', function (event) {
     }
     const p = pointer_position(event);
     update_pointer(p);
+    const leader = formation_pick(p);
+    if (leader) {
+        formation_start(leader);
+        update_hud();
+        event.preventDefault();
+        return;
+    }
     mouse_drive.following = !mouse_drive.following;
     if (mouse_drive.following) {
         set_mouse_destination(p);
@@ -93,6 +105,10 @@ canvas.addEventListener('dblclick', function (event) {
 });
 function release_pointer(event)
 {
+    if (event.pointerType !== 'touch') {
+        mouse_drive.turbo_since = -1;
+        mouse_drive.held = false;
+    }
     if (event.pointerId === joystick.id) {
         joystick.active = false;
         joystick.dx = 0;

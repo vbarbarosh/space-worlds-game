@@ -34,7 +34,7 @@ function stop_turbo()
     player.turbo_fuel = clamp(player.dash_time, 0, turbo_duration());
     player.turbo_active = false;
     player.dash_time = 0;
-    player.dash_cd = 0.65;
+    player.dash_cd = 0;
 }
 
 function recharge_turbo(dt)
@@ -281,7 +281,7 @@ function generate_drifting_debris()
             angle: random()*6.28,
             spin: (random() - 0.5)*0.5,
             kind: (i % 3 === 0) ? 'wreck' : 'asteroid',
-            hp: 1,
+            hp: size*((i % 3 === 0) ? 2 : 3),
         });
     }
 }
@@ -335,6 +335,8 @@ function update_expedition_environment(dt)
             const speed = Math.hypot(player.vx - drifting_debri.vx, player.vy - drifting_debri.vy);
             damage_player(Math.min(40, 8 + speed*0.022));
             stop_turbo();
+            // a crash knocks the turbo out for a moment, so a held Shift does not relight it against the rock every frame
+            player.dash_cd = 0.6;
             const a = Math.atan2(player.y - drifting_debri.y, player.x - drifting_debri.x);
             player.x = drifting_debri.x + Math.cos(a)*(drifting_debri.r + player.r + 3);
             player.y = drifting_debri.y + Math.sin(a)*(drifting_debri.r + player.r + 3);
@@ -352,6 +354,20 @@ function update_expedition_environment(dt)
     }
 }
 
+// Shots break drifting asteroids and wrecks; a broken one explodes and leaves a little salvage.
+function drifting_debris_hit(piece, damage)
+{
+    piece.hp -= damage;
+    explode(piece.x, piece.y, 9, '#ffcf9a', 0, 'spark');
+    if (piece.hp > 0) {
+        return;
+    }
+    explode(piece.x, piece.y, piece.r*1.5, (piece.kind === 'wreck') ? '#9fb6c8' : '#c9924e');
+    sfx('mine', 1, piece);
+    drop_pickup(piece.x, piece.y, 'artifact', 2);
+    drifting_debris = drifting_debris.filter(v => v !== piece);
+}
+
 function render_drifting_debris()
 {
     ctx.save();
@@ -364,12 +380,18 @@ function render_drifting_debris()
         ctx.rotate(drifting_debri.angle);
         if (drifting_debri.kind === 'asteroid') {
             if (view_mode === 'wireframe') {
-                polygon(0, 0, drifting_debri.r, 7, 0, '#c2b08c', '#312a24');
+                polygon(0, 0, drifting_debri.r, 7, 0, '#e08f7a', '#312a24');
             }
             else {
                 const asset = rock_surface(campaign.world, 3);
                 ctx.drawImage(asset.layer, -drifting_debri.r*1.25, -drifting_debri.r*1.25, drifting_debri.r*2.5, drifting_debri.r*2.5);
             }
+            // A hazard rim: this rock drifts, hits hard and breaks under fire.
+            ctx.strokeStyle = '#ff7a5c66';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(0, 0, drifting_debri.r*1.05, 0, Math.PI*2);
+            ctx.stroke();
         }
         else {
             ctx.fillStyle = '#28394a';

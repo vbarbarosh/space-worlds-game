@@ -53,7 +53,7 @@ function expedition_base_offered_jobs()
             target: 1,
             reward: 210 + scale*55,
             description:
-                'Meet the shuttle near the station, then protect it along a 1,600-unit route. Hostile ships attack it too. Leaving the world resets the escort.',
+                'Meet the shuttle near the station, then protect it along a 1,600-unit route. Hostile ships attack it too. Press G, or double click the shuttle, to fly in formation behind it. Leaving the world resets the escort.',
         },
         {
             title: 'Market supply: ' + commodities[id % 3].name,
@@ -215,6 +215,7 @@ function dock_station()
         return;
     }
     state = 'upgrade';
+    drones_recall_now();
     stop_turbo();
     touch_boost_hold = false;
     keys.clear();
@@ -303,6 +304,7 @@ function guide_base_render_station()
 function guide_base_render_shop()
 {
     base_render_shop();
+    render_drone_shop_card();
     el.next_sector.textContent = 'UNDOCK ↗';
     el.next_sector.disabled = false;
 }
@@ -313,7 +315,7 @@ function trade_cargo(key, side, requested)
         return 0;
     }
     const index = commodities.findIndex(v => v.key === key);
-    if ((index < 0) || !['buy', 'sell'].includes(side)) {
+    if ((index < 0) || !['buy', 'sell'].includes(side) || ((side === 'buy') && resource_of(key))) {
         return 0;
     }
     const price = market_price(campaign.world, index, side);
@@ -343,6 +345,10 @@ function render_market(parent)
 {
     for (let i = 0, ii = commodities.length; i < ii; ++i) {
         const commodity = commodities[i];
+        const resource = resource_of(commodity.key);
+        if (resource && (resource.world !== campaign.world) && !campaign.cargo[commodity.key]) {
+            continue;
+        }
         const price = market_price(campaign.world, i, 'buy');
         const sell = market_price(campaign.world, i, 'sell');
         const max_buy = Math.max(0, Math.min(cargo_capacity() - cargo_count(), Math.floor(salvage/price)));
@@ -350,10 +356,12 @@ function render_market(parent)
         const cardel = card(
             parent,
             commodity.name,
-            'Station demand: ' +
-                ensure_markets()[campaign.world].demand[commodity.key] +
-                ' units. Demand pays +6 per unit until filled. Open TRADE INTEL to compare all stations.',
-            'CARGO ' + owned + ' · BUY ◆ ' + price + ' / SELL ◆ ' + sell
+            resource
+                ? 'Mined, never sold here: ' + worlds[resource.world].name + ' pays 60% of its worth, and each world farther away 30% more.'
+                : 'Station demand: ' +
+                    ensure_markets()[campaign.world].demand[commodity.key] +
+                    ' units. Demand pays +6 per unit until filled. Open TRADE INTEL to compare all stations.',
+            'CARGO ' + owned + (resource ? '' : ' · BUY ◆ ' + price) + ' / SELL ◆ ' + sell
         );
         const label = document.createElement('label');
         label.className = 'market-quantity';
@@ -364,7 +372,7 @@ function render_market(parent)
         input.setAttribute('max', String(cargo_capacity()));
         input.setAttribute('step', '1');
         input.setAttribute('aria-label', commodity.name + ' trade quantity');
-        input.value = String(market_quantity[commodity.key]);
+        input.value = String(market_quantity[commodity.key] || 1);
         label.append(input);
         cardel.append(label);
         const buy = document.createElement('button');
@@ -379,7 +387,8 @@ function render_market(parent)
             }
             buy.textContent = 'BUY ' + (valid ? n : '—') + ' · ◆ ' + (valid ? n*price : '—');
             sellb.textContent = 'SELL ' + (valid ? n : '—') + ' · ◆ ' + (valid ? trade_total(campaign.world, commodity.key, 'sell', n) : '—');
-            buy.disabled = !valid || (n > max_buy);
+            buy.disabled = !valid || (n > max_buy) || !!resource;
+            buy.hidden = !!resource;
             sellb.disabled = !valid || (n > owned);
         }
         input.addEventListener('input', refresh_buttons);

@@ -363,7 +363,7 @@ function wireframe_render_map()
         ctx.save();
         ctx.translate(v.x, v.y);
         ctx.rotate(v.angle);
-        ctx.globalAlpha = (id === 7) ? 0.42 : 0.48;
+        ctx.globalAlpha = [2, 5, 6, 7].includes(id) ? 0.28 : 0.48;
         const r = v.r;
         ctx.strokeStyle = look.material;
         ctx.lineWidth = 1;
@@ -481,6 +481,7 @@ function wireframe_render_world_ore(v)
     ctx.lineTo(v.x + v.r*0.35, v.y + v.r*0.25);
     ctx.stroke();
     polygon(v.x + v.r*0.15, v.y - v.r*0.05, 6, 4, v.angle, gold, '#ffd16e66');
+    ore_glow(v);
     if (v.hp < v.max_hp) {
         ctx.fillStyle = '#ffd16e22';
         ctx.fillRect(v.x - v.r, v.y - v.r - 9, v.r*2, 3);

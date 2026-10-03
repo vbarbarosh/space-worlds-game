@@ -10,10 +10,10 @@ function ensure_markets()
 
 function market_price(id, index, side)
 {
-    const base = worlds[id].prices[index];
+    const base = commodity_base_price(id, index);
     const key = commodities[index].key;
     if (side === 'sell') {
-        return base - 2 + ((ensure_markets()[id].demand[key] > 0) ? 6 : 0);
+        return base - 2 + (((ensure_markets()[id].demand[key] || 0) > 0) ? 6 : 0);
     }
     return base + ((ensure_markets()[id].demand[key] > 0) ? 6 : 0);
 }
@@ -24,7 +24,7 @@ function trade_total(id, key, side, amount)
     if ((i < 0) || !Number.isFinite(amount) || (amount < 0)) {
         return 0;
     }
-    return (side === 'buy') ? market_price(id, i, 'buy')*amount : (worlds[id].prices[i] - 2)*amount + Math.min(amount, ensure_markets()[id].demand[key])*6;
+    return (side === 'buy') ? market_price(id, i, 'buy')*amount : (commodity_base_price(id, i) - 2)*amount + Math.min(amount, ensure_markets()[id].demand[key] || 0)*6;
 }
 let intel_commodity = 'all';
 function trade_opportunities()
@@ -32,7 +32,7 @@ function trade_opportunities()
     const out = [];
     for (let i = 0, ii = commodities.length; i < ii; ++i) {
         const commodity = commodities[i];
-        if ((intel_commodity !== 'all') && (intel_commodity !== commodity.key)) {
+        if (resource_of(commodity.key) || ((intel_commodity !== 'all') && (intel_commodity !== commodity.key))) {
             continue;
         }
         for (let a = 0, aa = worlds.length; a < aa; ++a) {

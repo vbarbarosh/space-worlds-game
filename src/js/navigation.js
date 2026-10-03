@@ -198,7 +198,11 @@ function requirements(id)
 
 function interact()
 {
-    if ((state !== 'playing') || arcade.active) {
+    if (state !== 'playing') {
+        return;
+    }
+    if (arcade.active) {
+        arcade_interact();
         return;
     }
     if (distance(player, station) < 230) {
@@ -247,6 +251,7 @@ function guide_base_update_jump(dt)
     if (!jump.switched && (jump.t >= jump.duration*0.5)) {
         jump.switched = true;
         if (jump.world !== undefined) {
+            drones_recall_now();
             store_world();
             campaign.world = jump.world;
             wave = worlds[campaign.world].wave;
@@ -381,6 +386,7 @@ function guide_base_update_frontier(dt)
         }
     }
     update_escort(dt);
+    drones_update(dt);
     if (waypoint && (distance(player, waypoint) < 110)) {
         waypoint = null;
     }
@@ -430,7 +436,7 @@ function expedition_base_render_inventory()
     card(
         el.inventory_grid,
         'Cargo hold',
-        commodities.map(v => v.name + ': ' + campaign.cargo[v.key]).join(' · '),
+        commodities.filter((v, i) => (i < 3) || campaign.cargo[v.key]).map(v => v.name + ': ' + campaign.cargo[v.key]).join(' · '),
         'CAPACITY ' + cargo_count() + '/' + cargo_capacity() + ' · WEAPONS ' + attack_rating() + ' · DEFENSE ' + defense_rating()
     );
 }

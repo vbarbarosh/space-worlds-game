@@ -278,7 +278,10 @@ function base_damage_enemy(enemy, damage)
     );
     ring(enemy.x, enemy.y, (enemy.type === 'shooter') ? gold : pink, enemy.r*3, 0.35);
     label(enemy.x, enemy.y - 10, '+' + points);
-    shake = Math.max(shake, (enemy.type === 'boss') ? 22 : 4);
+    shake = Math.max(shake, arcade.active ? arcade_kill_shake(enemy) : ((enemy.type === 'boss') ? 22 : 4));
+    if (arcade.active && (enemy.type === 'boss')) {
+        arcade.slowmo = 1.4;
+    }
     sfx('kill', 1, enemy);
     if (enemy.type === 'boss') {
         explode_flagship(enemy.x, enemy.y, enemy.r, enemy.color || pink);
@@ -288,6 +291,9 @@ function base_damage_enemy(enemy, damage)
     }
     if (enemy.drop_on_death) {
         drop_pickup(enemy.x, enemy.y, enemy.drop_on_death);
+    }
+    if (arcade.active) {
+        arcade_blast_from_kill(enemy);
     }
     if (enemy.type === 'boss') {
         boss_defeated = true;
@@ -333,8 +339,10 @@ function damage_player(amount)
     const multiplier = (difficulty === 'chill') ? 0.65 : (difficulty === 'overload') ? 1.2 : 1;
     let damage = amount*multiplier*(1 - upgrades.armor*((campaign.world === 4) ? 0.15 : 0.12));
     player.since_hit = 0;
+    const shield_before = player.shield;
     const absorbed = Math.min(player.shield, damage);
     player.shield -= absorbed;
+    shield_hit_show(player, shield_before);
     damage -= absorbed;
     player.hp = Math.max(0, player.hp - damage);
     player.invincible = 0.85;

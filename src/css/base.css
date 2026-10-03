@@ -352,12 +352,16 @@ button:active {
 }
 
 .meter {
-    width: 150px;
+    width: 176px;
 }
 
+/* one line always, digits of one width: a changing value must never move the panel */
 .meter-row {
     display: flex;
     justify-content: space-between;
+    gap: 8px;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
     font-size: 9px;
     letter-spacing: 0.12em;
     font-weight: 700;
@@ -659,7 +663,7 @@ button:active {
     }
 
     .meter {
-        width: 120px;
+        width: 150px;
     }
 
     .panel {
@@ -756,6 +760,13 @@ button:active {
     .bottom-hud .meter {
         width: auto;
         flex: 1;
+        min-width: 0;
+    }
+
+    /* too narrow for label and value side by side: the value always goes under it, so the height never changes */
+    .bottom-hud .meter-row {
+        flex-direction: column;
+        gap: 2px;
     }
 
     .result-stats {

@@ -235,6 +235,7 @@ function fire_equipped_weapon()
             seeker: v.id === 'missile',
             splash: (v.id === 'missile') ? 115 : 0,
         });
+        explode(muzzle.x, muzzle.y, 9, v.color, 0, 'muzzle');
     }
     if (v.id === 'beam') {
         player.energy = Math.max(0, player.energy - 1.8);
@@ -262,8 +263,10 @@ function hit_with_weapon(enemy, b)
     }
     const armor = enemy.armor || 0;
     if (b.weapon === 'ion') {
+        const shield_before = enemy.shield || 0;
         const shield_damage = Math.min(enemy.shield || 0, b.damage*3);
         enemy.shield = Math.max(0, (enemy.shield || 0) - shield_damage);
+        shield_hit_show(enemy, shield_before);
         enemy.since_hit = -3;
         if (!enemy.disrupted) {
             enemy.disrupted = {speed: enemy.speed, time: 0};

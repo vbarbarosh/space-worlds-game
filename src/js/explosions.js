@@ -2,11 +2,19 @@
 // generator of its own, so an effect never changes what Math.random decides for the game.
 let explosions = [];
 let explosion_seed = 1;
-const explosion_limit = 90;
+let hull_smoke_timer = 0;
+const explosion_limit = 140;
+// Lighter effects than a blast: how long each lasts, in seconds
+const explosion_durations = {spark: 0.25, muzzle: 0.07, shield: 0.45, warp: 0.4, smoke: 0.9};
 
-// size is the fireball's radius in world units: about 40 for a raider, 70 for a tank, 220 for a flagship
-function explode(x, y, size, color, delay = 0)
+// size is the fireball's radius in world units: about 40 for a raider, 70 for a tank, 220 for a flagship;
+// kind 'blast' is the full explosion, the others are the small effects listed in explosion_durations
+function explode(x, y, size, color, delay = 0, kind = 'blast')
 {
+    if (kind !== 'blast') {
+        explosion_light_add(x, y, size, color, delay, kind);
+        return;
+    }
     const sparks = [];
     for (let i = 0, end = Math.round(6 + size/6); i < end; ++i) {
         sparks.push({angle: explosion_random()*Math.PI*2, speed: size*(2.2 + explosion_random()*3), length: 4 + explosion_random()*size*0.3});
@@ -26,7 +34,7 @@ function explode(x, y, size, color, delay = 0)
         const angle = explosion_random()*Math.PI*2;
         puffs.push({x: Math.cos(angle)*size*0.45, y: Math.sin(angle)*size*0.45, size: size*(0.35 + explosion_random()*0.3), delay: explosion_random()*0.12});
     }
-    explosions.push({x, y, size, color, t: -delay, duration: 0.7 + size/180, sparks, debris, puffs});
+    explosions.push({x, y, size, color, kind, t: -delay, duration: 0.7 + size/180, sparks, debris, puffs});
     if (explosions.length > explosion_limit) {
         explosions.splice(0, explosions.length - explosion_limit);
     }
@@ -43,6 +51,20 @@ function explode_flagship(x, y, r, color)
     explode(x, y, 220, color, 1.25);
 }
 
+function explosion_light_add(x, y, size, color, delay, kind)
+{
+    const sparks = [];
+    const count = (kind === 'spark') ? 5 : (kind === 'shield') ? 12 : 0;
+    for (let i = 0; i < count; ++i) {
+        sparks.push({angle: explosion_random()*Math.PI*2, speed: size*(4 + explosion_random()*5), length: 3 + explosion_random()*size*0.5});
+    }
+    const drift = {x: (explosion_random() - 0.5)*20, y: -10 - explosion_random()*25};
+    explosions.push({x, y, size, color, kind, t: -delay, duration: explosion_durations[kind], sparks, debris: [], puffs: [], drift});
+    if (explosions.length > explosion_limit) {
+        explosions.splice(0, explosions.length - explosion_limit);
+    }
+}
+
 function explosion_random()
 {
     explosion_seed = (explosion_seed*1664525 + 1013904223) >>> 0;
@@ -55,6 +77,123 @@ function update_explosions(dt)
         explosion.t += dt;
     }
     explosions = explosions.filter(v => v.t < v.duration);
+    for (const enemy of enemies) {
+        if (enemy.shield_flash) {
+            enemy.shield_flash = Math.max(0, enemy.shield_flash - dt);
+        }
+    }
+    if (player && player.shield_flash) {
+        player.shield_flash = Math.max(0, player.shield_flash - dt);
+    }
+    update_hull_damage(dt);
+}
+
+// Below a third of its hull your ship trails smoke and throws sparks.
+function update_hull_damage(dt)
+{
+    if (!player || (state !== 'playing') || (player.hp >= hull_max()/3) || (player.hp <= 0)) {
+        return;
+    }
+    hull_smoke_timer -= dt;
+    if (hull_smoke_timer > 0) {
+        return;
+    }
+    hull_smoke_timer = 0.09 + explosion_random()*0.08;
+    const back = player.angle + Math.PI;
+    const x = player.x + Math.cos(back)*10 + (explosion_random() - 0.5)*10;
+    const y = player.y + Math.sin(back)*10 + (explosion_random() - 0.5)*10;
+    explode(x, y, 9 + explosion_random()*5, '#5b5550', 0, 'smoke');
+    if (explosion_random() < 0.3) {
+        explode(x, y, 6, '#ffb347', 0, 'spark');
+    }
+}
+
+// Ore rocks glow gold, so a rock you can mine never looks like one you can only hit.
+function ore_glow(v)
+{
+    const pulse = (Math.sin(clock*2.2 + v.x*0.013) + 1)/2;
+    const glow = ctx.createRadialGradient(v.x, v.y, v.r*0.4, v.x, v.y, v.r*1.7);
+    glow.addColorStop(0, color_with_alpha(ore_color(v), 0.16 + pulse*0.14 + (v.resource ? 0.12 : 0)));
+    glow.addColorStop(1, color_with_alpha(ore_color(v), 0));
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.fillStyle = glow;
+    explosion_circle(v.x, v.y, v.r*1.7);
+    ctx.fill();
+    ctx.restore();
+}
+
+// Three gold veins across an ore rock, drawn in its own rotated frame
+function ore_veins(v)
+{
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.strokeStyle = ore_color(v) + 'cc';
+    ctx.lineWidth = Math.max(1.2, v.r*0.06);
+    ctx.beginPath();
+    ctx.moveTo(-v.r*0.55, -v.r*0.1);
+    ctx.lineTo(-v.r*0.15, -v.r*0.3);
+    ctx.lineTo(v.r*0.25, -v.r*0.15);
+    ctx.moveTo(-v.r*0.35, v.r*0.35);
+    ctx.lineTo(0, v.r*0.12);
+    ctx.lineTo(v.r*0.45, v.r*0.3);
+    ctx.moveTo(v.r*0.1, -v.r*0.55);
+    ctx.lineTo(v.r*0.05, -v.r*0.2);
+    ctx.stroke();
+    ctx.restore();
+}
+
+// Pickups twinkle: a small four-pointed star that comes and goes on each of them
+function render_pickup_glints()
+{
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.strokeStyle = '#fff6d8';
+    ctx.lineWidth = 1.2;
+    for (const pickup of pickups) {
+        const twinkle = (Math.sin(clock*3 + (pickup.phase || 0)*2 + pickup.x*0.01) + 1)/2;
+        if ((twinkle < 0.55) || !in_view(pickup, 20)) {
+            continue;
+        }
+        const r = 4 + twinkle*5;
+        const x = pickup.x + 5;
+        const y = pickup.y - 5;
+        ctx.globalAlpha = (twinkle - 0.55)/0.45;
+        ctx.beginPath();
+        ctx.moveTo(x - r, y);
+        ctx.lineTo(x + r, y);
+        ctx.moveTo(x, y - r);
+        ctx.lineTo(x, y + r);
+        ctx.stroke();
+    }
+    ctx.restore();
+}
+
+// A full bright ring over the shield arc for the moment after a hit
+function shield_shimmer(target, radius)
+{
+    if (!target.shield_flash) {
+        return;
+    }
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.globalAlpha = target.shield_flash/0.18;
+    ctx.strokeStyle = '#cfeaff';
+    ctx.lineWidth = 3;
+    explosion_circle(target.x, target.y, radius);
+    ctx.stroke();
+    ctx.restore();
+}
+
+// A shield that takes a hit shimmers; one that breaks bursts in blue.
+function shield_hit_show(target, before)
+{
+    if ((before > 0) && ((target.shield || 0) < before)) {
+        target.shield_flash = 0.18;
+        if ((target.shield || 0) <= 0) {
+            explode(target.x, target.y, (target.r || 18)*1.7, '#8fd0ff', 0, 'shield');
+        }
+    }
 }
 
 // The top-down views draw in world units; the cockpit passes the projected point and its scale.
@@ -82,6 +221,10 @@ function render_explosions_in_cabin()
 
 function explosion_draw(explosion, x, y, scale)
 {
+    if (explosion.kind !== 'blast') {
+        explosion_light_draw(explosion, x, y, scale);
+        return;
+    }
     const p = explosion.t/explosion.duration;
     const ease = 1 - Math.pow(1 - p, 3);
     const size = explosion.size*scale;
@@ -148,6 +291,51 @@ function explosion_draw(explosion, x, y, scale)
             ctx.fill();
         }
     }
+    ctx.restore();
+}
+
+function explosion_light_draw(explosion, x, y, scale)
+{
+    const p = explosion.t/explosion.duration;
+    const size = explosion.size*scale;
+    ctx.save();
+    if (explosion.kind === 'smoke') {
+        ctx.globalAlpha = (1 - p)*0.32;
+        ctx.fillStyle = explosion.color;
+        explosion_circle(x + explosion.drift.x*explosion.t*scale, y + explosion.drift.y*explosion.t*scale, size*(0.6 + p*1.4));
+        ctx.fill();
+        ctx.restore();
+        return;
+    }
+    ctx.globalCompositeOperation = 'lighter';
+    if (explosion.kind === 'muzzle') {
+        explosion_fireball(x, y, size*(1 - p*0.4), p, explosion.color);
+    }
+    if ((explosion.kind === 'spark') || (explosion.kind === 'warp')) {
+        ctx.globalAlpha = 1 - p;
+        ctx.fillStyle = '#ffffff';
+        explosion_circle(x, y, size*(0.35 + p*0.5)*((explosion.kind === 'warp') ? 1.4 : 1));
+        ctx.fill();
+    }
+    if ((explosion.kind === 'shield') || (explosion.kind === 'warp')) {
+        ctx.globalAlpha = (1 - p)*0.9;
+        ctx.strokeStyle = explosion.color;
+        ctx.lineWidth = Math.max(1, size*0.08*(1 - p));
+        explosion_circle(x, y, (explosion.kind === 'warp') ? size*(1.6 - p*1.2) : size*(0.8 + p*0.9));
+        ctx.stroke();
+    }
+    ctx.globalAlpha = 1 - p;
+    ctx.strokeStyle = (explosion.kind === 'shield') ? '#d8f0ff' : '#ffe9b0';
+    ctx.lineWidth = Math.max(1, 1.3*scale);
+    ctx.beginPath();
+    for (const spark of explosion.sparks) {
+        const d = spark.speed*scale*explosion.t;
+        const cos = Math.cos(spark.angle);
+        const sin = Math.sin(spark.angle);
+        ctx.moveTo(x + cos*Math.max(0, d - spark.length*scale), y + sin*Math.max(0, d - spark.length*scale));
+        ctx.lineTo(x + cos*d, y + sin*d);
+    }
+    ctx.stroke();
     ctx.restore();
 }
 

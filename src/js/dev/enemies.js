@@ -16,7 +16,7 @@ function dev_enemy_spawn(dummy)
     if (!dev_run_active()) {
         return;
     }
-    const type = document.getElementById('dev_enemy_type').value;
+    const type = dev_enemy_type_options[Number(document.getElementById('dev_enemy_type').value)].value;
     const distance = Number(document.getElementById('dev_enemy_distance').value);
     const enemy = spawn_enemy(type);
     enemy.x = clamp(player.x + Math.cos(player.angle)*distance, 30, world.w - 30);

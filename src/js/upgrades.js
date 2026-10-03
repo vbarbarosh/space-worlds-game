@@ -119,7 +119,11 @@ function drop_pickup(x, y, type, value = 0)
 
 function collect_pickup(v, quiet = false)
 {
-    if (v.type === 'artifact') {
+    explode(v.x, v.y, 14, pickup_color(v), 0, 'spark');
+    if (v.type === 'cargo') {
+        cargo_collect(v, quiet);
+    }
+    else if (v.type === 'artifact') {
         const amount = Math.ceil(v.value*(1 + upgrades.salvager*0.25));
         salvage += amount;
         artifacts_count++;

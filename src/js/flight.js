@@ -50,7 +50,8 @@ function fly_in_world(dt, dx, dy)
     else if ((input > 0.04) || player.turbo_active) {
         const boost = !!player.turbo_active;
         let desiredSpeed = (boost ? turbo_speed() : speed)*(boost ? 1 : input)*facing;
-        if (auto && !mouse_drive.following) {
+        // Arrival braking for a click; a held button or follow mode chases the cursor and never arrives.
+        if (auto && !mouse_drive.following && !mouse_drive.held) {
             const d = distance(player, {x: mouse_drive.x, y: mouse_drive.y});
             desiredSpeed = Math.min(desiredSpeed, Math.sqrt(2*brake*0.65*Math.max(0, d - 5)));
             if (boost && (d < Math.max(180, velocity*0.8))) {
@@ -282,17 +283,23 @@ function fire()
     }
 }
 
-function dash()
+// held: ignition from an input still held down, retried every frame; it stays silent and waits for 1.5 s of charge,
+// so holding on an empty tank gives bursts, not a flicker
+function dash(held = false)
 {
-    if ((state !== 'playing') || player.turbo_active || (player.dash_cd > 0) || (turbo_fuel() < 0.25)) {
+    if ((state !== 'playing') || player.turbo_active || (player.dash_cd > 0) || (turbo_fuel() < (held ? 1.5 : 0.25))) {
         return;
     }
     if ((campaign.world === 7) && (player.energy < 12)) {
-        show_toast('TURBO NEEDS 12 PULSE', 'COLLECT ENERGY OR INSTALL A PULSE REACTOR', 2);
+        if (!held) {
+            show_toast('TURBO NEEDS 12 PULSE', 'COLLECT ENERGY OR INSTALL A PULSE REACTOR', 2);
+        }
         return;
     }
     if ((campaign.world === 6) && (player.overheated || (player.heat > 85))) {
-        show_toast('ENGINE TOO HOT', 'COOL THE REACTOR BEFORE IGNITION', 2);
+        if (!held) {
+            show_toast('ENGINE TOO HOT', 'COOL THE REACTOR BEFORE IGNITION', 2);
+        }
         return;
     }
     const moving = Math.hypot(player.vx, player.vy) > 10;
