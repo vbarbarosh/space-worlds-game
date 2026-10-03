@@ -19,6 +19,8 @@ trap 'rm -rf $tempdir; echo -e "$EXIT_MESSAGE"' EXIT
 cd $scriptdir/..
 
 npm ci
+# the Chromium that bin/captain drives
+npx playwright install chromium
 bin/build
 
 EXIT_MESSAGE="${GREEN}bin/configure succeeded${RESET}"

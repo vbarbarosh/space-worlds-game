@@ -8,6 +8,7 @@ const build_dir = path.join(__dirname, '..', 'build');
 const include_regex = /^<!-- include (.+) -->\n$/;
 const slot_regex = /^<!-- slot (.+) -->\n$/;
 const src_dir = path.join(__dirname, '..', 'src');
+const variants = ['dev', 'agent'];
 
 cli(main);
 
@@ -15,7 +16,9 @@ function main()
 {
     fs.mkdirSync(build_dir, {recursive: true});
     build_index_html();
-    build_dev_html();
+    for (const variant of variants) {
+        build_variant_html(variant);
+    }
 }
 
 function build_index_html()
@@ -24,12 +27,12 @@ function build_index_html()
     fs.writeFileSync(path.join(build_dir, 'index.html'), html_from_template(template, {}));
 }
 
-// The game page with src/dev.html's parts put into its slots
-function build_dev_html()
+// The game page with src/<variant>.html's parts put into its slots
+function build_variant_html(variant)
 {
     const template = fs.readFileSync(path.join(src_dir, 'index.html'), 'utf8');
-    const dev = fs.readFileSync(path.join(src_dir, 'dev.html'), 'utf8');
-    fs.writeFileSync(path.join(build_dir, 'dev.html'), html_from_template(template, lines_by_slot_from_text(dev)));
+    const parts = fs.readFileSync(path.join(src_dir, variant + '.html'), 'utf8');
+    fs.writeFileSync(path.join(build_dir, variant + '.html'), html_from_template(template, lines_by_slot_from_text(parts)));
 }
 
 // A line `<!-- slot js -->` takes the lines of that slot, or goes away; then
@@ -59,7 +62,7 @@ function html_from_template(template, lines_by_slot)
     return parts.join('');
 }
 
-// src/dev.html: a `<!-- slot name -->` line opens a slot; the lines after it fill it
+// src/dev.html, src/agent.html: a `<!-- slot name -->` line opens a slot; the lines after it fill it
 function lines_by_slot_from_text(text)
 {
     const out = {};

@@ -1,0 +1,273 @@
+#!/usr/bin/env node
+
+const cli = require('@vbarbarosh/node-helpers/src/cli');
+const fs = require('node:fs');
+const path = require('node:path');
+const {chromium} = require('playwright');
+const {spawn} = require('node:child_process');
+
+const agent_dir = path.join(__dirname, '..', 'data', 'agent');
+const news_file = path.join(agent_dir, 'news_seen.txt');
+const page_file = path.join(__dirname, '..', 'build', 'agent.html');
+const pid_file = path.join(agent_dir, 'chrome.pid');
+const port = Number(process.env.PORT) || 9333;
+const shots_dir = path.join(agent_dir, 'shots');
+const usage = `usage: bin/captain <command>
+
+    start              open the agent's game window (HEADLESS=1 for no window)
+    stop               close it
+    screen             what is on the screen; buttons are numbered [n]
+    press <n|label>    press button n, or the first button whose label contains the text
+    key <code> [s]     press a key, e.g. KeyR (dock / jump), KeyJ (map), Space (pulse); hold it s seconds
+    status             the ship, cargo, contracts and objective as JSON
+    wait [s]           let the game run s seconds (default 30), then print the news and the status
+    news               what the game announced since you last asked
+    shot               save a screenshot and print its path
+
+Instructions: docs/agent/README.md`;
+
+cli(main);
+
+async function main()
+{
+    const command = process.argv[2];
+    const args = process.argv.slice(3);
+    switch (command) {
+    case 'start':
+        await captain_start();
+        break;
+    case 'stop':
+        captain_stop();
+        break;
+    case 'screen':
+        await page_run(async function (page) {
+            console.log(await screen_text(page));
+        });
+        break;
+    case 'press':
+        await page_run(function (page) {
+            return captain_press(page, args.join(' '));
+        });
+        break;
+    case 'key':
+        await page_run(function (page) {
+            return captain_key(page, args[0], Number(args[1]) || 0);
+        });
+        break;
+    case 'status':
+        await page_run(async function (page) {
+            console.log(JSON.stringify(await page.evaluate(() => window.captain.status()), null, 2));
+        });
+        break;
+    case 'wait':
+        await page_run(function (page) {
+            return captain_wait(page, Number(args[0]) || 30);
+        });
+        break;
+    case 'news':
+        await page_run(async function (page) {
+            console.log(await news_text(page));
+        });
+        break;
+    case 'shot':
+        await page_run(captain_shot);
+        break;
+    default:
+        console.log(usage);
+    }
+}
+
+async function captain_start()
+{
+    if (await cdp_alive()) {
+        console.log('The game is already running.');
+        return;
+    }
+    if (!fs.existsSync(page_file)) {
+        throw new Error('build/agent.html is missing: run bin/build first');
+    }
+    fs.mkdirSync(agent_dir, {recursive: true});
+    const args = [
+        '--remote-debugging-port=' + port,
+        '--user-data-dir=' + path.join(agent_dir, 'profile'),
+        '--no-first-run',
+        '--no-default-browser-check',
+        '--no-sandbox',
+        '--autoplay-policy=no-user-gesture-required',
+        '--window-size=1280,860',
+    ];
+    if (process.env.HEADLESS === '1') {
+        args.push('--headless=new');
+    }
+    args.push('file://' + page_file);
+    const child = spawn(chromium.executablePath(), args, {detached: true, stdio: 'ignore'});
+    child.unref();
+    fs.writeFileSync(pid_file, String(child.pid));
+    fs.writeFileSync(news_file, '0');
+    for (let i = 0; i < 60; ++i) {
+        if (await cdp_alive()) {
+            break;
+        }
+        await sleep(250);
+    }
+    await page_run(async function (page) {
+        await page.waitForFunction(() => window.captain, null, {timeout: 15000});
+        console.log(await screen_text(page));
+    });
+}
+
+function captain_stop()
+{
+    if (!fs.existsSync(pid_file)) {
+        console.log('No game window was started.');
+        return;
+    }
+    try {
+        process.kill(Number(fs.readFileSync(pid_file, 'utf8')));
+    }
+    catch {
+        // already closed
+    }
+    fs.rmSync(pid_file);
+    console.log('Closed.');
+}
+
+async function captain_press(page, target)
+{
+    let button = null;
+    if (/^\d+$/.test(target)) {
+        button = page.locator(`[data-captain="${target}"]`);
+        if (!(await button.count())) {
+            throw new Error(`Button ${target} is gone: the screen changed. Run bin/captain screen again.`);
+        }
+    }
+    else {
+        await screen_text(page);
+        button = page.locator('[data-captain]', {hasText: target}).first();
+        if (!(await button.count())) {
+            throw new Error(`No button with "${target}" on the screen. Run bin/captain screen.`);
+        }
+    }
+    try {
+        await button.click({timeout: 3000});
+    }
+    catch {
+        throw new Error(`Could not press "${target}": something covers it. Run bin/captain screen.`);
+    }
+    await sleep(700);
+    console.log(await screen_text(page));
+}
+
+async function captain_key(page, code, seconds)
+{
+    if (!code) {
+        throw new Error('usage: bin/captain key <code> [seconds], e.g. key KeyR');
+    }
+    await page.keyboard.down(code);
+    await sleep(Math.max(80, seconds*1000));
+    await page.keyboard.up(code);
+    await sleep(500);
+    console.log(await screen_text(page));
+}
+
+async function captain_wait(page, seconds)
+{
+    await sleep(seconds*1000);
+    console.log(await news_text(page));
+    console.log(JSON.stringify(await page.evaluate(() => window.captain.status())));
+}
+
+async function captain_shot(page)
+{
+    fs.mkdirSync(shots_dir, {recursive: true});
+    const file = path.join(shots_dir, new Date().toISOString().replace(/[:.]/g, '-') + '.png');
+    await page.screenshot({path: file});
+    console.log(file);
+}
+
+// Connects to the running window, runs fn with the agent's page, and disconnects.
+async function page_run(fn)
+{
+    if (!(await cdp_alive())) {
+        throw new Error('No game is running: bin/captain start');
+    }
+    const browser = await chromium.connectOverCDP('http://127.0.0.1:' + port);
+    try {
+        const pages = browser.contexts().flatMap(v => v.pages());
+        const page = pages.find(v => v.url().includes('agent.html'));
+        if (!page) {
+            throw new Error('The game window has no agent.html page; bin/captain stop, then start');
+        }
+        await fn(page);
+    }
+    finally {
+        await browser.close();
+    }
+}
+
+async function cdp_alive()
+{
+    try {
+        const response = await fetch('http://127.0.0.1:' + port + '/json/version');
+        return response.ok;
+    }
+    catch {
+        return false;
+    }
+}
+
+// The open panel (or the flight HUD) as text; every enabled button carries its number [n] for press.
+function screen_text(page)
+{
+    return page.evaluate(function () {
+        for (const v of document.querySelectorAll('[data-captain]')) {
+            v.removeAttribute('data-captain');
+        }
+        const overlay = Array.from(document.querySelectorAll('section.overlay')).find(v => !v.classList.contains('hidden'));
+        const roots = overlay ? [overlay] : ['#mission', '.topbar .tools', '#loadout', '#toast.show'].map(v => document.querySelector(v)).filter(Boolean);
+        const marks = [];
+        let n = 0;
+        for (const root of roots) {
+            for (const button of root.querySelectorAll('button')) {
+                if (!button.offsetParent) {
+                    continue;
+                }
+                const mark = document.createElement('span');
+                if (button.disabled) {
+                    mark.textContent = '[-] ';
+                }
+                else {
+                    n++;
+                    button.dataset.captain = String(n);
+                    mark.textContent = '[' + n + '] ';
+                }
+                button.prepend(mark);
+                marks.push(mark);
+            }
+        }
+        const text = roots.map(v => v.innerText).join('\n\n');
+        for (const mark of marks) {
+            mark.remove();
+        }
+        const title = overlay ? 'SCREEN: ' + overlay.id : 'SCREEN: flight';
+        return title + '\n' + text.replace(/\n{3,}/g, '\n\n').trim().slice(0, 8000);
+    });
+}
+
+async function news_text(page)
+{
+    const seen = fs.existsSync(news_file) ? Number(fs.readFileSync(news_file, 'utf8')) || 0 : 0;
+    const news = await page.evaluate(v => window.captain.news(v), seen);
+    if (news.length) {
+        fs.writeFileSync(news_file, String(news[news.length - 1].n));
+    }
+    const lines = news.map(v => `[${v.time}s] ${v.title}${v.sub ? ' · ' + v.sub : ''}`);
+    return lines.length ? 'NEWS\n' + lines.join('\n') : 'NEWS: nothing new';
+}
+
+function sleep(ms)
+{
+    return new Promise(function (resolve) {
+        setTimeout(resolve, ms);
+    });
+}

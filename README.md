@@ -17,13 +17,26 @@ Two modes:
 
     bin/configure    install dependencies and build
     bin/run          build and open build/index.html in the browser
-    bin/build        write build/index.html and build/dev.html
+    bin/build        write build/index.html, build/dev.html and build/agent.html
+    bin/captain      the agent's game window and its commands (see below)
 
 `build/dev.html` is the developer mode: the game with a dev panel. It starts
 straight into any world, ship and weapon, and has time controls, cheats,
 enemy and target-dummy spawning, live upgrade levels and a sound board. The
 scene lives in the URL, e.g. `dev.html?world=3&ship=gunship&weapon=rail`.
 It keeps its own storage and never touches the game's save.
+
+## An agent as a player
+
+A coding agent such as Claude Code or Codex can play the campaign as your
+rival, in its own world and its own window:
+
+    bin/captain start
+    claude "Read docs/agent/README.md and play World Explorer."
+
+`bin/captain` shows the agent the screen as text and presses buttons and keys
+for it; `docs/agent/README.md` is its instructions. The agent keeps a diary of
+its decisions in `data/agent/diary.md`; its window and save are its own.
 
 ## Layout
 
@@ -42,5 +55,7 @@ for the dev page.
     src/js/sfx/      one file per sound effect: its cooldown and its synth calls
     src/dev.html     what the dev page adds into the slots of src/index.html
     src/js/dev/      the dev panel: time, cheats, scenario, one file per tab
+    src/agent.html   what the agent's page adds: storage of its own, the captain hook
+    src/js/agent/    the captain hook: the game state as JSON and the news
 
 Code: [vbarbarosh/rules](https://github.com/vbarbarosh/rules).
