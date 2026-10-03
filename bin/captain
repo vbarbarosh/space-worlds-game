@@ -2,6 +2,8 @@
 
 const cli = require('@vbarbarosh/node-helpers/src/cli');
 const fs = require('node:fs');
+const net = require('node:net');
+const os = require('node:os');
 const path = require('node:path');
 const {chromium} = require('playwright');
 const {spawn} = require('node:child_process');
@@ -9,18 +11,26 @@ const {spawn} = require('node:child_process');
 const agent_dir = path.join(__dirname, '..', 'data', 'agent');
 const news_file = path.join(agent_dir, 'news_seen.txt');
 const page_file = path.join(__dirname, '..', 'build', 'agent.html');
-const pid_file = path.join(agent_dir, 'chrome.pid');
 const port = Number(process.env.PORT) || 9333;
 const shots_dir = path.join(agent_dir, 'shots');
+// The window's debugging port is reached through this socket in the project folder, from the same machine
+// or from inside a container such as ai-box that shares the folder; no port is opened to the network.
+const socket_file = path.join(agent_dir, 'cdp.sock');
+const window_file = path.join(agent_dir, 'window.json');
+// News that needs a decision ends a wait at once.
+const wait_titles = ['OPERATION COMPLETE', 'PILOT PROMOTED', 'SHUTTLE NOT PREPARED', 'CARGO', 'GUARDIAN BROKEN'];
 const usage = `usage: bin/captain <command>
 
-    start              open the agent's game window (HEADLESS=1 for no window)
+    start              open the agent's game window (HEADLESS=1 for no window);
+                       with the agent inside ai-box, run start on your machine: the commands reach it from the box
     stop               close it
     screen             what is on the screen; buttons are numbered [n]
     press <n|label>    press button n, or the first button whose label contains the text
     key <code> [s]     press a key, e.g. KeyR (dock / jump), KeyJ (map), Space (pulse); hold it s seconds
     status             the ship, cargo, contracts and objective as JSON
-    wait [s]           let the game run s seconds (default 30), then print the news and the status
+    wait [s]           let the game run up to s seconds (default 60); it returns as soon as something needs you:
+                       docked, a card to pick, a contract complete, low hull, nothing to fly to, death
+    autopilot on|off   standing orders (on by default): fly stage after stage, dock, jump; in the arcade, dodge and fight
     news               what the game announced since you last asked
     shot               save a screenshot and print its path
 
@@ -38,6 +48,9 @@ async function main()
         break;
     case 'stop':
         captain_stop();
+        break;
+    case 'relay':
+        captain_relay();
         break;
     case 'screen':
         await page_run(async function (page) {
@@ -61,7 +74,13 @@ async function main()
         break;
     case 'wait':
         await page_run(function (page) {
-            return captain_wait(page, Number(args[0]) || 30);
+            return captain_wait(page, Number(args[0]) || 60);
+        });
+        break;
+    case 'autopilot':
+        await page_run(async function (page) {
+            const on = await page.evaluate(v => window.captain.autopilot(v), args[0] !== 'off');
+            console.log('Autopilot ' + (on ? 'on' : 'off') + '.');
         });
         break;
     case 'news':
@@ -79,9 +98,13 @@ async function main()
 
 async function captain_start()
 {
-    if (await cdp_alive()) {
+    if (await socket_alive()) {
         console.log('The game is already running.');
         return;
+    }
+    const display = process.env.DISPLAY || process.env.WAYLAND_DISPLAY || (process.platform !== 'linux');
+    if (!display && (process.env.HEADLESS !== '1')) {
+        throw new Error('No display here (inside ai-box?). Run bin/captain start on your machine, outside the box; the commands reach the window from inside it.');
     }
     if (!fs.existsSync(page_file)) {
         throw new Error('build/agent.html is missing: run bin/build first');
@@ -100,12 +123,14 @@ async function captain_start()
         args.push('--headless=new');
     }
     args.push('file://' + page_file);
-    const child = spawn(chromium.executablePath(), args, {detached: true, stdio: 'ignore'});
-    child.unref();
-    fs.writeFileSync(pid_file, String(child.pid));
+    const chrome = spawn(chromium.executablePath(), args, {detached: true, stdio: 'ignore'});
+    chrome.unref();
+    const relay = spawn(process.execPath, [__filename, 'relay'], {detached: true, stdio: 'ignore'});
+    relay.unref();
+    fs.writeFileSync(window_file, JSON.stringify({host: os.hostname(), chrome_pid: chrome.pid, relay_pid: relay.pid}));
     fs.writeFileSync(news_file, '0');
     for (let i = 0; i < 60; ++i) {
-        if (await cdp_alive()) {
+        if (await socket_alive()) {
             break;
         }
         await sleep(250);
@@ -116,20 +141,52 @@ async function captain_start()
     });
 }
 
+// Only the machine that opened the window can close it; the pids mean nothing anywhere else.
 function captain_stop()
 {
-    if (!fs.existsSync(pid_file)) {
+    if (!fs.existsSync(window_file)) {
         console.log('No game window was started.');
         return;
     }
-    try {
-        process.kill(Number(fs.readFileSync(pid_file, 'utf8')));
+    const info = JSON.parse(fs.readFileSync(window_file, 'utf8'));
+    if (info.host !== os.hostname()) {
+        console.log(`The window runs on ${info.host}: run bin/captain stop there.`);
+        return;
     }
-    catch {
-        // already closed
+    for (const pid of [info.chrome_pid, info.relay_pid]) {
+        try {
+            process.kill(pid);
+        }
+        catch {
+            // already closed
+        }
     }
-    fs.rmSync(pid_file);
+    fs.rmSync(window_file);
+    fs.rmSync(socket_file, {force: true});
     console.log('Closed.');
+}
+
+// Runs next to the window: forwards the socket in the project folder to the window's debugging port.
+function captain_relay()
+{
+    fs.rmSync(socket_file, {force: true});
+    const server = net.createServer(function (client) {
+        const upstream = net.connect(port, '127.0.0.1');
+        client.pipe(upstream).pipe(client);
+        client.on('error', () => upstream.destroy());
+        upstream.on('error', () => client.destroy());
+    });
+    server.listen(socket_file, function () {
+        fs.chmodSync(socket_file, 0o600);
+    });
+    // The relay leaves with the window.
+    setInterval(async function () {
+        if (!(await port_alive())) {
+            server.close();
+            fs.rmSync(socket_file, {force: true});
+            process.exit(0);
+        }
+    }, 5000);
 }
 
 async function captain_press(page, target)
@@ -172,9 +229,48 @@ async function captain_key(page, code, seconds)
 
 async function captain_wait(page, seconds)
 {
-    await sleep(seconds*1000);
+    const first = await page.evaluate(() => window.captain.status());
+    const seen = fs.existsSync(news_file) ? Number(fs.readFileSync(news_file, 'utf8')) || 0 : 0;
+    let reason = 'time is up';
+    let idle = 0;
+    let waited = 0;
+    while (waited < seconds) {
+        await sleep(1000);
+        waited++;
+        const status = await page.evaluate(() => window.captain.status());
+        const news = await page.evaluate(v => window.captain.news(v), seen);
+        const urgent = news.find(v => wait_titles.some(vv => v.title.includes(vv)));
+        idle = ((status.state === 'playing') && !status.arcade && !status.objective) ? idle + 1 : 0;
+        if (!['playing', 'transit'].includes(status.state) && (status.state !== first.state)) {
+            reason = 'the screen is now ' + status.state;
+        }
+        else if (urgent) {
+            reason = urgent.title;
+        }
+        else if ((hull_fraction(status) < 0.35) && (hull_fraction(first) >= 0.35)) {
+            reason = 'hull is low: ' + status.hull;
+        }
+        else if (idle >= 3) {
+            reason = 'nothing to fly to: choose a contract or a destination';
+        }
+        else {
+            continue;
+        }
+        break;
+    }
+    console.log(`WAIT ENDED after ${waited}s: ${reason}`);
     console.log(await news_text(page));
-    console.log(JSON.stringify(await page.evaluate(() => window.captain.status())));
+    console.log(await screen_text(page));
+    console.log('STATUS ' + JSON.stringify(await page.evaluate(() => window.captain.status())));
+}
+
+function hull_fraction(status)
+{
+    if (!status.hull) {
+        return 1;
+    }
+    const parts = status.hull.split(' / ');
+    return Number(parts[0])/Number(parts[1]);
 }
 
 async function captain_shot(page)
@@ -185,30 +281,75 @@ async function captain_shot(page)
     console.log(file);
 }
 
-// Connects to the running window, runs fn with the agent's page, and disconnects.
+// Connects to the window through the socket, runs fn with the agent's page, and disconnects.
 async function page_run(fn)
 {
-    if (!(await cdp_alive())) {
-        throw new Error('No game is running: bin/captain start');
+    if (!fs.existsSync(socket_file)) {
+        throw new Error('No game window is running. Start it with bin/captain start (on your machine, outside ai-box).');
     }
-    const browser = await chromium.connectOverCDP('http://127.0.0.1:' + port);
+    const bridge = await bridge_open();
     try {
-        const pages = browser.contexts().flatMap(v => v.pages());
-        const page = pages.find(v => v.url().includes('agent.html'));
-        if (!page) {
-            throw new Error('The game window has no agent.html page; bin/captain stop, then start');
+        const address = '127.0.0.1:' + bridge.address().port;
+        const response = await fetch('http://' + address + '/json/version');
+        const version = await response.json();
+        const endpoint = version.webSocketDebuggerUrl.replace(/^ws:\/\/[^/]+/, 'ws://' + address);
+        const browser = await chromium.connectOverCDP(endpoint);
+        try {
+            const pages = browser.contexts().flatMap(v => v.pages());
+            const page = pages.find(v => v.url().includes('agent.html'));
+            if (!page) {
+                throw new Error('The game window has no agent.html page; bin/captain stop, then start');
+            }
+            await fn(page);
         }
-        await fn(page);
+        finally {
+            await browser.close();
+        }
     }
     finally {
-        await browser.close();
+        bridge.close();
     }
 }
 
-async function cdp_alive()
+// A local port that leads into the socket, for the length of one command.
+function bridge_open()
+{
+    return new Promise(function (resolve, reject) {
+        const server = net.createServer(function (client) {
+            const upstream = net.connect(socket_file);
+            client.pipe(upstream).pipe(client);
+            client.on('error', () => upstream.destroy());
+            upstream.on('error', () => client.destroy());
+        });
+        server.on('error', reject);
+        server.listen(0, '127.0.0.1', function () {
+            resolve(server);
+        });
+    });
+}
+
+async function socket_alive()
+{
+    if (!fs.existsSync(socket_file)) {
+        return false;
+    }
+    const bridge = await bridge_open();
+    try {
+        const response = await fetch('http://127.0.0.1:' + bridge.address().port + '/json/version', {signal: AbortSignal.timeout(1500)});
+        return response.ok;
+    }
+    catch {
+        return false;
+    }
+    finally {
+        bridge.close();
+    }
+}
+
+async function port_alive()
 {
     try {
-        const response = await fetch('http://127.0.0.1:' + port + '/json/version');
+        const response = await fetch('http://127.0.0.1:' + port + '/json/version', {signal: AbortSignal.timeout(1500)});
         return response.ok;
     }
     catch {

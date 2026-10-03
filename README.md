@@ -29,10 +29,14 @@ It keeps its own storage and never touches the game's save.
 ## An agent as a player
 
 A coding agent such as Claude Code or Codex can play the campaign as your
-rival, in its own world and its own window:
+rival, in its own world and its own window. Open the window on your machine,
+then start the agent, inside ai-box or anywhere else that shares this folder:
 
     bin/captain start
     claude "Read docs/agent/README.md and play World Explorer."
+
+The agent's commands reach the window through `data/agent/cdp.sock`, a socket
+in this folder, so no port is opened to the network.
 
 `bin/captain` shows the agent the screen as text and presses buttons and keys
 for it; `docs/agent/README.md` is its instructions. The agent keeps a diary of

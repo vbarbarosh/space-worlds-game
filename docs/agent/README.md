@@ -11,8 +11,12 @@ window stays open, so the human can watch you play.
 - Play only through `bin/captain`. Do not read or change the game's source,
   its build or its saves: a pilot sees the screen, not the engine.
 - Write nothing outside `data/agent/`.
-- The game runs in real time. While you think, your ship keeps flying and
-  can be shot. At a station the game waits for you.
+- The game runs in real time. While you think, your **autopilot** carries
+  out standing orders: it flies stage after stage of your tracked contract,
+  flies home and docks when the contract is done, jumps the gates on your
+  route, and fights on its own. Between moves it brakes and keeps station,
+  so currents and drift do not carry the ship away. At a station the game
+  waits for you.
 
 ## Your character
 
@@ -40,14 +44,20 @@ game time, what you did, and why. The human reads it to see how you think.
 
 ## Commands
 
-    bin/captain start              open the game window
+The human opens the game window on their machine. If a command says no window
+is running, ask them to run `bin/captain start`; do not start it yourself.
+
+    bin/captain start              open the game window (the human usually opens it for you)
     bin/captain screen             what is on the screen; buttons are numbered [n]
     bin/captain press 4            press button 4 from the last screen
     bin/captain press "UNDOCK"     press the first button whose label has this text
     bin/captain key KeyR           press a key
     bin/captain key KeyW 2         hold a key for 2 seconds
     bin/captain status             your ship, cargo, contracts and objective as JSON
-    bin/captain wait 30            let 30 seconds pass, then read the news and the status
+    bin/captain wait 60            let the game run; it returns early, with the reason, as soon as
+                                   something needs you: docked, a card to pick, a contract complete,
+                                   low hull, nothing to fly to, death
+    bin/captain autopilot off      fly by hand with key; autopilot on gives the ship back
     bin/captain news               what the game announced since you last asked
     bin/captain shot               save a screenshot and print its path, to look at
     bin/captain stop               close the window
@@ -59,7 +69,7 @@ screen you read, or press by label.
 ## How the game works, in short
 
 - **The menu**: press `CAMPAIGN` for the story game. `CONTINUE` resumes a
-  saved one. `ARCADE` is a separate action game, not for you.
+  saved one. `ARCADE` is the action game; see below.
 - **At a station** (the screen is `upgrade_overlay`, and time stands still):
   - CONTRACTS lists the contracts you can take: `ACCEPT CONTRACT`. You can
     hold up to three. A finished one is collected here with
@@ -71,17 +81,37 @@ screen you read, or press by label.
     unlock ships and weapons.
   - `UNDOCK` takes you into flight.
 - **In flight** (the screen is `flight`):
-  - `FLY TO OBJECTIVE` starts the autopilot: it flies to the current stage
-    of your tracked contract, through gates and around gravity wells, and
-    your cannons fire on their own. The autopilot stops at the end of each
-    stage: press it again for the next one.
-  - Near the station, `key KeyR` docks. Near a world gate, `key KeyR`
-    jumps to the next world.
+  - The autopilot flies to the current stage of your tracked contract,
+    through gates and around gravity wells, and your cannons fire on their
+    own. It starts by itself within a couple of seconds; `FLY TO OBJECTIVE`
+    starts it at once.
+  - The autopilot docks and jumps for you. By hand: near the station
+    `key KeyR` docks, near a world gate `key KeyR` jumps.
   - `key Space` fires the pulse when energy is full. `key KeyQ` uses a
     repair kit, `key KeyE` an EMP, `key KeyF` a stasis cell.
   - `MISSION PLAN` and `J MAP & GUIDE` (or `key KeyJ`) open the map, the
     mission plan, the world rules and the flight guide.
 - **Death**: the screen `result_overlay` offers `CONTINUE SAVED FLIGHT`.
 
-A good loop: `screen`, choose, `press`, then `wait 20` to `wait 60` in
-flight, reading the news, until the stage is done.
+A good loop: `screen`, choose, `press`, then `wait 60` and read why it
+ended. In flight you rarely need anything else: the autopilot goes on until
+there is a decision to make.
+
+## The arcade
+
+`ARCADE` is a run through the eight worlds: three waves of raiders in each,
+the world's flagship in the third, and a choice of one card between worlds.
+In the arcade the autopilot flies for you: it keeps the nearest raider at gun
+range, sidesteps, collects pickups when the sky is clear and keeps away from
+gravity wells. Your guns fire on their own.
+
+Your part:
+
+- **The cards.** When the screen is `arcade_overlay`, press the card you want:
+  a module, or a new weapon every second world. This is the main decision of
+  the run; think about the next world's rules, shown above the cards.
+- **The pulse and the supplies**, when you judge it right: `key Space` when
+  energy is full and raiders crowd you, `key KeyE` to wipe enemy fire,
+  `key KeyQ` to repair, `key KeyF` to slow everything.
+- `wait 60` returns when a card is due or the run ends; the results screen
+  offers `PLAY AGAIN`.
