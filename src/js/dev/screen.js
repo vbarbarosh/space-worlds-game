@@ -4,7 +4,8 @@ const dev_screen_options = [
     {value: 'flight', label: 'Flight'},
     {value: 'combat', label: 'Flight in a fight'},
     {value: 'arcade', label: 'Arcade'},
-    {value: 'arcade-cleared', label: 'Arcade: world cleared'},
+    {value: 'arcade-world-cleared', label: 'Arcade: world cleared'},
+    {value: 'arcade-cleared', label: 'Arcade: depot after a world'},
     {value: 'arcade-finale', label: 'Arcade: finale'},
     {value: 'rocks', label: 'Facing a mining field'},
     {value: 'station-jobs', label: 'Station: contracts'},
@@ -20,7 +21,7 @@ const dev_screen_options = [
 const dev_screen = new URLSearchParams(location.search).get('screen');
 // read at load: starting the scene rewrites the URL
 const dev_screen_modules = new URLSearchParams(location.search).get('modules') || '';
-// &t=7.5 holds the finale at one moment
+// &t=7.5 holds the finale (or a world's cleared screen) at one moment
 const dev_screen_time = new URLSearchParams(location.search).get('t');
 
 function dev_screen_open()
@@ -58,6 +59,21 @@ function dev_screen_open()
         dev_screen_modules_set();
         player.hp = hull_max()*0.32;
         salvage = 375;
+        arcade_world_clear();
+        finale_leave('depot');
+        return;
+    }
+    if (dev_screen === 'arcade-world-cleared') {
+        dev_arcade_start();
+        dev_screen_modules_set();
+        // the eighth world ends in the finale instead
+        campaign.world = Math.min(campaign.world, worlds.length - 2);
+        arcade.world_start = {score: 18400, kills: 41, run_time: 512};
+        score = 31960;
+        kills = 77;
+        run_time = 761;
+        salvage = 375;
+        finale.frozen = (dev_screen_time === null) ? null : Number(dev_screen_time);
         arcade_world_clear();
         return;
     }

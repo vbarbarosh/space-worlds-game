@@ -11,7 +11,7 @@ Two modes:
   from Haven on (from the second world on Chill); the flagship turns at 66% and 33%. A ship
   that explodes hurts what is close to it. The salvage you collect buys
   repairs, weapons, ships, supplies and modules at the station's depot (R). A cleared world pays a fixed bonus, the weapon
-  grows a tier, and the depot opens before the next world. Score, combo and a best score (salvage left at the end scores 10 points each); no
+  grows a tier, a cleared screen shows the world's numbers, and the depot opens before the next world. Score, combo and a best score (salvage left at the end scores 10 points each); no
   stations or contracts. A save keeps the score, salvage and gear, and loading
   it starts its world again from the first wave.
 - **Campaign**: the stations, contracts, trading and story chapters; see

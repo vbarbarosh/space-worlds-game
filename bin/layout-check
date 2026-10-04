@@ -12,6 +12,8 @@ const screens = [
     {value: 'flight', label: 'hud-calm'},
     {value: 'combat', label: 'hud-combat'},
     {value: 'arcade', label: 'hud-arcade'},
+    // the world's cleared screen held after its button is ready
+    {value: 'arcade-world-cleared', label: 'arcade-world-cleared', query: '&t=5'},
     {value: 'arcade-cleared', label: 'arcade-cleared'},
     // the finale held after its results are in
     {value: 'arcade-finale', label: 'arcade-finale', query: '&t=13'},

@@ -1234,7 +1234,8 @@ body:not(.in-game) .ui.hud .hud-top .toolbar {
 
 .ui .finale-title h1 {
     margin: 10px 0 0;
-    font: 900 clamp(40px, 7.4cqw, 104px)/0.9 var(--font-ui);
+    /* --n: the title's letters; a long one shrinks to fit the window */
+    font: 900 min(clamp(40px, 7.4cqw, 104px), calc((100cqw - 32px)/(var(--n, 16)*0.62)))/0.9 var(--font-ui);
     letter-spacing: -0.04em;
     color: var(--text-1);
     white-space: nowrap;
@@ -1245,9 +1246,10 @@ body:not(.in-game) .ui.hud .hud-top .toolbar {
     opacity: 0;
 }
 
+/* --finale-accent: cyan for the frontier, the world's accent after a world (arcade_finale.js) */
 .ui .finale-title h1 .c {
-    color: var(--cyan);
-    text-shadow: 0 0 50px rgba(108, 248, 236, 0.4);
+    color: var(--finale-accent, var(--cyan));
+    text-shadow: 0 0 50px color-mix(in srgb, var(--finale-accent, var(--cyan)) 40%, transparent);
 }
 
 .ui .finale-title p {
@@ -1272,6 +1274,10 @@ body:not(.in-game) .ui.hud .hud-top .toolbar {
     display: grid;
     grid-template-columns: 1.4fr 1fr 1fr;
     gap: 10px;
+}
+
+.ui .finale-stats.is-four {
+    grid-template-columns: 1.4fr 1fr 1fr 1fr;
 }
 
 .ui .finale-st,
@@ -1321,6 +1327,11 @@ body:not(.in-game) .ui.hud .hud-top .toolbar {
     height: 44px;
     opacity: 0;
     transform: scale(0.4);
+}
+
+/* a flagship still ahead in the run */
+.ui .finale-flags img.is-ahead {
+    filter: grayscale(1);
 }
 
 .ui .finale-best {
@@ -1435,8 +1446,32 @@ body:not(.in-game) .ui.hud .hud-top .toolbar {
         grid-column: 1 / -1;
     }
 
+    .ui .finale-stats.is-four {
+        grid-template-columns: 1fr 1fr 1fr;
+    }
+
     .ui .finale-flags img {
         width: 30px;
         height: 30px;
+    }
+}
+
+/* a phone: the flagships under their label, the tiles tighter */
+@container screen (max-width: 480px) {
+    .ui .finale-flags {
+        flex-wrap: wrap;
+        justify-content: space-between;
+    }
+
+    .ui .finale-flags .eyebrow {
+        flex-basis: 100%;
+    }
+
+    .ui .finale-st {
+        padding: 10px 12px;
+    }
+
+    .ui .finale-st .readout {
+        font-size: 24px;
     }
 }

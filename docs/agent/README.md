@@ -122,7 +122,8 @@ gravity wells. Your guns fire on their own.
 Your part:
 
 - **The depot.** The salvage you collect buys repairs, weapons, supplies and
-  modules. After each world the depot opens by itself (screen
+  modules. After each world its cleared screen shows (screen `finale`; press
+  `To the depot`), then the depot (screen
   `arcade_depot`), with a bonus for the world cleared: this is the main
   decision of the run, so think about the next world's rules, shown under
   your salvage. Press what you buy, then `Launch to <World>`. Mid-world,

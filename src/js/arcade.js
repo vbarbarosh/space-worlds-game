@@ -1,5 +1,5 @@
 // Arcade: one run through the eight worlds, three waves each, the world's flagship in the third; no stations, contracts or saves.
-const arcade = {active: false, world: -1, wave: 0, pause: 0, squad_timer: 0, squads: 0, phase: 0, slowmo: 0, depot_hint: false, blasts: [], between_worlds: null, campaign_checkpoint: null};
+const arcade = {active: false, world: -1, wave: 0, pause: 0, squad_timer: 0, squads: 0, phase: 0, slowmo: 0, depot_hint: false, blasts: [], between_worlds: null, world_start: null, campaign_checkpoint: null};
 const arcade_extent = [7200, 5600];
 const arcade_waves = 3;
 const arcade_radiation = 0.35;
@@ -94,6 +94,7 @@ function arcade_start(world = 0, from = null)
     arcade.depot_hint = false;
     arcade.blasts = [];
     arcade.between_worlds = null;
+    arcade.world_start = null;
     document.body.classList.add('arcade');
     set_hidden(document.getElementById('arcade_depot'), true);
     document.getElementById('restart_button').innerHTML = '<span>Play again</span>';
@@ -203,6 +204,8 @@ function arcade_update(dt)
     }
     if (arcade.world !== campaign.world) {
         arcade.world = campaign.world;
+        // the run as this world begins, for the numbers its cleared screen shows
+        arcade.world_start = {score, kills, run_time};
         arcade_wave_start(1);
         return;
     }
@@ -347,7 +350,8 @@ function arcade_flagship_spawn()
     set_hidden(el.bossbar, false);
 }
 
-// A world cleared pays a fixed bonus, the weapon grows a tier, and the depot opens before the jump to the next world.
+// A world cleared pays a fixed bonus, the weapon grows a tier, and its cleared screen opens; its button opens the depot
+// before the jump to the next world.
 function arcade_world_clear()
 {
     if (campaign.world === worlds.length - 1) {
@@ -360,7 +364,17 @@ function arcade_world_clear()
     ensure_career().weapon_levels[current_weapon().id] = Math.min(5, weapon_level() + 1);
     set_hidden(el.bossbar, true);
     arcade.between_worlds = {world: campaign.world, bonus};
-    arcade_depot_open();
+    toasts_clear();
+    const start = arcade.world_start || {score: 0, kills: 0, run_time: 0};
+    arcade_world_cleared_open(campaign.world, {
+        score: score - start.score,
+        total: score,
+        best,
+        raiders: kills - start.kills,
+        time: run_time - start.run_time,
+        bonus,
+        salvage,
+    });
 }
 
 function arcade_clear_bonus()
