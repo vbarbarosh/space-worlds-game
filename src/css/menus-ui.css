@@ -645,7 +645,9 @@ body:not(.in-game) .ui.hud .hud-top .toolbar {
     flex: 1;
     min-height: 0;
     overflow: auto;
-    padding: 16px 16px 40px 0;
+    /* room on every side for a card's flash glow, which the scroll box would cut */
+    margin-left: -20px;
+    padding: 20px 20px 40px 20px;
     scrollbar-width: thin;
     scrollbar-color: var(--line-2) transparent;
 }
