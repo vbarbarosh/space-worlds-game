@@ -146,6 +146,45 @@ const upgrade_options = [
     {key: 'speed', icon: '➤', title: 'Slipstream', description: '15% more movement speed per level.', cap: 3, cost: 30, group: 'utility', shelf: 'flight', line: 'Faster cruising speed.', tags: 'speed fast cruise скорость'},
     {key: 'armor', icon: '◇', title: 'Phase armor', description: '12% less incoming damage per level.', cap: 3, cost: 46, group: 'defense', shelf: 'defence', line: 'Hull plates: every hit does less damage.', tags: 'armor armour plates hull tank defence броня', part: 'plate'},
     {
+        key: 'seeker',
+        icon: '⌖',
+        title: 'Seeker head',
+        description: 'Seeker launcher: missiles turn 2.0 → 4.1 rad/s and lock from 900 → 1350 m.',
+        cap: 3,
+        cost: 55,
+        group: 'weapon',
+        shelf: 'shots',
+        needs: 'missile',
+        line: 'Seeker launcher: missiles turn harder and lock from farther.',
+        tags: 'missile rocket seeker lock turn homing ракета наведение',
+    },
+    {
+        key: 'motor',
+        icon: '⇶',
+        title: 'Rocket motor',
+        description: 'Seeker launcher: top speed 760 → 1180, a longer burn and a hotter exhaust each level. Faster missiles turn wider.',
+        cap: 3,
+        cost: 50,
+        group: 'weapon',
+        shelf: 'shots',
+        needs: 'missile',
+        line: 'Seeker launcher: faster missiles with a new exhaust; they turn wider.',
+        tags: 'missile rocket motor engine exhaust ракета двигатель',
+    },
+    {
+        key: 'warhead',
+        icon: '✹',
+        title: 'Shaped warhead',
+        description: 'Seeker launcher: blast 100 → 175 m; raiders in it take 60% → 90% of the hit.',
+        cap: 3,
+        cost: 60,
+        group: 'weapon',
+        shelf: 'shots',
+        needs: 'missile',
+        line: 'Seeker launcher: missiles blast wider and harder.',
+        tags: 'missile rocket warhead blast splash ракета взрыв',
+    },
+    {
         key: 'pulse',
         icon: '◎',
         title: 'Pulse amplifier',
@@ -171,10 +210,17 @@ const module_shelves = [
     {value: 'helpers', label: 'Helpers', note: 'salvage and companions'},
 ];
 
-// A module's icon (sprites/modules, named after its title) as an image URL
+// A module's icon (sprites/modules, named after its title) as an image URL; its glyph on a tile until it is drawn
 function module_icon(option)
 {
-    return menu_sprite_url(sprite_svgs.modules?.[option.title.toLowerCase().replace(/\s+/g, '-')]);
+    const text = sprite_svgs.modules?.[option.title.toLowerCase().replace(/\s+/g, '-')];
+    return menu_sprite_url(text || `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect x="6" y="6" width="52" height="52" rx="12" fill="#1b2633" stroke="#070b14" stroke-width="4"/><text x="32" y="45" text-anchor="middle" font-family="sans-serif" font-size="34" fill="#ff9a68">${option.icon}</text></svg>`);
+}
+
+// A module for a gun you do not own (the Seeker launcher's three) waits until you buy the gun
+function module_needs_gun(option)
+{
+    return !!option.needs && !ensure_career().weapons.includes(option.needs);
 }
 
 function drop_pickup(x, y, type, value = 0)
@@ -281,7 +327,7 @@ function shop_buy(v)
     const is_supply = supplies[v.key] !== undefined;
     const level = is_supply ? supplies[v.key] : upgrades[v.key];
     const price = is_supply ? v.cost : module_cost(v);
-    if ((state !== 'upgrade') || !dock_free_chosen || (salvage < price) || (level >= v.cap)) {
+    if ((state !== 'upgrade') || !dock_free_chosen || (salvage < price) || (level >= v.cap) || module_needs_gun(v)) {
         return false;
     }
     salvage -= price;
@@ -319,8 +365,9 @@ function base_render_shop()
         card.innerHTML =
             `<b>${v.icon} &nbsp;${v.title}</b><span class="item-level">${is_supply ? `IN CARGO ${level} / ${v.cap}` : `LEVEL ${level} / ${v.cap}`}</span><p>${v.description}</p>`;
         const b = document.createElement('button');
-        b.disabled = !dock_free_chosen || capped || (salvage < price);
-        b.textContent = capped ? 'FULLY STOCKED' : `${is_supply ? 'BUY' : 'INSTALL'} · ◆ ${price}`;
+        const needs = module_needs_gun(v);
+        b.disabled = !dock_free_chosen || capped || (salvage < price) || needs;
+        b.textContent = capped ? 'FULLY STOCKED' : needs ? `NEEDS ${weapon_by_id(v.needs).name}` : `${is_supply ? 'BUY' : 'INSTALL'} · ◆ ${price}`;
         b.addEventListener('click', () => shop_buy(v));
         card.append(b);
         el.shop_grid.append(card);
@@ -358,7 +405,7 @@ function choose_upgrade(restored = false)
         salvage += reward;
         dock_free_chosen = false;
         dock_message = `Choose your free module above. Sector bonus: ◆ ${reward}.`;
-        const options = upgrade_options.filter(v => upgrades[v.key] < v.cap);
+        const options = upgrade_options.filter(v => (upgrades[v.key] < v.cap) && !module_needs_gun(v));
         for (let i = options.length - 1; i > 0; --i) {
             const j = Math.floor(Math.random()*(i + 1));
             [options[i], options[j]] = [options[j], options[i]];

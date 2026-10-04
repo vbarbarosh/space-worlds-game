@@ -522,7 +522,7 @@ function arcade_depot_items()
         out.push({
             kind: 'weapon', id: weapon.id, section: 'weapons', title: equipped ? `${weapon.name} T${weapon_level()}` : weapon.name,
             line: equipped ? 'Your gun. It grows a tier with every world you clear.' : have ? `Yours. ${weapon.line}` : weapon.line,
-            tags: 'weapon gun оружие пушка', icon: ship_parts_clean_url(`weapons/turret-${weapon.id}`), chips: arcade_weapon_chips(weapon, mine),
+            tags: `weapon gun оружие пушка ${weapon.tags || ''}`, icon: ship_parts_clean_url(`weapons/turret-${weapon.id}`), chips: arcade_weapon_chips(weapon, mine),
             price: equipped ? null : have ? 0 : 120 + weapon.rating*45, done: equipped ? 'Equipped' : '', owned: equipped, label: have ? 'Equip' : 'Buy',
             buy: function () {
                 arcade_weapon_take(weapon);
@@ -548,7 +548,8 @@ function arcade_depot_items()
             const level = upgrades[option.key];
             out.push({
                 kind: 'module', id: option.key, section: shelf.value, title: option.title, line: option.line, tags: option.tags, icon: module_icon(option),
-                part: option.part, pips: [level, option.cap], price: module_cost(option), done: (level >= option.cap) ? 'Max' : '', label: level ? 'Upgrade' : 'Buy',
+                part: option.part, pips: [level, option.cap], price: module_cost(option), label: level ? 'Upgrade' : 'Buy',
+                done: (level >= option.cap) ? 'Max' : module_needs_gun(option) ? 'Needs launcher' : '',
                 buy: function () {
                     grant_upgrade(option);
                 },
@@ -740,8 +741,8 @@ function arcade_ship_take(ship)
 // A gun's damage, fire interval and range as chips, each marked against your gun: up better, down worse
 function arcade_weapon_chips(weapon, mine)
 {
-    const range = weapon.speed*weapon.life;
-    const mine_range = mine.speed*mine.life;
+    const range = weapon_range(weapon);
+    const mine_range = weapon_range(mine);
     function mark(name, text, better, worse) {
         return [name, text, (weapon.id === mine.id) ? '' : better ? 'up' : worse ? 'down' : ''];
     }

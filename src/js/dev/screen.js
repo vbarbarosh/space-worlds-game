@@ -9,6 +9,7 @@ const dev_screen_options = [
     {value: 'rocks', label: 'Facing a mining field'},
     {value: 'station-jobs', label: 'Station: contracts'},
     {value: 'station-arsenal', label: 'Station: arsenal'},
+    {value: 'station-outfit', label: 'Station: modules'},
     {value: 'station-career', label: 'Station: goals'},
     {value: 'station-market', label: 'Station: market'},
     {value: 'map-plan', label: 'Map: mission plan'},

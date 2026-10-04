@@ -17,6 +17,7 @@ const screens = [
     {value: 'arcade-finale', label: 'arcade-finale', query: '&t=13'},
     {value: 'station-jobs', label: 'station-contracts'},
     {value: 'station-arsenal', label: 'station-arsenal'},
+    {value: 'station-outfit', label: 'station-modules'},
     {value: 'station-career', label: 'station-goals'},
     {value: 'station-market', label: 'station-market'},
     {value: 'map-plan', label: 'map-mission-plan'},
