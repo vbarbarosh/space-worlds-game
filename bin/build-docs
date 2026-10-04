@@ -1,0 +1,135 @@
+#!/usr/bin/env node
+
+const cli = require('@vbarbarosh/node-helpers/src/cli');
+const fs = require('node:fs');
+const path = require('node:path');
+
+const {Marked} = require('marked');
+
+const blob_url = 'https://github.com/vbarbarosh/space-worlds-game/blob/main/';
+const docs_dir = path.join(__dirname, '..', 'docs');
+const out_dir = path.join(__dirname, '..', 'build', 'docs');
+const template_name = 'page.template.html';
+
+cli(main);
+
+// Every page of docs/ as HTML in build/docs: README.md becomes index.html, links between pages point at their HTML,
+// links to the rest of the repository go to GitHub, other files of docs/ are copied as they are
+function main()
+{
+    const template = fs.readFileSync(path.join(docs_dir, template_name), 'utf8');
+    const pages = pages_order(files_from_dir(docs_dir).filter(v => v.endsWith('.md')).map(page_from_file));
+    fs.rmSync(out_dir, {recursive: true, force: true});
+    for (const page of pages) {
+        const file = path.join(out_dir, page.href);
+        fs.mkdirSync(path.dirname(file), {recursive: true});
+        fs.writeFileSync(file, html_from_page(template, page, pages));
+    }
+    for (const file of files_from_dir(docs_dir).filter(v => !v.endsWith('.md') && (v !== template_name))) {
+        fs.mkdirSync(path.dirname(path.join(out_dir, file)), {recursive: true});
+        fs.copyFileSync(path.join(docs_dir, file), path.join(out_dir, file));
+    }
+    console.log(`${pages.length} pages · ${out_dir}`);
+}
+
+// Paths under dir, relative and with forward slashes
+function files_from_dir(dir, prefix = '')
+{
+    const out = [];
+    for (const entry of fs.readdirSync(path.join(dir, prefix), {withFileTypes: true})) {
+        const name = prefix ? `${prefix}/${entry.name}` : entry.name;
+        if (entry.isDirectory()) {
+            out.push(...files_from_dir(dir, name));
+        }
+        else {
+            out.push(name);
+        }
+    }
+    return out;
+}
+
+function page_from_file(file)
+{
+    const markdown = fs.readFileSync(path.join(docs_dir, file), 'utf8');
+    const heading = markdown.match(/^# (.+)$/m);
+    return {
+        file,
+        href: href_from_md(file),
+        markdown,
+        title: heading ? heading[1].replace(/^World Explorer: (.)/, (match, first) => first.toUpperCase()) : file,
+    };
+}
+
+// The index first, then the pages in the order it links them, then the pages it does not link
+function pages_order(pages)
+{
+    const index = pages.find(v => v.file === 'README.md');
+    const linked = [...index.markdown.matchAll(/\]\(([^)#\s]+\.md)/g)].map(v => path.posix.normalize(v[1]));
+    return pages.sort((a, b) => (page_rank(a, linked) - page_rank(b, linked)) || a.file.localeCompare(b.file));
+}
+
+function page_rank(page, linked)
+{
+    if (page.file === 'README.md') {
+        return -1;
+    }
+    return linked.includes(page.file) ? linked.indexOf(page.file) : linked.length;
+}
+
+function href_from_md(file)
+{
+    return file.replace(/(^|\/)README\.md$/, '$1index.html').replace(/\.md$/, '.html');
+}
+
+// A link as the page wrote it, to where it points on the site: a page's HTML, a file of docs/, or GitHub
+function href_from_link(href, page)
+{
+    if (/^([a-z]+:|#)/i.test(href)) {
+        return href;
+    }
+    const [target, hash] = href.split('#');
+    const file = path.posix.normalize(path.posix.join(path.posix.dirname(page.file), target));
+    const tail = (hash === undefined) ? '' : `#${hash}`;
+    if (file.startsWith('../')) {
+        return `${blob_url}${path.posix.normalize(`docs/${file}`)}${tail}`;
+    }
+    const to = file.endsWith('.md') ? href_from_md(file) : file;
+    return `${path.posix.relative(path.posix.dirname(page.href), to) || path.posix.basename(to)}${tail}`;
+}
+
+function html_from_page(template, page, pages)
+{
+    const root = '../'.repeat(page.href.split('/').length - 1);
+    const nav = pages.map(v => `<li><a href="${root}${v.href}"${(v === page) ? ' class="on"' : ''}>${html_escape(v.title)}</a></li>`).join('\n');
+    const values = {content: html_from_markdown(page), nav: `<ul>\n${nav}\n</ul>`, root, title: html_escape(page.title)};
+    return template.replace(/\{\{(\w+)\}\}/g, (match, name) => values[name]);
+}
+
+function html_from_markdown(page)
+{
+    const marked = new Marked({gfm: true});
+    marked.use({renderer: {
+        heading: function ({tokens, depth, text}) {
+            return `<h${depth} id="${slug_from_text(text)}">${this.parser.parseInline(tokens)}</h${depth}>\n`;
+        },
+        link: function ({href, title, tokens}) {
+            const title_attr = title ? ` title="${html_escape(title)}"` : '';
+            return `<a href="${html_escape(href_from_link(href, page))}"${title_attr}>${this.parser.parseInline(tokens)}</a>`;
+        },
+        image: function ({href, title, text}) {
+            const title_attr = title ? ` title="${html_escape(title)}"` : '';
+            return `<img src="${html_escape(href_from_link(href, page))}" alt="${html_escape(text)}"${title_attr}>`;
+        },
+    }});
+    return marked.parse(page.markdown);
+}
+
+function slug_from_text(text)
+{
+    return text.toLowerCase().replace(/[`*_]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+}
+
+function html_escape(text)
+{
+    return String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}

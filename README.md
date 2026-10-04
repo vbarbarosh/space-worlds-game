@@ -19,7 +19,9 @@ Two modes:
 
 The rules the game keeps everywhere (what is solid, and the like) are in
 [docs/principles.md](docs/principles.md).
-All the documentation is indexed in [docs/README.md](docs/README.md).
+All the documentation is indexed in [docs/README.md](docs/README.md), and
+published as a website at https://vbarbarosh.github.io/space-worlds-game/
+(Settings → Pages → Source: GitHub Actions turns it on).
 
 ## Start
 
@@ -30,6 +32,8 @@ All the documentation is indexed in [docs/README.md](docs/README.md).
     bin/layout-check every screen at twelve window sizes: no HUD block over
                      another, nothing off the window, no text cut; shots and
                      report.json in data/layout-check/, exit 1 on a failure
+    bin/build-docs   docs/ as a website in build/docs, published to GitHub
+                     Pages on every push to main (.github/workflows/docs.yml)
 
 `build/dev.html` is the developer mode: the game with a dev panel. It starts
 straight into any world, ship and weapon, and has time controls, cheats,

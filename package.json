@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@vbarbarosh/node-helpers": "^3.78.1",
+    "marked": "^18.0.14",
     "playwright": "^1.63.0"
   }
 }
