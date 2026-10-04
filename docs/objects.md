@@ -30,8 +30,8 @@ ships. "Modes" is arcade, campaign or both.
   as the galaxy chart draws it, well away from the station
   ([placement.md](placement.md)).
 - Not solid, cannot be damaged.
-- Campaign. The arcade draws them but they do nothing there: the arcade moves
-  on to the next world from the depot.
+- Campaign only: the arcade moves on to the next world from the depot, so it
+  draws no gates.
 - Where: `world_gates` in `visual_base_generate_map`, `src/js/campaign.js`;
   `interact` in `src/js/navigation.js`; the jump in `src/js/teleport.js`.
 
@@ -51,7 +51,7 @@ ships. "Modes" is arcade, campaign or both.
 - Three per world: the places of scan stages (the survey robot scans beside
   one), survey contracts, and the defend relay.
 - Not solid, cannot be damaged.
-- Drawn in both modes; used only in the campaign.
+- Campaign only; the arcade draws none.
 - Where: `beacons` in `src/js/campaign.js`; `operation_point` in
   `src/js/operations.js`; `src/js/survey.js`.
 
@@ -235,10 +235,6 @@ it. Each has a suggestion, only a suggestion.
 - **Planets and moons** outside Obsidian: decoration only. *Suggestion:* a
   planet gives a slow gravity assist (a speed boost along its rim), so the
   sky is a route too.
-- **World gates, beacons in the arcade:** drawn but unused; the arcade jumps
-  from the depot and has no scans. *Suggestion:* the arcade's next-world jump
-  goes through the gate (fly in after the depot), and a beacon gives a short
-  buff while you hold beside it.
 - **The station's drawing as a body:** it is not solid, so ships fly over a
   1 km structure, against the rule that what looks like an object is one.
   *Suggestion:* make the hull solid outside the docking lane.

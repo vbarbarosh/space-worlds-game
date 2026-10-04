@@ -431,7 +431,9 @@ function physics_base_render_navigation_objects()
     const w = worlds[campaign.world];
     ctx.save();
     render_world_station();
-    for (const world_gate of world_gates) {
+    // the arcade moves on from the depot and has no contracts: its gates and beacons would be scenery with no purpose
+    const contract_world = !arcade.active;
+    for (const world_gate of contract_world ? world_gates : []) {
         if (!in_view(world_gate, 200)) {
             continue;
         }
@@ -460,7 +462,7 @@ function physics_base_render_navigation_objects()
         polygon(world_gate.x, world_gate.y, 34, 6, -clock*0.4, world_gate.color, '#102233');
         world_gate_label(world_gate, 115);
     }
-    for (let i = 0, end = beacons.length; i < end; ++i) {
+    for (let i = 0, end = contract_world ? beacons.length : 0; i < end; ++i) {
         const beacon = beacons[i];
         if (!in_view(beacon)) {
             continue;

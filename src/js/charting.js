@@ -288,14 +288,15 @@ function map_things(every_layer = false)
     if (t) {
         add('yours', t, 'transport', null, `TRANSPORT · ${t.line.count}/${transport_hold}`, {angle: t.angle + Math.PI/2});
     }
-    for (const v of world_gates) {
+    // the arcade draws no gates or beacons (physics_base_render_navigation_objects), so its map shows none
+    for (const v of arcade.active ? [] : world_gates) {
         add('gates', v, 'world-gate', worlds[v.destination].accent, `${worlds[v.destination].name.toUpperCase()} · WORLD GATE`, {target: {...v, label: `WORLD GATE → ${worlds[v.destination].name}`}});
     }
     for (let i = 0; i < portals.length; ++i) {
         const v = portals[i];
         add('gates', v, 'jump-gate', v.color, v.label, {short: true, target: {...v, portal: i, label: `LOCAL PORTAL ${v.label}`}});
     }
-    for (let i = 0; i < beacons.length; ++i) {
+    for (let i = 0; i < (arcade.active ? 0 : beacons.length); ++i) {
         add('contracts', beacons[i], 'beacon', null, `SCAN BEACON ${i + 1}`, {target: {...beacons[i], label: `SCAN BEACON ${i + 1}`}});
     }
     for (const v of enemies) {
