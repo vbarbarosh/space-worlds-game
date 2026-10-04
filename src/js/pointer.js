@@ -24,6 +24,12 @@ function set_mouse_destination(p)
     mouse_drive.arrival_hold = false;
     pointer.last = -100;
 }
+// Two left presses this close in time and place are a double click. The native dblclick missed often: it needs the
+// pointer to stay put between the clicks, and you are steering with it
+const pointer_double_ms = 450;
+const pointer_double_px = 30;
+let pointer_last_press = {at: -Infinity, x: 0, y: 0};
+
 canvas.addEventListener('pointermove', function (event) {
     const p = pointer_position(event);
     if (event.pointerType === 'touch') {
@@ -79,6 +85,10 @@ canvas.addEventListener('pointerdown', function (event) {
             canvas.focus();
             return;
         }
+        if ((event.button === 0) && pointer_double_press(event, p)) {
+            pointer_double_click(p);
+            return;
+        }
         if (event.button === 0) {
             waypoints_clear();
             formation_stop();
@@ -92,20 +102,27 @@ canvas.addEventListener('pointerdown', function (event) {
         }
     }
 });
-canvas.addEventListener('dblclick', function (event) {
-    if ((state !== 'playing') || (event.pointerType === 'touch') || event.sourceCapabilities?.firesTouchEvents || event.ctrlKey) {
-        return;
-    }
-    const p = pointer_position(event);
-    update_pointer(p);
+
+// Whether this left press makes a double click with the one before it; a double click starts the pairing afresh
+function pointer_double_press(event, p)
+{
+    const prev = pointer_last_press;
+    const out = ((event.timeStamp - prev.at) < pointer_double_ms) && (Math.hypot(p.x - prev.x, p.y - prev.y) < pointer_double_px);
+    pointer_last_press = out ? {at: -Infinity, x: 0, y: 0} : {at: event.timeStamp, x: p.x, y: p.y};
+    return out;
+}
+
+// A double click follows a convoy under the pointer, or turns following the pointer on or off
+function pointer_double_click(p)
+{
     const leader = formation_pick(p);
     if (leader) {
         formation_start(leader);
         update_hud();
-        event.preventDefault();
         return;
     }
     mouse_drive.following = !mouse_drive.following;
+    mouse_drive.held = false;
     if (mouse_drive.following) {
         set_mouse_destination(p);
     }
@@ -116,8 +133,7 @@ canvas.addEventListener('dblclick', function (event) {
         pointer.last = -100;
     }
     update_hud();
-    event.preventDefault();
-});
+}
 function release_pointer(event)
 {
     waypoint_draw_end();
