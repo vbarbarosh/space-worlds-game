@@ -170,6 +170,8 @@ body:not(.in-game) .ui.hud .hud-top .toolbar {
 @keyframes menu-travel { 0% { offset-distance: 0%; opacity: 0; } 6% { opacity: 1; } 88% { opacity: 1; } 100% { offset-distance: 100%; opacity: 0; } }
 
 /* arcade: raiders come in, the ship fires, the score runs */
+/* the raiders fade in from the edges and never leave the scene, so they never cross the caption */
+.ui .s-arcade { overflow: hidden; mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, #000 72%, transparent 100%); }
 .ui .s-arcade .hero { position: absolute; left: 360px; top: 320px; width: 84px; transform: translate(-50%, -50%) rotate(var(--a, 0deg)); filter: drop-shadow(0 0 16px rgba(108, 248, 236, 0.45)); }
 .ui .s-arcade .foe { position: absolute; width: 60px; transform: translate(-50%, -50%) rotate(var(--r)); }
 .ui .s-arcade .zap { position: absolute; height: 3px; border-radius: 2px; transform-origin: 0 50%; background: linear-gradient(90deg, #e8fbff, #6cf8ec); box-shadow: 0 0 10px #6cf8ec; animation: menu-zap 0.16s linear forwards; }
