@@ -4,6 +4,11 @@ What the game is built on, how it is balanced, and what it asks of the
 player. Each file names the code it describes, so a change knows where to
 look.
 
+## Inspiration
+
+The game's inspiration is Microsoft's *Freelancer* (2003): a pilot who docks
+at stations, takes contracts, trades between worlds and jumps through gates.
+
 - [principles.md](principles.md): the rules the game keeps everywhere (what
   is solid, keys and buttons, seeded maps, the arcade apart from the
   campaign). A change that breaks one changes this file first.
