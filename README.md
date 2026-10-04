@@ -7,12 +7,13 @@ with no server.
 Two modes:
 
 - **Arcade**: one run through the eight worlds, three waves each, the world's
-  flagship in the third. Raiders come in squadrons; from the second world
-  on, elites lead some of them; the flagship turns at 66% and 33%. A ship
+  flagship in the third. Raiders come in squadrons; elites lead some of them,
+  from Haven on (from the second world on Chill); the flagship turns at 66% and 33%. A ship
   that explodes hurts what is close to it. The salvage you collect buys
   repairs, weapons, ships, supplies and modules at the station's depot (R). A cleared world pays a fixed bonus, the weapon
   grows a tier, and the depot opens before the next world. Score, combo and a best score (salvage left at the end scores 10 points each); no
-  stations, contracts or saves.
+  stations or contracts. A save keeps the score, salvage and gear, and loading
+  it starts its world again from the first wave.
 - **Campaign**: the stations, contracts, trading and story chapters; see
   [docs/scenario/](docs/scenario/README.md).
 
