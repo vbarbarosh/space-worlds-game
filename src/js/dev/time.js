@@ -1,12 +1,17 @@
-// The game's frame loop runs on a virtual clock: paused, stepped one frame, slowed down or sped up.
-const dev_time = {paused: false, scale: 1, steps: 0, virtual: 0, last: 0, callback: null, ticks: 0, fps: 0, fps_time: 0};
+// The game's frame loop runs on a virtual clock: paused, stepped one frame, slowed down or sped up. Every loop asking
+// for a frame gets it (the game's and the arcade's cleared screen alike), so one never takes the other's place.
+const dev_time = {paused: false, scale: 1, steps: 0, virtual: 0, last: 0, callbacks: [], serial: 0, ticks: 0, fps: 0, fps_time: 0};
 const dev_request_frame = window.requestAnimationFrame.bind(window);
 const dev_frame_ms = 1000/60;
 const dev_chunk_ms = 1000/30;
 
 window.requestAnimationFrame = function (callback) {
-    dev_time.callback = callback;
-    return 0;
+    dev_time.serial++;
+    dev_time.callbacks.push({id: dev_time.serial, callback});
+    return dev_time.serial;
+};
+window.cancelAnimationFrame = function (id) {
+    dev_time.callbacks = dev_time.callbacks.filter(v => v.id !== id);
 };
 dev_request_frame(dev_time_tick);
 
@@ -45,10 +50,16 @@ function dev_time_tick(now)
 
 function dev_time_run_frame()
 {
-    const callback = dev_time.callback;
-    dev_time.callback = null;
-    if (callback) {
-        callback(dev_time.virtual);
+    const callbacks = dev_time.callbacks;
+    dev_time.callbacks = [];
+    // as the browser does: an error in one loop is reported and the others still run
+    for (const v of callbacks) {
+        try {
+            v.callback(dev_time.virtual);
+        }
+        catch (error) {
+            reportError(error);
+        }
     }
 }
 
