@@ -89,11 +89,6 @@ function load_checkpoint()
     catch {
     }
 }
-el.continue_button.addEventListener('click', function () {
-    if (checkpoint) {
-        reset_run(true);
-    }
-});
 document.getElementById('retry_sector').addEventListener('click', function () {
     if (checkpoint) {
         reset_run(true);

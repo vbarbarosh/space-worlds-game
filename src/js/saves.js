@@ -6,7 +6,6 @@ let saves_return = null;
 
 document.getElementById('saves_close').addEventListener('click', saves_close);
 document.getElementById('pause_saves_button').addEventListener('click', () => saves_open('pause'));
-document.getElementById('load_button').addEventListener('click', () => saves_open('menu'));
 for (const id of ['pause_last_save', 'menu_last_save', 'result_last_save']) {
     document.getElementById(id).addEventListener('click', load_last_save);
 }

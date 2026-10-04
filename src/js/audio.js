@@ -415,7 +415,7 @@ function test_audio_mix()
     tone(65, 0.8, 'sine', 0.065, t + 1.1, 90, 550);
     noise(0.5, 0.07, 800, t + 1.1);
 }
-for (const id of ['settings_button', 'intro_audio', 'pause_audio', 'station_audio']) {
+for (const id of ['settings_button', 'pause_audio', 'station_audio']) {
     document.getElementById(id).addEventListener('click', toggle_audio_settings);
 }
 document.getElementById('close_audio').addEventListener('click', toggle_audio_settings);

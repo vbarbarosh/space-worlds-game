@@ -111,15 +111,6 @@ document.getElementById('controls_back').addEventListener('click', function () {
     pause_controls_show(false);
 });
 document.getElementById('resume_button').addEventListener('click', toggle_pause);
-document.getElementById('start_button').addEventListener('click', function () {
-    set_pause_icon(false);
-    arcade_stop();
-    reset_run();
-});
-document.getElementById('arcade_button').addEventListener('click', function () {
-    set_pause_icon(false);
-    arcade_start();
-});
 for (const id of ['restart_button', 'restart_pause']) {
     document.getElementById(id).addEventListener('click', function () {
         set_pause_icon(false);
@@ -220,9 +211,6 @@ addEventListener('keydown', function (event) {
     if ((event.code === 'Space') && (state === 'playing')) {
         event.preventDefault();
         pulse();
-    }
-    if ((event.code === 'Enter') && (state === 'menu') && (document.activeElement.tagName !== 'BUTTON')) {
-        menu_enter();
     }
 });
 addEventListener('keyup', function (event) {

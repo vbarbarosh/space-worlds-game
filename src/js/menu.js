@@ -1,42 +1,26 @@
 // The main menu, from the designer's main-menu.html: the modes as one family of rows (Continue the big one), and on the
 // right a scene for the mode you pick (a click, the arrow keys or its key): your ship orbiting the world you left, the
-// route through the eight worlds, a live arcade demo, the save slots, the settings, the keys. Pointing changes nothing;
-// a second click, Enter or the scene's own button plays.
+// route through the eight worlds, a live arcade demo, the save slots, the settings, the keys. A mode's click only picks
+// it: the scene's own button, or Enter, plays.
 const menu_arcade = {timer: 0, foes: [], score: 0, angle: 0, spawn: 0, fire: 0};
 // the demo never has more raiders than this on its stage
 const menu_arcade_foes_max = 8;
 const menu_arcade_centre = {x: 360, y: 320};
 let menu_scene_now = '';
-// the scene showing when the pointer went down: the focus a click gives a mode switches the scene before the click
-let menu_pointer_scene = '';
 
 for (const v of document.querySelectorAll('#menu_modes .mode')) {
     v.addEventListener('focus', () => menu_scene(v.dataset.scene));
+    v.addEventListener('click', () => menu_scene(v.dataset.scene));
 }
-document.getElementById('menu_modes').addEventListener('pointerdown', function () {
-    menu_pointer_scene = menu_scene_now;
-}, true);
-// A mode's first click shows its scene, the second does it; Load, Settings and Controls stay scenes, their slots and
-// switches work in place
-document.getElementById('menu_modes').addEventListener('click', function (event) {
-    const mode = event.target.closest('.mode');
-    if (!mode || (mode.id === 'continue_button')) {
-        return;
-    }
-    const before = event.detail ? menu_pointer_scene : menu_scene_now;
-    menu_scene(mode.dataset.scene);
-    if ((before !== mode.dataset.scene) || ['load', 'settings', 'controls'].includes(mode.dataset.scene)) {
-        event.stopPropagation();
-    }
-}, true);
-document.getElementById('menu_campaign_go').addEventListener('click', () => document.getElementById('start_button').click());
-document.getElementById('menu_arcade_go').addEventListener('click', () => document.getElementById('arcade_button').click());
+document.getElementById('menu_continue_go').addEventListener('click', menu_start_continue);
+document.getElementById('menu_campaign_go').addEventListener('click', menu_start_campaign);
+document.getElementById('menu_arcade_go').addEventListener('click', menu_start_arcade);
 document.getElementById('menu_all_saves').addEventListener('click', () => saves_open('menu'));
 document.getElementById('menu_volume').addEventListener('click', toggle_audio_settings);
 addEventListener('keydown', on_menu_key);
 menu_controls_fill();
 
-// N, A, L, S and ? point at their mode; the arrows move between the modes; Enter does the one pointed at
+// C, N, A, L, S and ? point at their mode; the arrows move between the modes; Enter presses the scene's button
 function on_menu_key(event)
 {
     if ((state !== 'menu') || settings_open || event.ctrlKey || event.metaKey || event.altKey || ['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
@@ -48,6 +32,11 @@ function on_menu_key(event)
         event.preventDefault();
         const step = ['ArrowDown', 'ArrowRight'].includes(event.key) ? 1 : -1;
         modes[(Math.max(0, i) + step + modes.length) % modes.length].focus();
+        return;
+    }
+    if ((event.key === 'Enter') && ((i >= 0) || (document.activeElement === document.body))) {
+        event.preventDefault();
+        document.getElementById(`menu_${menu_scene_now}_go`)?.click();
         return;
     }
     const m = modes.find(v => v.dataset.key === event.key.toLowerCase());
@@ -89,6 +78,7 @@ function menu_continue_show(c)
 {
     const ship = ship_catalog.find(v => v.id === c.fleet?.ship_id) || ship_catalog[0];
     set_hidden(el.continue_button, false);
+    document.getElementById('continue_name').textContent = 'Continue campaign';
     document.getElementById('continue_detail').textContent = `${worlds[c.world].name} · ${ship.name} · ${c.visited?.length || 1}/${worlds.length} worlds`;
     document.getElementById('continue_title').textContent = `Back to ${worlds[c.world].name}`;
     document.getElementById('continue_line').textContent = `Your ${ship.name} is waiting in orbit. Story ${c.story || 0}/${story.length}.`;
@@ -99,6 +89,7 @@ function menu_continue_show(c)
 function menu_continue_sector(wave)
 {
     set_hidden(el.continue_button, false);
+    document.getElementById('continue_name').textContent = 'Continue arcade';
     document.getElementById('continue_detail').textContent = `Arcade · sector ${String(wave).padStart(2, '0')}`;
     document.getElementById('continue_title').textContent = 'Back to the arcade';
     document.getElementById('continue_line').textContent = 'Retry from the start of the sector.';
@@ -280,12 +271,23 @@ function menu_focus()
     document.getElementById(el.continue_button.classList.contains('hidden') ? 'start_button' : 'continue_button').focus();
 }
 
-function menu_enter()
+function menu_start_continue()
 {
-    if (checkpoint && !el.continue_button.classList.contains('hidden')) {
-        el.continue_button.click();
+    if (checkpoint) {
+        set_pause_icon(false);
+        reset_run(true);
     }
-    else {
-        reset_run();
-    }
+}
+
+function menu_start_campaign()
+{
+    set_pause_icon(false);
+    arcade_stop();
+    reset_run();
+}
+
+function menu_start_arcade()
+{
+    set_pause_icon(false);
+    arcade_start();
 }
