@@ -34,6 +34,10 @@ published as a website at https://vbarbarosh.github.io/space-worlds-game/
                      report.json in data/layout-check/, exit 1 on a failure
     bin/build-docs   docs/ as a website in build/docs, published to GitHub
                      Pages on every push to main (.github/workflows/docs.yml)
+    bin/map-check    every world's map, campaign and arcade, against
+                     docs/placement.md: no two things R acts on within reach
+                     of each other, gates and portals where the rules put
+                     them; exit 1 on a failure
 
 `build/dev.html` is the developer mode: the game with a dev panel. It starts
 straight into any world, ship and weapon, and has time controls, cheats,

@@ -1,0 +1,152 @@
+#!/usr/bin/env node
+
+const cli = require('@vbarbarosh/node-helpers/src/cli');
+const path = require('node:path');
+const {chromium} = require('playwright');
+
+const page_file = path.join(__dirname, '..', 'build', 'dev.html');
+const modes = [
+    {value: '', label: 'campaign'},
+    {value: '&screen=arcade', label: 'arcade'},
+];
+// The rules of docs/placement.md, in metres
+const rules = {
+    margin: 150, // between two ranges where a key acts
+    gate_out: 0.25, // a gate from the station, a share of the map's smaller side
+    gate_bearing: 10, // degrees between a gate's bearing from the station and the galaxy chart's
+    gate_edge: 1000, // a gate from the map's edge
+    gate_company: 1000, // only the portal beside a gate stands this close to it
+    portal_out: 1500, // a portal from the station's centre
+    portal_span: 2000, // a pair's ends apart, or a quarter of the map's smaller side if more
+    portal_apart: 1000, // two portals of different pairs
+    portal_edge: 300, // a portal from the map's edge
+    zone_apart: 1000, // the combat zone from the station's shelter, gates and portals
+    beacon_apart: 1000, // a survey beacon from a gate
+    scan: 120, // a survey beacon scans a ship this close
+};
+const usage = `usage: bin/map-check
+
+    Opens every world of build/dev.html in the campaign and in the arcade, reads the map the game generated
+    (window.dev_state) and checks it against docs/placement.md: R's docking and jumping ranges and the portals'
+    rings never touch, gates face the worlds they lead to and stand far out, portal pairs span a real distance and
+    keep apart from each other and the station, no gravity well or solid lies on any of them. Exits 1 on any failure.`;
+
+cli(main);
+
+async function main()
+{
+    if (process.argv.length > 2) {
+        console.log(usage);
+        process.exit(2);
+    }
+    const browser = await chromium.launch();
+    const failures = [];
+    try {
+        const page = await browser.newPage({viewport: {width: 1280, height: 720}});
+        page.on('pageerror', v => failures.push(`page error: ${v.message}`));
+        for (const mode of modes) {
+            for (let world = 0; world < 8; ++world) {
+                await page.goto(`file://${page_file}?world=${world}${mode.value}`);
+                await page.waitForFunction(v => window.dev_state?.().player && (window.dev_state().arcade === v), !!mode.value);
+                const map = await page.evaluate(() => window.dev_state());
+                const found = check_map(map);
+                const title = `${mode.label} ${world + 1} ${map.world_name}`;
+                console.log(`${found.length ? 'FAIL' : 'ok  '} ${title.padEnd(22)} ${map.gates.length} gates, ${map.portals.length} portals${found.length ? `\n     ${found.join('\n     ')}` : ''}`);
+                failures.push(...found.map(v => `${title}: ${v}`));
+            }
+        }
+    }
+    finally {
+        await browser.close();
+    }
+    console.log(failures.length ? `${failures.length} failures` : 'all maps pass');
+    if (failures.length) {
+        process.exit(1);
+    }
+}
+
+// Each thing you act on has a body and a range: R docks within station_reach of the station's centre, R jumps within
+// gate_reach of a world gate's, a portal takes any ship whose hull touches its ring, a beacon scans within rules.scan
+function check_map(map)
+{
+    const out = [];
+    const side = Math.min(map.world.w, map.world.h);
+    const station = {label: 'station', x: map.station.x, y: map.station.y, body: map.station_size/2, range: map.station_reach};
+    const gates = map.gates.map(v => ({...v, label: `gate to ${v.to}`, body: v.r, range: map.gate_reach}));
+    const portals = map.portals.map(v => ({...v, label: `portal ${v.label}`, body: v.r, range: v.r + map.ship_radius}));
+    const beacons = map.beacons.map((v, i) => ({...v, label: `beacon ${i + 1}`, body: 0, range: rules.scan}));
+    const things = [station, ...gates, ...portals, ...beacons];
+    // the page rounds positions to the metre
+    function fail(text, d, need) {
+        if (d < need - 1) {
+            out.push(`${text}: ${Math.round(d)} m, need ${Math.round(need)} m`);
+        }
+    }
+    function edge(v) {
+        return Math.min(v.x, v.y, map.world.w - v.x, map.world.h - v.y);
+    }
+    for (let i = 0, end = things.length; i < end; ++i) {
+        for (let j = i + 1; j < end; ++j) {
+            const a = things[i];
+            const b = things[j];
+            const need = a.range + b.range + rules.margin;
+            fail(`${a.label} and ${b.label} ranges touch`, distance(a, b), need);
+        }
+    }
+    for (const gate of gates) {
+        fail(`${gate.label} too near the station`, distance(gate, station), side*rules.gate_out);
+        const bearing = Math.atan2(gate.y - station.y, gate.x - station.x);
+        const off = Math.abs(Math.atan2(Math.sin(bearing - gate.bearing), Math.cos(bearing - gate.bearing)))*180/Math.PI;
+        if (off > rules.gate_bearing) {
+            out.push(`${gate.label} faces ${Math.round(off)}° off its world on the galaxy chart, need ${rules.gate_bearing}° at most`);
+        }
+        fail(`${gate.label} too near the map's edge`, edge(gate), rules.gate_edge);
+        for (const v of beacons) {
+            fail(`${v.label} near the ${gate.label}`, distance(gate, v), rules.beacon_apart);
+        }
+        const company = portals.filter(v => distance(gate, v) < rules.gate_company);
+        if (company.length > 1) {
+            out.push(`${gate.label} has ${company.length} portals within ${rules.gate_company} m (${company.map(v => v.label).join(', ')}), one at most`);
+        }
+    }
+    const span = Math.max(rules.portal_span, side/4);
+    for (let i = 0, end = portals.length; i < end; ++i) {
+        const v = portals[i];
+        fail(`${v.label} too near the station`, distance(v, station), rules.portal_out);
+        fail(`${v.label} too near the map's edge`, edge(v), rules.portal_edge);
+        for (let j = i + 1; j < end; ++j) {
+            const vv = portals[j];
+            if (j === v.destination) {
+                fail(`${v.label} and ${vv.label} are a pair too short to save a flight`, distance(v, vv), span);
+            }
+            else {
+                fail(`${v.label} and ${vv.label} too near each other`, distance(v, vv), rules.portal_apart);
+            }
+        }
+    }
+    if (!map.arcade) {
+        for (const v of [...gates, ...portals]) {
+            fail(`combat zone on the ${v.label}`, distance(v, map.combat_zone), rules.zone_apart);
+        }
+        const need = map.station_size/2 + 400 + rules.zone_apart;
+        fail('combat zone near the station', distance(station, map.combat_zone), need);
+    }
+    const solids = [...map.ore.map(v => ({...v, kind: 'rock'})), ...map.debris];
+    for (const thing of things) {
+        for (const v of map.holes) {
+            const need = v.radius + thing.range;
+            fail(`gravity well at ${v.x},${v.y} pulls inside the range of the ${thing.label}`, distance(v, thing), need);
+        }
+        // a solid leaves a ship's width of room round the body
+        for (const v of solids) {
+            const need = thing.body + v.r + map.ship_radius*2;
+            fail(`${v.kind} at ${v.x},${v.y} on the ${thing.label}`, distance(v, thing), need);
+        }
+    }
+    return out;
+}
+
+function distance(a, b)
+{
+    return Math.hypot(a.x - b.x, a.y - b.y);
+}

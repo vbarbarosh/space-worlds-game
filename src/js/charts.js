@@ -1,15 +1,26 @@
+// Where each world sits on the galaxy chart; a world's gates face the same way (galaxy_bearing)
+const galaxy_positions = [
+    [80, 170],
+    [240, 80],
+    [240, 260],
+    [400, 170],
+    [560, 170],
+    [720, 80],
+    [720, 260],
+    [880, 170],
+];
+
+// The direction from one world to another on the galaxy chart, in radians, y down as on the map
+function galaxy_bearing(from, to)
+{
+    const a = galaxy_positions[from];
+    const b = galaxy_positions[to];
+    return Math.atan2(b[1] - a[1], b[0] - a[0]);
+}
+
 function render_galaxy_chart(parent, c)
 {
-    const positions = [
-        [80, 170],
-        [240, 80],
-        [240, 260],
-        [400, 170],
-        [560, 170],
-        [720, 80],
-        [720, 260],
-        [880, 170],
-    ];
+    const positions = galaxy_positions;
     const route_edges = new Set();
     for (let i = 1, end = c.route.length; i < end; ++i) {
         route_edges.add([c.route[i - 1], c.route[i]].sort((a, b) => a - b).join(':'));

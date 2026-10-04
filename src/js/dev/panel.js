@@ -17,6 +17,10 @@ window.dev_state = function () {
         ore: ore_nodes.filter(v => v.hp > 0).map(v => ({x: Math.round(v.x), y: Math.round(v.y), r: v.r, resource: v.resource || null})),
         debris: drifting_debris.map(v => ({x: Math.round(v.x), y: Math.round(v.y), r: Math.round(v.r), kind: v.kind})),
         scenery: scenery.map(v => ({x: Math.round(v.x), y: Math.round(v.y), r: Math.round(v.r)})),
+        arcade: arcade.active, world_name: worlds[campaign.world].name, station_size, station_reach, gate_reach, ship_radius: Math.max(...ship_catalog.map(v => v.radius)),
+        gates: world_gates.map(v => ({x: Math.round(v.x), y: Math.round(v.y), r: v.r, to: worlds[v.destination].name, bearing: galaxy_bearing(campaign.world, v.destination)})),
+        portals: portals.map(v => ({x: Math.round(v.x), y: Math.round(v.y), r: v.r, label: v.label, destination: v.destination})),
+        beacons: beacons.map(v => ({x: Math.round(v.x), y: Math.round(v.y)})), combat_zone: {...combat_zone},
         escort: escort ? {x: escort.x, y: escort.y, hp: escort.hp, active: escort.active} : null, formation: !!formation.leader,
         cargo: {...campaign.cargo}, drones: {owned: drones_owned(), out: drones_out, flying: drones.map(v => ({x: Math.round(v.x), y: Math.round(v.y), state: v.state, hp: v.hp}))}, salvage, kills, xp: campaign.xp, turbo: !!player?.turbo_active, bullets: bullets.length, canisters: pickups.filter(v => v.type === 'cargo').map(v => ({x: Math.round(v.x), y: Math.round(v.y), key: v.key, amount: v.amount}))};
 };
