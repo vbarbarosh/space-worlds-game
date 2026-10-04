@@ -287,6 +287,7 @@ function generate_drifting_debris()
             spin: (random() - 0.5)*0.5,
             kind: (i % 3 === 0) ? 'wreck' : 'asteroid',
             hp: size*((i % 3 === 0) ? 2 : 3),
+            max_hp: size*((i % 3 === 0) ? 2 : 3),
         });
     }
 }
@@ -435,6 +436,12 @@ function render_drifting_debris()
         ctx.restore();
     }
     ctx.restore();
+    // what shots can break shows what is left of it (docs/principles.md)
+    for (const piece of drifting_debris) {
+        if (in_view(piece, piece.r + 20)) {
+            ore_hp_bar(piece);
+        }
+    }
 }
 
 // One alert per threshold crossed on the way down, and one on arriving in a radioactive world; the alerts start over

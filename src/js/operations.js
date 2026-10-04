@@ -354,6 +354,8 @@ function damage_enemy(enemy, damage)
     }
 }
 
+// The convoy freighter's hull
+const escort_hull = 300;
 const escort_speed = 70;
 // the freighter keeps moving while you are within this; farther, it waits for you
 const escort_leash = 1000;
@@ -412,7 +414,7 @@ function update_escort(dt)
     }
     if (!escort) {
         const route = escort_route();
-        escort = {x: route.start.x, y: route.start.y, start: route.start, hp: 300, active: false, stops: route.stops, leg: 0, stop_timer: -1, waves: [], destination: route.stops[0]};
+        escort = {x: route.start.x, y: route.start.y, start: route.start, hp: escort_hull, active: false, stops: route.stops, leg: 0, stop_timer: -1, waves: [], destination: route.stops[0]};
     }
     if (!escort.active && (distance(player, escort) < 450)) {
         escort.active = true;
@@ -435,7 +437,7 @@ function update_escort(dt)
                 mission_event('escort', 1, {contract_id: m.id});
                 return;
             }
-            escort.hp = Math.min(300, escort.hp + 65);
+            escort.hp = Math.min(escort_hull, escort.hp + 65);
             show_toast(`CONVOY ${(stop.job === 'load') ? 'LOADED' : 'UNLOADED'}`, `FIELD REPAIR +65 / NEXT: ${escort.stops[escort.leg].label.toUpperCase()}`, 3);
         }
     }
@@ -626,7 +628,7 @@ function build_guide_context()
     }
     if ((m.type === 'escort') && (m.world === campaign.world) && escort) {
         out.instruction =
-            `Cargo run, stop ${escort.leg + 1}/${escort.stops.length}: ${escort.stops[escort.leg].label} · hull ${Math.ceil(escort.hp)}/300. Stay within ${escort_leash} m so it keeps moving; raiders strike at the stops.`;
+            `Cargo run, stop ${escort.leg + 1}/${escort.stops.length}: ${escort.stops[escort.leg].label} · hull ${Math.ceil(escort.hp)}/${escort_hull}. Stay within ${escort_leash} m so it keeps moving; raiders strike at the stops.`;
     }
     return out;
 }
