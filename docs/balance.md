@@ -85,9 +85,30 @@ That gives, in the campaign at NORMAL:
   share (`expedition_base_damage_enemy`). A raider's shield comes back at 10
   a second after 6 seconds unhit (`src/js/navigation.js`).
 - Raider guns (`world_audio_base_enemy_fire` in `src/js/campaign.js`): rail
-  30, missile 23, ion 17 (and it drains 8 pulse), scatter 12 a pellet in a
-  fan of three, plasma 10. From Nova Forge on, missiles come in pairs. A
-  raider fires every 3.6 s, a tank every 2.8 s (`src/js/navigation.js`).
+  30, missile 14 to 40 by its kind (below), ion 17 (and it drains 8 pulse),
+  scatter 12 a pellet in a fan of three, plasma 10. From Nova Forge on, darts
+  and seekers come in pairs. A raider fires every 3.6 s, a tank every 2.8 s
+  (`src/js/navigation.js`).
+- A raider's missile goes off at its fuse, units from your shield's edge (or
+  your hull without one), and its blast is a wave: the full damage within
+  the fuse, falling to half at the blast's rim; a wave sets off the missiles
+  it reaches whose toughness its damage there beats, three deep at most
+  (`missile_kinds`, `missile_kind_for` in `src/js/missiles.js`). Fighters
+  (chaser, splitter, lancer) fire darts; shooters, elites (Haven's carry
+  missiles) and flagships fire seekers; tanks fire seekers, torpedoes from
+  Nova Forge on.
+
+| Kind | Size | Speed | Turn | Flight | Fuse | Blast | Damage | Toughness | Trail |
+|---|---|---|---|---|---|---|---|---|---|
+| Dart | 11 | ×1.3 | 1.25 rad/s | 2 s | 6 | 45 | 14 | 8 | short yellow, little smoke |
+| Seeker | 14 | ×1 | 0.85 rad/s | 2.5 s | 14 | 70 | 23 | 20 | orange, grey smoke |
+| Torpedo | 22 | ×0.7 | 0.5 rad/s | 3.4 s | 40 | 120 | 40 | 45 | red, thick smoke |
+
+- Measured (stepped, 120 s, three raiders 560 m out, no shield): a missile
+  costs you on average about 15 hull sitting still and 7 to 11 circling at
+  260/s, before and after the fuse and the wave; a dart 14 still and 9.5
+  circling; a torpedo 39 still, 10 circling: slow and dodgeable, deadly to a
+  ship that sits.
 - Ramming you costs 16 hull, a tank 25, a flagship 35 (`src/js/update.js`).
 - The difficulty switch scales raiders at spawn: CHILL 0.8 speed and hull,
   OVERLOAD 1.2 speed and 1.15 hull (`base_spawn_enemy`).
@@ -131,7 +152,7 @@ That gives, in the campaign at NORMAL:
 | Shard shotgun | light | 1 | 220 | 11 ×5 | 0.5 s | 210 | five pellets |
 | Ion disruptor | medium | 2 | 550 | 24 | 0.3 s | 300 | triple shield damage, slows to 55% for 3 s |
 | Lance railgun | heavy | 3 | 1100 | 75 | 0.65 s | 390 | ignores 75% of armour |
-| Seeker launcher | heavy | 3 | 1400 | 65 | 0.95 s | 390 | homing, 115 m splash at 65% |
+| Seeker launcher | medium | 3 | 1400 | 60 | 1.05 s | 390 | homing missiles; fuse 18; a blast wave of 100 m (Shaped warhead up to 175) |
 | Flux beam | medium | 4 | 2600 | 19 | 0.105 s | 525 | ignores 40% of armour, 1.8 pulse a shot |
 
 - Where: `weapon_catalog` in `src/js/fleet.js`; the specials in

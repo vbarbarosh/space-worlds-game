@@ -121,8 +121,10 @@ so the eye sees the wave do the work.
 - Each keeps its own numbers and colour: the pulse is weaker with range and
   chains through its kills, the EMP deals the same all the way out, stasis
   only slows.
-- Today a missile's splash (`blast_payload` in `src/js/fleet.js`) and the
-  arcade's dying-ship blasts (`arcade_blast_from_kill`) still land at once.
+- A missile's blast travels too: its wave hurts each hull as the front
+  reaches it, less toward the rim, and sets off the missiles it reaches
+  (`missile_waves_update` in `src/js/missiles.js`). Today the arcade's
+  dying-ship blasts (`arcade_blast_from_kill`) still land at once.
 - Where it lives: `src/js/pulse.js` (`pulse_fire`, `emp_fire`,
   `stasis_fire`, `stasis_scale`), `use_supply` in `src/js/upgrades.js`.
 

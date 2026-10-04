@@ -2,9 +2,12 @@
 
 The Seeker launcher fires homing missiles. A missile is ejected slowly from
 one of the launcher's four cells, lights its motor, speeds up, turns toward
-the raider it has locked and bursts in a blast. It can overshoot a nimble
-raider, and when its fuel runs out it coasts and fizzles. Raiders on Dustfall
-and Nova Forge, and Haven's elite commanders, fire the same missiles at you.
+the raider it has locked and, near its hull, goes off: the blast is a wave
+that runs out and hurts what its front reaches, and sets off the missiles it
+meets. It can overshoot a nimble raider, and when its fuel runs out it coasts
+and bursts in a small harmless wave. Raiders on Dustfall and Nova Forge, and
+Haven's elite commanders, fire missiles of three kinds at you: darts,
+seekers and torpedoes.
 
 Three modules change the missile: Seeker head (turns harder, locks farther),
 Rocket motor (faster, a new engine and exhaust each level) and Shaped warhead
@@ -27,10 +30,17 @@ Screenshots from the game (2026-10-04, in `docs/designer/missiles/`):
 | [campaign-modules](missiles/campaign-modules.jpg) | Station modules: the three missile modules with stand-in icons |
 | [arcade-depot-search](missiles/arcade-depot-search.jpg) | Arcade depot: launcher, and modules that wait for it |
 | [arcade-depot-bought](missiles/arcade-depot-bought.jpg) | Arcade depot after buying: launcher on the ship preview |
+| [kinds](missiles/kinds.jpg) | Raider kinds in flight: a dart (yellow), two seekers, a torpedo (thick smoke) |
+| [fuse-3](missiles/fuse-3.jpg) | A raider's seeker gone off at its fuse beside your ship, its wave reaching you |
+| [chain-1](missiles/chain-1.jpg), [chain-2](missiles/chain-2.jpg) | Your missile's wave at a tank sets off a raider's dart, which sends its own |
+| [fizzle-3](missiles/fizzle-3.jpg) | A seeker at the end of its flight: a small blast and a small wave |
+
+Frame sequences 0.1 s apart are in `data/missiles/` (fizzle-1..7, fuse-1..6,
+chain-1..6), kept out of git.
 
 ## What to draw
 
-Six new files and two refinements. Every file goes in `src/sprites/`, under
+Eight new files and two refinements. Every file goes in `src/sprites/`, under
 the name given; the game picks it up on the next build, and until a file is
 there it keeps drawing what it draws now.
 
@@ -40,6 +50,8 @@ there it keeps drawing what it draws now.
 | 2 | `weapons/projectile-missile-2.svg` | Mk II, hot-fuel rocket | 32 × 32 | 18 units |
 | 3 | `weapons/projectile-missile-3.svg` | Mk III, ion sustainer | 32 × 32 | 18 units |
 | 4 | `weapons/projectile-missile-4.svg` | Mk IV, fusion torch | 32 × 32 | 18 units |
+| 4a | `weapons/projectile-dart.svg` | A raider's dart | 32 × 32 | 11 units |
+| 4b | `weapons/projectile-torpedo.svg` | A raider's torpedo | 32 × 32 | 22 units |
 | 5 | `weapons/turret-missile.svg` | The launcher on a mount (exists; refine or keep) | 64 × 64 | 10.5, 14 or 21 units |
 | 6 | `modules/seeker-head.svg` | Module icon | 64 × 64 | 24-55 px |
 | 7 | `modules/rocket-motor.svg` | Module icon | 64 × 64 | 24-55 px |
@@ -63,8 +75,13 @@ different engine.
   tail that glows blue (`#6fd0ff`). Mk IV, fusion torch: a magnetic nozzle
   ring, violet emitter (`#b98cff`). These are suggestions; the rule is that
   the tail tells the tier.
-- Raiders always fire Mk I, painted in their faction colour at 14 units, so
-  Mk I must also look right as an enemy weapon.
+- Raiders fire three kinds, each painted in their faction colour: the
+  seeker is Mk I at 14 units, so Mk I must also look right as an enemy
+  weapon; the dart (11 units: slim, a needle nose, small fins, a short
+  yellow trail) and the torpedo (22 units: fat, blunt, a big warhead, thick
+  smoke) have their own files and use Mk I until drawn. Each must read at a
+  glance by size and trail: a dart has to come close to go off, a torpedo
+  goes off 40 units out with a wide wave.
 
 Layers, as in today's file (the game reads them by id):
 
@@ -135,12 +152,16 @@ in the depot's Installed strip.
 
 ### Explosion and lock (code, reference only)
 
-- The blast is drawn by code (`explode()`): flash, fireball, sparks, debris,
-  smoke and a shockwave ring as wide as the warhead's blast, 100, 125, 150 or
-  175 m, in the launcher's colour. No file is loaded for it; a reference
-  sheet of how a missile blast should differ from a ship exploding is
-  welcome, and the code will follow it.
-- A missile that burns out without a hit ends in a small grey spark.
+- The blast is drawn by code: a fireball (`explode()`) and a travelling
+  wave, a band in the missile's colour behind a bright front, running out
+  to the blast radius (yours 100, 125, 150 or 175 m; a dart's 45, a
+  seeker's 70, a torpedo's 120) and fading; the front does the damage as it
+  reaches each hull (fuse-3, chain-1). No file is loaded for it; a reference
+  sheet of the wave and of how a missile blast should differ from a ship
+  exploding is welcome, and the code will follow it.
+- A missile that runs out of flight without going off bursts: a small dim
+  fireball in its colour, a grey spark and a small wave of 45 that hurts
+  nothing (fizzle-3).
 - A raider a missile of yours has locked wears four turning corner ticks in
   `#ff9a68` (flight-stock.jpg). A restyle is welcome as a reference.
 
@@ -180,9 +201,15 @@ in the depot's Installed strip.
   nearest and most ahead within its lock range, keeps it while it lives and
   stays in view, and otherwise takes the next one ahead while the motor
   burns. Turn rate is limited, so a faster motor turns wider.
-- Burnt out, the missile coasts 0.9 s, slowing, then fizzles. A hit bursts:
-  the raider hit takes the full damage, every raider within the blast takes
-  the warhead's share.
+- It goes off 18 units from a raider's hull (its fuse), or on a rock or
+  debris. The blast is a wave running out at 650 a second: a hull within the
+  fuse distance takes the full damage, one farther out less, down to the rim
+  where the falloff leaves 40% (Shaped warhead 0: 55%, 70%, 85% at levels
+  1-3), so the raiders round the one it went off at take the warhead's share
+  on average. The wave sets off any missile, either side's, whose toughness
+  its damage there beats (yours 30), three deep at most.
+- Burnt out, the missile coasts 0.9 s, slowing, then bursts in a small
+  harmless wave.
 
 | Level | Seeker head: turn, lock | Rocket motor: top, thrust, burn | Shaped warhead: blast, share |
 |---|---|---|---|
@@ -208,12 +235,16 @@ the campaign, 390 in the arcade (120 + rating 6 × 45); damage 60 every
 | Ion disruptor | medium | 550 | 80 | Triple damage to shields, slows |
 | Lance railgun | heavy | 1100 | 115 | Ignores 75% armour |
 | Flux beam | medium | 2600 | 181 | Ignores 40% armour; drains 17 pulse/s |
-| Seeker launcher | medium | 1400 | 57 direct, +36 to each raider within 100 m | Fire and forget, locks past 0.9 km |
+| Seeker launcher | medium | 1400 | 57 at the raider it fuses on, about +36 to each other within 100 m | Fire and forget, locks past 0.9 km |
 
 - Against one raider it is the weakest gun: 57 a second, less what misses
   (in a stepped test, 60 s against two raiders, about 80% of stock missiles
   hit circling fighters; all hit tanks and lancers). Against a squadron of
   three in its blast it does 57 + 2 × 36 = 129, past the railgun's 115.
+- The fuse and the wave kept that: into the same squadron of five (stepped,
+  60 s, 116 missiles) a stock missile dealt 62 before and 65 after, all
+  modules 75 before and 81 after. Darts and seekers that fly into your wave
+  go off with it.
 - It hits without the turret having to lead the target, and with the Seeker
   head it fires from 1.35 km while guns stop at 0.9 km; a missile still
   takes about 1.3 s to get there, and the target can turn away.
