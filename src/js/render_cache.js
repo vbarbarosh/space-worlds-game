@@ -72,8 +72,9 @@ function render_projectiles()
     }
     gather(bullets, true);
     gather(hostile, false);
-    // Missiles fly with their trails (missiles.js); every other shot is a bolt along its flight, a raider's too
+    // Missiles fly with their trails and blast waves (missiles.js); every other shot is a bolt along its flight, a raider's too
     missile_wakes_draw();
+    missile_waves_draw();
     for (const group of groups.values()) {
         if (group.items[0].missile) {
             missile_group_draw(group);

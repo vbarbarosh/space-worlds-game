@@ -307,20 +307,6 @@ function fire_equipped_weapon(mount = null)
     sfx((v.id === 'plasma') ? 'shot' : v.missile ? 'missile' : `enemy_${v.id}`);
 }
 
-// A missile's blast: the raiders within its splash take the warhead's share of the hit
-function blast_payload(b, direct)
-{
-    b.exploded = true;
-    ring(b.x, b.y, b.color || gold, b.splash, 0.35);
-    burst(b.x, b.y, b.color || gold, 22, 190);
-    explode(b.x, b.y, b.splash*0.45, b.color || gold);
-    for (const enemy of enemies.slice()) {
-        if ((enemy !== direct) && (enemy.hp > 0) && (distance(enemy, b) < b.splash)) {
-            damage_enemy(enemy, b.damage*b.splash_share);
-        }
-    }
-}
-
 function hit_with_weapon(enemy, b)
 {
     if (enemy.hp <= 0) {
@@ -349,8 +335,5 @@ function hit_with_weapon(enemy, b)
         }
         damage_enemy(enemy, b.damage);
         enemy.armor = armor;
-    }
-    if (b.splash) {
-        blast_payload(b, enemy);
     }
 }

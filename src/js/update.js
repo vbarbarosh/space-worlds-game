@@ -414,7 +414,10 @@ function update(dt)
         b.x += b.vx*dt;
         b.y += b.vy*dt;
         b.life -= dt;
-        for (let j = 0; j < enemies.length; ++j) {
+        if (b.missile && missile_fuse_player(b, {x: px, y: py})) {
+            missile_detonate(b);
+        }
+        for (let j = 0; (j < enemies.length) && !b.missile; ++j) {
             const v = enemies[j];
             if (v.hp <= 0) {
                 continue;
@@ -449,8 +452,8 @@ function update(dt)
                         explode(b.x, b.y, 8, ore_color(v), 0, 'spark');
                     }
                     b.life = 0;
-                    if (b.splash) {
-                        blast_payload(b, null);
+                    if (b.missile) {
+                        missile_detonate(b);
                     }
                     break;
                 }
@@ -461,6 +464,9 @@ function update(dt)
                 if ((Math.abs(piece.x - b.x) < piece.r + 60) && (Math.abs(piece.y - b.y) < piece.r + 60) && (segment_distance(piece, {x: px, y: py}, b) < piece.r + b.r)) {
                     drifting_debris_hit(piece, b.damage);
                     b.life = 0;
+                    if (b.missile) {
+                        missile_detonate(b);
+                    }
                     break;
                 }
             }
@@ -480,6 +486,15 @@ function update(dt)
         b.y += b.vy*enemy_dt;
         b.life -= enemy_dt;
         if (block_hostile_ore(b, previous)) {
+            if (b.missile) {
+                missile_detonate(b);
+            }
+            continue;
+        }
+        if (b.missile) {
+            if (missile_fuse_raider(b)) {
+                missile_detonate(b);
+            }
             continue;
         }
         // A shield is a bubble: it takes the shot at its edge, and the hull only once it is gone. The bubble is a wider
@@ -499,6 +514,7 @@ function update(dt)
             b.life = 0;
         }
     }
+    missile_waves_update(dt);
     missile_wakes_keep(bullets);
     missile_wakes_keep(hostile);
     bullets = bullets.filter(v => (v.life > 0) && (v.x > -40) && (v.x < world.w + 40) && (v.y > -40) && (v.y < world.h + 40));

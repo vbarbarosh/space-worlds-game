@@ -212,10 +212,12 @@ function world_audio_base_enemy_fire(enemy, angle, speed = 210, pattern = false)
 {
     const fast = pattern ? 1.4 : 2.4;
     const w = enemy.weapon || 'plasma';
-    const spread = (w === 'scatter') ? [-0.23, 0, 0.23] : ((w === 'missile') && (campaign.world >= 6)) ? [-0.2, 0.2] : [0];
+    // a missile's kind by the raider (missile_kind_for); a torpedo comes alone
+    const kind = (w === 'missile') ? missile_kind_for(enemy) : null;
+    const spread = (w === 'scatter') ? [-0.23, 0, 0.23] : (kind && (kind !== 'torpedo') && (campaign.world >= 6)) ? [-0.2, 0.2] : [0];
     for (const offset of spread) {
         const a = angle + offset;
-        const s = ((w === 'rail') ? 520 : (w === 'missile') ? 190 : (w === 'ion') ? 275 : speed)*fast;
+        const s = ((w === 'rail') ? 520 : kind ? 190*missile_kinds[kind].speed : (w === 'ion') ? 275 : speed)*fast;
         hostile.push({
             x: enemy.x + Math.cos(a)*enemy.r,
             y: enemy.y + Math.sin(a)*enemy.r,
@@ -227,7 +229,7 @@ function world_audio_base_enemy_fire(enemy, angle, speed = 210, pattern = false)
             escort_target: !!enemy.escort_raider,
             damage: (w === 'rail') ? 30 : (w === 'missile') ? 23 : (w === 'scatter') ? 12 : (w === 'ion') ? 17 : 10,
             color: enemy.color,
-            ...((w === 'missile') ? missile_raider(s, 6/fast) : {}),
+            ...(kind ? missile_raider(kind, s) : {}),
         });
     }
     explode(enemy.x + Math.cos(angle)*enemy.r, enemy.y + Math.sin(angle)*enemy.r, 11, enemy.color || pink, 0, 'muzzle');
