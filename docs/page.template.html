@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -19,84 +19,51 @@
     document.documentElement.dataset.theme = theme;
 })();
 </script>
-<style>
-:root {
-    --bg: #ffffff;
-    --bg-side: #f5f7fa;
-    --bg-code: #eef1f5;
-    --text: #1b1f23;
-    --text-2: #4a5562;
-    --line: #dde3ea;
-    --link: #0b6e75;
-    --accent: #0fa3a3;
-}
-:root[data-theme="dark"] {
-    --bg: #0b1220;
-    --bg-side: #0f1828;
-    --bg-code: #162236;
-    --text: #e6eaf0;
-    --text-2: #9fb0c2;
-    --line: #22324a;
-    --link: #6cf8ec;
-    --accent: #6cf8ec;
-}
-* { box-sizing: border-box; }
-html, body { margin: 0; }
-body { background: var(--bg); color: var(--text); font: 16px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif; }
-a { color: var(--link); }
-.bar { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; gap: 16px; padding: 10px 24px; background: var(--bg); border-bottom: 1px solid var(--line); }
-.bar .brand { font-weight: 800; letter-spacing: -0.02em; color: var(--text); text-decoration: none; }
-.bar .brand span { color: var(--accent); }
-.bar .space { flex: 1; }
-.bar a.repo { font-size: 14px; }
-.theme { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
-.theme button { border: 0; padding: 5px 12px; background: transparent; color: var(--text-2); font: inherit; font-size: 14px; cursor: pointer; }
-:root[data-theme="light"] .theme [data-value="light"], :root[data-theme="dark"] .theme [data-value="dark"] { background: var(--accent); color: var(--bg); }
-.layout { display: grid; grid-template-columns: 240px minmax(0, 1fr); }
-nav.pages { position: sticky; top: 53px; align-self: start; max-height: calc(100vh - 53px); overflow-y: auto; padding: 24px 16px; background: var(--bg-side); border-right: 1px solid var(--line); min-height: calc(100vh - 53px); }
-nav.pages ul { list-style: none; margin: 0; padding: 0; }
-nav.pages a { display: block; padding: 5px 10px; border-radius: 6px; color: var(--text-2); text-decoration: none; font-size: 15px; }
-nav.pages a:hover { color: var(--text); background: var(--bg-code); }
-nav.pages a.on { color: var(--text); background: var(--bg-code); font-weight: 650; }
-main { min-width: 0; padding: 32px 40px 80px; }
-.content { max-width: 780px; }
-.content h1 { font-size: 34px; line-height: 1.15; letter-spacing: -0.02em; margin: 0 0 20px; }
-.content h2 { font-size: 24px; margin: 40px 0 12px; padding-top: 8px; border-top: 1px solid var(--line); }
-.content h3 { font-size: 19px; margin: 28px 0 8px; }
-.content code { overflow-wrap: anywhere; padding: 1px 5px; border-radius: 4px; background: var(--bg-code); font: 0.88em/1.4 ui-monospace, "SF Mono", Menlo, monospace; }
-.content pre { padding: 14px 16px; border-radius: 8px; background: var(--bg-code); overflow-x: auto; }
-.content pre code { padding: 0; background: none; }
-.content table { display: block; max-width: 100%; overflow-x: auto; border-collapse: collapse; font-size: 15px; }
-.content th, .content td { padding: 6px 12px; border: 1px solid var(--line); text-align: left; vertical-align: top; }
-.content th { background: var(--bg-side); }
-.content img { max-width: 100%; }
-.content blockquote { margin: 16px 0; padding: 4px 16px; border-left: 3px solid var(--accent); color: var(--text-2); }
-@media (max-width: 760px) {
-    .bar { padding: 10px 16px; }
-    .bar a.repo { display: none; }
-    .layout { grid-template-columns: minmax(0, 1fr); }
-    nav.pages { position: static; max-height: none; min-height: 0; padding: 12px 16px; border-right: 0; border-bottom: 1px solid var(--line); }
-    nav.pages ul { display: flex; flex-wrap: wrap; gap: 4px; }
-    main { padding: 24px 16px 64px; }
-    .content h1 { font-size: 28px; }
-}
-</style>
+<link rel="preload" href="{{root}}assets/fonts/inter-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="{{root}}assets/docs.css">
+<link rel="icon" href="{{root}}assets/logo.svg" type="image/svg+xml">
 </head>
-<body>
+<body id="top">
+<a class="skip" href="#content">Skip to the article</a>
 <header class="bar">
-    <a class="brand" href="{{root}}index.html">World <span>Explorer</span> · docs</a>
-    <span class="space"></span>
-    <a class="repo" href="https://github.com/vbarbarosh/space-worlds-game">GitHub</a>
-    <span class="theme" role="group" aria-label="Theme"><button type="button" data-value="light">Light</button><button type="button" data-value="dark">Dark</button></span>
-</header>
-<div class="layout">
-<nav class="pages">
+    <div class="bar-in">
+        <a class="brand" href="{{root}}index.html" aria-label="World Explorer docs, home">
+            <span class="brand-mark" aria-hidden="true"></span>
+            <span class="brand-name">World Explorer</span>
+            <span class="brand-tag">Docs</span>
+        </a>
+        <details class="picker">
+            <summary><span class="picker-label">Pages</span><span class="picker-title">{{title}}</span></summary>
+            <nav class="picker-list" aria-label="Pages">
 {{nav}}
-</nav>
-<main><article class="content">
+            </nav>
+        </details>
+        <span class="space"></span>
+        <a class="bar-link repo" href="https://github.com/vbarbarosh/space-worlds-game" aria-label="GitHub"><span>GitHub</span></a>
+        <span class="theme" role="group" aria-label="Theme"><button type="button" data-value="light" aria-label="Light"><span>Light</span></button><button type="button" data-value="dark" aria-label="Dark"><span>Dark</span></button></span>
+    </div>
+</header>
+<div class="hero" aria-hidden="true"></div>
+<div class="layout">
+    <nav class="pages" aria-label="Pages">
+        <div class="pages-label">Pages</div>
+{{nav}}
+    </nav>
+    <main id="content">
+        <article class="content">
 {{content}}
-</article></main>
+        </article>
+    </main>
 </div>
+<footer class="foot">
+    <div class="foot-in">
+        <div class="foot-brand"><span class="brand-mark" aria-hidden="true"></span><span>World Explorer docs</span></div>
+        <p class="foot-text">Built from <code>docs/*.md</code> by <code>bin/build-docs</code>. Each page names the code it describes.</p>
+        <span class="space"></span>
+        <a class="foot-link repo" href="https://github.com/vbarbarosh/space-worlds-game/tree/main/docs">Source on GitHub</a>
+        <a class="foot-link up" href="#top">Back to top</a>
+    </div>
+</footer>
 <script>
 for (const v of document.querySelectorAll('.theme button')) {
     v.addEventListener('click', function () {

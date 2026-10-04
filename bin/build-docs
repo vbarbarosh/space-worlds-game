@@ -14,7 +14,8 @@ const template_name = 'page.template.html';
 cli(main);
 
 // Every page of docs/ as HTML in build/docs: README.md becomes index.html, links between pages point at their HTML,
-// links to the rest of the repository go to GitHub, other files of docs/ are copied as they are
+// links to the rest of the repository go to GitHub, other files of docs/ are copied as they are (not tools/, the
+// designer's icon script)
 function main()
 {
     const template = fs.readFileSync(path.join(docs_dir, template_name), 'utf8');
@@ -25,7 +26,7 @@ function main()
         fs.mkdirSync(path.dirname(file), {recursive: true});
         fs.writeFileSync(file, html_from_page(template, page, pages));
     }
-    for (const file of files_from_dir(docs_dir).filter(v => !v.endsWith('.md') && (v !== template_name))) {
+    for (const file of files_from_dir(docs_dir).filter(v => !v.endsWith('.md') && (v !== template_name) && !v.startsWith('tools/'))) {
         fs.mkdirSync(path.dirname(path.join(out_dir, file)), {recursive: true});
         fs.copyFileSync(path.join(docs_dir, file), path.join(out_dir, file));
     }
@@ -121,7 +122,19 @@ function html_from_markdown(page)
             return `<img src="${html_escape(href_from_link(href, page))}" alt="${html_escape(text)}"${title_attr}>`;
         },
     }});
-    return marked.parse(page.markdown);
+    return add_doc_classes(marked.parse(page.markdown));
+}
+
+// The classes the designer's docs.css styles our conventions by (docs/assets, 10-docs-site NOTES.md): "Where it
+// lives:" lines, "Today" and "Open question:" items, *Checked*, a chapter heading and its stage line
+function add_doc_classes(html)
+{
+    return html
+        .replace(/<li>(?=Where( it lives)?:)/g, '<li class="where">')
+        .replace(/<li>(?=Today\b)/g, '<li class="today">')
+        .replace(/<li>(?=Open question:)/g, '<li class="open">')
+        .replace(/<em>(Checked\.?)<\/em>/g, '<em class="checked">$1</em>')
+        .replace(/<h3( id="[^"]*")?>(\d+\.\s[^<]*·[^<]*)<\/h3>\s*<p>/g, '<h3 class="chapter"$1>$2</h3>\n<p class="stages">');
 }
 
 function slug_from_text(text)
