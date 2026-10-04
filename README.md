@@ -32,8 +32,9 @@ published as a website at https://vbarbarosh.github.io/space-worlds-game/
     bin/layout-check every screen at twelve window sizes: no HUD block over
                      another, nothing off the window, no text cut; shots and
                      report.json in data/layout-check/, exit 1 on a failure
-    bin/build-docs   docs/ as a website in build/docs, published to GitHub
-                     Pages on every push to main (.github/workflows/docs.yml)
+    bin/build-docs   docs/ as a website in build/docs, with the game from
+                     bin/build in play/; published to GitHub Pages on every
+                     push to main (.github/workflows/docs.yml)
     bin/map-check    every world's map, campaign and arcade, against
                      docs/placement.md: no two things R acts on within reach
                      of each other, gates and portals where the rules put

@@ -1,4 +1,5 @@
-# The documentation site: bin/build-docs on every push to main, published to GitHub Pages
+# The documentation site, with the game in play/: bin/build and bin/build-docs on every push to main, published to
+# GitHub Pages
 name: docs
 
 on:
@@ -25,6 +26,7 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
+      - run: bin/build
       - run: bin/build-docs
       - uses: actions/upload-pages-artifact@v4
         with:
