@@ -9,6 +9,8 @@ look.
 The game's inspiration is Microsoft's *Freelancer* (2003): a pilot who docks
 at stations, takes contracts, trades between worlds and jumps through gates.
 
+## Pages
+
 - [principles.md](principles.md): the rules the game keeps everywhere (what
   is solid, keys and buttons, seeded maps, the arcade apart from the
   campaign). A change that breaks one changes this file first.
