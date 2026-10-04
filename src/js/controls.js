@@ -77,6 +77,8 @@ function toggle_pause()
         document.getElementById('pause_layout').classList.remove('is-controls');
 
         document.getElementById('pause_checkpoint').textContent = checkpoint_notice;
+        document.getElementById('restart_pause').textContent = arcade.active ? 'Restart arcade' : 'Restart campaign';
+        document.getElementById('restart_pause_note').textContent = arcade.active ? 'Start the arcade again from world 1.' : 'Start the campaign again from Haven. Your saved games stay.';
         set_pause_icon(true);
         document.getElementById('resume_button').focus();
     }

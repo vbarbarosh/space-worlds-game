@@ -145,7 +145,7 @@ function saves_render()
     if (saves_return === 'pause') {
         document.getElementById('saves_note').textContent = arcade.active
             ? 'An arcade save keeps your score, salvage and gear; loading it starts its world again from the first wave.'
-            : 'Six slots, kept in this browser beside the autosave. Times are Chisinau time.';
+            : 'The game saves itself as you play, and Continue in the main menu picks it up. A slot keeps a copy you can come back to. Times are Chisinau time.';
     }
 }
 
