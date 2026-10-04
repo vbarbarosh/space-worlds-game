@@ -89,6 +89,8 @@ let station = {x: 0, y: 0};
 const station_size = 1000;
 // R docks within this of the station's centre: a short flight from its berths' tips, the approach does the rest
 const station_reach = station_size/2 + 250;
+// R jumps within this of a world gate's centre
+const gate_reach = 155;
 // The sheltered space round the station: no radiation, no gravity storms, no mining, raiders cleared on docking
 const station_shelter = station_size/2 + 400;
 let world_gates = [];

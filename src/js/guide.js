@@ -217,7 +217,7 @@ function expedition_base_guide_context()
             out.kind = 'jump';
             out.action = 'Fly to world gate';
             out.instruction =
-                `Next: ${worlds[campaign.world].name} → ${worlds[route[1]].name}. Follow the gold marker to the WORLD GATE. Fly within 155 m, then press R to jump.`;
+                `Next: ${worlds[campaign.world].name} → ${worlds[route[1]].name}. Follow the gold marker to the WORLD GATE. Fly within ${gate_reach} m, then press R to jump.`;
             out.interaction = 'R JUMP';
         }
     }

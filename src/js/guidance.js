@@ -235,10 +235,10 @@ function update_jump(dt)
     }
 }
 
-// Close enough for R to act: a gate within 155 m, or the station within its docking reach (from its centre, as R measures)
+// Close enough for R to act: a gate within its reach, or the station within its docking reach (from its centre, as R measures)
 function guide_in_reach(c)
 {
-    return (c.kind === 'jump') ? (distance(player, c.goal) < 155) : (distance(player, station) < station_reach);
+    return (c.kind === 'jump') ? (distance(player, c.goal) < gate_reach) : (distance(player, station) < station_reach);
 }
 
 function guide_action_label(c)

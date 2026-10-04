@@ -107,7 +107,7 @@ function guide_base_render_navigation()
                 parent,
                 `Gate → ${worlds[world_gate.destination].name}`,
                 worlds[world_gate.destination].weapons,
-                `R within 155 units · ${requirements(world_gate.destination)}`,
+                `R within ${gate_reach} units · ${requirements(world_gate.destination)}`,
                 'SET WAYPOINT',
                 function () {
                     waypoint = {...world_gate, label: `GATE TO ${worlds[world_gate.destination].name}`};
@@ -184,7 +184,7 @@ function interact()
         docking_start(dock_station);
         return;
     }
-    const g = world_gates.find(v => distance(player, v) < 155);
+    const g = world_gates.find(v => distance(player, v) < gate_reach);
     if (g) {
         if (!allowed_world(g.destination)) {
             show_toast('SHIP NOT READY', `${requirements(g.destination)} / DOCK AND OPEN MODULES`, 5);
@@ -373,7 +373,7 @@ function guide_base_update_hud()
         : 'R dock · J map and guide';
     el.sector_progress.style.width = m ? `${Math.min(100, (m.progress/m.target)*100)}%` : '0%';
     const b = document.getElementById('dock_button');
-    const g = world_gates.find(v => distance(player, v) < 155);
+    const g = world_gates.find(v => distance(player, v) < gate_reach);
     // far from the station it sets the course there, so it is always pressable in flight
     b.disabled = state !== 'playing';
     b.innerHTML = `${hud_dock_icon}<span>${g ? 'Jump' : 'Dock'}</span><span class="key">R</span>`;
