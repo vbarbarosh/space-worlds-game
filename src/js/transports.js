@@ -353,12 +353,9 @@ function render_transport()
         turret_draw(ctx, {id: 'heavy', color: gold}, art.length*0.17, ship.recoil[i]);
         ctx.restore();
     }
-    const doing = {waiting: 'AT THE STATION', flying: (stop?.id === 'station') ? 'TO THE STATION' : 'TO AN OUTPOST', loading: 'LOADING', unloading: 'UNLOADING'}[ship.state];
+    const doing = {waiting: 'at the station', flying: (stop?.id === 'station') ? 'to the station' : 'to an outpost', loading: 'loading', unloading: 'unloading'}[ship.state];
+    world_label(ship.x, ship.y + art.length*0.5 + 6, 'TRANSPORT', `${doing} · ${ship.line.count}/${transport_hold}`, gold);
     ctx.save();
-    ctx.font = '10px ui-monospace,monospace';
-    ctx.textAlign = 'center';
-    ctx.fillStyle = gold;
-    ctx.fillText(`TRANSPORT · ${doing} · ${ship.line.count}/${transport_hold}`, ship.x, ship.y + art.length*0.5 + 16);
     ctx.fillStyle = '#0b1222';
     ctx.fillRect(ship.x - 36, ship.y - art.length*0.5 - 14, 72, 4);
     ctx.fillStyle = (ship.line.hp < transport_hp*0.35) ? pink : gold;

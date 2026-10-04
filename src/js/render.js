@@ -35,10 +35,7 @@ function base_render_navigation_objects()
         ctx.arc(mining_field.x, mining_field.y, mining_field.r, 0, Math.PI*2);
         ctx.stroke();
         ctx.setLineDash([]);
-        ctx.fillStyle = '#ffd16e88';
-        ctx.font = '10px ui-monospace,monospace';
-        ctx.textAlign = 'center';
-        ctx.fillText(`MINING FIELD ${String(mining_field.id + 1).padStart(2, '0')} · ${field_reserves_text(mining_field)}`, mining_field.x, mining_field.y - mining_field.r - 20);
+        world_label(mining_field.x, mining_field.y - mining_field.r - 44, `MINING FIELD ${mining_field.id + 1}`, field_reserves_text(mining_field), gold);
         ctx.restore();
     }
     for (const ore_node of ore_nodes) {
@@ -78,8 +75,7 @@ function base_render_navigation_objects()
         ctx.textAlign = 'center';
         ctx.fillStyle = portal.color;
         ctx.fillText(portal.label, 0, 5);
-        ctx.font = '9px ui-monospace,monospace';
-        ctx.fillText(`JUMP GATE ${portal.label}`, 0, portal.r + 34);
+        world_label(0, portal.r + 22, `JUMP GATE ${portal.label}`, 'R jump', portal.color);
         ctx.restore();
     }
     for (const black_hole of black_holes) {
@@ -128,10 +124,7 @@ function base_render_navigation_objects()
         ctx.strokeStyle = pink;
         ctx.lineWidth = 2;
         ctx.stroke();
-        ctx.fillStyle = pink;
-        ctx.font = 'bold 10px ui-monospace,monospace';
-        ctx.textAlign = 'center';
-        ctx.fillText('BLACK HOLE / FATAL CORE', black_hole.x, black_hole.y + black_hole.core + 72);
+        world_label(black_hole.x, black_hole.y + black_hole.core + 60, 'BLACK HOLE', 'Fatal core', pink);
         ctx.restore();
     }
 }
@@ -220,14 +213,11 @@ function base_render_screen_controls()
             if (in_view(enemy, 0) || !((enemy.type === 'boss') || ((spawn_left === 0) && (enemies.length < 7)))) {
                 continue;
             }
-            const px = (enemy.x - camera.x)*zoom;
-            const py = (enemy.y - camera.y)*zoom;
-            const x = clamp(px, 24, W - 24);
-            const y = clamp(py, 190, H - 145);
-            const a = Math.atan2(py - y, px - x);
+            // on the window's edge toward the raider, clear of the HUD (screen px, back in the scene's units)
+            const m = hud_edge_marker({x: ox + (enemy.x - camera.x)*zoom*scale, y: oy + (enemy.y - camera.y)*zoom*scale}, 18);
             ctx.save();
-            ctx.translate(x, y);
-            ctx.rotate(a);
+            ctx.translate((m.x - ox)/scale, (m.y - oy)/scale);
+            ctx.rotate(m.angle);
             ctx.fillStyle = (enemy.type === 'boss') ? pink : gold;
             ctx.beginPath();
             ctx.moveTo(9, 0);
@@ -368,6 +358,7 @@ function render()
     }
     ctx.restore();
     render_screen_controls();
+    render_world_labels();
     if (full_fx && (flash > 0)) {
         ctx.fillStyle = `rgba(255,91,175,${flash*0.35})`;
         ctx.fillRect(0, 0, W, H);

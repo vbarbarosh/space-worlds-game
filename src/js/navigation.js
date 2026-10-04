@@ -82,10 +82,10 @@ function guide_base_render_navigation()
     const parent = document.getElementById('nav_content');
     parent.replaceChildren();
     for (const b of document.querySelectorAll('[data-nav]')) {
-        b.classList.toggle('selected', b.dataset.nav === nav_tab);
+        b.classList.toggle('is-active', b.dataset.nav === nav_tab);
     }
     document.getElementById('nav_summary').textContent =
-        `CURRENT ${worlds[campaign.world].name} · WEAPON RATING ${attack_rating()} · DEFENSE ${defense_rating()} · ${campaign.visited.length}/8 worlds visited · Cargo ${cargo_count()}/${cargo_capacity()}`;
+        `${worlds[campaign.world].name} · weapon rating ${attack_rating()} · defence ${defense_rating()} · ${campaign.visited.length}/8 worlds visited · cargo ${cargo_count()}/${cargo_capacity()}`;
     if (nav_tab === 'jobs') {
         render_contracts(parent);
         return;
@@ -460,12 +460,7 @@ function finish(won)
 // The gate's name and status, `y` below its centre
 function world_gate_label(world_gate, y)
 {
-    ctx.fillStyle = world_gate.color;
-    ctx.font = 'bold 11px ui-monospace,monospace';
-    ctx.textAlign = 'center';
-    ctx.fillText(`WORLD GATE → ${worlds[world_gate.destination].name.toUpperCase()}`, world_gate.x, world_gate.y + y);
-    ctx.font = '9px ui-monospace,monospace';
-    ctx.fillText(`R JUMP · ${allowed_world(world_gate.destination) ? 'CLEARED' : 'UPGRADES REQUIRED'}`, world_gate.x, world_gate.y + y + 19);
+    world_label(world_gate.x, world_gate.y + y - 12, `WORLD GATE → ${worlds[world_gate.destination].name.toUpperCase()}`, `R jump · ${allowed_world(world_gate.destination) ? 'cleared' : 'upgrades required'}`, world_gate.color);
 }
 
 function physics_base_render_navigation_objects()
@@ -516,10 +511,7 @@ function physics_base_render_navigation_objects()
         ctx.beginPath();
         ctx.arc(beacon.x, beacon.y, 50 + ((clock*20) % 45), 0, Math.PI*2);
         ctx.stroke();
-        ctx.fillStyle = cyan;
-        ctx.font = '10px ui-monospace,monospace';
-        ctx.textAlign = 'center';
-        ctx.fillText(`SCAN BEACON ${i + 1}`, beacon.x, beacon.y + 65);
+        world_label(beacon.x, beacon.y + 56, `SCAN BEACON ${i + 1}`, '', cyan);
     }
     if (escort) {
         const angle = Math.atan2(escort.destination.y - escort.y, escort.destination.x - escort.x);
@@ -529,11 +521,8 @@ function physics_base_render_navigation_objects()
         else {
             render_surface_ship(escort.x, escort.y, angle, 1, false, {...current_ship(), sprite: {name: 'freighter', length: sprite_sizes.freighter}});
         }
-        ctx.fillStyle = gold;
-        ctx.font = '10px ui-monospace,monospace';
-        ctx.textAlign = 'center';
         // below the hull; the guide's marker names it above
-        ctx.fillText(`FREIGHTER · ${Math.ceil(escort.hp)} HULL`, escort.x, escort.y + sprite_sizes.freighter*0.6 + 14);
+        world_label(escort.x, escort.y + sprite_sizes.freighter*0.6 + 4, 'FREIGHTER', `${Math.ceil(escort.hp)} hull`, gold);
     }
     if (waypoint) {
         const p = waypoint_live();
@@ -557,29 +546,21 @@ function waypoint_live()
 function guide_base_render_screen_controls()
 {
     base_render_screen_controls();
+    // the guide's marker: its name above it on a plate, or, off the screen, an edge marker clear of the HUD
     if (waypoint && player) {
         const live = waypoint_live();
         const px = (live.x - camera.x)*zoom;
         const py = (live.y - camera.y)*zoom;
-        const x = clamp(px, 50, W - 50);
-        const y = clamp(py, 255, H - 165);
         const d = Math.round(distance(player, live));
-        ctx.save();
-        ctx.fillStyle = gold;
-        ctx.font = '10px ui-monospace,monospace';
-        ctx.textAlign = 'center';
-        // above the marker's ring, which is wider round a moving goal's hull
-        const above = waypoint.follow ? Math.max(65, sprite_sizes.freighter*0.62)*zoom + 10 : 20;
-        ctx.fillText(`${waypoint.label.toUpperCase()} · ${d} m`, x, y - above);
-        const a = Math.atan2(py - y, px - x);
-        ctx.translate(x, y);
-        ctx.rotate(a);
-        ctx.beginPath();
-        ctx.moveTo(10, 0);
-        ctx.lineTo(-6, -6);
-        ctx.lineTo(-6, 6);
-        ctx.fill();
-        ctx.restore();
+        const m = hud_edge_marker({x: ox + px*scale, y: oy + py*scale});
+        if (m.offscreen) {
+            draw_edge_marker(m, `${waypoint.label} · ${d} m`);
+        }
+        else {
+            // above the marker's ring, which is wider round a moving goal's hull
+            const above = waypoint.follow ? Math.max(65, sprite_sizes.freighter*0.62)*zoom + 10 : 20;
+            world_label(px, py - above - 31, waypoint.label.toUpperCase(), `${d} m`, gold);
+        }
     }
     render_jump();
 }
@@ -591,6 +572,22 @@ for (const b of document.querySelectorAll('[data-nav]')) {
         nav_tab = b.dataset.nav;
         render_navigation();
     });
+}
+addEventListener('keydown', on_navigation_key);
+
+// In the map & guide, 1–6 open its tabs
+function on_navigation_key(event)
+{
+    if ((state !== 'navigation') || event.repeat || event.ctrlKey || event.metaKey || event.altKey || ['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
+        return;
+    }
+    const tabs = Array.from(document.querySelectorAll('[data-nav]'));
+    const n = Number(event.key);
+    if (Number.isInteger(n) && (n >= 1) && (n <= tabs.length)) {
+        event.preventDefault();
+        nav_tab = tabs[n - 1].dataset.nav;
+        render_navigation();
+    }
 }
 for (const b of document.querySelectorAll('[data-station]')) {
     b.addEventListener('click', () => station_tab_open(b.dataset.station));

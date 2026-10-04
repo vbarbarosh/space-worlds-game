@@ -655,12 +655,7 @@ function wireframe_render_world_station()
         polygon(0, 0, 31, 3, clock*0.08, '#bd86e7', '#1b0d32');
     }
     ctx.shadowBlur = 0;
-    ctx.fillStyle = w.accent;
-    ctx.font = 'bold 12px ui-monospace,monospace';
-    ctx.textAlign = 'center';
-    ctx.fillText(w.station.toUpperCase(), 0, 165);
-    ctx.font = '9px ui-monospace,monospace';
-    ctx.fillText(`${look.station.toUpperCase()} / R DOCK`, 0, 183);
+    world_label(0, 153, w.station.toUpperCase(), `${look.station} · R dock`, w.accent);
     ctx.restore();
 }
 

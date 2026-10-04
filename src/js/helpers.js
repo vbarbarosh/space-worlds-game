@@ -57,7 +57,7 @@ try {
 }
 catch {
 }
-el.best_intro.textContent = `BEST ${String(best).padStart(6, '0')}`;
+el.best_intro.textContent = `Best ${String(best).padStart(6, '0')}`;
 function rand(a, b)
 {
     return a + Math.random()*(b - a);

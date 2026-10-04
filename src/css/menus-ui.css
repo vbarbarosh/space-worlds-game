@@ -1,0 +1,280 @@
+/* Pause, the main menu and the small dialogs on the UI kit. The kit's layout section (ui-kit.css, 16) places
+   .pause-layout and the menu; today's global .panel rule sets a width, padding and centred text, reset here. */
+/* the game behind a screen on the kit dims as one */
+.ui.overlay {
+    background: var(--scrim);
+}
+
+.ui .pause-layout .panel {
+    width: auto;
+    max-width: none;
+    margin: 0;
+    text-align: left;
+}
+
+.ui .pause-main {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 36px 36px 28px;
+}
+
+.ui .pause-main .h-panel {
+    margin: 0;
+    font-size: 40px;
+}
+
+.ui .pause-main .body {
+    margin: 0;
+}
+
+.ui .pause-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.ui .pause-grid .btn > span:not(.key) {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ui .pause-menu {
+    align-self: flex-start;
+}
+
+.ui .pause-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding-top: 16px;
+    border-top: 1px solid var(--line-1);
+}
+
+.ui .keys-list {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 9px 18px;
+    margin: 6px 0;
+    font-size: var(--fs-sm);
+    color: var(--text-2);
+}
+
+.ui .keys-list dt {
+    display: flex;
+    gap: 4px;
+}
+
+.ui .keys-list dd {
+    margin: 0;
+}
+
+.ui .controls-card .small {
+    margin: 0;
+}
+
+.ui .controls-back {
+    display: none;
+    align-self: flex-start;
+}
+
+/* narrow: the key list folds behind Controls and shows in place of the pause panel */
+@container screen (max-width: 1100px) {
+    .ui .pause-layout.is-controls .pause-main {
+        display: none;
+    }
+
+    .ui .pause-layout.is-controls .controls-card {
+        display: flex;
+    }
+
+    .ui .pause-layout.is-controls .controls-back {
+        display: inline-flex;
+    }
+}
+
+@container screen (max-height: 560px) {
+    .ui .keys-list {
+        gap: 5px 14px;
+    }
+}
+
+/* the main menu: the HUD's top row stays above it (brand and the view toggles); the flight-only rows hide */
+body:not(.in-game) .ui.hud .hud-bottom {
+    display: none;
+}
+
+.ui .menu-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.ui .menu-tag .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--cyan);
+    box-shadow: 0 0 10px var(--cyan);
+}
+
+.ui .menu-left .h-hero {
+    text-transform: uppercase;
+}
+
+.ui .menu-left .h-hero span {
+    display: block;
+    color: var(--cyan);
+    text-shadow: 0 0 50px rgba(108, 248, 236, 0.35);
+}
+
+.ui .menu-lead {
+    max-width: 470px;
+    font-size: 16px;
+    line-height: 1.45;
+}
+
+.ui .continue-card {
+    flex-direction: row;
+    align-items: center;
+    gap: 16px;
+    max-width: 560px;
+    padding: 16px 16px 16px 18px;
+    cursor: pointer;
+}
+
+.ui .continue-planet {
+    flex: none;
+    width: 48px;
+    height: 48px;
+}
+
+.ui .continue-text {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+    min-width: 0;
+}
+
+.ui .continue-text b {
+    font-size: 15px;
+    color: var(--text-1);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ui .continue-text .small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ui .menu-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+/* with nothing to continue, a new campaign is the one thing to do */
+.ui .menu-left:has(.continue-card.hidden) #start_button {
+    --bg: var(--cyan);
+    --bd: var(--cyan);
+    --fg: var(--cyan-ink);
+    font-weight: 750;
+}
+
+.ui .menu-mode {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 14px;
+}
+
+.ui .seg button.selected {
+    color: var(--cyan);
+    background: var(--cyan-dim);
+    box-shadow: inset 0 0 0 1px rgba(108, 248, 236, 0.45);
+}
+
+.ui .menu-note {
+    max-width: 470px;
+    margin: -10px 0 0;
+}
+
+.ui .menu-art {
+    --art: min(560px, 62cqh, 40cqw);
+    pointer-events: none;
+}
+
+.ui .menu-art > * {
+    position: absolute;
+    left: 0;
+    top: 0;
+    transform: translate(-50%, -50%);
+}
+
+.ui .menu-art .orbit {
+    width: var(--art);
+    height: var(--art);
+    border: 1px solid rgba(108, 248, 236, 0.16);
+    border-radius: 50%;
+}
+
+.ui .menu-art .orbit.second {
+    width: calc(var(--art)*0.82);
+    height: calc(var(--art)*0.82);
+    border-style: dashed;
+    border-color: rgba(108, 248, 236, 0.1);
+}
+
+.ui .menu-art .orbit.third {
+    width: calc(var(--art)*0.64);
+    height: calc(var(--art)*0.64);
+    background: radial-gradient(circle, rgba(40, 90, 160, 0.35), transparent 70%);
+}
+
+.ui .menu-ship {
+    width: calc(var(--art)*0.4);
+    height: calc(var(--art)*0.4);
+    filter: drop-shadow(0 18px 30px rgba(0, 0, 0, 0.55));
+}
+
+.ui .menu-planet {
+    left: calc(var(--art)*0.42);
+    top: calc(var(--art)*0.34);
+    width: calc(var(--art)*0.34);
+    height: calc(var(--art)*0.34);
+}
+
+.ui .menu-badge {
+    left: calc(var(--art)*-0.31);
+    top: calc(var(--art)*-0.39);
+}
+
+.ui .menu-motto {
+    top: calc(var(--art)*0.55);
+    white-space: nowrap;
+}
+
+.ui .menu-foot > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: var(--fs-sm);
+    color: var(--text-3);
+}
+
+.ui .menu-foot .key {
+    margin-right: 2px;
+}
+
+@container screen (max-height: 560px) {
+    body:not(.in-game) .ui.hud .hud-top .brand {
+        display: none;
+    }
+}

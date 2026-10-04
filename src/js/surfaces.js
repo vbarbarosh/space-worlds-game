@@ -716,13 +716,7 @@ function render_world_station()
     if (!drawn) {
         ctx.drawImage(asset.layer, station.x - 230, station.y - 230, 460, 460);
     }
-    const label = drawn ? 262 : 180;
-    ctx.fillStyle = w.accent;
-    ctx.font = 'bold 12px ui-monospace,monospace';
-    ctx.textAlign = 'center';
-    ctx.fillText(w.station.toUpperCase(), station.x, station.y + label);
-    ctx.font = '9px ui-monospace,monospace';
-    ctx.fillText('STATION / R DOCK', station.x, station.y + label + 18);
+    world_label(station.x, station.y + (drawn ? 250 : 168), w.station.toUpperCase(), 'Station · R dock', w.accent);
     ctx.restore();
 }
 
@@ -798,10 +792,7 @@ function render_singularity_surface(v)
         ctx.ellipse(v.x, v.y, v.core*2.6, v.core*0.9, -0.23, clock*0.2, clock*0.2 + Math.PI*0.9);
         ctx.stroke();
     }
-    ctx.fillStyle = pink;
-    ctx.font = 'bold 10px ui-monospace,monospace';
-    ctx.textAlign = 'center';
-    ctx.fillText('BLACK HOLE / FATAL CORE', v.x, v.y + v.core + 72);
+    world_label(v.x, v.y + v.core + 60, 'BLACK HOLE', 'Fatal core', pink);
     ctx.restore();
 }
 

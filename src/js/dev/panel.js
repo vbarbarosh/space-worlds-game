@@ -75,9 +75,12 @@ function dev_panel_init()
     dev_select_fill('dev_enemy_type', dev_enemy_type_options, 'chaser', null);
     dev_theme_set(dev_theme_initial());
     dev_panel_refresh();
-    if (dev_scenario.started) {
-        setTimeout(dev_scenario_start, 0);
-    }
+    setTimeout(function () {
+        if (dev_scenario.started) {
+            dev_scenario_start();
+        }
+        dev_screen_open();
+    }, 0);
 }
 
 // Selections that other code can change are filled again on every refresh.

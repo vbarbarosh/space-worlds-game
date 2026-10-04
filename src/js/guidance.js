@@ -148,7 +148,7 @@ function open_map()
     else {
         render_navigation();
     }
-    const body = document.getElementById('navigation_overlay').querySelector('.navigation-body');
+    const body = document.getElementById('navigation_overlay').querySelector('.nav-body');
     if (body) {
         body.scrollTop = 0;
     }
@@ -441,7 +441,7 @@ function physics_base_render_navigation()
     guide_base_render_navigation();
     render_guide_plan(document.getElementById('route_briefing'), c);
     set_hidden(document.getElementById('route_briefing'), nav_tab === 'local');
-    document.querySelector('.navigation-panel h2').textContent = (nav_tab === 'local') ? `${worlds[campaign.world].name} / world map` : 'Chart your own course.';
+    document.getElementById('nav_title').textContent = (nav_tab === 'local') ? `${worlds[campaign.world].name} · world map` : 'Chart your own course.';
     const chart = document.getElementById('navigation_chart');
     chart.replaceChildren();
     chart.classList.remove('hidden');

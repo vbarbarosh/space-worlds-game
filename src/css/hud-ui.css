@@ -1,32 +1,30 @@
-/* The flight HUD on the UI kit: where its pieces sit over the game, and the few states the kit leaves to the game.
-   Today's rules for .mission, .toast and the old HUD classes set positions the kit does not; those are reset here. */
-.ui.hud-root {
-    position: absolute;
-    inset: 0;
-    z-index: 3;
-    pointer-events: none;
-}
-
-.ui.hud-root .hud-top,
-.ui.hud-root .hud-bottom,
-.ui.hud-root .mission,
-.ui.hud-root .toasts,
-.ui.hud-root .banners,
-.ui.hud-root .alert,
-.ui.hud-root .bossbar,
-.ui.hud-root .touch-buttons {
+/* The flight HUD on the UI kit: the states the kit leaves to the game. The kit's layout section (ui-kit.css, 16)
+   places the bands; today's rules for .mission, .toast and the old HUD classes are reset here. */
+.ui.hud {
     z-index: 3;
 }
 
-.ui.hud-root .hud-top > *,
-.ui.hud-root .hud-bottom > *,
-.ui.hud-root .mission,
-.ui.hud-root .touch-buttons {
+.ui.hud .hud-top,
+.ui.hud .hud-bottom,
+.ui.hud .mission,
+.ui.hud .minimap,
+.ui.hud .hud-toasts,
+.ui.hud .banners,
+.ui.hud .bossbar,
+.ui.hud .touch-buttons {
+    z-index: 3;
+}
+
+.ui.hud .hud-top > *,
+.ui.hud .hud-bottom > *,
+.ui.hud .touch-buttons {
     pointer-events: auto;
 }
 
-.ui .hud-top .readouts {
-    justify-self: center;
+/* the game's toolbar is wider than the kit's (it has the inventory too), so the readouts are centred in the space
+   between the brand and the toolbar instead of on the screen: they never run under it */
+.ui .hud-top {
+    grid-template-columns: auto minmax(0, 1fr) auto;
 }
 
 /* the toolbar folded: the cube opens the toggles as a menu below it */
@@ -34,7 +32,7 @@
     position: relative;
 }
 
-@media (max-width: 1440px) {
+@container screen (max-width: 1440px) {
     .ui .hud-top .toolbar.is-open .grp {
         display: flex;
         position: absolute;
@@ -42,19 +40,6 @@
         right: 0;
         z-index: 4;
     }
-}
-
-/* the mission card, top left under the brand */
-.ui.hud-root .mission {
-    position: absolute;
-    top: 56px;
-    left: var(--hud-pad);
-    width: var(--hud-card-w);
-    padding: 14px 16px;
-    background: var(--glass);
-    border: 1px solid var(--line-1);
-    border-radius: var(--r-lg);
-    z-index: 2;
 }
 
 .ui .mission .next h3:empty {
@@ -129,52 +114,69 @@
     border-top: 0;
 }
 
-/* toasts under the readouts, banners high in the middle, the threat chip above the toasts */
-.ui.hud-root .toasts {
-    position: absolute;
-    top: 80px;
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    width: min(420px, calc(100vw - 32px));
-    pointer-events: none;
+/* toasts and the threat chip stack in the kit's .hud-toasts, between the mission card and the minimap; banners
+   stay high in the middle */
+.ui .hud-toasts .toasts {
+    display: contents;
 }
 
-.ui.hud-root .toasts .toast {
+.ui.hud .toast {
     position: static;
     opacity: 1;
     transform: none;
     transition: opacity 0.35s ease, transform 0.35s ease;
 }
 
-.ui.hud-root .toasts .toast.is-leaving {
+.ui.hud .toast.is-leaving {
     opacity: 0;
     transform: translateY(-6px);
 }
 
-.ui.hud-root .banners {
+.ui.hud .banners {
     position: absolute;
     top: 22%;
-    left: 50%;
-    transform: translateX(-50%);
+    left: calc(var(--hud-pad) + var(--mission-w) + 16px);
+    right: calc(var(--hud-pad) + var(--mm-w) + 16px);
     pointer-events: none;
 }
 
-.ui.hud-root .banners .banner {
+/* narrow: under the one-line mission bar and the toasts; short: smaller, above the bottom row, where the threat
+   chip and the toasts are not */
+@container screen (max-width: 820px) {
+    .ui.hud .banners {
+        top: 36%;
+    }
+
+    .ui.hud .banner--world h2 {
+        font-size: 44px;
+    }
+}
+
+@container screen (max-height: 560px) {
+    .ui.hud .banners {
+        top: auto;
+        bottom: 96px;
+    }
+
+    .ui.hud .banner h2 {
+        font-size: 24px;
+    }
+
+    .ui.hud .banner--world h2 {
+        font-size: 34px;
+    }
+
+    .ui.hud .banner p {
+        display: none;
+    }
+}
+
+.ui.hud .banners .banner {
     transition: opacity 0.4s ease;
 }
 
-.ui.hud-root .banners .banner.is-leaving {
+.ui.hud .banners .banner.is-leaving {
     opacity: 0;
-}
-
-.ui.hud-root > .alert {
-    position: absolute;
-    top: 80px;
-    left: 50%;
-    transform: translate(-50%, -44px);
 }
 
 /* the bottom row */
@@ -205,8 +207,8 @@
 
 /* today's rules centre the panel's text, give .mission .track a 2 px height and spread out the toast's line in
    capitals; on the kit the card and the toasts read left to right in sentence case */
-.ui.hud-root .mission,
-.ui.hud-root .toast {
+.ui.hud .mission,
+.ui.hud .toast {
     text-align: left;
 }
 
@@ -214,7 +216,7 @@
     height: auto;
 }
 
-.ui.hud-root .toast span {
+.ui.hud .toast span {
     margin: 0;
     max-width: none;
     font-size: 12px;
@@ -223,7 +225,7 @@
     color: var(--text-3);
 }
 
-.ui.hud-root .toast .amt {
+.ui.hud .toast .amt {
     color: var(--gold);
 }
 
@@ -235,30 +237,72 @@
     white-space: nowrap;
 }
 
-/* in a fight the threat chip sits under the readouts and the toasts move down beneath it */
-.ui.hud-root > .alert {
-    transform: translateX(-50%);
+/* the minimap: the canvas draws it inside this box (render_minimap reads its place), the box is the button that
+   opens the world map */
+.ui.hud .minimap {
+    padding: 0;
+    border: 1px solid transparent;
+    background: transparent;
+    box-shadow: none;
+    cursor: pointer;
+    touch-action: none;
 }
 
-.ui.hud-root.has-alert .toasts {
-    top: 124px;
+.ui.hud .minimap:hover,
+.ui.hud .minimap:focus-visible {
+    border-color: rgba(108, 248, 236, 0.55);
+    outline: 2px solid rgba(108, 248, 236, 0.4);
+    outline-offset: 2px;
 }
 
-/* the minimap's corner label (outside the kit's container) */
-.minimap-button span {
+.ui.hud .minimap .mm-open {
+    position: absolute;
+    top: 6px;
+    right: 8px;
     display: inline-flex;
     align-items: center;
     gap: 5px;
+    font: 600 10px/1 var(--font-mono);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--cyan);
+    pointer-events: none;
 }
 
-.minimap-button .key {
-    display: inline-grid;
-    place-items: center;
-    min-width: 15px;
-    height: 15px;
-    padding: 0 3px;
-    border: 1px solid rgba(120, 170, 220, 0.42);
-    border-radius: 4px;
-    font: 600 9px/1 "JetBrains Mono", ui-monospace, monospace;
-    color: #eef5fb;
+/* short windows: the card keeps only the step, the distance and its buttons, so it needs no cap on its height (the
+   kit's cap for tall windows would cut its buttons off) */
+@container screen (max-height: 560px) {
+    .ui.hud .mission {
+        max-height: calc(100% - var(--top-h) - 100px);
+    }
+}
+
+/* narrow and short windows fold the campaign card to its step; the arcade's card keeps its wave and its bar, and on
+   short windows the world's name above them */
+@container screen (max-width: 820px) {
+    .ui.hud .mission.is-arcade {
+        display: flex;
+    }
+}
+
+@container screen (max-width: 820px) {
+    .ui.hud .mission.is-arcade .details {
+        display: flex;
+        width: 100%;
+    }
+
+    .ui.hud .mission.is-arcade .details > :not(.mission-row):not(.track) {
+        display: none;
+    }
+}
+
+@container screen (max-height: 560px) {
+    .ui.hud .mission.is-arcade .details {
+        display: flex;
+        width: 100%;
+    }
+
+    .ui.hud .mission.is-arcade .details > :not(#act_label):not(#mission_name):not(.mission-row):not(.track) {
+        display: none;
+    }
 }

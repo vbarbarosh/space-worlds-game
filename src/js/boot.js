@@ -1,6 +1,7 @@
 // The saves are read once every script has run: a slot is checked against the ship catalog
 sync_load_button();
 hud_init();
+menu_art_sync(0, 'scout');
 load_checkpoint();
 // The next frame is asked for first, so an error in this one is reported without stopping the game
 function frame(timestamp)

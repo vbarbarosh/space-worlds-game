@@ -193,6 +193,12 @@ function open_world_rules()
 function render_navigation()
 {
     physics_base_render_navigation();
+    if (nav_tab === 'jobs') {
+        set_hidden(document.getElementById('route_briefing'), true);
+        document.getElementById('navigation_chart').classList.add('hidden');
+        render_mission_plan(document.getElementById('nav_content'));
+        return;
+    }
     if (nav_tab === 'trade') {
         document.getElementById('navigation_chart').classList.add('hidden');
         render_trade_intel(document.getElementById('nav_content'));

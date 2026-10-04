@@ -45,8 +45,7 @@ function save_checkpoint()
     try {
         localStorage.setItem('pulse_drift_frontier_v4', JSON.stringify(checkpoint));
         checkpoint_notice = `Progress saved · ${worlds[campaign.world].name}`;
-        set_hidden(el.continue_button, false);
-        el.continue_button.textContent = `CONTINUE · ${worlds[campaign.world].name}`;
+        menu_continue_show(campaign);
     }
     catch {
         checkpoint_notice = 'Autosave unavailable. Keep this tab open.';
@@ -84,8 +83,7 @@ function load_checkpoint()
         const v = JSON.parse(localStorage.getItem('pulse_drift_frontier_v4'));
         if (valid_checkpoint(v)) {
             checkpoint = v;
-            set_hidden(el.continue_button, false);
-            el.continue_button.textContent = `CONTINUE · ${worlds[v.campaign.world].name}`;
+            menu_continue_show(v.campaign);
         }
     }
     catch {

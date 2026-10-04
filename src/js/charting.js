@@ -517,23 +517,27 @@ function render_chart_local(map)
     }
 }
 
-// The minimap: the world name, the whole world charted and in fog, what the layers show as small icons, the route,
+// The minimap, in its box in the HUD (screen px): the world name, the whole world charted and in fog, what the layers show as small icons, the route,
 // your ship, the view, and the distance to the objective
 function render_minimap()
 {
     if (!player || !['playing', 'paused', 'inventory', 'upgrade', 'victory'].includes(state)) {
         return;
     }
-    const viewport_width = (view_mode === 'cockpit') ? width : W;
-    const w = (viewport_width < 800) ? 165 : 186;
-    const h = (viewport_width < 800) ? 125 : 140;
-    const x = viewport_width - w - 22;
-    const y = 87;
+    const box = hud_layout.minimap;
+    if (!box) {
+        return;
+    }
+    const x = box.left + 5;
+    const y = box.top + 5;
+    const w = Math.round(box.width - 10);
+    const h = Math.round(box.height - 10);
     const top = 16;
     const mh = h - top;
     const sx = w/world.w;
     const sy = mh/world.h;
     ctx.save();
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.fillStyle = '#060a14ee';
     ctx.fillRect(x - 5, y - 5, w + 10, h + 10);
     ctx.strokeStyle = '#6cf8ec33';

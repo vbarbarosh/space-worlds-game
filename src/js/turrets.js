@@ -170,21 +170,13 @@ function cabin_render_turrets(deck, accent)
     cabin_label(`TURRET ${Math.round((bearing*180)/Math.PI)}°`, W*0.6, H*0.888, (W < 700) ? 6 : 8, accent, 'center');
 }
 
+// The minimap's box is in the HUD, placed by CSS; it shows while flying and the canvas draws the map inside it
 function sync_minimap_button()
 {
     const button = document.getElementById('minimap_button');
     if (!button) {
         return;
     }
-    const cockpit = view_mode === 'cockpit';
-    const viewport = cockpit ? width : W;
-    const w = (viewport < 800) ? 165 : 186;
-    const h = (viewport < 800) ? 125 : 140;
-    const k = cockpit ? 1 : scale;
-    button.style.left = `${(cockpit ? 0 : ox) + (viewport - w - 22)*k}px`;
-    button.style.top = `${(cockpit ? 0 : oy) + 87*k}px`;
-    button.style.width = `${w*k}px`;
-    button.style.height = `${h*k}px`;
     button.classList.toggle('hidden', !player || !['playing', 'paused'].includes(state));
 }
 
@@ -201,7 +193,7 @@ function open_local_world_map()
     else {
         toggle_navigation();
     }
-    const body = document.querySelector('.navigation-body');
+    const body = document.querySelector('.nav-body');
     body.scrollTop = 0;
     document.getElementById('local_navigation_canvas')?.focus();
     sync_minimap_button();

@@ -1,13 +1,8 @@
-/* The station on the UI kit: the panel's size, the NEXT strip, the tab bodies' grids and the contracts' two columns.
-   Today's global .panel rule sets a width, padding and centred text the kit leaves alone, so they are reset here. */
-.ui.overlay#upgrade_overlay {
-    padding: 28px 16px;
-}
-
+/* The station on the UI kit: the NEXT strip, the tab bodies' grids and the contracts' two columns; the kit's .modal
+   sizes the panel to the window. Today's global .panel rule sets a width, padding and centred text the kit leaves
+   alone, so they are reset here. */
 .ui .station-panel {
-    width: min(1280px, 100%);
-    height: 100%;
-    max-height: 100%;
+    max-width: none;
     padding: 0;
     text-align: left;
     backdrop-filter: blur(14px) saturate(1.2);
@@ -114,11 +109,6 @@
     overflow: visible;
 }
 
-@media (max-width: 860px) {
-    .ui .station-panel .station-content.contracts {
-        grid-template-columns: 1fr;
-    }
-}
 
 .ui .card .foot .card-actions {
     display: flex;
@@ -235,11 +225,6 @@
     display: block;
 }
 
-@media (max-width: 980px) {
-    .ui .station-panel .station-content.arsenal {
-        grid-template-columns: 1fr;
-    }
-}
 
 /* today's global rule makes every canvas a full-window layer; the arsenal's drawing sits in its box */
 .ui .arsenal-art {
@@ -311,11 +296,6 @@
     margin: 2px 0 0;
 }
 
-@media (max-width: 980px) {
-    .ui .station-panel .station-content.goals {
-        grid-template-columns: 1fr;
-    }
-}
 
 .ui .career-head .readout small {
     font-size: 13px;
@@ -327,4 +307,27 @@
     font-size: 28px;
     line-height: 1;
     color: var(--cyan);
+}
+
+/* the bodies follow the kit's split layouts: the arsenal's ship column narrows at 1280, every two-column body stacks
+   into one at 1100, and the ship's drawing then keeps to a stage of its own height */
+@container screen (max-width: 1280px) {
+    .ui .station-panel .station-content.arsenal {
+        grid-template-columns: 380px minmax(0, 1fr);
+    }
+}
+
+@container screen (max-width: 1100px) {
+    .ui .station-panel .station-content.contracts,
+    .ui .station-panel .station-content.arsenal,
+    .ui .station-panel .station-content.goals {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .ui .arsenal-art {
+        justify-self: center;
+        width: auto;
+        max-width: 100%;
+        max-height: 240px;
+    }
 }

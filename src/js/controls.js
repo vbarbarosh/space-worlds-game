@@ -7,7 +7,7 @@ function save_best()
     }
     catch {
     }
-    el.best_intro.textContent = `BEST ${String(best).padStart(6, '0')}`;
+    el.best_intro.textContent = `Best ${String(best).padStart(6, '0')}`;
     return score > previous;
 }
 
@@ -19,8 +19,7 @@ function base_finish(won)
         clear_checkpoint();
     }
     else if (checkpoint) {
-        set_hidden(el.continue_button, false);
-        el.continue_button.textContent = `CONTINUE · SECTOR ${String(checkpoint.wave).padStart(2, '0')}`;
+        menu_continue_sector(checkpoint.wave);
     }
     set_hidden(document.getElementById('retry_sector'), won || !checkpoint);
     set_hidden(el.result_overlay, false);
@@ -56,11 +55,12 @@ function menu_open()
         set_hidden(v, true);
     }
     set_hidden(el.intro, false);
-    for (const v of [el.hud, el.bottom_hud, el.bossbar, el.touch_buttons, el.pause_button, el.mission, el.loadout, el.inventory_button]) {
+    for (const v of [el.hud, el.bottom_hud, el.bossbar, el.touch_buttons, el.pause_button, el.mission, el.loadout, el.inventory_button, document.getElementById('nav_button'), document.getElementById('dock_button')]) {
         set_hidden(v, true);
     }
+    toasts_clear();
     sync_minimap_button();
-    document.getElementById('arcade_button').focus();
+    menu_focus();
 }
 
 function toggle_pause()
@@ -74,6 +74,7 @@ function toggle_pause()
         mouse_drive.active = false;
         mouse_drive.following = false;
         set_hidden(el.pause_overlay, false);
+        document.getElementById('pause_layout').classList.remove('is-controls');
         document.getElementById('pause_checkpoint').textContent = checkpoint_notice;
         set_pause_icon(true);
         document.getElementById('resume_button').focus();
@@ -84,7 +85,30 @@ function toggle_pause()
         set_pause_icon(false);
     }
 }
+// Paused with the key list in front: on narrow windows it shows in place of the pause panel until Back
+function pause_controls_open()
+{
+    if (state === 'playing') {
+        toggle_pause();
+    }
+    if (state === 'paused') {
+        pause_controls_show(true);
+    }
+}
+
+function pause_controls_show(shown)
+{
+    document.getElementById('pause_layout').classList.toggle('is-controls', shown);
+    document.getElementById(shown ? 'controls_back' : 'resume_button').focus();
+}
+
 el.pause_button.addEventListener('click', toggle_pause);
+document.getElementById('pause_controls_button').addEventListener('click', function () {
+    pause_controls_show(true);
+});
+document.getElementById('controls_back').addEventListener('click', function () {
+    pause_controls_show(false);
+});
 document.getElementById('resume_button').addEventListener('click', toggle_pause);
 document.getElementById('start_button').addEventListener('click', function () {
     set_pause_icon(false);
@@ -194,7 +218,7 @@ addEventListener('keydown', function (event) {
         pulse();
     }
     if ((event.code === 'Enter') && (state === 'menu') && (document.activeElement.tagName !== 'BUTTON')) {
-        reset_run();
+        menu_enter();
     }
 });
 addEventListener('keyup', function (event) {

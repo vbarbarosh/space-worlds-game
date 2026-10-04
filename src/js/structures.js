@@ -425,13 +425,10 @@ function render_structures()
             ctx.restore();
         }
         ctx.restore();
-        const outpost_text = v.idle ? `OUTPOST · FIELD EMPTY · ${v.store}/${outpost_store}` : (v.store >= outpost_store) ? `OUTPOST · FULL ${v.store}/${outpost_store} · AWAITING PICKUP` : `OUTPOST · MINING · ${v.store}/${outpost_store}`;
-        const label_text = (v.built < 1) ? `BUILDING ${Math.round(v.built*100)}%` : (v.kind === 'outpost') ? outpost_text : 'DEFENCE PLATFORM';
+        const outpost_text = v.idle ? `field empty · ${v.store}/${outpost_store}` : (v.store >= outpost_store) ? `full ${v.store}/${outpost_store} · awaiting pickup` : `mining · ${v.store}/${outpost_store}`;
+        const title = (v.kind === 'outpost') ? 'OUTPOST' : 'DEFENCE PLATFORM';
+        world_label(v.x, v.y + k.size*0.75 + 2, title, (v.built < 1) ? `building ${Math.round(v.built*100)}%` : (v.kind === 'outpost') ? outpost_text : '', gold);
         ctx.save();
-        ctx.font = '10px ui-monospace,monospace';
-        ctx.textAlign = 'center';
-        ctx.fillStyle = gold;
-        ctx.fillText(label_text, v.x, v.y + k.size*0.75 + 12);
         ctx.fillStyle = '#0b1222';
         ctx.fillRect(v.x - 30, v.y - k.size*0.75 - 12, 60, 4);
         ctx.fillStyle = (v.hp < k.hp*0.35) ? pink : gold;

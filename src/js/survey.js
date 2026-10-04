@@ -120,10 +120,7 @@ function render_survey_robot()
     ctx.fillRect(v.x - 22, v.y - 30, 44, 4);
     ctx.fillStyle = (v.hp < v.max_hp*0.35) ? pink : cyan;
     ctx.fillRect(v.x - 22, v.y - 30, (44*Math.max(0, v.hp))/v.max_hp, 4);
-    ctx.font = '10px ui-monospace,monospace';
-    ctx.textAlign = 'center';
-    ctx.fillStyle = cyan;
-    const status = (v.state === 'flying') ? 'ON ITS WAY' : v.covered ? 'SCANNING' : 'WAITING FOR COVER';
-    ctx.fillText(`SURVEY ROBOT · ${status}`, v.x, v.y + 34);
+    const status = (v.state === 'flying') ? 'on its way' : v.covered ? 'scanning' : 'waiting for cover';
+    world_label(v.x, v.y + 26, 'SURVEY ROBOT', status, cyan);
     ctx.restore();
 }

@@ -44,7 +44,7 @@ function sync_load_button()
         const b = document.getElementById(id);
         set_hidden(b, !v);
         if (v) {
-            b.innerHTML = `<span>F9</span> LOAD LAST SAVE · ${i + 1} · ${save_time(v.saved_at)}`;
+            b.innerHTML = `<span class="key">F9</span><span>Load last save · ${i + 1} · ${save_time(v.saved_at)}</span>`;
             b.title = `Slot ${i + 1}: ${v.world}, story ${v.story}, saved ${save_time(v.saved_at)} (F9)`;
         }
     }

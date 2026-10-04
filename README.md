@@ -22,12 +22,22 @@ Two modes:
     bin/run          build and open build/index.html in the browser
     bin/build        write build/index.html, build/dev.html and build/agent.html
     bin/captain      the agent's game window and its commands (see below)
+    bin/layout-check every screen at twelve window sizes: no HUD block over
+                     another, nothing off the window, no text cut; shots and
+                     report.json in data/layout-check/, exit 1 on a failure
 
 `build/dev.html` is the developer mode: the game with a dev panel. It starts
 straight into any world, ship and weapon, and has time controls, cheats,
 enemy and target-dummy spawning, live upgrade levels and a sound board. The
 scene lives in the URL, e.g. `dev.html?world=3&ship=gunship&weapon=rail`.
-It keeps its own storage and never touches the game's save.
+`&screen=station-arsenal` (or flight, combat, arcade, pause, menu, map-plan,
+...; the list is in src/js/dev/screen.js) opens that screen with the panel
+folded. It keeps its own storage and never touches the game's save.
+
+The interface is the designer's UI kit (src/css/ui-kit.css): one root,
+`.ui-screen`, is a size container, so every layout rule is an `@container`
+query and a small window and browser zoom behave the same. Run
+bin/layout-check after any change to it.
 
 ## An agent as a player
 

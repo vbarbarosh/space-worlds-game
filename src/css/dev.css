@@ -28,12 +28,12 @@ body {
     right: var(--dev-panel-width);
 }
 
-.overlay {
+.ui-screen {
     right: var(--dev-panel-width);
 }
 
 body.dev-collapsed,
-body.dev-collapsed .overlay {
+body.dev-collapsed .ui-screen {
     right: 0;
 }
 

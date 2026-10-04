@@ -8,7 +8,7 @@ let hud_alert = null;
 
 document.getElementById('toolbar_more').addEventListener('click', on_toolbar_more);
 document.getElementById('mc_details_button').addEventListener('click', toggle_mission_details);
-document.getElementById('controls_button').addEventListener('click', () => (state === 'playing') && toggle_pause());
+document.getElementById('controls_button').addEventListener('click', pause_controls_open);
 addEventListener('keydown', on_hud_key);
 
 // Once every script has run (the sprites are packed at the end): the quick bar's icons
@@ -36,7 +36,7 @@ function on_hud_key(event)
         toggle_mission_details();
     }
     else if (event.key === '?') {
-        toggle_pause();
+        pause_controls_open();
     }
     else if (event.code === 'KeyT') {
         guide_action();
@@ -167,6 +167,8 @@ function hud_bearing(p)
 function sync_hud_kit()
 {
     document.getElementById('mission').classList.toggle('is-arcade', arcade.active);
+    // the arcade's card is its lines, shown whether or not Details is open
+    set_hidden(document.getElementById('mission_details'), !hud_details_open && !arcade.active);
     if (!player) {
         return;
     }
@@ -286,9 +288,8 @@ function sync_ship_status()
     if (threat && !hud_alert) {
         hud_alert = document.createElement('div');
         hud_alert.className = 'alert';
-        document.getElementById('banners').before(hud_alert);
+        document.getElementById('hud_toasts').prepend(hud_alert);
     }
-    document.querySelector('.hud-root').classList.toggle('has-alert', !!threat);
     if (hud_alert) {
         if (!threat) {
             hud_alert.remove();

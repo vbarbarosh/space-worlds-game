@@ -1,0 +1,196 @@
+#!/usr/bin/env node
+
+const cli = require('@vbarbarosh/node-helpers/src/cli');
+const fs = require('node:fs');
+const path = require('node:path');
+const {chromium} = require('playwright');
+
+const out_dir = path.join(__dirname, '..', 'data', 'layout-check');
+const page_file = path.join(__dirname, '..', 'build', 'dev.html');
+// Every screen, opened straight from the dev page's URL (src/js/dev/screen.js)
+const screens = [
+    {value: 'flight', label: 'hud-calm'},
+    {value: 'combat', label: 'hud-combat'},
+    {value: 'arcade', label: 'hud-arcade'},
+    {value: 'station-jobs', label: 'station-contracts'},
+    {value: 'station-arsenal', label: 'station-arsenal'},
+    {value: 'station-career', label: 'station-goals'},
+    {value: 'station-market', label: 'station-market'},
+    {value: 'map-plan', label: 'map-mission-plan'},
+    {value: 'map-local', label: 'map-local'},
+    {value: 'pause', label: 'pause'},
+    {value: 'menu', label: 'main-menu'},
+];
+// The designer's twelve window sizes, from 1440p down to a half-width window and a short strip
+const sizes = [
+    [2560, 1440], [1920, 1080], [1600, 900], [1440, 900], [1366, 768], [1280, 720],
+    [1024, 768], [943, 980], [800, 600], [640, 720], [1536, 348], [1280, 400],
+];
+// Blocks that must not overlap each other; the panels and menus that must stay inside the window; controls that must
+// not cut their own text; boxes whose text must not stick out
+const selectors = {
+    blocks: ['.hud-top .readouts', '.hud-top .toolbar', '.hud-top .brand', '.ui.hud .mission', '.ui.hud .minimap',
+        '.hud-toasts > *', '.ui.hud .banners > *', '.hud-bottom .qbar', '.hud-bottom .shipstat', '.hud-bottom .hud-end', '.menu-left', '.menu-foot'],
+    contained: ['.modal', '.pause-layout', '.menu-left', '.menu-foot'],
+    clip: '.btn, .tab, .badge, .key, .qslot, .size, .alert, .seg button, .wallet, .meter-mini',
+    boxes: '.card, .toast, .panel',
+};
+const usage = `usage: bin/layout-check [screen...]
+
+    Opens every screen of build/dev.html at twelve window sizes and checks the interface holds together:
+    HUD blocks do not overlap, panels stay in the window, no control cuts its own text, no text sticks out of
+    its box, the page never scrolls sideways. Screenshots and report.json go to data/layout-check/.
+    Exits 1 on any failure.
+
+    screens: ${screens.map(v => v.value).join(', ')}`;
+
+cli(main);
+
+async function main()
+{
+    const names = process.argv.slice(2);
+    if (names.some(v => !screens.some(vv => vv.value === v))) {
+        console.log(usage);
+        process.exit(2);
+    }
+    const chosen = names.length ? screens.filter(v => names.includes(v.value)) : screens;
+    fs.mkdirSync(out_dir, {recursive: true});
+    const browser = await chromium.launch();
+    const results = [];
+    try {
+        for (const [w, h] of sizes) {
+            const page = await browser.newPage({viewport: {width: w, height: h}});
+            for (const screen of chosen) {
+                await page.goto(`file://${page_file}?world=0&screen=${screen.value}`);
+                await page.waitForTimeout(1200);
+                const shot = path.join(out_dir, screen.label, `${w}x${h}.png`);
+                fs.mkdirSync(path.dirname(shot), {recursive: true});
+                await page.screenshot({path: shot});
+                const audit = await page.evaluate(layout_audit, selectors);
+                const failures = [
+                    ...audit.overlap.map(v => `overlap ${v}`),
+                    ...audit.offscreen.map(v => `off ${v}`),
+                    ...audit.clipped.map(v => `clip ${v}`),
+                    ...audit.spill.map(v => `spill ${v}`),
+                    ...(audit.hscroll ? ['hscroll'] : []),
+                ];
+                results.push({screen: screen.label, size: `${w}x${h}`, ok: !failures.length, failures, min_font: audit.min_font, shot});
+                console.log(`${failures.length ? 'FAIL' : 'ok  '} ${screen.label.padEnd(18)} ${`${w}x${h}`.padEnd(10)} min ${audit.min_font}px${failures.length ? `  ${failures.join(' | ')}` : ''}`);
+            }
+            await page.close();
+        }
+    }
+    finally {
+        await browser.close();
+    }
+    fs.writeFileSync(path.join(out_dir, 'report.json'), JSON.stringify(results, null, 1));
+    const failed = results.filter(v => !v.ok).length;
+    console.log(`${results.length - failed} of ${results.length} pass · ${out_dir}`);
+    if (failed) {
+        process.exit(1);
+    }
+}
+
+// Runs in the page: what overlaps, leaves the window, is cut or sticks out, and the smallest text on screen
+function layout_audit(selectors)
+{
+    const out = {overlap: [], offscreen: [], clipped: [], spill: [], hscroll: false, min_font: 99};
+    const view = {width: innerWidth, height: innerHeight};
+    function visible(v) {
+        const r = v.getBoundingClientRect();
+        const s = getComputedStyle(v);
+        return (r.width > 1) && (r.height > 1) && (s.visibility !== 'hidden') && (s.display !== 'none') && (Number(s.opacity) > 0.05) && !v.closest('[hidden]');
+    }
+    function name(v) {
+        const classes = (typeof v.className === 'string') && v.className.trim() ? `.${v.className.trim().split(/\s+/).slice(0, 2).join('.')}` : v.tagName.toLowerCase();
+        const text = v.textContent.trim().replace(/\s+/g, ' ').slice(0, 24);
+        return text ? `${classes} "${text}"` : classes;
+    }
+    function outside(r) {
+        return (r.left < -1) || (r.top < -1) || (r.right > view.width + 1) || (r.bottom > view.height + 1);
+    }
+    function corners(r) {
+        return `[${Math.round(r.left)},${Math.round(r.top)} → ${Math.round(r.right)},${Math.round(r.bottom)}]`;
+    }
+    // inside a scrolling box, being out of the window is fine: you scroll to it
+    function scrolled(v) {
+        for (let p = v.parentElement; p; p = p.parentElement) {
+            const s = getComputedStyle(p);
+            if (/(auto|scroll)/.test(s.overflowY + s.overflowX) && ((p.scrollHeight > p.clientHeight + 1) || (p.scrollWidth > p.clientWidth + 1))) {
+                return true;
+            }
+        }
+        return false;
+    }
+    const blocks = [];
+    for (const selector of selectors.blocks) {
+        for (const v of document.querySelectorAll(selector)) {
+            if (visible(v)) {
+                blocks.push({selector, v, r: v.getBoundingClientRect()});
+            }
+        }
+    }
+    for (let i = 0, end = blocks.length; i < end; ++i) {
+        for (let j = i + 1; j < end; ++j) {
+            const a = blocks[i];
+            const b = blocks[j];
+            if ((a.v === b.v) || a.v.contains(b.v) || b.v.contains(a.v)) {
+                continue;
+            }
+            const ix = Math.min(a.r.right, b.r.right) - Math.max(a.r.left, b.r.left);
+            const iy = Math.min(a.r.bottom, b.r.bottom) - Math.max(a.r.top, b.r.top);
+            if ((ix > 2) && (iy > 2)) {
+                out.overlap.push(`${a.selector} × ${b.selector} (${Math.round(ix)}×${Math.round(iy)}px)`);
+            }
+        }
+    }
+    for (const v of blocks) {
+        if (outside(v.r)) {
+            out.offscreen.push(`${v.selector} ${corners(v.r)}`);
+        }
+    }
+    for (const selector of selectors.contained) {
+        for (const v of document.querySelectorAll(selector)) {
+            const r = v.getBoundingClientRect();
+            if (visible(v) && outside(r)) {
+                out.offscreen.push(`${selector} ${corners(r)}`);
+            }
+        }
+    }
+    for (const v of document.querySelectorAll(selectors.clip)) {
+        if (visible(v) && (v.scrollWidth > v.clientWidth + 1) && (getComputedStyle(v).overflowX !== 'auto')) {
+            out.clipped.push(name(v));
+        }
+    }
+    for (const box of document.querySelectorAll(selectors.boxes)) {
+        if (!visible(box) || (getComputedStyle(box).overflow !== 'visible')) {
+            continue;
+        }
+        const rb = box.getBoundingClientRect();
+        for (const v of box.querySelectorAll('h2,h3,h4,p,b,span,button,dd,small')) {
+            const r = v.getBoundingClientRect();
+            if (visible(v) && !scrolled(v) && ((r.right > rb.right + 2) || (r.left < rb.left - 2))) {
+                out.spill.push(`${name(v)} in ${name(box).slice(0, 30)}`);
+                break;
+            }
+        }
+    }
+    out.hscroll = document.documentElement.scrollWidth > view.width + 1;
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    while (walker.nextNode()) {
+        const v = walker.currentNode.parentElement;
+        if (!walker.currentNode.textContent.trim() || !v || !visible(v) || v.closest('svg') || v.closest('.dev-panel, .dev-open')) {
+            continue;
+        }
+        const r = v.getBoundingClientRect();
+        if ((r.bottom < 0) || (r.top > view.height) || (r.right < 0) || (r.left > view.width)) {
+            continue;
+        }
+        const s = getComputedStyle(v);
+        out.min_font = Math.min(out.min_font, parseFloat(s.fontSize)*(parseFloat(s.zoom) || 1));
+    }
+    out.overlap = [...new Set(out.overlap)];
+    out.clipped = [...new Set(out.clipped)].slice(0, 8);
+    out.spill = [...new Set(out.spill)].slice(0, 8);
+    return out;
+}
