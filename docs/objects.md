@@ -26,7 +26,9 @@ ships. "Modes" is arcade, campaign or both.
 
 - Gates to another world: R beside one jumps there once your ship meets the
   destination's needs (weapons, defence, radiation; `allowed_world`). Each
-  world has two or three (`world.links`).
+  world has two or three (`world.links`). A gate faces the world it leads to,
+  as the galaxy chart draws it, well away from the station
+  ([placement.md](placement.md)).
 - Not solid, cannot be damaged.
 - Campaign. The arcade draws them but they do nothing there: the arcade moves
   on to the next world from the depot.
@@ -36,9 +38,10 @@ ships. "Modes" is arcade, campaign or both.
 ### Portals (local gates)
 
 - Cross big distances fast: a pair of gates, A1 and A2, in one world; fly into
-  one and you leave the other. Pairs link the station with each world gate,
-  and the largest worlds (55 km wide or more) get two more pairs. The guide's
-  route uses them, and raiders take them too.
+  one and you leave the other. Both ends stand far apart, never by the
+  station, and a pair that cannot keep the rules of
+  [placement.md](placement.md) is left out; the arcade's small maps keep six
+  portals. The guide's route uses them, and raiders take them too.
 - Not solid, cannot be damaged.
 - Both modes. Where: `configure_expedition_portals` in `src/js/expedition.js`;
   `update_player_navigation` in `src/js/map.js`; `enemy_waypoint`.

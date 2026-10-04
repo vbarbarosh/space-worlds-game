@@ -14,6 +14,8 @@ look.
   contracts, goals; how they are offered and what they pay.
 - [objects.md](objects.md): every kind of object in space and its purpose,
   with the ones that have none yet.
+- [placement.md](placement.md): where the station, gates and portals stand,
+  and why; `bin/map-check` holds every world to it.
 - [scenario/](scenario/README.md): the story, its acts and chapters
   ([chapters.md](scenario/chapters.md)), and the planned career lines,
   reputation and world guards.
