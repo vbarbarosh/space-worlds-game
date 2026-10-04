@@ -65,48 +65,67 @@ function append_world_brief(cardel, id)
     cardel.append(note);
 }
 
+// The portal pairs, by docs/placement.md: an end stands 1.5 km from the station, 300 m inside the map, 1 km from every
+// other pair's ends and from every gate but the one it serves, and a pair spans a real flight; a pair that cannot is
+// left out. The map's crossing pairs come first, then the largest worlds' two, then the station's.
 function configure_expedition_portals()
 {
     const hub = station;
-    const pairs = [
-        [
-            [0.16, 0.22],
-            [0.84, 0.78],
-        ],
-        [
-            [0.18, 0.8],
-            [0.82, 0.2],
-        ],
-        [
-            [0.5, 0.12],
-            [0.5, 0.88],
-        ],
+    const span = Math.max(2000, Math.min(world.w, world.h)/4);
+    const crossings = [
+        [[0.1, 0.12], [0.9, 0.88]],
+        [[0.1, 0.88], [0.9, 0.12]],
+        [[0.5, 0.07], [0.5, 0.93]],
     ];
     portals = [];
-    function pair(a, b, index) {
+    function free(end, gate) {
+        return (
+            (Math.round(distance(end, hub)) >= 1500) &&
+            (Math.min(end.x, end.y, world.w - end.x, world.h - end.y) >= 300) &&
+            portals.every(v => distance(end, v) >= 1000) &&
+            world_gates.every(v => (v === gate) || (distance(end, v) >= 1000))
+        );
+    }
+    function pair(a, b, index, gate = null) {
+        if ((distance(a, b) < span) || !free(a, null) || !free(b, gate)) {
+            return false;
+        }
         const color = [cyan, pink, gold, blue, '#9dff9b', '#ff9469', '#c4a1ff', '#8be9ff'][index];
         const letter = 'ABCDEFGH'[index];
         const ends = [a, b];
+        // each end leads to the other, by its place in the list: a pair left out shifts the later ones
+        const first = portals.length;
         for (let j = 0, end = ends.length; j < end; ++j) {
             const v = ends[j];
-            portals.push({x: v.x, y: v.y, r: 46, pair: index, label: letter + (j + 1), color, destination: index*2 + 1 - j});
+            portals.push({x: v.x, y: v.y, r: 46, pair: index, label: letter + (j + 1), color, destination: first + 1 - j});
         }
+        return true;
     }
-    for (let i = 0, end = pairs.length; i < end; ++i) {
-        const p = pairs[i];
-        pair({x: world.w*p[0][0], y: world.h*p[0][1]}, {x: world.w*p[1][0], y: world.h*p[1][1]}, i);
+    function at(v) {
+        return {x: world.w*v[0], y: world.h*v[1]};
     }
-    const first = world_gates[0];
-    pair({x: hub.x + 650, y: hub.y - 360}, {x: first.x + 330, y: first.y + 290}, 3);
-    if (campaign.world > 0) {
-        const second = world_gates[1];
-        pair({x: hub.x - 650, y: hub.y + 360}, {x: second.x - 330, y: second.y + 290}, 4);
-        const north = world_gates[2] || beacons[0];
-        pair({x: hub.x, y: hub.y - 850}, {x: north.x + 330, y: north.y + 290}, 5);
+    for (let i = 0, end = crossings.length; i < end; ++i) {
+        pair(at(crossings[i][0]), at(crossings[i][1]), i);
     }
     if (world.w >= 55000) {
         pair({x: beacons[0].x + 330, y: beacons[0].y - 290}, {x: beacons[2].x + 330, y: beacons[2].y - 290}, 6);
-        pair({x: world.w*0.23, y: world.h*0.68}, {x: world.w*0.81, y: world.h*0.24}, 7);
+        pair(at([0.23, 0.68]), at([0.81, 0.24]), 7) || pair(at([0.27, 0.72]), at([0.73, 0.12]), 7);
+    }
+    // The station's pairs: one end 1.5 km out toward a gate, the other beside that gate; a world with two gates takes a
+    // third to the first beacon that fits, and Haven has only the first
+    function from_station(v, index, gate = null) {
+        const a = Math.atan2(v.y - hub.y, v.x - hub.x);
+        return pair({x: hub.x + Math.cos(a)*1500, y: hub.y + Math.sin(a)*1500}, {x: v.x - Math.sin(a)*440, y: v.y + Math.cos(a)*440}, index, gate);
+    }
+    from_station(world_gates[0], 3, world_gates[0]);
+    if (campaign.world > 0) {
+        from_station(world_gates[1], 4, world_gates[1]);
+        if (world_gates[2]) {
+            from_station(world_gates[2], 5, world_gates[2]);
+        }
+        else {
+            beacons.some(v => from_station(v, 5));
+        }
     }
     portal_leg_cache.clear();
     navigation_graph = null;

@@ -139,28 +139,30 @@ function visual_base_generate_map()
     current_sector().color = w.color;
     current_sector().mix = w.mix;
     station = {x: world.w/2, y: world.h/2};
-    // Fixed navigational structures are placed on clear approaches, outside gravity fields.
-    const spread = (campaign.world === 0) ? 0.1 : 0.34;
-    world_gates = w.links.map(function (destination, i) {
+    // A gate faces the world it leads to, as the galaxy chart draws it, 60% of the way to the map's edge
+    // (docs/placement.md)
+    world_gates = w.links.map(function (destination) {
+        const a = galaxy_bearing(campaign.world, destination);
+        const edge = Math.min(world.w/2/Math.abs(Math.cos(a)), world.h/2/Math.abs(Math.sin(a)));
         return {
-            x: station.x + ((i === 0) ? world.w*spread : (i === 1) ? -world.w*spread : 0),
-            y: station.y + ((i === 2) ? -world.h*spread : 0),
+            x: station.x + Math.cos(a)*edge*0.6,
+            y: station.y + Math.sin(a)*edge*0.6,
             r: 72,
             destination,
             color: worlds[destination].accent,
         };
     });
-    beacons = [
-        {x: world.w*0.22, y: world.h*0.3},
-        {x: world.w*0.76, y: world.h*0.18},
-        {x: world.w*0.36, y: world.h*0.82},
-    ];
-    combat_zone = {x: world.w*0.82, y: world.h*0.25};
+    // A beacon or the combat zone 1 km clear of the gates (and the zone of the portals and the shelter): its spot, or
+    // the spot mirrored across the map's centre lines
+    function clear_spot(spot, others, room) {
+        const spots = [[0, 0], [1, 0], [0, 1], [1, 1]].map(v => ({x: world.w*Math.abs(v[0] - spot[0]), y: world.h*Math.abs(v[1] - spot[1])}));
+        return spots.find(v => others.every(vv => distance(v, vv) >= room + (vv.r || 0))) || spots[0];
+    }
+    beacons = [[0.22, 0.3], [0.76, 0.18], [0.36, 0.82]].map(v => clear_spot(v, world_gates, 1000));
     configure_expedition_portals();
+    combat_zone = clear_spot([0.82, 0.25], [...world_gates, ...portals, {...station, r: station_shelter}], 1000);
     const protected_objects = [station, ...world_gates, ...beacons, combat_zone, {x: station.x - 1600, y: station.y + 700}];
     place_gravity_wells(protected_objects);
-    // Keep mines away from the docking ring; one accessible field is near the first station.
-    ore_nodes = ore_nodes.filter(v => distance(v, station) > station_size/2 + 70);
     const saved = campaign.maps[campaign.world];
     if (saved) {
         const old = saved.size || {w: 9000 + wave*320, h: 7400 + wave*240};
@@ -170,6 +172,9 @@ function visual_base_generate_map()
         pickups = clone(saved.pickups).map(v => ({...v, x: v.x*sx, y: v.y*sy}));
         recenter_mining_fields();
     }
+    // Keep mines off the docking ring, the gates and the beacons, a ship's width clear, a saved map's too; one
+    // accessible field is near the first station.
+    ore_nodes = ore_nodes.filter(v => (distance(v, station) > station_size/2 + v.r + 50) && [...world_gates, ...portals, ...beacons].every(vv => distance(v, vv) > (vv.r || 0) + v.r + 50));
     patrol_timer = 8;
     save_timer = 15;
     escort = null;
