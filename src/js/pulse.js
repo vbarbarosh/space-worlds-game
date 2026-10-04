@@ -1,9 +1,9 @@
-// The pulse (Space): a ring leaves the ship and hits each raider, rock and shot as its front reaches it, harder close
-// by. A kill blows up a beat later and sends a smaller ring of its own: a chain (docs/balance.md, The pulse).
+// Area effects you release travel: a ring leaves the ship and acts on each raider, rock and shot as its front reaches
+// it, never before (docs/principles.md). Space sends the pulse, which chains through what it kills; E the EMP; F stasis.
 let pulse_waves = [];
 let pulse_fuses = [];
 let pulse_sparks = [];
-let pulse_glow = 0;
+const pulse_glow = {time: 0, color: '#6cf8ec'};
 let pulse_chain_box = null;
 // the kill being dealt right now: its chain depth, read by the score (pulse_score_scale); -1 outside the pulse
 let pulse_strike_depth = -1;
@@ -22,9 +22,17 @@ const pulse_chain_radius = 110;
 const pulse_chain_damage = 0.2;
 const pulse_chain_shrink = 0.82;
 const pulse_chain_depth = 3;
+// the EMP's front reaches its 650 m in 0.6 s, as its old ring did and as long as it shields you
+const emp_reach = 650;
+const emp_speed = 1100;
+// stasis slows raiders and their shots to 35%; its front crosses the view in 1 s, then the field holds everywhere
+const stasis_scale_slow = 0.35;
+// How each ring looks: colours, band width, sparks riding the front, how far it bends the stars, a halo ahead
 const pulse_looks = {
-    main: {color: '#6cf8ec', edge: '#e8fdff', alt: '#ff5baf', width: 70},
-    chain: {color: '#ffb35c', edge: '#fff2d6', alt: '#ff5d6c', width: 18},
+    pulse: {color: '#6cf8ec', edge: '#e8fdff', alt: '#ff5baf', width: 70, sparks: 90, bend: 22, halo: true},
+    chain: {color: '#ffb35c', edge: '#fff2d6', alt: '#ff5d6c', width: 18, sparks: 18, bend: 8, halo: false},
+    emp: {color: '#8d9cff', edge: '#e6e9ff', alt: '#6cf8ec', width: 50, sparks: 70, bend: 16, halo: true},
+    stasis: {color: '#8d9cff', edge: '#d9ddff', alt: '#b48cff', width: 34, sparks: 50, bend: 10, halo: false},
 };
 
 function pulse_clear()
@@ -32,38 +40,73 @@ function pulse_clear()
     pulse_waves = [];
     pulse_fuses = [];
     pulse_sparks = [];
-    pulse_glow = 0;
+    pulse_glow.time = 0;
     pulse_chain.count = 0;
     pulse_chain.timer = 0;
 }
 
-// The main ring from the ship: 480 m, 140 damage on average (320 on a flagship), each amplifier level +80 m, +60 (+120)
+// The pulse from the ship: 480 m, 140 damage on average (320 on a flagship), each amplifier level +80 m, +60 (+120)
 function pulse_fire(x, y)
 {
     const base = 140 + upgrades.pulse*60;
-    pulse_waves.push(pulse_wave_create(x, y, 0, 480 + upgrades.pulse*80, base, 320 + upgrades.pulse*120, base, null));
-    pulse_glow = 0.3;
+    pulse_waves.push(pulse_wave_create('pulse', x, y, {
+        reach: 480 + upgrades.pulse*80,
+        speed: pulse_speed,
+        damage: base,
+        boss_damage: 320 + upgrades.pulse*120,
+        base,
+        falloff: true,
+        push: pulse_push,
+        shots: true,
+        rocks: true,
+        chains: true,
+    }));
+    pulse_glow_start(pulse_looks.pulse.color);
     pulse_chain.count = 0;
     pulse_chain.timer = 0;
 }
 
-function pulse_wave_create(x, y, depth, reach, damage, boss_damage, base, source)
+// The EMP: 160 + 12 × threat level to each raider within 650 m (400 to a flagship), the same all the way out; it wipes
+// raiders' shots as its front passes and leaves rocks alone
+function emp_fire(x, y)
+{
+    pulse_waves.push(pulse_wave_create('emp', x, y, {reach: emp_reach, speed: emp_speed, damage: 160 + wave*12, boss_damage: 400, shots: true}));
+    pulse_glow_start(pulse_looks.emp.color);
+}
+
+// The stasis field: no damage; the slow lands as its front arrives (stasis_scale)
+function stasis_fire(x, y)
+{
+    const reach = Math.max(W, H);
+    pulse_waves.push(pulse_wave_create('stasis', x, y, {reach, speed: reach}));
+}
+
+function pulse_glow_start(color)
+{
+    pulse_glow.time = 0.3;
+    pulse_glow.color = color;
+}
+
+// A ring of a kind; what it does on arrival: damage (with falloff for the pulse), push, shots wiped, rocks hit, chains
+function pulse_wave_create(kind, x, y, options)
 {
     const sparks = [];
-    for (let i = 0, end = (depth ? 18 : 90)*(full_fx ? 1 : 0.4); i < end; ++i) {
+    for (let i = 0, end = pulse_looks[kind].sparks*(full_fx ? 1 : 0.4); i < end; ++i) {
         sparks.push({angle: explosion_random()*Math.PI*2, offset: -6 + explosion_random()*16, size: 1 + explosion_random()*1.6, life: 0.5 + explosion_random()*0.5});
     }
-    const speed = depth ? pulse_chain_speed*(0.85 + 0.15*Math.pow(pulse_chain_shrink, depth - 1)) : pulse_speed;
-    return {x, y, depth, reach, damage, boss_damage, base, r: 0, previous: 0, speed, fade: 0, hit: new Set(source ? [source] : []), sparks};
+    const defaults = {depth: 0, damage: 0, boss_damage: 0, base: 0, falloff: false, push: 0, shots: false, rocks: false, chains: false, source: null};
+    const out = {kind, x, y, r: 0, previous: 0, fade: 0, sparks, ...defaults, ...options};
+    out.hit = new Set(out.source ? [out.source] : []);
+    return out;
 }
 
 function pulse_update(dt)
 {
-    pulse_glow = Math.max(0, pulse_glow - dt);
+    pulse_glow.time = Math.max(0, pulse_glow.time - dt);
     for (const wave of pulse_waves) {
         wave.previous = wave.r;
         wave.r = Math.min(wave.reach, wave.r + wave.speed*dt);
-        if (!wave.depth) {
+        if (wave.shots) {
             pulse_wave_clear_shots(wave);
         }
         for (const enemy of enemies) {
@@ -71,13 +114,15 @@ function pulse_update(dt)
                 pulse_hit(wave, enemy, 'raider');
             }
         }
-        for (const piece of drifting_debris.slice()) {
-            if (pulse_wave_reaches(wave, piece)) {
-                pulse_hit(wave, piece, 'debris');
+        if (wave.rocks) {
+            for (const piece of drifting_debris.slice()) {
+                if (pulse_wave_reaches(wave, piece)) {
+                    pulse_hit(wave, piece, 'debris');
+                }
             }
         }
         // ore rocks break only in the arcade, as under your guns; in the campaign the rings pass them by
-        if (arcade.active) {
+        if (wave.rocks && arcade.active) {
             for (const rock of ore_nodes) {
                 if ((rock.hp > 0) && pulse_wave_reaches(wave, rock)) {
                     pulse_hit(wave, rock, 'ore');
@@ -111,6 +156,20 @@ function pulse_update(dt)
     pulse_chain_update(dt);
 }
 
+// How fast a raider or a shot runs under stasis: slowed once the field's front has passed it, everywhere once the
+// front has crossed the view (as the field always held), at full speed before
+function stasis_scale(target)
+{
+    if (stasis_time <= 0) {
+        return 1;
+    }
+    const field = pulse_waves.find(v => v.kind === 'stasis');
+    if (!field || (distance(field, target) - (target.r || 0) <= field.r)) {
+        return stasis_scale_slow;
+    }
+    return 1;
+}
+
 // The front crossed the target this frame: its edge is inside the ring, and it was not behind the front before
 function pulse_wave_reaches(wave, target)
 {
@@ -121,14 +180,14 @@ function pulse_wave_reaches(wave, target)
     return (d - target.r <= wave.r) && (d + target.r >= wave.previous - 4);
 }
 
-// The main ring wipes raiders' shots as its front passes them
+// The ring wipes raiders' shots as its front passes them
 function pulse_wave_clear_shots(wave)
 {
     for (const shot of hostile) {
         const d = distance(wave, shot);
         if ((shot.life > 0) && (d <= wave.r) && (d >= wave.previous - 8)) {
             shot.life = 0;
-            explode(shot.x, shot.y, 6, cyan, 0, 'spark');
+            explode(shot.x, shot.y, 6, pulse_looks[wave.kind].color, 0, 'spark');
         }
     }
 }
@@ -138,18 +197,18 @@ function pulse_hit(wave, target, kind)
 {
     wave.hit.add(target);
     const d = distance(wave, target);
-    const fall = wave.depth ? 1 : 1 - pulse_falloff*Math.min(1, d/wave.reach);
-    const damage = ((target.type === 'boss') ? wave.boss_damage : wave.damage)*(wave.depth ? 1 : fall/pulse_falloff_mean);
+    const fall = wave.falloff ? 1 - pulse_falloff*Math.min(1, d/wave.reach) : 1;
+    const damage = ((target.type === 'boss') ? wave.boss_damage : wave.damage)*(wave.falloff ? fall/pulse_falloff_mean : 1);
     const nx = (target.x - wave.x)/(d || 1);
     const ny = (target.y - wave.y)/(d || 1);
-    const push = (wave.depth ? pulse_chain_push : pulse_push)*fall;
+    const push = wave.push*fall;
     if (kind === 'raider') {
         const heft = (target.type === 'boss') ? 0.1 : (target.type === 'tank') ? 0.5 : 1;
         target.push_vx = (target.push_vx || 0) + nx*push*heft;
         target.push_vy = (target.push_vy || 0) + ny*push*heft;
         target.flash = 0.12;
     }
-    if (kind === 'debris') {
+    if ((kind === 'debris') && push) {
         target.vx += nx*push*0.3;
         target.vy += ny*push*0.3;
         const speed = Math.hypot(target.vx, target.vy);
@@ -158,11 +217,11 @@ function pulse_hit(wave, target, kind)
             target.vy *= 160/speed;
         }
     }
-    pulse_sparks_add(target.x, target.y, nx, ny, wave.depth ? pulse_looks.chain.color : pulse_looks.main.color, 8);
-    if (target.pulse_fuse) {
+    pulse_sparks_add(target.x, target.y, nx, ny, pulse_looks[wave.kind].color, wave.damage ? 8 : 4);
+    if (target.pulse_fuse || !damage) {
         return;
     }
-    const strike = {target, kind, damage, depth: wave.depth, base: wave.base};
+    const strike = {target, kind, damage, depth: wave.depth, base: wave.base, chains: wave.chains};
     if (pulse_lethal(target, kind, damage)) {
         target.pulse_fuse = true;
         pulse_fuses.push({...strike, t: pulse_fuse_delay(target, wave.depth)});
@@ -190,7 +249,7 @@ function pulse_fuse_delay(target, depth)
     return 0.05 + 0.09*k + 0.03*depth;
 }
 
-// The damage lands through the game's own damage; a target it destroys counts on the HUD and sends a chain ring
+// The damage lands through the game's own damage; what the pulse destroys counts on the HUD and sends a chain ring
 function pulse_strike(strike)
 {
     const target = strike.target;
@@ -210,7 +269,7 @@ function pulse_strike(strike)
         damage_ore(target, strike.damage);
     }
     const dead = (strike.kind === 'debris') ? !drifting_debris.includes(target) : target.hp <= 0;
-    if (!dead) {
+    if (!dead || !strike.chains) {
         return;
     }
     pulse_chain.count++;
@@ -222,7 +281,18 @@ function pulse_strike(strike)
     const big = (target.type === 'boss') || (target.type === 'tank') || target.elite;
     const step = Math.pow(pulse_chain_shrink, depth - 1);
     const damage = strike.base*pulse_chain_damage*step;
-    pulse_waves.push(pulse_wave_create(target.x, target.y, depth, pulse_chain_radius*step*(big ? 1.35 : 1), damage, damage, strike.base, target));
+    pulse_waves.push(pulse_wave_create('chain', target.x, target.y, {
+        depth,
+        reach: pulse_chain_radius*step*(big ? 1.35 : 1),
+        speed: pulse_chain_speed*(0.85 + 0.15*step),
+        damage,
+        boss_damage: damage,
+        base: strike.base,
+        push: pulse_chain_push,
+        rocks: true,
+        chains: true,
+        source: target,
+    }));
 }
 
 // Arcade only: a kill down a chain scores ×(1 + 0.5 × its depth); the ring from the ship itself scores as before
@@ -300,7 +370,7 @@ function pulse_star_bend(x, y)
         const band = 60*zoom;
         const off = Math.abs(d - wave.r*zoom);
         if (off < band) {
-            const bend = (1 - off/band)*(wave.depth ? 8 : 22)*zoom*(1 - wave.fade);
+            const bend = (1 - off/band)*pulse_looks[wave.kind].bend*zoom*(1 - wave.fade);
             pulse_bent.x += (dx/d)*bend;
             pulse_bent.y += (dy/d)*bend;
         }
@@ -317,12 +387,12 @@ function render_pulse()
     }
     ctx.save();
     ctx.globalCompositeOperation = 'lighter';
-    if ((pulse_glow > 0) && player) {
-        const k = pulse_glow/0.3;
+    if ((pulse_glow.time > 0) && player) {
+        const k = pulse_glow.time/0.3;
         const glow = ctx.createRadialGradient(player.x, player.y, 0, player.x, player.y, 70 + (1 - k)*50);
-        glow.addColorStop(0, color_with_alpha(pulse_looks.main.edge, 0.8*k));
-        glow.addColorStop(0.3, color_with_alpha(pulse_looks.main.color, 0.4*k));
-        glow.addColorStop(1, color_with_alpha(pulse_looks.main.color, 0));
+        glow.addColorStop(0, color_with_alpha('#f2fbff', 0.8*k));
+        glow.addColorStop(0.3, color_with_alpha(pulse_glow.color, 0.4*k));
+        glow.addColorStop(1, color_with_alpha(pulse_glow.color, 0));
         ctx.fillStyle = glow;
         explosion_circle(player.x, player.y, 70 + (1 - k)*50);
         ctx.fill();
@@ -345,10 +415,10 @@ function render_pulse()
     ctx.restore();
 }
 
-// A band behind the front, two coloured echoes, a halo ahead of the main ring, the bright front and sparks riding it
+// A band behind the front, two coloured echoes, a halo ahead of the pulse and the EMP, the bright front and sparks on it
 function render_pulse_wave(wave)
 {
-    const look = wave.depth ? pulse_looks.chain : pulse_looks.main;
+    const look = pulse_looks[wave.kind];
     const life = wave.r/wave.reach;
     const width = look.width*(0.6 + 0.4*(1 - life));
     const alpha = (1 - wave.fade)*(wave.depth ? 0.95*Math.pow(1 - life, 0.6) : 1 - life*0.4);
@@ -375,7 +445,7 @@ function render_pulse_wave(wave)
     ctx.strokeStyle = look.color;
     explosion_circle(x, y, Math.max(0, r - 22));
     ctx.stroke();
-    if (!wave.depth && (r > 40) && full_fx) {
+    if (look.halo && (r > 40) && full_fx) {
         const halo = ctx.createRadialGradient(x, y, r, x, y, r + 26);
         halo.addColorStop(0, `${look.color}55`);
         halo.addColorStop(1, `${look.color}00`);

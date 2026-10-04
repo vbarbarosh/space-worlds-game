@@ -179,8 +179,8 @@ A module level costs its base price × (1 + 0.48 per level you have)
 | Supply | Key | Price | Effect | Carry |
 |---|---|---|---|---|
 | Repair kit | Q | 20 | +40 hull | 8 |
-| EMP charge | E | 26 | clears shots, 160 + 12·wave damage within 650 m (flagship 400) | 8 |
-| Stasis cell | F | 24 | slows raiders and shots for 8 s | 8 |
+| EMP charge | E | 26 | a ring out to 650 m in 0.6 s: as it arrives, clears shots and deals 160 + 12·wave (flagship 400), the same all the way out | 8 |
+| Stasis cell | F | 24 | slows raiders and shots to 35% for 8 s, each once its ring (1 s across the view) has passed it | 8 |
 
 - Where: `upgrade_options` and `supply_options` in `src/js/upgrades.js`; the
   effects in `src/js/update.js`, `src/js/helpers.js`, `src/js/expedition.js`,

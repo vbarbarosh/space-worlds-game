@@ -110,6 +110,22 @@ An explosion never changes what the game decides.
   shake (`render` in `src/js/render.js`) still draw from `Math.random`.
 - Where it lives: `src/js/explosions.js`.
 
+## An area effect travels
+
+A wave you release touches each thing when its front arrives, never before,
+so the eye sees the wave do the work.
+
+- The pulse (Space), the EMP (E) and stasis (F) are rings that run out from
+  the ship to their reach. A raider, rock or shot is hit, cleared or slowed as
+  the front reaches it, and a raider it kills blows up a moment after.
+- Each keeps its own numbers and colour: the pulse is weaker with range and
+  chains through its kills, the EMP deals the same all the way out, stasis
+  only slows.
+- Today a missile's splash (`blast_payload` in `src/js/fleet.js`) and the
+  arcade's dying-ship blasts (`arcade_blast_from_kill`) still land at once.
+- Where it lives: `src/js/pulse.js` (`pulse_fire`, `emp_fire`,
+  `stasis_fire`, `stasis_scale`), `use_supply` in `src/js/upgrades.js`.
+
 ## The arcade is tuned on its own; the campaign stays as it is
 
 The arcade gets the extra feel (shake, slow motion, chain blasts) and its own

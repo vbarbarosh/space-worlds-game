@@ -112,7 +112,6 @@ function update(dt)
     wave_timer += dt;
     phase_timer += dt;
     stasis_time = Math.max(0, stasis_time - dt);
-    const enemy_dt = dt*((stasis_time > 0) ? 0.35 : 1);
     bodies_frame();
     player.since_hit += dt;
     if (player.since_hit > 5) {
@@ -296,6 +295,7 @@ function update(dt)
         if (v.hp <= 0) {
             continue;
         }
+        const enemy_dt = dt*stasis_scale(v);
         v.age += enemy_dt;
         v.flash = Math.max(0, v.flash - dt);
         const prey = (v.escort_raider && escort) ? escort : (v.robot_raider && survey_robot) ? survey_robot : structure_prey(v);
@@ -472,6 +472,7 @@ function update(dt)
         if (b.life <= 0) {
             continue;
         }
+        const enemy_dt = dt*stasis_scale(b);
         if (b.missile) {
             missile_fly(b, (b.escort_target && escort) ? escort : player, enemy_dt);
         }

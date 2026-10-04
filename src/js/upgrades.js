@@ -199,7 +199,7 @@ const upgrade_options = [
 ];
 const supply_options = [
     {key: 'medkit', icon: '✚', title: 'Repair kit', description: 'Q / restore 40 hull. Use only when damaged.', cost: 20, cap: 8, group: 'defense', shelf: 'defence'},
-    {key: 'emp', icon: '⊛', title: 'EMP charge', description: 'E / clear all enemy bullets and blast nearby enemies.', cost: 26, cap: 8, group: 'weapon', shelf: 'shots'},
+    {key: 'emp', icon: '⊛', title: 'EMP charge', description: 'E / a wave that clears enemy bullets and blasts enemies within 650 m.', cost: 26, cap: 8, group: 'weapon', shelf: 'shots'},
     {key: 'stasis', icon: '◷', title: 'Stasis cell', description: 'F / slow enemies and their bullets for 8 seconds.', cost: 24, cap: 8, group: 'utility', shelf: 'helpers'},
 ];
 // The shelves the depots sort modules on (each option's shelf), with what is on each
@@ -468,14 +468,8 @@ function use_supply(key)
     }
     if (key === 'emp') {
         supplies.emp--;
-        hostile = [];
-        ring(player.x, player.y, blue, 650, 0.65);
-        burst(player.x, player.y, blue, 45, 350);
-        for (const v of enemies.slice()) {
-            if (distance(v, player) < 650) {
-                damage_enemy(v, (v.type === 'boss') ? 400 : 160 + wave*12);
-            }
-        }
+        // nothing is hit here: the ring travels and hits each raider and shot as its front reaches it (src/js/pulse.js)
+        emp_fire(player.x, player.y);
         player.invincible = Math.max(player.invincible, 0.6);
         sfx('pulse');
     }
@@ -485,7 +479,7 @@ function use_supply(key)
         }
         supplies.stasis--;
         stasis_time = 8;
-        ring(player.x, player.y, blue, Math.max(W, H), 1);
+        stasis_fire(player.x, player.y);
         sfx('dash');
         show_toast('TIME DILATED', 'STASIS FIELD / 8 SECONDS', 1.8);
     }
