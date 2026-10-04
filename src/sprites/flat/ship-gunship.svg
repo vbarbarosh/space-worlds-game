@@ -33,5 +33,15 @@
 <circle id="turret-medium-1" cx="79" cy="80" r="6" fill="#0000ff"/>
 <circle id="turret-medium-2" cx="177" cy="80" r="6" fill="#0000ff"/>
 <circle id="turret-heavy-1" cx="128" cy="150" r="6" fill="#0000ff"/>
+<line id="armor-1" x1="38.87" y1="172.39" x2="12.89" y2="137.33" stroke="#ff0000" stroke-width="30"/>
+<line id="armor-2" x1="217.13" y1="172.39" x2="243.11" y2="137.33" stroke="#ff0000" stroke-width="30"/>
+<line id="armor-3" x1="88.72" y1="136.13" x2="62.11" y2="101.54" stroke="#ff0000" stroke-width="30"/>
+<line id="armor-4" x1="167.28" y1="136.13" x2="193.89" y2="101.54" stroke="#ff0000" stroke-width="30"/>
+<line id="armor-5" x1="41.14" y1="201" x2="-2.5" y2="201" stroke="#ff0000" stroke-width="30"/>
+<line id="armor-6" x1="214.86" y1="201" x2="258.5" y2="201" stroke="#ff0000" stroke-width="30"/>
+<circle id="module-1" cx="128" cy="187" r="9" fill="#0000ff"/>
+<circle id="module-2" cx="128" cy="104" r="13" fill="#0000ff"/>
+<circle id="nose" cx="128" cy="38" r="8" fill="#0000ff"/>
+<circle id="shield" cx="128" cy="128" r="141.67" fill="none" stroke="#0000ff" stroke-width="2"/>
 </g>
 </svg>

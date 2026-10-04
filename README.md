@@ -16,6 +16,9 @@ Two modes:
 - **Campaign**: the stations, contracts, trading and story chapters; see
   [docs/scenario/](docs/scenario/README.md).
 
+The rules the game keeps everywhere (what is solid, and the like) are in
+[docs/principles.md](docs/principles.md).
+
 ## Start
 
     bin/configure    install dependencies and build

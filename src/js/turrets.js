@@ -170,14 +170,39 @@ function cabin_render_turrets(deck, accent)
     cabin_label(`TURRET ${Math.round((bearing*180)/Math.PI)}°`, W*0.6, H*0.888, (W < 700) ? 6 : 8, accent, 'center');
 }
 
-// The minimap's box is in the HUD, placed by CSS; it shows while flying and the canvas draws the map inside it
+// The minimap's corner button hides it and brings it back (minimap_on, in globals), and the choice is kept
+try {
+    minimap_on = localStorage.getItem('pulse_drift_minimap') !== 'off';
+}
+catch {
+}
+
+// The minimap's box is in the HUD, placed by CSS; it shows while flying (unless hidden) and the canvas draws the map
+// inside it
 function sync_minimap_button()
 {
     const button = document.getElementById('minimap_button');
     if (!button) {
         return;
     }
-    button.classList.toggle('hidden', !player || !['playing', 'paused'].includes(state));
+    const flying = !!player && ['playing', 'paused'].includes(state);
+    button.classList.toggle('hidden', !flying || !minimap_on);
+    const toggle = document.getElementById('minimap_toggle');
+    toggle.classList.toggle('hidden', !flying);
+    toggle.classList.toggle('is-off', !minimap_on);
+    toggle.setAttribute('aria-pressed', String(minimap_on));
+    toggle.title = minimap_on ? 'Hide the minimap' : 'Show the minimap';
+}
+
+function minimap_toggle()
+{
+    minimap_on = !minimap_on;
+    try {
+        localStorage.setItem('pulse_drift_minimap', minimap_on ? 'on' : 'off');
+    }
+    catch {
+    }
+    sync_minimap_button();
 }
 
 function open_local_world_map()
@@ -199,4 +224,5 @@ function open_local_world_map()
     sync_minimap_button();
 }
 document.getElementById('minimap_button').addEventListener('click', open_local_world_map);
+document.getElementById('minimap_toggle').addEventListener('click', minimap_toggle);
 sync_minimap_button();

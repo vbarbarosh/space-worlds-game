@@ -48,7 +48,7 @@ const world_haven = {
             'Shields recharge 25% faster after five safe seconds.',
             'Gravity wells pull at 75% strength. Pulse gains 0.6 energy per second.',
         ],
-        prepare: 'A calm world for mining, contracts and shuttle preparation. No radiation; a compact 12 × 10 km map.',
+        prepare: 'A calm world for mining, contracts and preparing your ship. No radiation; a compact 12 × 10 km map.',
     },
     extent: [12000, 10000],
     expedition: {radiation: 0, required: 0, import: 1, ship: 'scout', advice: 'A scout is enough for sheltered short flights.'},

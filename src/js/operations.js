@@ -4,11 +4,6 @@ function stage(type, world, target, title, extra = {})
 }
 const expanded_story_stages = [
     [
-        stage('scan', 0, 12, 'Calibrate the mining scanner', {beacon: 0}),
-        stage('mining', 0, 10, 'Extract trial ore'),
-        stage('courier', 0, 1, 'Return the analysis to Haven'),
-    ],
-    [
         stage('scan', 1, 18, 'Locate the swarm nest', {beacon: 1}),
         stage('hunt', 1, 14, 'Break the swarm patrol'),
         stage('recover', 1, 12, 'Retrieve the nest telemetry'),
@@ -215,7 +210,7 @@ function mission_event(type, n, details = {})
         }
         else {
             m.ready = true;
-            show_toast('OPERATION COMPLETE', `${m.title} / DOCK TO COLLECT ◆ ${m.reward}`, 4);
+            show_toast('CONTRACT COMPLETE', `${m.title} / DOCK TO COLLECT ◆ ${m.reward}`, 4);
             sfx('win');
         }
         save_checkpoint();
@@ -263,6 +258,10 @@ function spawn_operation_enemy(m, type, point, elite = false)
 function update_operations(dt)
 {
     for (const m of campaign.contracts.filter(v => !v.ready && (v.world === campaign.world))) {
+        if (m.type === 'lure') {
+            lure_update(m);
+            continue;
+        }
         if (!['scan', 'recover', 'defend', 'elite'].includes(m.type)) {
             continue;
         }
@@ -331,7 +330,16 @@ function update_operations(dt)
 function damage_enemy(enemy, damage)
 {
     const alive = enemy.hp > 0;
+    // guns cannot hurt the Leviathan: only a black hole's core can
+    if (enemy.leviathan && !enemy.core_kill) {
+        enemy.flash = 0.08;
+        return;
+    }
     expedition_base_damage_enemy(enemy, damage);
+    if (alive && (enemy.hp <= 0) && enemy.leviathan) {
+        show_toast('LEVIATHAN CONSUMED', 'THE BLACK HOLE TOOK IT', 4);
+        mission_event('lure', 1, {contract_id: enemy.operation_id});
+    }
     if (alive && (enemy.hp <= 0) && enemy.operation_id) {
         const m = campaign.contracts.find(v => v.id === enemy.operation_id);
         if (m && (m.type === 'recover') && (m.stage_index === enemy.operation_stage)) {
@@ -346,6 +354,51 @@ function damage_enemy(enemy, damage)
     }
 }
 
+const escort_speed = 70;
+// the freighter keeps moving while you are within this; farther, it waits for you
+const escort_leash = 1000;
+const escort_stop_times = {load: 8, unload: 6};
+
+// The convoy's cargo run: from beside the station to the edge of the nearest mining field 1.5-4 km off, where it
+// loads, then to the station's far side, where it unloads; a few kilometres, a couple of minutes
+function escort_route()
+{
+    const start = {x: station.x + station_size/2 + 350, y: station.y + 250};
+    const near = mining_fields.filter(v => (distance(v, start) > 1500) && (distance(v, start) < 4000));
+    const fields = (near.length ? near : mining_fields).slice().sort((a, b) => distance(a, start) - distance(b, start));
+    const field = fields[0] || {x: start.x + 2500, y: start.y, r: 0, id: -1};
+    const a = Math.atan2(start.y - field.y, start.x - field.x);
+    const load = {x: field.x + Math.cos(a)*(field.r + 150), y: field.y + Math.sin(a)*(field.r + 150), job: 'load', label: (field.id >= 0) ? `Mining field ${field.id + 1}` : 'the loading point'};
+    const unload = {x: station.x - (station_size/2 + 300), y: station.y, job: 'unload', label: worlds[campaign.world].station};
+    return {start, stops: [load, unload]};
+}
+
+// The run's length and time, with its stops: "4.2 km · about 2 min"
+function escort_route_text(v)
+{
+    const points = [v.start || v, ...v.stops];
+    let length = 0;
+    for (let i = 1, end = points.length; i < end; ++i) {
+        length += distance(points[i - 1], points[i]);
+    }
+    const seconds = length/escort_speed + escort_stop_times.load + escort_stop_times.unload;
+    return `${(length/1000).toFixed(1)} km · about ${Math.max(1, Math.round(seconds/60))} min`;
+}
+
+// A raider wave at the freighter, once per name (a stop or a leg)
+function escort_wave(m, name, count)
+{
+    if (escort.waves.includes(name) || (enemies.length > 16)) {
+        return;
+    }
+    escort.waves.push(name);
+    for (let i = 0; i < count; ++i) {
+        const enemy = spawn_operation_enemy(m, (i % 2) ? 'chaser' : 'shooter', escort);
+        enemy.escort_raider = true;
+    }
+    show_toast('RAIDERS ON THE CONVOY', `${count} INBOUND / PROTECT THE FREIGHTER`, 3);
+}
+
 function update_escort(dt)
 {
     const m = campaign.contracts.find(v => !v.ready && (v.type === 'escort') && (v.world === campaign.world));
@@ -353,39 +406,51 @@ function update_escort(dt)
         escort = null;
         return;
     }
-    if (!escort) {
-        escort = m.escort_state
-            ? clone(m.escort_state)
-            : {
-                x: station.x + 350,
-                y: station.y + 250,
-                hp: 300,
-                active: false,
-                spawn: 5,
-                destination: {x: station.x - 1600, y: station.y + 700},
-                leg: 0,
-                legs: 3,
-            };
+    // a convoy saved before the cargo runs starts a new one
+    if (!escort && m.escort_state?.stops) {
+        escort = clone(m.escort_state);
     }
-    if (!escort.active && (distance(player, escort) < 250)) {
+    if (!escort) {
+        const route = escort_route();
+        escort = {x: route.start.x, y: route.start.y, start: route.start, hp: 300, active: false, stops: route.stops, leg: 0, stop_timer: -1, waves: [], destination: route.stops[0]};
+    }
+    if (!escort.active && (distance(player, escort) < 450)) {
         escort.active = true;
-        show_toast('CONVOY UNDERWAY', 'PROTECT THREE ROUTE LEGS / KEEP WITHIN 800 m / G FLIES BEHIND IT', 4);
+        show_toast('CONVOY UNDERWAY', `${escort.stops.map(v => v.label).join(' → ')} · ${escort_route_text(escort)}`, 4);
     }
     if (!escort.active) {
         m.escort_state = clone(escort);
         return;
     }
-    if (distance(player, escort) < 800) {
-        const a = Math.atan2(escort.destination.y - escort.y, escort.destination.x - escort.x);
-        escort.x += Math.cos(a)*70*dt;
-        escort.y += Math.sin(a)*70*dt;
+    const stop = escort.stops[escort.leg];
+    escort.destination = stop;
+    if (escort.stop_timer >= 0) {
+        // at a stop: its drones ferry the cargo, and raiders strike
+        escort.stop_timer -= dt;
+        if (escort.stop_timer < 0) {
+            escort.leg++;
+            if (escort.leg >= escort.stops.length) {
+                m.escort_state = null;
+                escort = null;
+                mission_event('escort', 1, {contract_id: m.id});
+                return;
+            }
+            escort.hp = Math.min(300, escort.hp + 65);
+            show_toast(`CONVOY ${(stop.job === 'load') ? 'LOADED' : 'UNLOADED'}`, `FIELD REPAIR +65 / NEXT: ${escort.stops[escort.leg].label.toUpperCase()}`, 3);
+        }
     }
-    escort.spawn -= dt;
-    if ((escort.spawn <= 0) && (enemies.length < 18)) {
-        escort.spawn = 11;
-        for (let i = 0; i < 2; ++i) {
-            const enemy = spawn_operation_enemy(m, i ? 'chaser' : 'shooter', escort);
-            enemy.escort_raider = true;
+    else if (distance(escort, stop) < 60) {
+        escort.stop_timer = escort_stop_times[stop.job];
+        escort_wave(m, `stop-${escort.leg}`, 3);
+    }
+    else if (distance(player, escort) < escort_leash) {
+        const a = Math.atan2(stop.y - escort.y, stop.x - escort.x);
+        escort.x += Math.cos(a)*escort_speed*dt;
+        escort.y += Math.sin(a)*escort_speed*dt;
+        // halfway along a leg, a raider wave
+        const from = (escort.leg === 0) ? escort.start : escort.stops[escort.leg - 1];
+        if (distance(escort, stop) < distance(from, stop)*0.5) {
+            escort_wave(m, `leg-${escort.leg}`, 2 + escort.leg);
         }
     }
     for (const b of hostile) {
@@ -405,18 +470,6 @@ function update_escort(dt)
         escort = null;
         show_toast('CONVOY LOST', 'MEET A REPLACEMENT AT THE STATION / PREVIOUS STAGES PRESERVED', 4);
         return;
-    }
-    if (distance(escort, escort.destination) < 80) {
-        escort.leg++;
-        if (escort.leg >= escort.legs) {
-            m.escort_state = null;
-            escort = null;
-            mission_event('escort', 1, {contract_id: m.id});
-            return;
-        }
-        escort.hp = Math.min(300, escort.hp + 65);
-        escort.destination = (escort.leg === 1) ? {...beacons[2]} : {x: station.x + 320, y: station.y - 280};
-        show_toast(`CONVOY CHECKPOINT ${escort.leg}/3`, 'FIELD REPAIR +65 / NEXT ROUTE LEG', 3);
     }
     m.escort_state = clone(escort);
 }
@@ -451,7 +504,7 @@ function offered_jobs()
     out[2].reward *= 2;
     out.push({
         title: `Convoy: ${worlds[id].name} relief route`,
-        description: 'Meet the convoy, protect three route legs, then deliver its manifest to another world.',
+        description: `Escort the freighter's cargo run (load at a mining field, unload at the station, ${escort_route_text(escort_route())}), then deliver its manifest to another world.`,
         reward: 450 + id*80 + level*50,
         stages: [stage('escort', id, 1, 'Protect the relief convoy'), stage('courier', other, 1, 'Deliver the convoy manifest')],
         type: 'escort',
@@ -504,6 +557,10 @@ function offered_jobs()
             m.description += ` ${m.stages.map(v => v.title).join(' → ')}.`;
         }
     }
+    // side missions written as files, in their world, until done
+    for (const v of side_missions.filter(v => (v.world === id) && !(campaign.sides_done || []).includes(v.file))) {
+        out.unshift({...clone(v), level, side: v.file});
+    }
     return out;
 }
 
@@ -514,6 +571,9 @@ function guide_base_claim_contract(id)
         return;
     }
     const old_rank = pilot_rank();
+    if (m.side) {
+        campaign.sides_done = [...(campaign.sides_done || []), m.side];
+    }
     const xp = Math.round(m.reward*0.28) + (m.stages?.length || 1)*18;
     campaign.xp += xp;
     campaign.reputation[m.issuer] = (campaign.reputation[m.issuer] || 0) + 1;
@@ -550,16 +610,23 @@ function build_guide_context()
     if (m.ready || (out.kind === 'prepare') || (out.kind === 'jump') || guide_manual) {
         return out;
     }
+    if ((m.type === 'lure') && (m.world === campaign.world)) {
+        out.goal = lure_goal(m) || out.goal;
+        out.kind = 'lure';
+        out.action = 'Fly to the black hole';
+        out.instruction = stage_description(m.stages?.[m.stage_index] || m, m, m.stage_index);
+        return out;
+    }
     if (['scan', 'defend', 'recover', 'elite'].includes(m.type) && (m.world === campaign.world)) {
         const p = operation_point(m);
         out.goal = {...p, label: m.stages?.[m.stage_index]?.title || m.type.toUpperCase()};
         out.kind = m.type;
-        out.action = 'FLY TO OBJECTIVE';
+        out.action = 'Fly to objective';
         out.instruction = stage_description(m.stages?.[m.stage_index] || m, m, m.stage_index);
     }
     if ((m.type === 'escort') && (m.world === campaign.world) && escort) {
         out.instruction =
-            `Convoy leg ${escort.leg + 1}/3 · Hull ${Math.ceil(escort.hp)}/300. Stay within 800 m and destroy attackers. Field repairs at each checkpoint.`;
+            `Cargo run, stop ${escort.leg + 1}/${escort.stops.length}: ${escort.stops[escort.leg].label} · hull ${Math.ceil(escort.hp)}/300. Stay within ${escort_leash} m so it keeps moving; raiders strike at the stops.`;
     }
     return out;
 }
@@ -581,7 +648,7 @@ function stage_description(v, m, index)
         return 'Approach the combat zone and destroy its marked elite commander. Ion strips shields; railguns bypass thick armor.';
     }
     if (v.type === 'escort') {
-        return 'Meet the freighter near the station and protect all three route legs. Stay within 800 m. Convoy position and hull persist when you save or travel.';
+        return `Meet the freighter beside the station and escort its cargo run: it loads at a mining field, then unloads at the station, ${(v.world === campaign.world) ? escort_route_text(escort || escort_route()) : 'about 2-3 min'}. Stay within ${escort_leash} m so it keeps moving; raiders strike at the stops.`;
     }
     if (v.type === 'courier') {
         return `Mission cargo is already aboard. Dock at ${worlds[v.world].station} with R; delivery advances this stage automatically.`;
@@ -594,6 +661,9 @@ function stage_description(v, m, index)
     }
     if (v.type === 'boss') {
         return 'Approach the marked flagship zone and destroy the warship. Prepare your ship and weapon tier before jumping.';
+    }
+    if (v.type === 'lure') {
+        return 'Fly to the marked black hole and the Leviathan comes for you. Guns cannot hurt it. Keep ahead of it and lead it across the pull: your ship climbs out, its thrust cannot, and the core takes it. Keep clear of the core yourself.';
     }
     return `Destroy ${Math.ceil(left)} hostile ships in this world, then continue to the next stage.`;
 }
@@ -624,7 +694,7 @@ function render_contracts(parent, board = false)
         p.className = 'contract-guidance';
         p.style.gridColumn = '1 / -1';
         p.textContent =
-            'Contracts now have several stages. Accept up to 3, choose GUIDE THIS MISSION, and follow its plan. Promotions unlock ship classes and weapons. Higher-ranked operations pay more and send stronger squads.';
+            'Contracts now have several stages. Accept up to 3, press Follow on one, and the guide takes you through its stages. Promotions unlock ship classes and weapons. Higher-ranked operations pay more and send stronger squads.';
         parent.prepend ? parent.prepend(p) : parent.append(p);
     }
 }
@@ -903,11 +973,11 @@ function render_navigation_objects()
 function render_inventory()
 {
     expedition_base_render_inventory();
-    const c = document.createElement('div');
-    c.className = 'inventory-card';
-    c.innerHTML =
-        `<b>${current_ship().name}</b><span>${guns_text()}</span><p>Hull ${hull_max()} · Cargo ${cargo_count()}/${cargo_capacity()} · ${rank_names[pilot_rank()]} · Dock at HANGAR / ARSENAL to change equipment.</p>`;
-    el.inventory_grid.append(c);
+    el.inventory_grid.append(ui_card({
+        tags: ui_badge('Your ship', 'cyan'),
+        title: current_ship().name,
+        text: `${guns_text()}. Hull ${hull_max()} · cargo ${cargo_count()}/${cargo_capacity()} · ${rank_names[pilot_rank()]}. Change it at a station's HANGAR and ARSENAL.`,
+    }));
 }
 
 function reset_run(resume = false)

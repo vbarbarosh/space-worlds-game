@@ -6,9 +6,7 @@ let hud_details_open = false;
 let hud_card_key = '';
 let hud_alert = null;
 
-document.getElementById('toolbar_more').addEventListener('click', on_toolbar_more);
 document.getElementById('mc_details_button').addEventListener('click', toggle_mission_details);
-document.getElementById('controls_button').addEventListener('click', pause_controls_open);
 addEventListener('keydown', on_hud_key);
 
 // Once every script has run (the sprites are packed at the end): the quick bar's icons
@@ -38,7 +36,7 @@ function on_hud_key(event)
     else if (event.key === '?') {
         pause_controls_open();
     }
-    else if (event.code === 'KeyT') {
+    else if ((event.code === 'KeyT') && !/^R \/ /.test(guide_action_label(guide_context()))) {
         guide_action();
     }
 }
@@ -48,14 +46,6 @@ function toggle_mission_details()
     hud_details_open = !hud_details_open;
     set_hidden(document.getElementById('mission_details'), !hud_details_open);
     document.getElementById('mc_details_button').setAttribute('aria-expanded', String(hud_details_open));
-}
-
-// Below 1440 px the view toggles hide behind one button, which opens them as a menu
-function on_toolbar_more()
-{
-    const toolbar = document.querySelector('.hud-top .toolbar');
-    toolbar.classList.toggle('is-open');
-    document.getElementById('toolbar_more').setAttribute('aria-expanded', String(toolbar.classList.contains('is-open')));
 }
 
 // A toast under the readouts: a colour bar for its kind (goal, income, danger, info), the title, a line, and an amount
@@ -142,7 +132,7 @@ function hud_threat()
 {
     let best = null;
     for (const v of enemies) {
-        if ((v.hp > 0) && !v.structure_target && !v.robot_raider && !v.escort_raider && (!best || (distance(v, player) < distance(best, player)))) {
+        if ((v.hp > 0) && !v.structure_target && !v.robot_raider && (!best || (distance(v, player) < distance(best, player)))) {
             best = v;
         }
     }
@@ -167,15 +157,64 @@ function hud_bearing(p)
 function sync_hud_kit()
 {
     document.getElementById('mission').classList.toggle('is-arcade', arcade.active);
-    // the arcade's card is its lines, shown whether or not Details is open
-    set_hidden(document.getElementById('mission_details'), !hud_details_open && !arcade.active);
+    // in a fight the edges of the screen glow red
+    document.body.classList.toggle('in-fight', !!player && (state === 'playing') && !!hud_threat());
     if (!player) {
         return;
     }
     sync_ship_status();
-    if (!arcade.active) {
+    if (arcade.active) {
+        sync_arcade_card();
+    }
+    else {
         sync_mission_card();
     }
+}
+
+// The arcade's card: the world and its wave, the raiders left with the way to the nearest, EMP and Repair in a fight,
+// the depot [R] at the station, and the run's waves as one bar; no routes, contracts or goals
+function sync_arcade_card()
+{
+    const id = campaign.world;
+    const pips = Math.ceil(((id + 1)/worlds.length)*5);
+    document.getElementById('mc_where').innerHTML = `${ui_world_badge(id)}<span class="small">Arcade · world ${id + 1}/${worlds.length}</span><span class="threat" title="Threat ${id + 1} of ${worlds.length}">${[0, 1, 2, 3, 4].map(v => `<b class="${(v < pips) ? 'on' : ''}"></b>`).join('')}</span>`;
+    const wave = Math.max(1, arcade.wave);
+    const left = spawn_left + enemies.filter(v => v.hp > 0).length;
+    const threat = hud_threat();
+    const flagship = enemies.some(v => (v.hp > 0) && (v.type === 'boss'));
+    const at_depot = (distance(player, station) < station_reach) && !depot_shield_up();
+    const kind_el = document.getElementById('mc_kind');
+    kind_el.textContent = (arcade.pause > 0) ? `Wave ${wave} of ${arcade_waves} · clear` : `Wave ${wave} of ${arcade_waves} · ${ui_sentence(arcade_wave_names[wave] || '')}`;
+    kind_el.className = `eyebrow ${threat ? 'eyebrow--red' : 'eyebrow--gold'}`;
+    document.getElementById('mc_title').textContent = (arcade.pause > 0)
+        ? 'Wave clear: repair at the depot or wait for the next'
+        : flagship ? `Destroy the flagship of ${worlds[id].name}` : `Destroy ${left} raider${(left === 1) ? '' : 's'}`;
+    const nearest = threat || enemies.filter(v => v.hp > 0).sort((a, b) => distance(a, player) - distance(b, player))[0];
+    const dist = document.getElementById('mc_dist');
+    set_hidden(dist, !nearest);
+    dist.classList.toggle('is-danger', !!threat);
+    if (nearest) {
+        const [value, unit] = hud_distance(distance(player, nearest));
+        document.getElementById('mc_distance').innerHTML = `${value}<small>${unit}</small>`;
+        document.getElementById('mc_eta').innerHTML = `${left} left<br>auto fire on`;
+        const a = Math.atan2(nearest.y - player.y, nearest.x - player.x);
+        document.getElementById('mc_arrow').style.transform = `rotate(${a + Math.PI/4}rad)`;
+    }
+    const key = threat ? 'fight' : at_depot ? 'depot' : 'calm';
+    if (key !== hud_card_key) {
+        hud_card_key = key;
+        const acts = document.getElementById('mc_acts');
+        acts.replaceChildren();
+        if (threat) {
+            acts.append(ui_button({label: 'EMP', key: 'E', kind: 'primary', on: () => document.getElementById('quick_emp').click()}));
+            acts.append(ui_button({label: 'Repair', key: 'Q', on: () => document.getElementById('quick_medkit').click()}));
+        }
+        else if (at_depot) {
+            acts.append(ui_button({label: 'Depot', key: 'R', kind: 'primary', on: interact}));
+        }
+    }
+    const done = (wave - 1) + ((arcade.pause > 0) ? 1 : 0);
+    document.getElementById('mc_tracks').innerHTML = `<div class="track-row"><div class="head">${ui_badge('Run', 'gold')}<b>${worlds[id].name}</b><span class="eyebrow eyebrow--gold">${done} / ${arcade_waves}</span></div>${ui_progress_html(arcade_waves, done, '')}</div>`;
 }
 
 function sync_mission_card()
@@ -186,7 +225,7 @@ function sync_mission_card()
     const threat = hud_threat();
     const id = campaign.world;
     const pips = Math.ceil(((id + 1)/worlds.length)*5);
-    document.getElementById('mc_where').innerHTML = `${ui_world_badge(id)}<span class="small">${ui_sentence(world_looks[id].biome)}</span><span class="threat" title="Threat ${id + 1} of ${worlds.length}">${[0, 1, 2, 3, 4].map(v => `<b class="${(v < pips) ? 'on' : ''}"></b>`).join('')}</span>`;
+    document.getElementById('mc_where').innerHTML = `${ui_world_badge(id)}<span class="threat" title="Threat ${id + 1} of ${worlds.length}">${[0, 1, 2, 3, 4].map(v => `<b class="${(v < pips) ? 'on' : ''}"></b>`).join('')}</span>`;
     const step = (g && (g.index >= 0)) ? g.steps[g.index] : null;
     const goal_leads = step && !m;
     let kind = 'Next';
@@ -195,6 +234,14 @@ function sync_mission_card()
         const count = enemies.filter(v => (v.hp > 0) && (distance(v, player) < 1200)).length;
         kind = m?.stages ? `Now · Contract stage ${m.stage_index + 1} of ${m.stages.length}` : 'Now · Under attack';
         title = m?.stages ? m.stages[m.stage_index].title : `Fight off ${count} raider${(count > 1) ? 's' : ''}`;
+    }
+    else if ((m?.type === 'escort') && escort?.active) {
+        // the cargo run: where the freighter goes, its stop's countdown, or that it waits for you
+        const stop = escort.stops[escort.leg];
+        kind = `Escort · stop ${escort.leg + 1} of ${escort.stops.length}`;
+        title = (escort.stop_timer >= 0)
+            ? `${(stop.job === 'load') ? 'Loading' : 'Unloading'} at ${stop.label} · ${Math.ceil(escort.stop_timer)} s`
+            : (distance(player, escort) > escort_leash) ? 'The freighter waits for you' : `Freighter to ${stop.label}`;
     }
     else if (goal_leads) {
         kind = `Next · Goal step ${g.index + 1} of ${g.steps.length}`;
@@ -215,18 +262,20 @@ function sync_mission_card()
     if (target) {
         const [value, unit] = hud_distance(distance(player, target));
         document.getElementById('mc_distance').innerHTML = `${value}<small>${unit}</small>`;
-        const portals_ahead = guide_path.filter(v => v.portal !== undefined).length;
-        const seconds = distance(player, target)/Math.max(1, cruise_speed());
-        document.getElementById('mc_eta').innerHTML = threat
-            ? `${enemies.filter(v => (v.hp > 0) && (distance(v, player) < 1200)).length} hostiles<br>auto fire on`
-            : `~${format_time(seconds)}<br>${portals_ahead} portal${(portals_ahead === 1) ? '' : 's'}`;
+        // beside the distance, the place it is to (the details keep the time and the portals)
+        const run = ((m?.type === 'escort') && escort?.active) ? escort.stops[escort.leg] : null;
+        document.getElementById('mc_eta').textContent = threat
+            ? `${enemies.filter(v => (v.hp > 0) && (distance(v, player) < 1200)).length} hostiles · auto fire`
+            : (m?.type === 'lure')
+                ? lure_text(m)
+                : run
+                    ? `${run.label} in ${hud_distance(distance(escort, run)).join(' ')} · ~${Math.ceil(distance(escort, run)/escort_speed)} s`
+                    : ui_sentence_names(c.goal?.label || target.label || worlds[c.target]?.station || '');
         const a = Math.atan2(target.y - player.y, target.x - player.x);
         document.getElementById('mc_arrow').style.transform = `rotate(${a + Math.PI/4}rad)`;
     }
     sync_mission_actions(c, step, threat);
     sync_mission_tracks(m, g, threat);
-    const r = current_world_rules();
-    document.getElementById('mc_rule').textContent = threat ? `Shield ${Math.ceil(player.shield)}/${shield_max()} · rad ${Math.round(radiation_protection()*100)}%` : ui_sentence(r.name);
 }
 
 // The card's buttons: in a fight EMP and Repair; else the guide's next action [T], and the step's own verb (Build at a
@@ -247,7 +296,9 @@ function sync_mission_actions(c, step, threat)
         acts.append(ui_button({label: 'Repair', key: 'Q', on: () => document.getElementById('quick_medkit').click()}));
         return;
     }
-    acts.append(ui_button({label: ui_sentence(label.replace(/^[A-Z] \/ /, '')), key: 'T', kind: 'primary', on: guide_action}));
+    // docking and jumping are R's, wherever they show; T is the way to the next step
+    const act_key = /^R \/ /.test(label) ? 'R' : 'T';
+    acts.append(ui_button({label: ui_sentence(label.replace(/^[A-Z] \/ /, '')), key: act_key, kind: 'primary', on: (act_key === 'R') ? interact : guide_action}));
     if (build) {
         acts.append(ui_button({label: 'Build', key: 'K', on: build_menu_toggle}));
     }

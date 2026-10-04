@@ -19,6 +19,7 @@ function initial_upgrades()
         stabilizer: 0,
         cooling: 0,
         turbo_tank: 0,
+        evasive: 0,
     };
 }
 
@@ -57,7 +58,7 @@ try {
 }
 catch {
 }
-el.best_intro.textContent = `Best ${String(best).padStart(6, '0')}`;
+menu_best_sync();
 function rand(a, b)
 {
     return a + Math.random()*(b - a);

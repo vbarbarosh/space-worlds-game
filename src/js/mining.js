@@ -35,7 +35,7 @@ function mining_point_safe(point, padding = 70)
     ) {
         return false;
     }
-    if (distance(point, station) < 500 + padding) {
+    if (distance(point, station) < station_shelter + padding) {
         return false;
     }
     if (black_holes.some(v => distance(point, v) < gravity_reach(v) + padding)) {

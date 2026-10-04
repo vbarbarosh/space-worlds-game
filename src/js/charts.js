@@ -180,7 +180,7 @@ function render_screen_controls()
     render_gravity_direction();
     if (player && waypoint && (state === 'playing')) {
         const c = guide_context();
-        if (c.interaction && c.goal && (distance(player, c.goal) < ((c.kind === 'jump') ? 155 : 230))) {
+        if (c.interaction && c.goal && guide_in_reach(c)) {
             ctx.save();
             ctx.font = 'bold 16px ui-monospace,monospace';
             ctx.textAlign = 'center';

@@ -64,6 +64,51 @@ function wireframe_ship(x, y, angle, alpha = 1, ghost = false)
     ctx.restore();
 }
 
+// A hauler (the convoy's freighter) as an outline at its own length: a long spine, cargo pods along it, a bridge at the
+// nose and engines at the stern, nose to +x
+function wireframe_hauler(x, y, angle, length, color)
+{
+    const half = length/2;
+    const pod = length*0.075;
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(angle);
+    ctx.shadowBlur = full_fx ? 14 : 0;
+    ctx.shadowColor = color;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.fillStyle = '#1d1a0f';
+    ctx.beginPath();
+    ctx.rect(-half*0.82, -pod*0.35, half*1.64, pod*0.7);
+    ctx.fill();
+    ctx.stroke();
+    for (let i = 0; i < 5; ++i) {
+        const px = -half*0.7 + i*half*0.32;
+        for (const side of [-1, 1]) {
+            ctx.beginPath();
+            ctx.rect(px, side*pod*0.4 - ((side < 0) ? pod*1.1 : 0), half*0.26, pod*1.1);
+            ctx.fill();
+            ctx.stroke();
+        }
+    }
+    ctx.beginPath();
+    ctx.moveTo(half, 0);
+    ctx.lineTo(half*0.82, -pod*0.9);
+    ctx.lineTo(half*0.82, pod*0.9);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = `${color}88`;
+    for (const side of [-1, 1]) {
+        ctx.beginPath();
+        ctx.moveTo(-half*0.82, side*pod*0.6 - pod*0.3);
+        ctx.lineTo(-half - rand(0, pod), side*pod*0.6);
+        ctx.lineTo(-half*0.82, side*pod*0.6 + pod*0.3);
+        ctx.fill();
+    }
+    ctx.restore();
+}
+
 function visual_base_draw_background()
 {
     ctx.fillStyle = '#080b17';

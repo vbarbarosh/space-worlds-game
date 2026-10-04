@@ -37,5 +37,15 @@
 </g>
 <g id="anchors"><line id="flame-main-1" x1="97.6" y1="242" x2="97.6" y2="278.91" stroke="#ff0000" stroke-width="23.89" /><line id="flame-main-2" x1="158.4" y1="242" x2="158.4" y2="278.91" stroke="#ff0000" stroke-width="23.89" /><line id="flame-reverse-1" x1="48.74" y1="124.74" x2="48.74" y2="100.86" stroke="#ff0000" stroke-width="8.69" /><line id="flame-reverse-2" x1="207.26" y1="124.74" x2="207.26" y2="100.86" stroke="#ff0000" stroke-width="8.69" /><line id="flame-side-1" x1="32.46" y1="142.11" x2="12.91" y2="142.11" stroke="#ff0000" stroke-width="6.51" /><line id="flame-side-2" x1="223.54" y1="142.11" x2="243.09" y2="142.11" stroke="#ff0000" stroke-width="6.51" /><line id="flame-side-3" x1="32.46" y1="218.11" x2="12.91" y2="218.11" stroke="#ff0000" stroke-width="6.51" /><line id="flame-side-4" x1="223.54" y1="218.11" x2="243.09" y2="218.11" stroke="#ff0000" stroke-width="6.51" />
 <circle id="turret-medium-1" cx="128" cy="181" r="6" fill="#0000ff"/>
+<line id="armor-1" x1="53.64" y1="159" x2="10" y2="159" stroke="#ff0000" stroke-width="30"/>
+<line id="armor-2" x1="202.36" y1="159" x2="246" y2="159" stroke="#ff0000" stroke-width="30"/>
+<line id="armor-3" x1="110.17" y1="99.73" x2="67.38" y2="91.18" stroke="#ff0000" stroke-width="30"/>
+<line id="armor-4" x1="145.83" y1="99.73" x2="188.62" y2="91.18" stroke="#ff0000" stroke-width="30"/>
+<line id="armor-5" x1="53.64" y1="195" x2="10" y2="195" stroke="#ff0000" stroke-width="30"/>
+<line id="armor-6" x1="202.36" y1="195" x2="246" y2="195" stroke="#ff0000" stroke-width="30"/>
+<circle id="module-1" cx="156" cy="127" r="10" fill="#0000ff"/>
+<circle id="module-2" cx="100" cy="127" r="10" fill="#0000ff"/>
+<circle id="nose" cx="128" cy="44" r="8" fill="#0000ff"/>
+<circle id="shield" cx="128" cy="128" r="144.81" fill="none" stroke="#0000ff" stroke-width="2"/>
 </g>
 </svg>

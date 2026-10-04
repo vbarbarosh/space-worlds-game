@@ -13,7 +13,7 @@ const dev_weapon_options = weapon_catalog.map(v => ({value: v.id, label: v.name}
 
 // Read-only view of the world for tests and debugging: bin-less checks call window.dev_state() from a browser driver.
 window.dev_state = function () {
-    return {state, view_mode, zoom, camera: {...camera}, player: player ? {x: player.x, y: player.y} : null, station: {...station}, world: {...world},
+    return {state, view_mode, zoom, evasive: upgrades.evasive, evading: player?.evading || 0, enemies: enemies.filter(v => v.hp > 0).map(v => ({x: Math.round(v.x), y: Math.round(v.y), r: v.r, leviathan: !!v.leviathan})), holes: black_holes.map(v => ({x: Math.round(v.x), y: Math.round(v.y), core: v.core, radius: Math.round(v.radius), reach: Math.round(gravity_reach(v))})), contracts: campaign.contracts.map(v => ({title: v.title, type: v.type, progress: v.progress, target: v.target, ready: v.ready, stage: v.stage_index})), camera: {...camera}, player: player ? {x: player.x, y: player.y} : null, station: {...station}, world: {...world},
         ore: ore_nodes.filter(v => v.hp > 0).map(v => ({x: Math.round(v.x), y: Math.round(v.y), r: v.r, resource: v.resource || null})),
         debris: drifting_debris.map(v => ({x: Math.round(v.x), y: Math.round(v.y), r: Math.round(v.r), kind: v.kind})),
         scenery: scenery.map(v => ({x: Math.round(v.x), y: Math.round(v.y), r: Math.round(v.r)})),

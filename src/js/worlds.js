@@ -31,15 +31,8 @@ const commodities = [
     {key: 'cells', name: 'Energy cells'},
     {key: 'relics', name: 'Relic components'},
 ];
+// The story chapters still written here; the ones in src/missions/ take their places by number (js/missions.js)
 const story = [
-    {
-        title: 'A pilot earns their wings',
-        type: 'mining',
-        world: 0,
-        target: 6,
-        reward: 170,
-        description: 'Mine ore from the deposits around Haven. Keep the ore to sell or trade.',
-    },
     {title: 'Thorns in the canopy', type: 'hunt', world: 1, target: 10, reward: 290, description: 'Eliminate ten Thorn Swarm ships in Verdant.'},
     {
         title: 'The refinery run',
@@ -92,6 +85,12 @@ const story = [
 ];
 let campaign = {world: 0, story: 0, contracts: [], completed: 0, visited: [0], cargo: {ore: 0, cells: 0, relics: 0}, maps: {}, serial: 0, board: 0};
 let station = {x: 0, y: 0};
+// The station's length across, in metres: the scale every ship is drawn against (sprite_sizes)
+const station_size = 1000;
+// R docks within this of the station's centre: a short flight from its berths' tips, the approach does the rest
+const station_reach = station_size/2 + 250;
+// The sheltered space round the station: no radiation, no gravity storms, no mining, raiders cleared on docking
+const station_shelter = station_size/2 + 400;
 let world_gates = [];
 let beacons = [];
 let combat_zone = {x: 0, y: 0};

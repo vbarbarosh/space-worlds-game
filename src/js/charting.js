@@ -620,7 +620,7 @@ function render_map_legend()
         ['route', [['you', 'You'], ['waypoint', 'Route point'], ['objective', 'Objective']]],
         ['gates', [['world-gate', 'World gate'], ['jump-gate', 'Jump gate']]],
         ['mining', [['mining-field', 'Ore field'], ['mining-field-rich', 'Rich field']]],
-        ['yours', [['station', 'Station'], ['outpost', 'Outpost'], ['platform', 'Defence platform'], ['transport', 'Transport']]],
+        ['yours', [['station', 'Station'], ['outpost', 'Outpost'], ['platform', 'Defense platform'], ['transport', 'Transport']]],
         ['danger', [['black-hole', 'Black hole'], ['storm', 'Storm / radiation'], ['raiders', 'Raiders seen']]],
         ['contracts', [['beacon', 'Scan beacon']]],
     ];

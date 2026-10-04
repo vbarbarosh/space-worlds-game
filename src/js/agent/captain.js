@@ -30,7 +30,7 @@ function captain_status()
     out.world = worlds[campaign.world].name;
     out.world_rules = current_world_rules().name;
     out.docked = state === 'upgrade';
-    out.near_station = distance(player, station) < 230;
+    out.near_station = distance(player, station) < station_reach;
     out.salvage = salvage;
     out.score = score;
     out.hull = `${Math.ceil(player.hp)} / ${hull_max()}`;
@@ -240,9 +240,9 @@ function captain_arcade_pilot()
 function captain_arcade_dock()
 {
     const d = distance(player, station);
-    if (d < 200) {
+    if (d < station_reach - 30) {
         captain_pilot_keys_set(['KeyB']);
-        if (!enemies.some(v => (v.hp > 0) && (distance(v, player) < arcade_depot_safe_range))) {
+        if (!depot_shield_up()) {
             captain_pilot.dock = false;
             captain_pilot_keys_set([]);
             arcade_interact();

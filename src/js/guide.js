@@ -115,9 +115,9 @@ function expedition_base_guide_context()
         goal: null,
         kind: 'free',
         title: 'Choose a destination',
-        instruction: 'Open J MAP & GUIDE. Select a mission or click a map destination.',
+        instruction: 'Open the map and guide (J), then take a contract or click a destination.',
         interaction: '',
-        action: 'OPEN MAP',
+        action: 'Open map',
         plan: [],
     };
     if (trade && !guide_manual && (campaign.route_world === ((trade.stage === 'buy') ? trade.source : trade.destination))) {
@@ -136,14 +136,20 @@ function expedition_base_guide_context()
     }
     if (guide_manual) {
         out.goal = guide_manual;
-        out.kind = 'manual';
+        // a course to the station (Dock [R] from afar) ends in docking, like any other way home
+        out.kind = guide_manual.dock ? 'station' : 'manual';
         out.title = guide_manual.label;
         out.instruction =
             `Follow the gold route to ${guide_manual.label}. ${(guide_manual.portal !== undefined) ? 'Fly into the ring to use the portal. ' : ''}Click or hold to move, or use WASD. The route uses local portals when they save flight time.`;
-        out.action = 'FLY TO MARKER';
+        out.action = 'Fly to marker';
         return out;
     }
     if (!m && !Number.isInteger(campaign.route_world)) {
+        // docked with nothing chosen: the station's contracts are right here
+        if (effective_state === 'upgrade') {
+            out.title = `Docked at ${worlds[campaign.world].station}`;
+            out.instruction = 'Take a contract here (CONTRACTS, 1), or open the map and guide (J) to choose where to go.';
+        }
         return out;
     }
     out.title = trade
@@ -164,23 +170,23 @@ function expedition_base_guide_context()
         out.goal = {...station, label: worlds[campaign.world].station};
         out.kind = 'prepare';
         out.purchases = purchases;
-        out.action = (effective_state === 'upgrade') ? 'OPEN OUTFITTER' : 'FLY TO STATION';
+        out.action = (effective_state === 'upgrade') ? 'Open modules' : 'Fly to station';
         out.instruction =
             `Prepare for ${worlds[blocked].name}: ${purchases.map(v => `${v.title} Lv ${v.level}`).join(', ')}. Dock at ${worlds[campaign.world].station} and use OUTFITTER.`;
         out.plan.push({
-            title: `Prepare your shuttle for ${worlds[blocked].name}`,
+            title: `Prepare your ship for ${worlds[blocked].name}`,
             text:
                 `${requirements(blocked)}. Suggested purchases: ${purchases.map(v => `${v.title} Lv ${v.level} (◆ ${v.price})`).join(', ')}. Total ◆ ${cost}; you have ◆ ${salvage}.${(salvage < cost) ? ' Earn salvage from local mining contracts, mine ore and sell it at the CARGO MARKET.' : ''}`,
             done: false,
         });
     }
     else {
-        out.plan.push({title: 'Shuttle ready for this route', text: 'Required weapon and defense ratings are met. Repairs are free when docking.', done: true});
+        out.plan.push({title: 'Ship ready for this route', text: 'Required weapon and defense ratings are met. Repairs are free when docking.', done: true});
     }
     if (effective_state === 'upgrade') {
         out.plan.push({
             title: `Undock from ${worlds[campaign.world].station}`,
-            text: 'Press UNDOCK to return to flight. You can open this map while docked.',
+            text: 'Press Undock to return to flight. You can open this map while docked.',
             done: false,
         });
     }
@@ -195,13 +201,13 @@ function expedition_base_guide_context()
     if (m && m.ready) {
         out.kind = 'claim';
         out.goal = {...station, label: worlds[campaign.world].station};
-        out.action = (effective_state === 'upgrade') ? 'COLLECT REWARD' : 'FLY TO STATION';
+        out.action = (effective_state === 'upgrade') ? 'Collect reward' : 'Fly to station';
         out.instruction =
             (effective_state === 'upgrade')
                 ? `Delivery complete. Collect ◆ ${m.reward} from CONTRACTS.`
                 : `Objective complete. Fly to ${worlds[campaign.world].station}, press R to dock, then collect ◆ ${m.reward}.`;
         out.plan.push({title: 'Objective complete', text: `Your progress is ${format_progress(m.progress)}/${m.target}.`, done: true});
-        out.plan.push({title: `Collect ◆ ${m.reward}`, text: 'Dock at any station, open CONTRACTS, and press COLLECT REWARD.', done: false});
+        out.plan.push({title: `Collect ◆ ${m.reward}`, text: 'Dock at any station, open CONTRACTS, and press Collect reward.', done: false});
         return out;
     }
     if (route.length > 1) {
@@ -209,7 +215,7 @@ function expedition_base_guide_context()
             const g = world_gates.find(v => v.destination === route[1]);
             out.goal = {...g, label: `WORLD GATE → ${worlds[route[1]].name}`};
             out.kind = 'jump';
-            out.action = 'FLY TO WORLD GATE';
+            out.action = 'Fly to world gate';
             out.instruction =
                 `Next: ${worlds[campaign.world].name} → ${worlds[route[1]].name}. Follow the gold marker to the WORLD GATE. Fly within 155 m, then press R to jump.`;
             out.interaction = 'R JUMP';
@@ -222,7 +228,7 @@ function expedition_base_guide_context()
         if (m.type === 'courier') {
             goal = station;
             description =
-                `In ${worlds[m.world].name}, fly to ${worlds[m.world].station}. Within 230 m, press R to dock. The mission package is delivered automatically.`;
+                `In ${worlds[m.world].name}, fly to ${worlds[m.world].station}. Within ${station_reach} m, press R to dock. The mission package is delivered automatically.`;
         }
         if (m.type === 'mining') {
             goal = mining_objective() || station;
@@ -245,10 +251,10 @@ function expedition_base_guide_context()
             description = 'Fly to the marked flagship zone. The enemy appears when you approach. Keep moving while your cannon and drones fire.';
         }
         if (m.type === 'escort') {
-            goal = escort || {x: station.x + 350, y: station.y + 250};
+            goal = escort || {x: station.x + station_size/2 + 350, y: station.y + 250};
             description = escort?.active
-                ? 'Stay within 800 m of the freighter so it keeps moving. Protect it until it reaches the destination.'
-                : 'Meet the freight shuttle beside the station. Approach within 250 m to start, then stay nearby and defend it.';
+                ? `Stay within ${escort_leash} m of the freighter so it keeps moving. Next: ${escort.stops[escort.leg].label}.`
+                : `Meet the freighter beside the station; its cargo run is ${escort_route_text(escort || escort_route())}.`;
         }
         if (m.type === 'trade') {
             goal = station;
@@ -260,7 +266,7 @@ function expedition_base_guide_context()
             text: description,
             done: false,
         });
-        out.plan.push({title: `Collect ◆ ${m.reward}`, text: 'After completion, open CONTRACTS at a station and press COLLECT REWARD.', done: false});
+        out.plan.push({title: `Collect ◆ ${m.reward}`, text: 'After completion, open CONTRACTS at a station and press Collect reward.', done: false});
         if ((route.length === 1) && (blocked === undefined)) {
             out.goal = {
                 ...goal,
@@ -276,32 +282,38 @@ function expedition_base_guide_context()
                                 : (m.type === 'boss')
                                     ? 'FLAGSHIP ZONE'
                                     : (m.type === 'escort')
-                                        ? 'FREIGHT SHUTTLE'
+                                        ? 'FREIGHTER'
                                         : 'PATROL AREA',
             };
             out.kind = kind;
             out.instruction = description;
             out.action =
                 ((effective_state === 'upgrade') && (m.type === 'trade'))
-                    ? 'OPEN CARGO MARKET'
+                    ? 'Open cargo market'
                     : ((effective_state === 'upgrade') && (m.type === 'courier'))
-                        ? 'DELIVER ON DOCKING'
-                        : 'FLY TO OBJECTIVE';
+                        ? 'Deliver on docking'
+                        : 'Fly to objective';
             if ((m.type === 'courier') || (m.type === 'trade')) {
                 out.interaction = 'R DOCK';
             }
         }
     }
+    else if ((route.length === 1) && (blocked === undefined) && (effective_state === 'upgrade')) {
+        // already docked where the route ends: nothing to fly to
+        out.title = `Docked at ${worlds[target].station}`;
+        out.instruction = 'Take a contract here, or open the map and guide (J) to choose where to go next.';
+        out.action = 'Open map';
+    }
     else if ((route.length === 1) && (blocked === undefined)) {
         out.goal = {...station, label: worlds[target].station};
         out.kind = 'station';
         out.instruction = `You are in ${worlds[target].name}. Follow the gold marker to ${worlds[target].station} and press R to dock.`;
-        out.action = 'FLY TO STATION';
+        out.action = 'Fly to station';
     }
     if (trade && (route.length === 1) && (blocked === undefined)) {
         out.kind = 'trade';
         out.goal = {...station, label: worlds[campaign.world].station};
-        out.action = (effective_state === 'upgrade') ? 'OPEN CARGO MARKET' : 'FLY TO STATION';
+        out.action = (effective_state === 'upgrade') ? 'Open cargo market' : 'Fly to station';
         const step = (trade.stage === 'buy')
             ? `buy ${Math.max(0, trade.amount - (trade.bought || 0))}`
             : `sell ${Math.min(trade.remaining || trade.amount, campaign.cargo[trade.commodity])}`;

@@ -44,7 +44,7 @@ function sync_load_button()
         const b = document.getElementById(id);
         set_hidden(b, !v);
         if (v) {
-            b.innerHTML = `<span class="key">F9</span><span>Load last save · ${i + 1} · ${save_time(v.saved_at)}</span>`;
+            b.innerHTML = `<span>Load last save</span><span class="meta">${i + 1} · ${save_time(v.saved_at)}</span><span class="key">F9</span>`;
             b.title = `Slot ${i + 1}: ${v.world}, story ${v.story}, saved ${save_time(v.saved_at)} (F9)`;
         }
     }
@@ -70,13 +70,19 @@ function saves_close()
     saves_return = null;
 }
 
+// A slot that can be loaded: a campaign checkpoint, or an arcade run
+function save_slot_valid(v)
+{
+    return v.arcade ? Number.isInteger(v.arcade.world) && !!worlds[v.arcade.world] : valid_checkpoint(v.checkpoint);
+}
+
 // F9, or a LOAD LAST SAVE button (pause, main menu, the end-of-flight screen): the slot saved most recently
 function last_save_slot()
 {
     const slots = saves_read();
     let best = -1;
     for (let i = 0; i < slots.length; ++i) {
-        if (slots[i] && valid_checkpoint(slots[i].checkpoint) && ((best < 0) || (slots[i].saved_at > slots[best].saved_at))) {
+        if (slots[i] && save_slot_valid(slots[i]) && ((best < 0) || (slots[i].saved_at > slots[best].saved_at))) {
             best = i;
         }
     }
@@ -91,8 +97,17 @@ function load_last_save()
     }
 }
 
+// F9 loads the last save; F5 opens the save slots (pausing first), in place of the browser's reload
 function on_saves_key(event)
 {
+    if ((event.code === 'F5') && !event.repeat && ['playing', 'paused'].includes(state)) {
+        event.preventDefault();
+        if (state === 'playing') {
+            toggle_pause();
+        }
+        saves_open('pause');
+        return;
+    }
     if ((event.code === 'F9') && !event.repeat && ['playing', 'paused', 'menu', 'dead', 'won'].includes(state)) {
         event.preventDefault();
         load_last_save();
@@ -108,37 +123,29 @@ function on_saves_key(event)
 function saves_render()
 {
     const slots = saves_read();
-    const can_save = (saves_return === 'pause') && !arcade.active && !!player && (player.hp > 0);
+    const can_save = (saves_return === 'pause') && !!player && (player.hp > 0);
     const list = document.getElementById('save_slots');
     list.replaceChildren();
     for (let i = 0; i < save_slot_count; ++i) {
         const v = slots[i];
         const row = document.createElement('div');
-        row.className = v ? 'save-slot' : 'save-slot empty';
-        const about = document.createElement('div');
-        about.innerHTML = v
-            ? `<b>${i + 1} · ${v.world} · story ${v.story}</b><span>${v.ship} · ◆ ${v.salvage} · ${save_time(v.saved_at)}</span>`
-            : `<b>${i + 1} · empty</b><span>&nbsp;</span>`;
-        row.append(about);
+        row.className = `slot${v ? '' : ' empty'}`;
+        row.innerHTML = '<span class="slot-n"></span><div><b></b><small></small></div><span class="slot-acts"></span>';
+        row.querySelector('.slot-n').textContent = String(i + 1);
+        row.querySelector('b').textContent = v ? (v.arcade ? `Arcade · ${v.world} · score ${ui_number(v.arcade.score)}` : `${v.world} · story ${v.story}`) : 'Empty';
+        row.querySelector('small').textContent = v ? `${v.ship} · ◆ ${ui_number(v.salvage)} · ${save_time(v.saved_at)}` : '';
+        const acts = row.querySelector('.slot-acts');
         if (can_save) {
-            const save = document.createElement('button');
-            save.textContent = v ? 'OVERWRITE' : 'SAVE HERE';
-            save.addEventListener('click', () => save_to_slot(i));
-            row.append(save);
+            acts.append(ui_button({label: v ? 'Overwrite' : 'Save here', size: 'sm', kind: v ? 'ghost' : '', on: () => save_to_slot(i)}));
         }
         if (v) {
-            const load = document.createElement('button');
-            load.className = 'primary';
-            load.textContent = 'LOAD';
-            load.disabled = !valid_checkpoint(v.checkpoint);
-            load.addEventListener('click', () => load_from_slot(i));
-            row.append(load);
+            acts.append(ui_button({label: 'Load', size: 'sm', kind: 'primary', disabled: !save_slot_valid(v), on: () => load_from_slot(i)}));
         }
         list.append(row);
     }
     if (saves_return === 'pause') {
         document.getElementById('saves_note').textContent = arcade.active
-            ? 'Arcade runs are not saved; load a campaign game from here.'
+            ? 'An arcade save keeps your score, salvage and gear; loading it starts its world again from the first wave.'
             : 'Six slots, kept in this browser beside the autosave. Times are Chisinau time.';
     }
 }
@@ -151,19 +158,25 @@ function save_time(ms)
 // The campaign as the autosave would keep it, into slot i
 function save_to_slot(i)
 {
-    save_checkpoint();
-    if (!checkpoint) {
-        return;
-    }
     const slots = saves_read();
-    slots[i] = {
-        saved_at: Date.now(),
-        world: worlds[campaign.world].name,
-        story: `${campaign.story}/${story.length}`,
-        ship: current_ship().name,
-        salvage,
-        checkpoint: JSON.parse(JSON.stringify(checkpoint)),
-    };
+    if (arcade.active) {
+        // an arcade run: its snapshot, loaded at the start of the world it was saved in
+        slots[i] = {saved_at: Date.now(), world: worlds[campaign.world].name, story: 'arcade', ship: current_ship().name, salvage, arcade: arcade_snapshot()};
+    }
+    else {
+        save_checkpoint();
+        if (!checkpoint) {
+            return;
+        }
+        slots[i] = {
+            saved_at: Date.now(),
+            world: worlds[campaign.world].name,
+            story: `${campaign.story}/${story.length}`,
+            ship: current_ship().name,
+            salvage,
+            checkpoint: JSON.parse(JSON.stringify(checkpoint)),
+        };
+    }
     if (saves_write(slots)) {
         show_toast('GAME SAVED', `SLOT ${i + 1} · ${worlds[campaign.world].name.toUpperCase()}`, 2);
     }
@@ -175,7 +188,17 @@ function save_to_slot(i)
 function load_from_slot(i)
 {
     const v = saves_read()[i];
-    if (!v || !valid_checkpoint(v.checkpoint)) {
+    if (!v || !save_slot_valid(v)) {
+        return;
+    }
+    if (v.arcade) {
+        set_hidden(document.getElementById('saves_overlay'), true);
+        set_hidden(el.pause_overlay, true);
+        saves_return = null;
+        set_pause_icon(false);
+        arcade_stop();
+        arcade_start(v.arcade.world, v.arcade);
+        show_toast('ARCADE RUN LOADED', `SLOT ${i + 1} · ${v.world.toUpperCase()} · WAVE 1`, 2);
         return;
     }
     checkpoint = JSON.parse(JSON.stringify(v.checkpoint));

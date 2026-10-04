@@ -176,7 +176,7 @@ function render_trade_intel(parent)
     intro.append(title);
     const p = document.createElement('p');
     p.textContent =
-        'Live regional quotes. Importing stations pay +6 for their remaining demand, then return to the normal sell price. Demand recovers by 10 units every 90 seconds of flight. Route estimates use your current credits and free hold; equipment costs are separate.';
+        'Live regional quotes. Importing stations pay +6 for their remaining demand, then return to the normal sell price. Demand recovers by 10 units every 90 seconds of flight. Route estimates use your current salvage and free hold; equipment costs are separate.';
     intro.append(p);
     const controls = document.createElement('label');
     controls.className = 'intel-filter';

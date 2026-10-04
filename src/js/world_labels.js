@@ -175,3 +175,43 @@ function draw_edge_marker(m, text, color = gold)
     ctx.fill();
     ctx.restore();
 }
+
+const target_names = {chaser: 'Raider', tank: 'Raider tank', shooter: 'Raider gunner', splitter: 'Raider splitter', lancer: 'Raider lancer', shard: 'Raider shard', boss: 'Flagship'};
+
+// The raider nearest you in a fight: red corner brackets round it, its hull under it, and its name and distance on a
+// plate below (screen px; the plate joins the world's labels, so it keeps clear of the HUD)
+function render_target_brackets()
+{
+    const target = (state === 'playing') && player ? hud_threat() : null;
+    if (!target) {
+        return;
+    }
+    const x = ox + (target.x - camera.x)*zoom*scale;
+    const y = oy + (target.y - camera.y)*zoom*scale;
+    const half = Math.max(18, (target.r || 16)*zoom*scale*1.9);
+    if ((x < -half) || (y < -half) || (x > hud_layout.width + half) || (y > hud_layout.height + half)) {
+        return;
+    }
+    ctx.save();
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.strokeStyle = 'rgba(255, 77, 94, 0.9)';
+    ctx.lineWidth = 2;
+    const arm = Math.min(14, half*0.5);
+    for (const [sx, sy] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) {
+        const cx = x + sx*half;
+        const cy = y + sy*half;
+        ctx.beginPath();
+        ctx.moveTo(cx - sx*arm, cy);
+        ctx.lineTo(cx, cy);
+        ctx.lineTo(cx, cy - sy*arm);
+        ctx.stroke();
+    }
+    const share = clamp(target.hp/Math.max(1, target.max_hp || target.hp), 0, 1);
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.12)';
+    ctx.fillRect(x - half*0.7, y + half + 6, half*1.4, 3);
+    ctx.fillStyle = '#ff4d5e';
+    ctx.fillRect(x - half*0.7, y + half + 6, half*1.4*share, 3);
+    ctx.restore();
+    const [value, unit] = hud_distance(distance(player, target));
+    world_labels.push({x, y: y + half + 14, title: target.leviathan ? 'LEVIATHAN' : (target_names[target.type] || 'Raider').toUpperCase(), sub: `${value} ${unit}`, color: '#ff8a96'});
+}

@@ -47,13 +47,13 @@ function expedition_base_offered_jobs()
             description: `Scan three marked beacons in ${t.name}.`,
         },
         {
-            title: 'Escort a freight shuttle',
+            title: 'Escort a freighter',
             type: 'escort',
             world: id,
             target: 1,
             reward: 210 + scale*55,
             description:
-                'Meet the shuttle near the station, then protect it along a 1,600-unit route. Hostile ships attack it too. Press G, or double click the shuttle, to fly in formation behind it. Leaving the world resets the escort.',
+                `Escort the freighter's cargo run: it loads at a mining field, then unloads at the station, ${escort_route_text(escort_route())}. Raiders strike at the stops. G, or a double click on it, flies you in formation behind it.`,
         },
         {
             title: `Market supply: ${commodities[id % 3].name}`,
@@ -169,7 +169,7 @@ function render_station_contracts(parent)
         }
         else {
             actions.append(ui_button({label: 'Abandon', kind: 'ghost', size: 'sm', on: () => contract_abandon(m)}));
-            actions.append(ui_button({label: tracked ? 'Following' : 'Follow', key: tracked ? '' : 'T', size: 'sm', disabled: tracked, on: () => contract_follow(m)}));
+            actions.append(ui_button({label: tracked ? 'Following' : 'Follow', size: 'sm', disabled: tracked, on: () => contract_follow(m)}));
         }
         taken.append(ui_card({
             tags: `${ui_world_badge(m.world)}<span class="eyebrow eyebrow--muted" style="margin-left:auto">${m.ready ? 'Complete' : contract_stage_text(m)}</span>`,
@@ -182,7 +182,7 @@ function render_station_contracts(parent)
         taken.lastChild.querySelector('.foot').insertAdjacentHTML('beforebegin', contract_stages_html(m));
     }
     for (let i = campaign.contracts.length; i < 3; ++i) {
-        taken.insertAdjacentHTML('beforeend', `<div class="contract-slot">${(i === campaign.contracts.length) ? 'One slot free' : 'Slot free'}</div>`);
+        taken.insertAdjacentHTML('beforeend', '<div class="contract-slot">Free slot</div>');
     }
     const offers = [];
     if ((campaign.story < story.length) && !campaign.contracts.some(v => v.main)) {
@@ -265,7 +265,7 @@ function guide_base_render_contracts(parent, board = false)
             contract.title,
             contract.description,
             meta,
-            (contract.ready && board) ? 'COLLECT REWARD' : board ? 'ABANDON CONTRACT' : 'TRACK OBJECTIVE',
+            (contract.ready && board) ? 'Collect reward' : board ? 'Abandon contract' : 'Track objective',
             on_action,
             false,
             contract.ready ? 'active' : ''
@@ -308,7 +308,7 @@ function guide_base_render_contracts(parent, board = false)
 
 function dock_station()
 {
-    if ((state !== 'playing') || (distance(player, station) > 230)) {
+    if ((state !== 'playing') || (distance(player, station) > station_reach)) {
         return;
     }
     state = 'upgrade';
@@ -331,11 +331,16 @@ function dock_station()
     player.hp = hull_max();
     player.shield = shield_max();
     hostile = [];
-    enemies = enemies.filter(v => distance(v, station) > 800);
+    enemies = enemies.filter(v => distance(v, station) > station_shelter + 300);
     mission_event('courier', 1);
     dock_free_chosen = true;
     dock_message = 'Hull repaired and shields restored. Contracts are untimed. Your flight is saved.';
     station_tab = 'jobs';
+    station_docked_at = performance.now();
+    // a course to the station ends here
+    if (guide_manual?.dock) {
+        guide_manual = null;
+    }
     set_hidden(el.upgrade_overlay, false);
     document.getElementById('station_title').textContent = worlds[campaign.world].station;
     save_checkpoint();
@@ -350,6 +355,7 @@ function undock()
     set_hidden(el.upgrade_overlay, true);
     state = 'playing';
     player.invincible = 3;
+    docking_leave();
     patrol_timer = 6;
     save_checkpoint();
     canvas.focus();
@@ -366,9 +372,11 @@ function refresh_station_tab()
     }
 }
 
-const station_undock_label = '<span class="key">R</span><span>Undock</span>';
+const station_undock_label = '<span>Undock</span><span class="key">R</span>';
 // The station's tabs in the order of their number keys
 const station_tab_keys = ['jobs', 'market', 'intel', 'outfit', 'hangar', 'arsenal', 'career'];
+// When the ship last docked: the key press that docked it (R) must not also undock it
+let station_docked_at = 0;
 
 addEventListener('keydown', on_station_key);
 
@@ -381,7 +389,7 @@ function station_tab_open(tab)
 // Docked: 1–7 open the tabs, C collects a finished reward, T does what the NEXT strip offers, R undocks
 function on_station_key(event)
 {
-    if ((state !== 'upgrade') || arcade.active || event.repeat || event.ctrlKey || event.metaKey || event.altKey || ['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
+    if ((state !== 'upgrade') || (event.timeStamp < station_docked_at) || arcade.active || event.repeat || event.ctrlKey || event.metaKey || event.altKey || ['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
         return;
     }
     const n = Number(event.key);

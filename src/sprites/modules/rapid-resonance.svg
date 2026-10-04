@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+<defs><linearGradient id="accent-fill" x1="0" y1="0" x2="1" y2="1"><stop id="accent-light" offset="0" stop-color="#ffc79b"/><stop id="accent-base" offset="0.5" stop-color="#ff9a4a"/><stop id="accent-dark" offset="1" stop-color="#a66430"/></linearGradient></defs>
+<g id="base">
+<circle cx="14" cy="32" r="8" fill="#a9b3be" stroke="#070b14" stroke-width="4"/>
+</g>
+<g id="accent">
+<path d="M26.26 21.72 A16 16 0 0 1 26.26 42.28" fill="none" stroke="#070b14" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/><path d="M26.26 21.72 A16 16 0 0 1 26.26 42.28" fill="none" stroke="url(#accent-fill)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M33.92 15.29 A26 26 0 0 1 33.92 48.71" fill="none" stroke="#070b14" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/><path d="M33.92 15.29 A26 26 0 0 1 33.92 48.71" fill="none" stroke="url(#accent-fill)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M41.58 8.86 A36 36 0 0 1 41.58 55.14" fill="none" stroke="#070b14" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/><path d="M41.58 8.86 A36 36 0 0 1 41.58 55.14" fill="none" stroke="url(#accent-fill)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+</svg>

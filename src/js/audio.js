@@ -294,7 +294,7 @@ function update_audio_scene()
     f.air_gain.gain.setTargetAtTime(flight ? power*0.014 + (boost ? 0.026 : 0) + turn*0.006 : 0, now, 0.32);
     f.air_filter.frequency.setTargetAtTime(boost ? 2300 : 1200, now, 0.5);
     const id = campaign.world;
-    const sheltered = player && (distance(player, station) < 500);
+    const sheltered = player && (distance(player, station) < station_shelter);
     const ambient = flight ? [0.014, 0.034, 0.025, 0.042, 0.035, 0.018, 0.05, 0.028][id]*(sheltered ? 0.35 : 1) : 0;
     f.space_gain.gain.setTargetAtTime(ambient, now, 0.5);
     f.space_filter.frequency.setTargetAtTime([420, 950, 380, 1500, 260, 1100, 650, 190][id], now, 0.8);
@@ -307,15 +307,10 @@ function sync_settings()
 {
     sync_view_button();
     sync_audio_controls();
-    el.sound_button.classList.toggle('is-active', !muted);
-    el.sound_button.setAttribute('aria-pressed', String(!muted));
-    el.sound_button.classList.toggle('on', !muted);
-    el.sound_button.setAttribute('aria-pressed', String(!muted));
-    el.fx_button.classList.toggle('on', full_fx);
-    el.fx_button.classList.toggle('is-active', full_fx);
-    el.fx_button.setAttribute('aria-pressed', String(full_fx));
-    el.fx_button.setAttribute('aria-pressed', String(full_fx));
     document.getElementById('scanlines').style.display = full_fx ? '' : 'none';
+    if (settings_open) {
+        sync_settings_rows();
+    }
 }
 
 function toggle_sound()
@@ -363,9 +358,7 @@ function sync_audio_controls()
         document.getElementById(`${key}_volume_value`).textContent = `${value}%`;
         input.setAttribute('aria-valuetext', `${value} percent`);
     }
-    document.getElementById('settings_mute').textContent = muted ? 'UNMUTE' : 'MUTE';
-    document.getElementById('settings_mute').setAttribute('aria-pressed', String(muted));
-    document.getElementById('audio_state').textContent = muted ? 'ALL SOUND MUTED' : (volume_settings.master === 0) ? 'MASTER VOLUME IS ZERO' : 'SOUND ON';
+    document.getElementById('audio_state').textContent = muted ? 'All sound is off.' : (volume_settings.master === 0) ? 'The master volume is at zero.' : '';
     document.getElementById('test_audio').disabled = muted || (volume_settings.master === 0);
 }
 
@@ -389,7 +382,6 @@ function toggle_audio_settings()
 {
     settings_open = !settings_open;
     set_hidden(document.getElementById('audio_overlay'), !settings_open);
-    document.getElementById('audio_settings_button').setAttribute('aria-expanded', String(settings_open));
     stop_turbo();
     touch_boost_hold = false;
     keys.clear();
@@ -399,7 +391,8 @@ function toggle_audio_settings()
         audio_focus_return = document.activeElement;
         start_audio();
         sync_audio_controls();
-        document.getElementById('master_volume').focus();
+        sync_settings_rows();
+        document.getElementById('close_audio').focus();
     }
     else if (audio_focus_return && audio_focus_return.focus) {
         audio_focus_return.focus();
@@ -423,11 +416,10 @@ function test_audio_mix()
     tone(65, 0.8, 'sine', 0.065, t + 1.1, 90, 550);
     noise(0.5, 0.07, 800, t + 1.1);
 }
-for (const id of ['audio_settings_button', 'intro_audio', 'pause_audio', 'station_audio']) {
+for (const id of ['settings_button', 'intro_audio', 'pause_audio', 'station_audio']) {
     document.getElementById(id).addEventListener('click', toggle_audio_settings);
 }
 document.getElementById('close_audio').addEventListener('click', toggle_audio_settings);
-document.getElementById('settings_mute').addEventListener('click', toggle_sound);
 document.getElementById('test_audio').addEventListener('click', test_audio_mix);
 document.getElementById('reset_audio').addEventListener('click', function () {
     volume_settings = {master: 0.85, music: 0.65, effects: 0.85, ambience: 0.7};
@@ -443,21 +435,6 @@ for (const key of ['master', 'music', 'effects', 'ambience']) {
     });
 }
 sync_settings();
-el.sound_button.addEventListener('click', toggle_sound);
-el.fx_button.addEventListener('click', function () {
-    full_fx = !full_fx;
-    sync_settings();
-});
-document.getElementById('fullscreen_button').addEventListener('click', function () {
-    if (document.fullscreenElement) {
-        document.exitFullscreen().catch(function () {
-        });
-    }
-    else if (document.documentElement.requestFullscreen) {
-        document.documentElement.requestFullscreen().catch(function () {
-        });
-    }
-});
 for (const v of document.querySelectorAll('[data-mode]')) {
     v.addEventListener('click', function () {
         difficulty = v.dataset.mode;

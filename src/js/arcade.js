@@ -5,7 +5,6 @@ const arcade_waves = 3;
 const arcade_radiation = 0.35;
 const arcade_defense = 0.5;
 const arcade_wave_names = ['', 'SCOUTS', 'ASSAULT', 'FLAGSHIP'];
-const arcade_depot_safe_range = 700;
 // What each difficulty changes in the arcade: extra raiders per squadron and per wave, the gap between squadrons, the
 // first world with elites, the share of repairs that still drop, the medkits a run starts with, whether every raider
 // fires its world's gun (Haven's plasma included), how often (a factor on the gun's cooldown), and how hard its shots
@@ -18,10 +17,72 @@ const arcade_modes = {
 };
 
 document.getElementById('arcade_depot_launch').addEventListener('click', arcade_depot_close);
+document.getElementById('arcade_depot_tabs').addEventListener('click', function (event) {
+    const tab = event.target.closest('[data-tab]');
+    if (tab) {
+        arcade_depot_view.tab = tab.dataset.tab;
+        arcade_depot_fill();
+    }
+});
+document.getElementById('arcade_depot_list').addEventListener('click', function (event) {
+    const button = event.target.closest('[data-buy]');
+    if (button && !button.disabled) {
+        arcade_depot_buy(button.closest('[data-item]').dataset.item);
+    }
+});
+document.getElementById('arcade_depot_list').addEventListener('mouseover', function (event) {
+    const id = event.target.closest('[data-item]')?.dataset.item || '';
+    if (id !== arcade_depot_view.hover) {
+        arcade_depot_view.hover = id;
+        arcade_depot_sync_hover();
+    }
+});
+document.getElementById('arcade_depot_list').addEventListener('mouseleave', function () {
+    arcade_depot_view.hover = '';
+    arcade_depot_sync_hover();
+});
+document.getElementById('arcade_depot_search').addEventListener('input', function (event) {
+    arcade_depot_view.search = event.target.value.trim();
+    arcade_depot_render_list();
+});
+addEventListener('keydown', function (event) {
+    if (state !== 'arcade_depot') {
+        return;
+    }
+    const search = document.getElementById('arcade_depot_search');
+    // / finds; in the search Enter and Escape leave it (Escape clearing it first); elsewhere Enter launches
+    if (document.activeElement === search) {
+        if (['Enter', 'Escape'].includes(event.code)) {
+            event.preventDefault();
+            if ((event.code === 'Escape') && search.value) {
+                search.value = '';
+                arcade_depot_view.search = '';
+                arcade_depot_render_list();
+            }
+            else {
+                search.blur();
+            }
+        }
+        return;
+    }
+    if (event.key === '/') {
+        event.preventDefault();
+        search.focus();
+    }
+    else if ((event.code === 'Enter') && !event.repeat) {
+        event.preventDefault();
+        arcade_depot_close();
+    }
+});
 sync_mode_note();
 
-function arcade_start(world = 0)
+// A run from world 1, or (from: an arcade save) resumed at the start of the world it was saved in
+function arcade_start(world = 0, from = null)
 {
+    if (from) {
+        world = from.world;
+        difficulty = from.difficulty;
+    }
     arcade.active = true;
     arcade.world = -1;
     arcade.wave = 0;
@@ -31,22 +92,22 @@ function arcade_start(world = 0)
     arcade.between_worlds = null;
     document.body.classList.add('arcade');
     set_hidden(document.getElementById('arcade_depot'), true);
-    document.getElementById('restart_button').textContent = 'PLAY AGAIN';
-    document.getElementById('result_sector_label').textContent = 'WORLD REACHED';
+    document.getElementById('restart_button').innerHTML = '<span>Play again</span>';
+    document.getElementById('result_sector_label').textContent = 'World reached';
     // A run starts as a resumed checkpoint made up on the spot; the campaign's own checkpoint is put back after.
     arcade.campaign_checkpoint = checkpoint;
     checkpoint = {
         version: 4,
         wave: worlds[world].wave,
-        score: 0,
-        kills: 0,
-        salvage: 0,
+        score: from ? from.score : 0,
+        kills: from ? from.kills : 0,
+        salvage: from ? from.salvage : 0,
         artifacts_count: 0,
-        run_time: 0,
-        upgrades: initial_upgrades(),
-        supplies: {medkit: arcade_mode().medkits, emp: 1, stasis: 1},
+        run_time: from ? from.run_time : 0,
+        upgrades: from ? {...initial_upgrades(), ...from.upgrades} : initial_upgrades(),
+        supplies: from ? {...from.supplies} : {medkit: arcade_mode().medkits, emp: 1, stasis: 1},
         difficulty,
-        hp: ship_catalog[0].hull,
+        hp: from ? from.hp : ship_catalog[0].hull,
         energy: 35,
         campaign: {
             world,
@@ -58,11 +119,29 @@ function arcade_start(world = 0)
             maps: {},
             serial: 0,
             board: 0,
-            fleet: {ship_id: 'scout', ships: ['scout'], weapon_id: 'plasma', weapons: ['plasma'], weapon_levels: {plasma: 1}},
+            fleet: from ? clone(from.fleet) : {ship_id: 'scout', ships: ['scout'], weapon_id: 'plasma', weapons: ['plasma'], weapon_levels: {plasma: 1}},
         },
     };
     reset_run(true);
     checkpoint = arcade.campaign_checkpoint;
+}
+
+// The run as an arcade save keeps it: the world it is in, the score and salvage, modules, supplies, weapons and hull; a
+// load starts that world again from its first wave
+function arcade_snapshot()
+{
+    return {
+        world: campaign.world,
+        difficulty,
+        score,
+        kills,
+        salvage,
+        run_time,
+        upgrades: {...upgrades},
+        supplies: {...supplies},
+        hp: Math.max(1, Math.ceil(player.hp)),
+        fleet: clone(ensure_career()),
+    };
 }
 
 // One line under the menu's difficulty switch on what the mode does.
@@ -101,13 +180,14 @@ function arcade_stop()
     arcade.between_worlds = null;
     document.body.classList.remove('arcade');
     set_hidden(document.getElementById('arcade_depot'), true);
-    document.getElementById('restart_button').textContent = 'NEW EXPEDITION';
-    document.getElementById('result_sector_label').textContent = 'SECTOR REACHED';
+    document.getElementById('restart_button').innerHTML = '<span>New expedition</span>';
+    document.getElementById('result_sector_label').textContent = 'Sector reached';
 }
 
 // Called from update() while a run is in flight.
 function arcade_update(dt)
 {
+    depot_shield_update(dt);
     for (const enemy of enemies) {
         if (!enemy.arcade_scaled) {
             enemy.arcade_scaled = true;
@@ -334,14 +414,14 @@ function arcade_weapon_take(weapon)
 // R at the station opens the depot, unless raiders are close: the depot is a shop, not a hiding place.
 function arcade_interact()
 {
-    if (distance(player, station) > 230) {
+    if (distance(player, station) > station_reach) {
         return;
     }
-    if (enemies.some(v => (v.hp > 0) && (distance(v, player) < arcade_depot_safe_range))) {
-        show_toast('DEPOT CLOSED', `RAIDERS WITHIN ${arcade_depot_safe_range} m · CLEAR THEM FIRST`, 2);
+    if (depot_shield_up()) {
+        show_toast('DEPOT SHIELDED', 'RAIDERS NEAR THE STATION · CLEAR THEM AND IT OPENS', 2);
         return;
     }
-    arcade_depot_open();
+    docking_start(arcade_depot_open);
 }
 
 function arcade_depot_open()
@@ -352,65 +432,197 @@ function arcade_depot_open()
     mouse_drive.active = false;
     mouse_drive.following = false;
     joystick.active = false;
+    arcade_depot_view.hover = '';
     arcade_depot_fill();
     set_hidden(document.getElementById('arcade_depot'), false);
     document.getElementById('arcade_depot_launch').focus();
     sfx('pickup');
 }
 
-// Repair, the other weapons, supplies and the next level of every module, for the salvage collected in the run
+// The depot's view: the shelf shown, the search, and the item under the pointer (its preview on the ship)
+const arcade_depot_view = {tab: 'all', search: '', hover: ''};
+
+// The header, the ship and the next world, then the shop: repairs and supplies, the guns, the modules by shelf
 function arcade_depot_fill()
 {
     const cleared = arcade.between_worlds;
-    const next = cleared ? worlds[cleared.world + 1] : null;
-    document.getElementById('arcade_depot_eyebrow').textContent = cleared
-        ? `${worlds[cleared.world].name.toUpperCase()} CLEARED · BONUS ◆ ${cleared.bonus} · WEAPON TIER ${weapon_level()}`
-        : `ARCADE DEPOT · ${worlds[campaign.world].station.toUpperCase()}`;
-    document.getElementById('arcade_depot_launch').textContent = next ? `NEXT: ${next.name.toUpperCase()} ↗` : 'LAUNCH ↗';
-    document.getElementById('arcade_depot_next').textContent = next ? `Next: ${next.name}, ${world_rules[cleared.world + 1].summary}.` : '';
-    document.getElementById('arcade_depot_wallet').textContent =
-        `◆ ${salvage} salvage · ${current_weapon().name} T${weapon_level()} · hull ${Math.ceil(player.hp)} / ${hull_max()}`;
-    const items = [];
-    if (player.hp < hull_max()) {
-        items.push({icon: '✚', title: 'Full repair', text: `The hull back to ${hull_max()}.`, price: 60, buy: function () {
-            player.hp = hull_max();
-        }});
-    }
-    for (const weapon of weapon_catalog.filter(v => v.id !== current_weapon().id)) {
-        items.push({icon: '⚔', title: weapon.name, text: weapon.description, price: 120 + weapon.rating*45, buy: function () {
-            arcade_weapon_take(weapon);
-        }});
-    }
-    for (const option of supply_options.filter(v => supplies[v.key] < 8)) {
-        items.push({icon: option.icon, title: option.title, text: option.description, price: option.cost, buy: function () {
-            supplies[option.key]++;
-        }});
-    }
-    for (const option of upgrade_options.filter(v => upgrades[v.key] < v.cap)) {
-        items.push({icon: option.icon, title: `${option.title} Lv ${upgrades[option.key] + 1}`, text: option.description, price: module_cost(option), buy: function () {
-            grant_upgrade(option);
-        }});
-    }
-    const grid = document.getElementById('arcade_depot_grid');
-    grid.replaceChildren();
-    for (const item of items) {
-        const card = document.createElement('div');
-        card.className = 'shop-item';
-        card.innerHTML = `<b>${item.icon} &nbsp;${item.title}</b><p>${item.text}</p>`;
-        const button = document.createElement('button');
-        button.textContent = `BUY · ◆ ${item.price}`;
-        button.disabled = salvage < item.price;
-        button.addEventListener('click', function () {
-            arcade_depot_buy(item);
-        });
-        card.append(button);
-        grid.append(card);
-    }
+    const here = cleared ? cleared.world : campaign.world;
+    const next = cleared ? cleared.world + 1 : null;
+    set_hidden(document.getElementById('cleared_tick'), !cleared);
+    document.getElementById('arcade_depot_eyebrow').textContent = `Arcade · depot · world ${here + 1} of ${worlds.length}`;
+    document.getElementById('cleared_title').textContent = cleared ? `${worlds[here].name} cleared` : worlds[here].station;
+    const stats = [['Raiders', String(kills)], ['Time', format_time(run_time)], ...(cleared ? [['Bonus', `+${cleared.bonus}`]] : []), ['Score', ui_number(score)]];
+    document.getElementById('cleared_stats').innerHTML = stats.map(v => `<div><dt>${v[0]}</dt><dd${(v[0] === 'Bonus') ? ' class="t-gold"' : ''}>${v[1]}</dd></div>`).join('');
+    document.getElementById('arcade_depot_ship_name').textContent = current_ship().name;
+    document.getElementById('cleared_hull_text').innerHTML = `${Math.ceil(player.hp)}<small> / ${hull_max()}</small>`;
+    document.getElementById('cleared_hull_fill').style.width = `${(player.hp/hull_max())*100}%`;
+    document.getElementById('cleared_hull').classList.toggle('is-low', player.hp < hull_max()*0.5);
+    const installed = upgrade_options.filter(v => upgrades[v.key] > 0);
+    document.getElementById('arcade_depot_installed').innerHTML = installed.map(v => `<img src="${module_icon(v)}" alt="" title="${v.title} · level ${upgrades[v.key]}">`).join('') || '<span class="small">Nothing yet</span>';
+    // the next world (or, between waves, this one)
+    const shown = (next === null) ? here : next;
+    document.getElementById('cleared_next_eyebrow').textContent = (next === null) ? 'This world' : 'Next world';
+    document.getElementById('cleared_planet').src = menu_sprite_url(menu_planet_text(shown));
+    const name = document.getElementById('cleared_next_name');
+    name.textContent = worlds[shown].name;
+    name.style.color = `var(--w-${world_slug(shown)})`;
+    document.getElementById('arcade_depot_next').textContent = `${arcade_waves} waves · flagship`;
+    document.getElementById('cleared_rules').innerHTML = world_rules[shown].summary.split(' · ').map(v => ui_badge(ui_sentence(v))).join('');
+    document.getElementById('arcade_depot_launch').innerHTML = `<span>${(next === null) ? 'Back to the fight' : `Launch to ${worlds[next].name}`}</span><span class="key">Enter</span>`;
+    const tabs = [{value: 'all', label: 'All'}, {value: 'repairs', label: 'Repairs'}, {value: 'weapons', label: 'Weapons'}, ...module_shelves];
+    document.getElementById('arcade_depot_tabs').innerHTML = tabs.map(v => `<button type="button" class="${(v.value === arcade_depot_view.tab) ? 'is-active' : ''}" data-tab="${v.value}">${module_shelves.includes(v) ? `<i class="depot-dot depot-dot--${v.value}"></i>` : ''}${v.label}</button>`).join('');
+    arcade_depot_render_list();
+    arcade_depot_sync_hover();
 }
 
-function arcade_depot_buy(item)
+// What the depot sells, as items of one shape: kind and id, the section it shows under, title, line, the words a
+// search finds it by, icon, key, chips, level pips, price (null: nothing to buy), why it cannot be bought (Full, Max,
+// Equipped) and what buying it does
+function arcade_depot_items()
 {
-    if ((state !== 'arcade_depot') || (salvage < item.price)) {
+    const out = [];
+    const low = player.hp < hull_max()*0.5;
+    out.push({
+        kind: 'supply', id: 'repair', section: 'repairs', title: 'Full repair', line: `Hull back to ${hull_max()}.`, tags: 'repair hull heal ремонт',
+        icon: ship_parts_url('pickups/pickup-medkit'), chips: [['HULL', `${Math.ceil(player.hp)} → ${hull_max()}`, 'up']],
+        price: 60, done: (player.hp >= hull_max()) ? 'Full' : '', primary: low,
+        buy: function () {
+            player.hp = hull_max();
+        },
+    });
+    const kept = [
+        ['medkit', 'Q', '+40 hull when you press Q.', 'repair heal ремонт аптечка'],
+        ['emp', 'E', 'Clears enemy shots and blasts raiders nearby.', 'emp bullets clear'],
+        ['stasis', 'F', 'Slows enemies and their shots for 8\u00a0s.', 'slow time stasis замедление'],
+    ];
+    for (const [key, keycap, line, tags] of kept) {
+        const option = supply_options.find(v => v.key === key);
+        out.push({
+            kind: 'supply', id: key, section: 'repairs', title: option.title, line, tags,
+            icon: ship_parts_url(`pickups/pickup-${(key === 'medkit') ? 'repair' : key}`), keycap, chips: [['HAVE', String(supplies[key])]],
+            price: option.cost, done: (supplies[key] >= option.cap) ? 'Full' : '',
+            buy: function () {
+                supplies[key]++;
+            },
+        });
+    }
+    // your gun first, then the others, their stats against yours
+    const mine = current_weapon();
+    for (const weapon of [mine, ...weapon_catalog.filter(v => v.id !== mine.id)]) {
+        const own = weapon.id === mine.id;
+        out.push({
+            kind: 'weapon', id: weapon.id, section: 'weapons', title: own ? `${weapon.name} T${weapon_level()}` : weapon.name,
+            line: own ? 'Your gun. It grows a tier with every world you clear.' : weapon.line, tags: 'weapon gun оружие пушка',
+            icon: ship_parts_url(`weapons/turret-${weapon.id}`), chips: arcade_weapon_chips(weapon, mine),
+            price: own ? null : 120 + weapon.rating*45, done: own ? 'Equipped' : '', owned: own,
+            buy: function () {
+                arcade_weapon_take(weapon);
+            },
+        });
+    }
+    for (const shelf of module_shelves) {
+        for (const option of upgrade_options.filter(v => v.shelf === shelf.value)) {
+            const level = upgrades[option.key];
+            out.push({
+                kind: 'module', id: option.key, section: shelf.value, title: option.title, line: option.line, tags: option.tags, icon: module_icon(option),
+                part: option.part, pips: [level, option.cap], price: module_cost(option), done: (level >= option.cap) ? 'Max' : '', label: level ? 'Upgrade' : 'Buy',
+                buy: function () {
+                    grant_upgrade(option);
+                },
+            });
+        }
+    }
+    return out;
+}
+
+// The shop's list: the sections the tab shows, the items the search finds, marked where they match
+function arcade_depot_render_list()
+{
+    const words = arcade_depot_view.search.toLowerCase().split(/\s+/).filter(Boolean);
+    const found = arcade_depot_items().filter(v => words.every(vv => `${v.title} ${v.line} ${v.tags}`.toLowerCase().includes(vv)));
+    const sections = [
+        {value: 'repairs', label: 'Repairs and supplies', note: 'kept for the next world'},
+        {value: 'weapons', label: 'Weapons', note: 'one gun · a new one replaces yours'},
+        ...module_shelves,
+    ];
+    const html = [];
+    for (const section of sections.filter(v => (arcade_depot_view.tab === 'all') || (arcade_depot_view.tab === v.value))) {
+        const items = found.filter(v => v.section === section.value);
+        if (items.length) {
+            const dot = module_shelves.includes(section) ? `<i class="depot-dot depot-dot--${section.value}"></i>` : '';
+            html.push(`<section class="depot-sec depot-sec--${section.value}"><header>${dot}<h3 class="h-section">${section.label}</h3><span class="eyebrow eyebrow--muted">${section.note}</span></header><div class="depot-grid">${items.map(v => arcade_depot_item_html(v, words)).join('')}</div></section>`);
+        }
+    }
+    const list = document.getElementById('arcade_depot_list');
+    list.innerHTML = html.join('') || `<div class="depot-empty">Nothing matches “${ui_escape(arcade_depot_view.search)}”. Try: homing, shield, speed, repair.</div>`;
+}
+
+// One item: icon, title (its key, ON SHIP for a module you will see on the ship), line, chips or level pips, and Buy
+// with the price, "Need n" in the button when the salvage is short
+function arcade_depot_item_html(item, words)
+{
+    const short = (item.price !== null) && !item.done && (salvage < item.price);
+    const classes = ['depot-it', short && 'is-short', item.done && !item.owned && 'is-done', item.owned && 'is-owned'].filter(Boolean).join(' ');
+    const chips = (item.chips || []).map(v => `<span class="depot-chip${v[2] ? ` is-${v[2]}` : ''}"><i>${v[0]}</i>${v[1]}</span>`).join('');
+    const pips = item.pips ? `<span class="depot-pips${(item.pips[1] > 3) ? ' is-many' : ''}">${Array.from({length: item.pips[1]}, (_, i) => `<i${(i < item.pips[0]) ? ' class="on"' : ''}></i>`).join('')}</span>` : '';
+    let action = '';
+    if (item.done) {
+        action = ui_badge(item.done, item.owned ? 'cyan' : '');
+    }
+    else if (item.price !== null) {
+        const kind = short ? ' is-disabled is-short' : item.primary ? ' btn-primary' : '';
+        action = `<button type="button" class="btn btn-sm${kind}" data-buy${short ? ` disabled title="You need ${ui_number(item.price - salvage)} more salvage"` : ''}><span>${short ? `Need ${ui_number(item.price - salvage)}` : (item.label || 'Buy')}</span><span class="price">${ui_number(item.price)}</span></button>`;
+    }
+    const keycap = item.keycap ? `<span class="key key--sm">${item.keycap}</span>` : '';
+    const part = item.part ? '<span class="depot-onship" title="You will see it on your ship">ON SHIP</span>' : '';
+    return `<div class="${classes}" data-item="${item.kind}:${item.id}"><span class="ic"><img src="${item.icon}" alt=""></span><b><span>${arcade_depot_mark(item.title, words)}</span>${keycap}${part}</b><p>${arcade_depot_mark(item.line, words)}</p><div class="row">${chips}${pips}${action}</div></div>`;
+}
+
+// Text with the words of the search marked
+function arcade_depot_mark(text, words)
+{
+    let out = ui_escape(text);
+    for (const word of words.filter(v => v.length > 1)) {
+        out = out.replace(new RegExp(`(${word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'ig'), '<mark>$1</mark>');
+    }
+    return out;
+}
+
+// The item under the pointer: the wallet says what is left after it (or what is missing), and a module you will see
+// on the ship shows on it, pulsing gold, at its next level
+function arcade_depot_sync_hover()
+{
+    const item = arcade_depot_view.hover ? arcade_depot_items().find(v => `${v.kind}:${v.id}` === arcade_depot_view.hover) : null;
+    const buyable = item && !item.done && (item.price !== null);
+    document.getElementById('arcade_depot_wallet').textContent = ui_number(salvage);
+    const after = document.getElementById('arcade_depot_after');
+    after.className = (buyable && (salvage < item.price)) ? 'after is-short' : 'after';
+    after.innerHTML = !buyable ? '' : (salvage < item.price) ? `need <b>${ui_number(item.price - salvage)}</b>` : `after <b>${ui_number(salvage - item.price)}</b>`;
+    const base = ship_parts_loadout();
+    const preview = buyable && item.part ? ship_parts_loadout({...upgrades, [item.id]: upgrades[item.id] + 1}) : null;
+    document.getElementById('arcade_depot_ship').innerHTML = ship_parts_svg(current_ship().id, preview || base, preview ? base : null);
+    document.getElementById('arcade_depot_shipbox').classList.toggle('is-preview', !!preview);
+}
+
+// A gun's damage, fire interval and range as chips, each marked against your gun: up better, down worse
+function arcade_weapon_chips(weapon, mine)
+{
+    const range = weapon.speed*weapon.life;
+    const mine_range = mine.speed*mine.life;
+    function mark(name, text, better, worse) {
+        return [name, text, (weapon.id === mine.id) ? '' : better ? 'up' : worse ? 'down' : ''];
+    }
+    return [
+        mark('DMG', String(weapon.damage), weapon.damage > mine.damage, weapon.damage < mine.damage),
+        mark('RATE', `${weapon.interval}s`, weapon.interval < mine.interval, weapon.interval > mine.interval),
+        mark('RANGE', `${(range/1000).toFixed(1)} km`, range > mine_range, range < mine_range),
+    ];
+}
+
+function arcade_depot_buy(id)
+{
+    const item = arcade_depot_items().find(v => `${v.kind}:${v.id}` === id);
+    if ((state !== 'arcade_depot') || !item || item.done || (item.price === null) || (salvage < item.price)) {
         return;
     }
     salvage -= item.price;
@@ -418,6 +630,7 @@ function arcade_depot_buy(item)
     sfx('upgrade');
     update_hud();
     arcade_depot_fill();
+    document.querySelector(`#arcade_depot_list [data-item="${id}"]`)?.classList.add('is-flash');
 }
 
 function arcade_depot_close()
@@ -432,6 +645,9 @@ function arcade_depot_close()
     if (cleared) {
         const next = cleared.world + 1;
         start_jump({world: next, label: worlds[next].name, color: worlds[next].accent});
+    }
+    else {
+        docking_leave();
     }
 }
 

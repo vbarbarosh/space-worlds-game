@@ -279,7 +279,7 @@ function render_drones()
 // A drone for the station's shop, up to the bay's size.
 function render_drone_shop_card()
 {
-    if (arcade.active || !['all', 'utility'].includes(shop_filter)) {
+    if (arcade.active || !['all', 'helpers'].includes(shop_filter)) {
         return;
     }
     const owned = drones_owned();

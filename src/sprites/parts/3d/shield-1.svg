@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+<defs><linearGradient id="accent-fill" x1="0" y1="0" x2="1" y2="1"><stop id="accent-light" offset="0" stop-color="#f2b393"/><stop id="accent-base" offset="0.5" stop-color="#e8743b"/><stop id="accent-dark" offset="1" stop-color="#8b4623"/></linearGradient><radialGradient id="bubble" cx="0.5" cy="0.5" r="0.5"><stop offset="0.72" stop-color="#8fb8ff" stop-opacity="0"/><stop offset="0.93" stop-color="#8fb8ff" stop-opacity="0.22"/><stop offset="1" stop-color="#e6f0ff" stop-opacity="0.55"/></radialGradient></defs>
+<g id="base" stroke="#0b1722" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"><circle cx="128" cy="128" r="120" fill="url(#bubble)" stroke="none"/><path d="M52 78 A96 96 0 0 1 128 30" fill="none" stroke="#ffffff" stroke-opacity="0.55" stroke-width="4" stroke-linecap="round"/></g>
+<g id="accent"/>
+</svg>

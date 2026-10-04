@@ -105,7 +105,7 @@ function begin_wave()
     hazard_timer = 12;
     hazards = [];
     generate_map();
-    player.x = station.x + 185;
+    player.x = station.x + station_size/2 + 60;
     player.y = station.y;
     player.vx = 0;
     player.vy = 0;
@@ -191,7 +191,7 @@ function base_spawn_enemy(type)
         type,
         hp,
         max_hp: hp,
-        r: (type === 'boss') ? 55 : (type === 'tank') ? 23 : (type === 'shooter') ? 17 : 13,
+        r: (type === 'boss') ? 85 : (type === 'tank') ? 23 : (type === 'shooter') ? 17 : 13,
         speed:
             (type === 'tank')
                 ? 53 + wave*2

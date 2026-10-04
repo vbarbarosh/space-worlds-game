@@ -12,6 +12,7 @@ const screens = [
     {value: 'flight', label: 'hud-calm'},
     {value: 'combat', label: 'hud-combat'},
     {value: 'arcade', label: 'hud-arcade'},
+    {value: 'arcade-cleared', label: 'arcade-cleared'},
     {value: 'station-jobs', label: 'station-contracts'},
     {value: 'station-arsenal', label: 'station-arsenal'},
     {value: 'station-career', label: 'station-goals'},
@@ -30,8 +31,9 @@ const sizes = [
 // not cut their own text; boxes whose text must not stick out
 const selectors = {
     blocks: ['.hud-top .readouts', '.hud-top .toolbar', '.hud-top .brand', '.ui.hud .mission', '.ui.hud .minimap',
-        '.hud-toasts > *', '.ui.hud .banners > *', '.hud-bottom .qbar', '.hud-bottom .shipstat', '.hud-bottom .hud-end', '.menu-left', '.menu-foot'],
-    contained: ['.modal', '.pause-layout', '.menu-left', '.menu-foot'],
+        '.hud-toasts > *', '.ui.hud .banners > *', '.hud-bottom .qbar', '.hud-bottom .shipstat', '.hud-bottom .hud-end', '.menu-left', '.menu-foot',
+        '.depot-title', '.depot-stats', '.depot-wallet', '.depot-filters .seg', '.depot-search', '.depot-ship', '.depot-next'],
+    contained: ['.modal', '.pause-layout', '.menu-left', '.menu-foot', '.depot-side', '.depot-top', '.depot-filters'],
     clip: '.btn, .tab, .badge, .key, .qslot, .size, .alert, .seg button, .wallet, .meter-mini',
     boxes: '.card, .toast, .panel',
 };
@@ -134,7 +136,8 @@ function layout_audit(selectors)
         for (let j = i + 1; j < end; ++j) {
             const a = blocks[i];
             const b = blocks[j];
-            if ((a.v === b.v) || a.v.contains(b.v) || b.v.contains(a.v)) {
+            // a screen over the HUD (the depot) hides what is under it: only blocks of one layer can collide
+            if ((a.v === b.v) || a.v.contains(b.v) || b.v.contains(a.v) || (a.v.closest('.overlay') !== b.v.closest('.overlay'))) {
                 continue;
             }
             const ix = Math.min(a.r.right, b.r.right) - Math.max(a.r.left, b.r.left);

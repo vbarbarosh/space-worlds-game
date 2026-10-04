@@ -1,17 +1,8 @@
 // The second view uses pre-rendered material sprites, with the original view kept intact.
 const surface_asset_cache = new Map();
+// The page knows the view (CSS keys off data-view); Settings shows it
 function sync_view_button()
 {
-    const b = document.getElementById('view_button');
-    if (!b) {
-        return;
-    }
-    const title = (view_mode === 'cockpit') ? 'Cockpit' : (view_mode === 'rendered') ? 'Rendered' : 'Wireframe';
-    b.title = `View: ${title}. V or click for the next (rendered, wireframe, cockpit)`;
-    b.setAttribute('aria-label', `View mode: ${title}`);
-    b.classList.toggle('rendered', view_mode !== 'wireframe');
-    b.classList.toggle('cockpit', view_mode === 'cockpit');
-    b.setAttribute('aria-label', `View mode: ${title}. Click to cycle views.`);
     document.body.setAttribute('data-view', view_mode);
 }
 
@@ -35,7 +26,6 @@ function toggle_view()
         render_station();
     }
 }
-document.getElementById('view_button').addEventListener('click', toggle_view);
 addEventListener('keydown', function (event) {
     if ((event.code === 'KeyV') && !settings_open && !event.repeat && !['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) {
         toggle_view();
@@ -201,6 +191,10 @@ function render_surface_ship(x, y, angle, alpha = 1, ghost = false, definition =
     // The designer's sprite when there is one; the painted hull below while it loads, or for a ship with none
     const art = definition ? definition.sprite : ship_sprite(v);
     if (art && sprite_draw(art.name, definition?.enemy ? color : null, art.length, x, y, angle, alpha)) {
+        // the player's ship wears what it bought
+        if (!definition && !ghost) {
+            ship_parts_draw(art.length, x, y, angle, alpha);
+        }
         if (!ghost && !is_player_vessel(x, y)) {
             ctx.save();
             ctx.translate(x, y);
@@ -493,8 +487,13 @@ function render_map()
             continue;
         }
         const size = v.r*1.45;
-        // Rocks that are only scenery recede, so they never pass for asteroids you can hit or mine.
-        const alpha = [2, 5, 6, 7].includes(campaign.world) ? 0.08 : 0.68;
+        // Scenery is background: dim in every world, so it never passes for an asteroid, which is solid
+        const alpha = [2, 5, 6, 7].includes(campaign.world) ? 0.08 : 0.22;
+        // every fourth is a satellite where the world has them (Haven), faded like the rest and turning slowly
+        const satellite = ((i % 4) === 3) && world_art(`satellite-${(i % 3) + 1}`);
+        if (satellite && sprite_draw_box(satellite, null, size*0.7, v.x, v.y, v.angle + clock*0.05, alpha + 0.1)) {
+            continue;
+        }
         const art = world_art(`scenery-${(i % 3) + 1}`);
         if (art && sprite_draw_box(art, null, size, v.x, v.y, v.angle, alpha)) {
             continue;
@@ -698,25 +697,28 @@ function render_world_station()
         wireframe_render_world_station();
         return;
     }
-    if (!in_view(station, 550)) {
+    if (!in_view(station, station_shelter + 50)) {
         return;
     }
     const asset = station_surface(campaign.world);
     const w = worlds[campaign.world];
+    // the drawing fills about 97.5% of its canvas, so its box is a little wider than the station is long
+    const box = station_size*1.025;
     ctx.save();
     ctx.strokeStyle = `${w.accent}18`;
     ctx.setLineDash([5, 15]);
     ctx.beginPath();
-    ctx.arc(station.x, station.y, 500, 0, Math.PI*2);
+    ctx.arc(station.x, station.y, station_shelter, 0, Math.PI*2);
     ctx.stroke();
     ctx.setLineDash([]);
     // The designer's station turns its habitat ring slowly; its berths reach the edge, so the name goes below them
     const art = world_art('station');
-    const drawn = art && sprite_draw_box(art, w.accent, 460, station.x, station.y, 0, 1, clock*0.04);
+    const drawn = art && sprite_draw_box(art, w.accent, box, station.x, station.y, 0, 1, clock*0.04);
     if (!drawn) {
-        ctx.drawImage(asset.layer, station.x - 230, station.y - 230, 460, 460);
+        ctx.drawImage(asset.layer, station.x - box/2, station.y - box/2, box, box);
     }
-    world_label(station.x, station.y + (drawn ? 250 : 168), w.station.toUpperCase(), 'Station · R dock', w.accent);
+    depot_shield_draw();
+    world_label(station.x, station.y + station_size/2 + 70, arcade.active ? 'DEPOT' : w.station.toUpperCase(), arcade.active ? (depot_shield_up() ? 'Shielded · clear the raiders' : 'R repairs and weapons') : 'Station · R dock', w.accent);
     ctx.restore();
 }
 

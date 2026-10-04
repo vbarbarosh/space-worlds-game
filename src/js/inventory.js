@@ -10,11 +10,13 @@ function base_render_inventory()
     const cards = upgrade_options.filter(v => upgrades[v.key] > 0).concat(supply_options);
     for (const v of cards) {
         const is_supply = supplies[v.key] !== undefined;
-        const card = document.createElement('div');
-        card.className = 'inventory-card';
-        card.innerHTML =
-            `<b>${v.icon} &nbsp;${v.title}</b><span>${is_supply ? `CARGO ×${supplies[v.key]}` : `LEVEL ${upgrades[v.key]} / ${v.cap}`}${(v.key === 'magnet') ? ` · ALWAYS ACTIVE · ${format_reading(magnetic_radius())} px` : ''}</span><p>${v.description}</p>`;
-        el.inventory_grid.append(card);
+        const level = is_supply ? `×${supplies[v.key]} aboard` : `Level ${upgrades[v.key]} of ${v.cap}`;
+        el.inventory_grid.append(ui_card({
+            tags: ui_badge(level),
+            title: v.title,
+            text: v.description,
+            art: `<span class="glyph">${v.icon}</span>`,
+        }));
     }
 }
 

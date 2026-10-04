@@ -42,10 +42,10 @@ const world_dustfall = {
         energy: 0,
         inertial: true,
         solid: true,
-        summary: 'Coasting flight · solid ore cover · double mined cargo',
+        summary: 'Coasting flight · ore cover wears down · double mined cargo',
         details: [
-            'Your shuttle retains more momentum after WASD is released; its nose turns before thrust changes course. Countersteer or hold B to brake. Click-to-move and guided flight slow down and turn toward the destination automatically.',
-            'Solid ore rocks bounce ships and block hostile shots. Approach mining fields slowly.',
+            'Your ship keeps more momentum after WASD is released; its nose turns before thrust changes course. Countersteer or hold B to brake. Click-to-move and guided flight slow down and turn toward the destination automatically.',
+            'Hostile fire wears the ore rocks down here. Approach mining fields slowly.',
             'Gravity is 45% weaker. Mining each rock yields two cargo units of ore. Projectiles inherit some launch velocity.',
         ],
         prepare: 'Phase armor cushions rock collisions; the phase drive and brake help navigation.',

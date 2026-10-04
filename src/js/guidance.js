@@ -32,19 +32,22 @@ function refresh_guidance()
                     : c.goal.label,
         follow: (guide_path.length > 1) ? null : c.goal.follow,
     };
-    if (guide_flying && (state === 'playing')) {
+    // the guided flight waits while the ship docks or backs out of its berth
+    if (guide_flying && (state === 'playing') && !docking) {
         const arrival =
             (c.goal.portal !== undefined)
                 ? 25
                 : (c.kind === 'jump')
                     ? 130
-                    : ['claim', 'courier', 'trade', 'prepare', 'station'].includes(c.kind)
-                        ? 190
-                        : (c.kind === 'mining')
-                            ? 100
-                            : (c.kind === 'escort')
-                                ? 100
-                                : 65;
+                    : c.goal.dock
+                        ? 40
+                        : ['claim', 'courier', 'trade', 'prepare', 'station'].includes(c.kind)
+                            ? station_reach - 150
+                            : (c.kind === 'mining')
+                                ? (c.goal.r || 0) + 60
+                                : (c.kind === 'escort')
+                                    ? 100
+                                    : 65;
         if ((guide_path.length === 1) && (distance(player, c.goal) < arrival)) {
             if (c.kind !== 'mining') {
                 guide_flying = false;
@@ -127,7 +130,7 @@ function guide_action()
     if (state === 'upgrade') {
         undock();
     }
-    if ((distance(player, c.goal) < ((c.kind === 'jump') ? 155 : 230)) && ['jump', 'claim', 'courier', 'trade', 'prepare', 'station'].includes(c.kind)) {
+    if (guide_in_reach(c) && ['jump', 'claim', 'courier', 'trade', 'prepare', 'station'].includes(c.kind)) {
         interact();
         return;
     }
@@ -232,18 +235,24 @@ function update_jump(dt)
     }
 }
 
+// Close enough for R to act: a gate within 155 m, or the station within its docking reach (from its centre, as R measures)
+function guide_in_reach(c)
+{
+    return (c.kind === 'jump') ? (distance(player, c.goal) < 155) : (distance(player, station) < station_reach);
+}
+
 function guide_action_label(c)
 {
-    if ((state === 'playing') && c.goal && (distance(player, c.goal) < ((c.kind === 'jump') ? 155 : 230))) {
+    if ((state === 'playing') && c.goal && guide_in_reach(c)) {
         if (c.kind === 'jump') {
-            return `R / JUMP TO ${worlds[c.route[1]].name.toUpperCase()}`;
+            return `R / Jump to ${worlds[c.route[1]].name}`;
         }
         if (['claim', 'courier', 'trade', 'prepare', 'station'].includes(c.kind)) {
-            return 'R / DOCK NOW';
+            return 'R / Dock now';
         }
     }
     if (guide_flying) {
-        return 'FLYING · CLICK / WASD TO STEER';
+        return 'Flying · click or WASD to steer';
     }
     return c.action;
 }
@@ -366,7 +375,7 @@ function expedition_base_render_contracts(parent, board = false)
                 : 'Open MISSION PLAN for controls, the next step and a marked route.';
         c.append(note);
         const b = document.createElement('button');
-        b.textContent = (campaign.tracked_id === contract.id) ? 'OPEN ACTIVE MISSION PLAN' : 'GUIDE THIS MISSION';
+        b.textContent = (campaign.tracked_id === contract.id) ? 'Open the mission plan' : 'Follow';
         b.addEventListener('click', function () {
             focus_contract(contract);
             open_mission_plan();
@@ -417,7 +426,8 @@ function toggle_navigation()
         canvas.focus();
         return;
     }
-    if (!['playing', 'paused', 'upgrade'].includes(state)) {
+    // the arcade has no map & guide: no routes, contracts or cargo to plan
+    if (!['playing', 'paused', 'upgrade'].includes(state) || arcade.active) {
         return;
     }
     nav_return = state;
@@ -440,7 +450,8 @@ function physics_base_render_navigation()
     const c = guide_context();
     guide_base_render_navigation();
     render_guide_plan(document.getElementById('route_briefing'), c);
-    set_hidden(document.getElementById('route_briefing'), nav_tab === 'local');
+    // with nothing chosen yet, the briefing would only say to open the map you are in
+    set_hidden(document.getElementById('route_briefing'), (nav_tab === 'local') || (c.kind === 'free'));
     document.getElementById('nav_title').textContent = (nav_tab === 'local') ? `${worlds[campaign.world].name} · world map` : 'Chart your own course.';
     const chart = document.getElementById('navigation_chart');
     chart.replaceChildren();
@@ -460,7 +471,7 @@ function physics_base_render_navigation()
         for (const v of [
             [
                 'Your first flight',
-                'Accept a contract at the station. Its next step appears at the upper left. Open MISSION PLAN to see the whole journey. Press UNDOCK, then FLY TO NEXT MARKER or steer with WASD.',
+                'Accept a contract at the station. Its next step appears at the upper left. Open MISSION PLAN to see the whole journey. Press Undock, then Fly to marker [T] on the card, or steer with WASD.',
             ],
             [
                 'Delivering the navigation core',
@@ -472,11 +483,11 @@ function physics_base_render_navigation()
             ],
             [
                 'Reading the maps',
-                'Gold is your route and current objective. Cyan is your ship and friendly station. Large dashed pink circles mark the early gravity field. Drift starts far from the core and grows gradually. The arrow beside your shuttle points toward the pull. Steer the other way or ignite turbo early; black centers are fatal. Brown fields contain ore. The galaxy map shows which worlds connect and where upgrades are required.',
+                'Gold is your route and current objective. Cyan is your ship and friendly station. Large dashed pink circles mark the early gravity field. Drift starts far from the core and grows gradually. The arrow beside your ship points toward the pull. Steer the other way or ignite turbo early; black centers are fatal. Brown fields contain ore. The galaxy map shows which worlds connect and where upgrades are required.',
             ],
             [
-                'Shuttle preparation',
-                'A locked route shows a shopping list in MISSION PLAN. Dock, open OUTFITTER and install those modules. Weapon and defense ratings update immediately. Use local contracts or sell mined ore if you need salvage.',
+                'Ship preparation',
+                'A locked route shows a shopping list in MISSION PLAN. Dock, open MODULES and install them. Weapon and defense ratings update immediately. Use local contracts or sell mined ore if you need salvage.',
             ],
             [
                 'Moving and stopping',
@@ -488,7 +499,7 @@ function physics_base_render_navigation()
             ],
             [
                 'Completing operations',
-                'Follow the current stage in MISSION PLAN. Scans require a timed hold within 150 m; recoveries require clearing an ambush before extracting its item; relay defenses require staying within 450 m through several waves. Convoys have three legs and field repairs. Dock and COLLECT REWARD for credits and XP.',
+                'Follow the current stage in MISSION PLAN. Scans require a timed hold within 150 m; recoveries require clearing an ambush before extracting its item; relay defenses require staying within 450 m through several waves. Convoys have three legs and field repairs. Dock and press Collect reward for salvage and XP.',
             ],
             [
                 'Cockpit flight',
@@ -503,7 +514,7 @@ function physics_base_render_navigation()
                 'Dock and choose HANGAR to buy or switch ship classes. All modules transfer. ARSENAL sells six weapon types, each upgradable to tier 5. Ion breaks shields, rail bypasses armor, seekers explode, and flux beams consume pulse. CAREER shows rank, unlocks, reputation and expedition progress.',
             ],
         ]) {
-            card(parent, v[0], v[1], 'J / MAP & GUIDE · R / DOCK OR JUMP');
+            card(parent, v[0], v[1], 'J map and guide · R dock or jump');
         }
         return;
     }

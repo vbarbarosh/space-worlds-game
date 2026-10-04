@@ -28,7 +28,7 @@ function explorer_steps()
         left.sort((a, b) => (route_from_world_to_world(from, a).length - route_from_world_to_world(from, b).length) || (a - b));
         const id = left.shift();
         const text = allowed_world(id)
-            ? `Your shuttle is ready for ${worlds[id].name}. Follow the guide through the gates.`
+            ? `Your ship is ready for ${worlds[id].name}. Follow the guide through the gates.`
             : `${requirements(id)}. Dock, and the guide lists the modules to buy, each with its BUY button.`;
         out.push({title: `Reach ${worlds[id].name}`, text, done: false, target: {world: id}});
         from = id;
@@ -81,7 +81,7 @@ function prospector_steps()
         },
         {
             title: `Earn ◆ ${prospector_target} from your transports`,
-            text: 'Keep the outposts mining and the transport flying, and defend it from raids. A defence platform beside an outpost helps.',
+            text: 'Keep the outposts mining and the transport flying, and defend it from raids. A defense platform beside an outpost helps.',
             done: earned >= prospector_target,
             progress: [Math.min(earned, prospector_target), prospector_target],
         },

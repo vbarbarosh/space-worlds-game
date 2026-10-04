@@ -35,7 +35,9 @@ function base_render_navigation_objects()
         ctx.arc(mining_field.x, mining_field.y, mining_field.r, 0, Math.PI*2);
         ctx.stroke();
         ctx.setLineDash([]);
-        world_label(mining_field.x, mining_field.y - mining_field.r - 44, `MINING FIELD ${mining_field.id + 1}`, field_reserves_text(mining_field), gold);
+        if (!arcade.active) {
+            world_label(mining_field.x, mining_field.y - mining_field.r - 44, `MINING FIELD ${mining_field.id + 1}`, field_reserves_text(mining_field), gold);
+        }
         ctx.restore();
     }
     for (const ore_node of ore_nodes) {
@@ -75,7 +77,7 @@ function base_render_navigation_objects()
         ctx.textAlign = 'center';
         ctx.fillStyle = portal.color;
         ctx.fillText(portal.label, 0, 5);
-        world_label(0, portal.r + 22, `JUMP GATE ${portal.label}`, 'R jump', portal.color);
+        world_label(0, portal.r + 22, `JUMP GATE ${portal.label}`, 'Fly through', portal.color);
         ctx.restore();
     }
     for (const black_hole of black_holes) {
@@ -358,6 +360,7 @@ function render()
     }
     ctx.restore();
     render_screen_controls();
+    render_target_brackets();
     render_world_labels();
     if (full_fx && (flash > 0)) {
         ctx.fillStyle = `rgba(255,91,175,${flash*0.35})`;

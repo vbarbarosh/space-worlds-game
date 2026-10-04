@@ -571,7 +571,7 @@ function cabin_render_guidance()
     }
     const y = H*((W < 700) ? 0.54 : 0.7);
     const arrow = (angle > 0) ? 'TURN RIGHT →' : '← TURN LEFT';
-    const caption = ((d < 230) && c.interaction) ? `${c.interaction} / ${goal.label || 'OBJECTIVE'}` : ahead ? 'OBJECTIVE AHEAD' : arrow;
+    const caption = ((d < station_reach) && c.interaction) ? `${c.interaction} / ${goal.label || 'OBJECTIVE'}` : ahead ? 'OBJECTIVE AHEAD' : arrow;
     cabin_label(`${caption} · ${Math.round(d)} m`, W*0.5, y, (W < 700) ? 9 : 12, gold, 'center');
 }
 

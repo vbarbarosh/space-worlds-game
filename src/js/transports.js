@@ -60,7 +60,7 @@ function transports_update(dt)
 function transport_spawn(line)
 {
     const a = rand(0, Math.PI*2);
-    return {line, world: campaign.world, x: station.x + Math.cos(a)*260, y: station.y + Math.sin(a)*260, angle: a, state: 'waiting', timer: 0, stops: [], path: [], aim: [0, 0, 0, 0], cooldown: [0, 0.35, 0.2, 0.55], recoil: [0, 0, 0, 0], down: 0, r: transport_sprite().length*0.36};
+    return {line, world: campaign.world, x: station.x + Math.cos(a)*station_reach, y: station.y + Math.sin(a)*station_reach, angle: a, state: 'waiting', timer: 0, stops: [], path: [], aim: [0, 0, 0, 0], cooldown: [0, 0.35, 0.2, 0.55], recoil: [0, 0, 0, 0], down: 0, r: transport_sprite().length*0.36};
 }
 
 // The stops of a new loop: the outposts holding at least ten units, nearest first, then the station
@@ -85,7 +85,7 @@ function transport_stop(ship)
     if (!target) {
         return null;
     }
-    const reach = (id === 'station') ? 260 : 110;
+    const reach = (id === 'station') ? station_reach + 40 : 110;
     const d = Math.max(1, distance(ship, target));
     return {id, target, dock: {x: target.x + ((ship.x - target.x)/d)*reach, y: target.y + ((ship.y - target.y)/d)*reach}};
 }
@@ -273,7 +273,7 @@ function transport_damage(ship, dt)
 // Every two to three minutes on the road, away from the station, three raiders come for the transport
 function transport_raids(ship, dt)
 {
-    if ((ship.state !== 'flying') || (distance(ship, station) < 1500)) {
+    if ((ship.state !== 'flying') || (distance(ship, station) < station_shelter + 1000)) {
         return;
     }
     transport_raid_clock -= dt;
@@ -388,7 +388,7 @@ function transport_stream(from, to)
 // The station's shop sells a line for its own world, once
 function render_transport_shop_card()
 {
-    if (arcade.active || !['all', 'utility'].includes(shop_filter)) {
+    if (arcade.active || !['all', 'helpers'].includes(shop_filter)) {
         return;
     }
     const line = transport_line();

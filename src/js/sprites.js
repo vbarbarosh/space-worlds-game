@@ -6,12 +6,14 @@ const sprite_cache = new Map();
 // How big things are drawn, in game units, in one place so the proportions are tuned together: ship classes by
 // length, from the 42-unit interceptor to the 104-unit cruiser; raiders and flagships by their radius; the rest
 // across. The hit radii stay as they are; a ship is drawn a little larger than it is hit.
+// Every ship's drawn length in metres, on one scale with the station (station_size): fighters 40-50, the warships up to
+// 120, a flagship 300, the haulers 340-400. Raiders and flagships are a factor of their hit radius.
 const sprite_sizes = {
-    ships: {interceptor: 42, scout: 48, courier: 58, miner: 74, gunship: 84, cruiser: 104},
+    ships: {interceptor: 40, scout: 46, courier: 56, miner: 72, gunship: 86, cruiser: 120},
     raider: 2.9,
-    flagship: 3.2,
-    freighter: 170,
-    transport: 210,
+    flagship: 3.53,
+    freighter: 400,
+    transport: 340,
     pickup: 15,
 };
 const sprite_span = 228;
@@ -25,8 +27,6 @@ try {
 }
 catch {
 }
-document.getElementById('sprites_button').addEventListener('click', sprite_set_toggle);
-sync_sprites_button();
 
 function sprite_set_toggle()
 {
@@ -36,20 +36,10 @@ function sprite_set_toggle()
     }
     catch {
     }
-    sync_sprites_button();
     performance_render_dirty = true;
     if ((state === 'upgrade') && (station_tab === 'hangar')) {
         render_station();
     }
-}
-
-function sync_sprites_button()
-{
-    const b = document.getElementById('sprites_button');
-    const title = (sprite_set === '3d') ? '3D' : 'Flat';
-    b.title = `Ship drawings: ${title}. Click for the other set`;
-    b.classList.toggle('is-active', sprite_set === '3d');
-    b.setAttribute('aria-label', `Ship sprites: ${title}. Click to switch.`);
 }
 
 // The parsed drawing, its anchors as fractions of the canvas from its centre, and its rasters; null for a name with

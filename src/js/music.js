@@ -17,7 +17,7 @@ function update_environment_audio()
         muted ||
         document.hidden ||
         (sound.ctx.currentTime < (sound.environment_next || 0)) ||
-        (distance(player, station) < 500)
+        (distance(player, station) < station_shelter)
     ) {
         return;
     }
@@ -60,7 +60,6 @@ function select_world_music()
     sound.environment_next = 0;
     sound.next = now + 0.035;
     sound.step = 0;
-    el.sound_button.title = `${worlds[id].name} / ${world_audio[id].title} / MUSIC + SOUND EFFECTS`;
 }
 
 function schedule_music()
@@ -262,5 +261,4 @@ function expedition_base_update_hud()
     if (v) {
         out.textContent = `${(v.d < v.h.radius) ? 'STRONG GRAVITY' : 'OUTER GRAVITY FIELD'} · ${Math.ceil(v.pull)} m/s PULL · STEER AWAY / SHIFT TURBO`;
     }
-    el.sound_button.title = `${worlds[campaign.world].name} / ${world_audio[campaign.world].title} / MUSIC + SOUND EFFECTS`;
 }

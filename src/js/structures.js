@@ -8,15 +8,15 @@ const structure_kinds = {
         title: 'Mining outpost',
         cost: {salvage: 120, ore: 6},
         hp: 220,
-        size: 70,
+        size: 127,
         text: 'Stands on a mining field; its two drones mine the rocks into its store of 60. Fly by to take the load, or let a transport line collect it.',
     },
     platform: {
-        title: 'Defence platform',
+        title: 'Defense platform',
         cost: {salvage: 160, ore: 4},
         hp: 280,
-        size: 60,
-        text: 'A heavy turret that fires at raiders within 480 m. Not within 700 m of the station or a gate.',
+        size: 100,
+        text: `A heavy turret that fires at raiders within 480 m. Not within ${station_shelter + 200} m of the station or 700 m of a gate.`,
     },
 };
 const structure_build_time = 6;
@@ -79,7 +79,7 @@ function build_menu_toggle()
     const list = document.getElementById('build_list');
     list.replaceChildren();
     if (!campaign.builder) {
-        list.innerHTML = '<p>You have no builder drone. Buy one at a station: MODULES → Builder drone.</p>';
+        list.innerHTML = '<p class="small">You have no builder drone. Buy one at a station: MODULES → Builder drone.</p>';
     }
     for (const [kind, v] of Object.entries(structure_kinds)) {
         const card = document.createElement('div');
@@ -91,7 +91,7 @@ function build_menu_toggle()
         b.disabled = !campaign.builder || !!builder_drone || !!short;
         b.addEventListener('click', on_place);
         card.append(b);
-        list.append(card);
+        list.append(ui_shop_item(card));
         function on_place() {
             set_hidden(overlay, true);
             build_placing = {kind};
@@ -123,7 +123,7 @@ function structure_spot_ok(kind, p)
     if (kind === 'outpost') {
         return mining_fields.some(v => (distance(v, p) < v.r) && ore_nodes.some(vv => (vv.hp > 0) && (vv.field === v.id)));
     }
-    return (distance(station, p) > 700) && world_gates.every(v => distance(v, p) > 700) && portals.every(v => distance(v, p) > 300);
+    return (distance(station, p) > station_shelter + 200) && world_gates.every(v => distance(v, p) > 700) && portals.every(v => distance(v, p) > 300);
 }
 
 // A click while placing: true when it was used
@@ -426,7 +426,7 @@ function render_structures()
         }
         ctx.restore();
         const outpost_text = v.idle ? `field empty · ${v.store}/${outpost_store}` : (v.store >= outpost_store) ? `full ${v.store}/${outpost_store} · awaiting pickup` : `mining · ${v.store}/${outpost_store}`;
-        const title = (v.kind === 'outpost') ? 'OUTPOST' : 'DEFENCE PLATFORM';
+        const title = (v.kind === 'outpost') ? 'OUTPOST' : 'DEFENSE PLATFORM';
         world_label(v.x, v.y + k.size*0.75 + 2, title, (v.built < 1) ? `building ${Math.round(v.built*100)}%` : (v.kind === 'outpost') ? outpost_text : '', gold);
         ctx.save();
         ctx.fillStyle = '#0b1222';
@@ -521,7 +521,7 @@ function structures_leave()
 // The station's depot sells the builder drone, once
 function render_builder_shop_card()
 {
-    if (arcade.active || !['all', 'utility'].includes(shop_filter)) {
+    if (arcade.active || !['all', 'helpers'].includes(shop_filter)) {
         return;
     }
     const card = document.createElement('div');

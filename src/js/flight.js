@@ -50,6 +50,9 @@ function fly_in_world(dt, dx, dy)
     else if ((input > 0.04) || player.turbo_active) {
         const boost = !!player.turbo_active;
         let desiredSpeed = (boost ? turbo_speed() : speed)*(boost ? 1 : input)*facing;
+        if (auto && (mouse_drive.following || mouse_drive.held) && !boost) {
+            desiredSpeed *= mouse_drive.follow_boost || 1;
+        }
         // Arrival braking for a click; a held button or follow mode chases the cursor and never arrives.
         if (auto && !mouse_drive.following && !mouse_drive.held) {
             const d = distance(player, {x: mouse_drive.x, y: mouse_drive.y});
@@ -185,7 +188,7 @@ function update_world_environment(dt)
         physics_status = `CRUISE ×${r.speed} · GRAVITY ×${r.gravity}`;
     }
     for (const world_zone of world_zones) {
-        if ((distance(player, world_zone) > world_zone.r) || (distance(player, station) < 500)) {
+        if ((distance(player, world_zone) > world_zone.r) || (distance(player, station) < station_shelter)) {
             continue;
         }
         const s = zone_state(world_zone);
@@ -213,9 +216,8 @@ function update_world_environment(dt)
         }
     }
     update_expedition_environment(dt);
-    if (r.solid) {
-        resolve_solid_ore();
-    }
+    // asteroids are solid in every world: anything that looks like an object is one
+    resolve_solid_ore();
 }
 
 function resolve_solid_ore()
@@ -249,9 +251,6 @@ function resolve_solid_ore()
 
 function block_hostile_ore(b, previous)
 {
-    if (!current_world_rules().solid) {
-        return false;
-    }
     const hits = ore_nodes.filter(v => (v.hp > 0) && (segment_distance(v, previous, b) < v.r + b.r));
     if (!hits.length) {
         return false;
@@ -259,7 +258,9 @@ function block_hostile_ore(b, previous)
     hits.sort((a, c) => distance(a, previous) - distance(c, previous));
     const v = hits[0];
     b.life = 0;
-    v.hp = Math.max(0, v.hp - (b.damage || 13)*0.5);
+    if (current_world_rules().solid) {
+        v.hp = Math.max(0, v.hp - (b.damage || 13)*0.5);
+    }
     burst(v.x, v.y, worlds[campaign.world].accent, 4, 80);
     return true;
 }

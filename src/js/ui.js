@@ -1,15 +1,15 @@
 // Builders for the designer's UI kit (css/ui-kit.css): buttons with their key chip and price, badges, gun sizes,
 // tiers and cards, made the same way on every screen that has moved onto the kit (a container with the class ui).
 
-// A kit button: its key chip first (or last for navigation), its label, a gold price chip; kind '', 'primary', 'ghost'
-// or 'danger'; size '', 'sm' or 'lg'
-function ui_button({label, key = '', price = null, kind = '', size = '', disabled = false, key_last = false, title = '', on = null})
+// A kit button: its label, a gold price chip, then its key chip, quiet, so the verb is read first; kind '', 'primary',
+// 'ghost' or 'danger'; size '', 'sm' or 'lg'
+function ui_button({label, key = '', price = null, kind = '', size = '', disabled = false, title = '', on = null})
 {
     const b = document.createElement('button');
     b.type = 'button';
     b.className = ['btn', kind && `btn-${kind}`, size && `btn-${size}`].filter(Boolean).join(' ');
     const chip = key ? `<span class="key">${key}</span>` : '';
-    b.innerHTML = `${key_last ? '' : chip}<span>${label}</span>${(price !== null) ? `<span class="price">${ui_number(price)}</span>` : ''}${key_last ? chip : ''}`;
+    b.innerHTML = `<span>${label}</span>${(price !== null) ? `<span class="price">${ui_number(price)}</span>` : ''}${chip}`;
     b.disabled = disabled;
     if (title) {
         b.title = title;
@@ -24,6 +24,12 @@ function ui_button({label, key = '', price = null, kind = '', size = '', disable
 function ui_number(v)
 {
     return Math.round(v).toLocaleString('en-US').replace(/,/g, ' ');
+}
+
+// Text made safe to put in HTML
+function ui_escape(text)
+{
+    return String(text).replace(/[&<>"]/g, v => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'})[v]);
 }
 
 function ui_badge(text, kind = '')
@@ -98,13 +104,16 @@ function ui_shop_item(old)
     const glyph = /^\S+\s+/.test(heading) && !/^[A-Za-z]/.test(heading) ? heading.split(/\s+/)[0] : '';
     const title = glyph ? heading.slice(glyph.length).trim() : heading.trim();
     const level = old.querySelector('.item-level')?.textContent || '';
+    const icon = old.dataset.icon;
     const c = ui_card({
-        tags: level ? ui_badge(level.toLowerCase().replace(/^\w/, v => v.toUpperCase())) : '',
+        tags: (level ? ui_badge(level.toLowerCase().replace(/^\w/, v => v.toUpperCase())) : '') + (old.dataset.part ? ui_badge('On ship', 'cyan') : ''),
         title,
         text: old.querySelector('p')?.textContent || '',
-        art: glyph ? `<span class="glyph">${glyph}</span>` : '',
+        art: icon ? `<img src="${icon}" alt="">` : glyph ? `<span class="glyph">${glyph}</span>` : '',
         state: old.classList.contains('wanted') ? 'is-goal' : '',
     });
+    delete old.dataset.icon;
+    delete old.dataset.part;
     const foot = c.querySelector('.foot');
     for (const b of old.querySelectorAll('button')) {
         ui_kit_button(b);

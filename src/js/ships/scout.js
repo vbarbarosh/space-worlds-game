@@ -15,7 +15,7 @@ const ship_scout = {
         mounts: ['light'],
         color: cyan,
         shape: 0,
-        description: 'Your original balanced shuttle. Low running costs and responsive flight.',
+        description: 'Your first ship, balanced. Low running costs and responsive flight.',
     },
     hull_profile: {radiation: 0, traction: 1, braking: 1, cooling: 0, turbo: 1, endurance: 0},
 };

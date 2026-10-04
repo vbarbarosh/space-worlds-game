@@ -107,7 +107,7 @@ function guide_base_reset_run(resume = false)
         // A save made inside a black hole's pull, before saves avoided it, resumes beside the station instead
         if (in_gravity_pull(player)) {
             player.x = station.x;
-            player.y = station.y + 260;
+            player.y = station.y + station_size/2 + 100;
             show_toast(`RECOVERED AT ${worlds[campaign.world].station.toUpperCase()}`, 'YOUR LAST SAVE WAS INSIDE A GRAVITY WELL', 4);
         }
         update_camera(0, true);
@@ -160,7 +160,7 @@ function visual_base_generate_map()
     const protected_objects = [station, ...world_gates, ...beacons, combat_zone, {x: station.x - 1600, y: station.y + 700}];
     place_gravity_wells(protected_objects);
     // Keep mines away from the docking ring; one accessible field is near the first station.
-    ore_nodes = ore_nodes.filter(v => distance(v, station) > 270);
+    ore_nodes = ore_nodes.filter(v => distance(v, station) > station_size/2 + 70);
     const saved = campaign.maps[campaign.world];
     if (saved) {
         const old = saved.size || {w: 9000 + wave*320, h: 7400 + wave*240};

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+<defs><linearGradient id="accent-fill" x1="0" y1="0" x2="1" y2="1"><stop id="accent-light" offset="0" stop-color="#f2b393"/><stop id="accent-base" offset="0.5" stop-color="#e8743b"/><stop id="accent-dark" offset="1" stop-color="#8b4623"/></linearGradient><linearGradient id="m5d68744050" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9ea4ac"/><stop offset="0.45" stop-color="#5d6874"/><stop offset="1" stop-color="#2e343a"/></linearGradient><linearGradient id="prism" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f3dcff"/><stop offset="0.45" stop-color="#c46bff"/><stop offset="1" stop-color="#4a1d7a"/></linearGradient></defs>
+<g id="base" stroke="#0b1722" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"><path d="M20 52 L44 52 L40 40 L24 40 Z" fill="url(#m5d68744050)"/></g>
+<g id="accent" stroke="#0b1722" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"><path d="M32 6 L42 26 L37 44 L27 44 L22 26 Z" fill="url(#prism)" stroke-width="2"/><path d="M32 6 L34 26 L32 44 L30 26 Z" fill="#ffffff" fill-opacity="0.6" stroke="none"/></g>
+</svg>

@@ -43,7 +43,7 @@ function guide_base_track_contract(m)
                 : (m.type === 'boss')
                     ? combat_zone
                     : (m.type === 'escort')
-                        ? escort || {x: station.x + 350, y: station.y + 250}
+                        ? escort || {x: station.x + station_size/2 + 350, y: station.y + 250}
                         : (m.type === 'hunt')
                             ? {x: station.x - 1100, y: station.y + 800}
                             : station;
@@ -85,7 +85,7 @@ function guide_base_render_navigation()
         b.classList.toggle('is-active', b.dataset.nav === nav_tab);
     }
     document.getElementById('nav_summary').textContent =
-        `${worlds[campaign.world].name} · weapon rating ${attack_rating()} · defence ${defense_rating()} · ${campaign.visited.length}/8 worlds visited · cargo ${cargo_count()}/${cargo_capacity()}`;
+        `${worlds[campaign.world].name} · weapon rating ${attack_rating()} · defense ${defense_rating()} · ${campaign.visited.length}/8 worlds visited · cargo ${cargo_count()}/${cargo_capacity()}`;
     if (nav_tab === 'jobs') {
         render_contracts(parent);
         return;
@@ -95,7 +95,7 @@ function guide_base_render_navigation()
             parent,
             worlds[campaign.world].station,
             'Dock to repair, take contracts, trade and install modules.',
-            'Safe zone · R within 230 units',
+            `Safe zone · R within ${station_reach} m`,
             'SET WAYPOINT',
             function () {
                 waypoint = {...station, label: worlds[campaign.world].station};
@@ -180,18 +180,33 @@ function interact()
         arcade_interact();
         return;
     }
-    if (distance(player, station) < 230) {
-        dock_station();
+    if (distance(player, station) < station_reach) {
+        docking_start(dock_station);
         return;
     }
     const g = world_gates.find(v => distance(player, v) < 155);
     if (g) {
         if (!allowed_world(g.destination)) {
-            show_toast('SHUTTLE NOT PREPARED', `${requirements(g.destination)} / DOCK AT THE OUTFITTER`, 5);
+            show_toast('SHIP NOT READY', `${requirements(g.destination)} / DOCK AND OPEN MODULES`, 5);
             return;
         }
         start_jump({world: g.destination, color: g.color, label: `JUMP TO ${worlds[g.destination].name}`, gate: g});
+        return;
     }
+    station_course();
+}
+
+// Far from the station, Dock [R] sets the course to its nearest berth and flies there; the contract you follow stays
+// followed, and the course ends once you dock
+function station_course()
+{
+    const berth = docking_berths().sort((p, q) => distance(p, player) - distance(q, player))[0];
+    guide_manual = {x: station.x + Math.cos(berth.a)*docking_lane, y: station.y + Math.sin(berth.a)*docking_lane, label: worlds[campaign.world].station, dock: true};
+    waypoints_clear();
+    guide_flying = true;
+    guide_path_key = '';
+    refresh_guidance();
+    show_toast('COURSE SET', `${worlds[campaign.world].station.toUpperCase()} · R DOCKS ON ARRIVAL`, 2.5);
 }
 
 function start_jump(destination)
@@ -348,7 +363,7 @@ function guide_base_update_frontier(dt)
     patrol_timer -= dt;
     if ((patrol_timer <= 0) && !arcade.active) {
         patrol_timer = (campaign.world === 0) ? 11 : Math.max(4.5, 10 - campaign.world*0.6);
-        if ((distance(player, station) > 550) && (enemies.length < 12)) {
+        if ((distance(player, station) > station_shelter + 50) && (enemies.length < 12)) {
             for (let i = 0; i < 1 + Math.floor(campaign.world/3); ++i) {
                 spawn_enemy(enemy_type());
             }
@@ -356,9 +371,9 @@ function guide_base_update_frontier(dt)
     }
     // Stations provide sanctuary: hostile fleets cannot swarm the docking ring. The arcade has no sanctuary.
     for (const enemy of enemies) {
-        if ((distance(enemy, station) < 500) && !arcade.active) {
+        if ((distance(enemy, station) < station_shelter) && !arcade.active) {
             const a = Math.atan2(enemy.y - station.y, enemy.x - station.x);
-            enemy.x = station.x + Math.cos(a)*510;
+            enemy.x = station.x + Math.cos(a)*(station_shelter + 10);
             enemy.y = station.y + Math.sin(a)*510;
         }
     }
@@ -403,7 +418,7 @@ function guide_base_update_hud()
     }
     const w = worlds[campaign.world];
     const m = campaign.contracts.find(v => !v.ready) || campaign.contracts[0];
-    const sector_html = `${String(campaign.world + 1).padStart(2, '0')} <small>/ 8</small>`;
+    const sector_html = `${campaign.world + 1}<small>/${worlds.length}</small>`;
     if (el.sector.innerHTML !== sector_html) {
         el.sector.innerHTML = sector_html;
     }
@@ -413,14 +428,15 @@ function guide_base_update_hud()
         ? m.ready
             ? `DOCK TO CLAIM ◆ ${m.reward}`
             : `${worlds[m.world].name} · ${format_progress(m.progress)}/${m.target}`
-        : 'R DOCK · J NAVIGATION';
+        : 'R dock · J map and guide';
     el.sector_progress.style.width = m ? `${Math.min(100, (m.progress/m.target)*100)}%` : '0%';
     const b = document.getElementById('dock_button');
     const g = world_gates.find(v => distance(player, v) < 155);
-    b.disabled = (state !== 'playing') || !((distance(player, station) < 230) || g);
+    // far from the station it sets the course there, so it is always pressable in flight
+    b.disabled = state !== 'playing';
     b.innerHTML = `${hud_dock_icon}<span>${g ? 'Jump' : 'Dock'}</span><span class="key">R</span>`;
     document.getElementById('nav_button').disabled = !['playing', 'paused', 'navigation'].includes(state);
-    if ((state === 'playing') && (distance(player, station) < 230)) {
+    if ((state === 'playing') && (distance(player, station) < station_reach)) {
         el.navigation_status.textContent += ' / R DOCK';
     }
     else if (g) {
@@ -449,7 +465,7 @@ function finish(won)
         return;
     }
     base_finish(won);
-    document.getElementById('retry_sector').textContent = 'CONTINUE SAVED FLIGHT ↗';
+    document.getElementById('retry_sector').innerHTML = '<span>Continue the saved flight</span>';
     el.result_sector.textContent = worlds[campaign.world].name;
     el.result_description.textContent =
         'Continue from your last autosave with your contracts, cargo and upgrades. Prepare at a station before entering heavily armed worlds.';
@@ -460,6 +476,10 @@ function finish(won)
 // The gate's name and status, `y` below its centre
 function world_gate_label(world_gate, y)
 {
+    // the arcade moves on by clearing waves, not through gates
+    if (arcade.active) {
+        return;
+    }
     world_label(world_gate.x, world_gate.y + y - 12, `WORLD GATE → ${worlds[world_gate.destination].name.toUpperCase()}`, `R jump · ${allowed_world(world_gate.destination) ? 'cleared' : 'upgrades required'}`, world_gate.color);
 }
 
@@ -516,7 +536,7 @@ function physics_base_render_navigation_objects()
     if (escort) {
         const angle = Math.atan2(escort.destination.y - escort.y, escort.destination.x - escort.x);
         if (view_mode === 'wireframe') {
-            ship(escort.x, escort.y, angle);
+            wireframe_hauler(escort.x, escort.y, angle, sprite_sizes.freighter, gold);
         }
         else {
             render_surface_ship(escort.x, escort.y, angle, 1, false, {...current_ship(), sprite: {name: 'freighter', length: sprite_sizes.freighter}});

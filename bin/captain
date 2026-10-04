@@ -18,7 +18,7 @@ const shots_dir = path.join(agent_dir, 'shots');
 const socket_file = path.join(agent_dir, 'cdp.sock');
 const window_file = path.join(agent_dir, 'window.json');
 // News that needs a decision ends a wait at once.
-const wait_titles = ['OPERATION COMPLETE', 'PILOT PROMOTED', 'SHUTTLE NOT PREPARED', 'CARGO', 'GUARDIAN BROKEN'];
+const wait_titles = ['CONTRACT COMPLETE', 'PILOT PROMOTED', 'SHIP NOT READY', 'CARGO', 'GUARDIAN BROKEN'];
 const usage = `usage: bin/captain <command>
 
     start              open the agent's game window (HEADLESS=1 for no window);
@@ -75,7 +75,7 @@ async function main()
     case 'dock':
         await page_run(async function (page) {
             const ordered = await page.evaluate(() => window.captain.dock());
-            console.log(ordered ? 'Flying to the station; the depot opens once no raider is within 700 m. Use wait.' : 'Only in the arcade.');
+            console.log(ordered ? 'Flying to the station; the depot opens once its shield falls (no raider near the station). Use wait.' : 'Only in the arcade.');
         });
         break;
     case 'autopilot':
@@ -374,7 +374,7 @@ function screen_text(page)
             v.removeAttribute('data-captain');
         }
         const overlay = Array.from(document.querySelectorAll('section.overlay')).find(v => !v.classList.contains('hidden'));
-        const roots = overlay ? [overlay] : ['#mission', '.topbar .tools', '#loadout', '#toast.show'].map(v => document.querySelector(v)).filter(Boolean);
+        const roots = overlay ? [overlay] : ['#mission', '.hud-top .toolbar', '#loadout', '#hud_toasts'].map(v => document.querySelector(v)).filter(Boolean);
         const marks = [];
         let n = 0;
         for (const root of roots) {

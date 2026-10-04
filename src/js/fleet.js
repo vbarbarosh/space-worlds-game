@@ -19,6 +19,7 @@ const weapon_catalog = [
         life: 1.17,
         color: cyan,
         description: 'Balanced rapid-fire plasma. Prism and guided-plasma modules modify its shots.',
+        line: 'Fast, balanced plasma bolts.',
     },
     {
         id: 'scatter',
@@ -33,6 +34,7 @@ const weapon_catalog = [
         life: 0.51,
         color: gold,
         description: 'Five close-range pellets. Strong against swarms, limited against distant armor.',
+        line: 'Five pellets. Strong up close.',
     },
     {
         id: 'ion',
@@ -47,6 +49,7 @@ const weapon_catalog = [
         life: 1,
         color: blue,
         description: 'Triple shield damage; disables shield regeneration and slows ships for three seconds.',
+        line: 'Breaks shields and slows ships.',
     },
     {
         id: 'rail',
@@ -61,6 +64,7 @@ const weapon_catalog = [
         life: 0.69,
         color: '#f5f0ff',
         description: 'Long-range high-velocity slugs bypass 75% of hull plating. Slow, precise shots.',
+        line: 'Slow slugs that pierce armour.',
     },
     {
         id: 'missile',
@@ -75,6 +79,7 @@ const weapon_catalog = [
         life: 2.5,
         color: '#ff9a68',
         description: 'Self-guided missiles explode across a 115 m radius. Good for grouped enemies.',
+        line: 'Homing missiles with splash.',
     },
     {
         id: 'beam',
@@ -89,6 +94,7 @@ const weapon_catalog = [
         life: 0.34,
         color: '#a6ffcb',
         description: 'Rapid energy lances ignore 40% of armor but consume pulse energy. Below 8 pulse, a plasma backup fires.',
+        line: 'A beam that ignores 40% armour.',
     },
 ];
 const rank_thresholds = [0, 120, 380, 800, 1450, 2500, 4000, 6000];

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+<defs><linearGradient id="accent-fill" x1="0" y1="0" x2="1" y2="1"><stop id="accent-light" offset="0" stop-color="#ffc79b"/><stop id="accent-base" offset="0.5" stop-color="#ff9a4a"/><stop id="accent-dark" offset="1" stop-color="#a66430"/></linearGradient></defs>
+<g id="base">
+<circle cx="48" cy="16" r="10" fill="#5d6874" stroke="#070b14" stroke-width="4"/>
+<circle cx="48" cy="16" r="4" fill="#0d1626" stroke="none"/>
+<path d="M48 2 L48 8 M48 24 L48 30 M34 16 L40 16 M56 16 L62 16" fill="none" stroke="#070b14" stroke-width="3" stroke-linecap="round"/>
+</g>
+<g id="accent">
+<path d="M12 52 C 14 30, 30 22, 40 20" fill="none" stroke="#070b14" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 52 C 14 30, 30 22, 40 20" fill="none" stroke="url(#accent-fill)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M36 12 L46 18 L36 26 Z" fill="url(#accent-fill)" stroke="#070b14" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="12" cy="52" r="6" fill="url(#accent-fill)" stroke="#070b14" stroke-width="3"/>
+</g>
+</svg>

@@ -4,6 +4,8 @@ const dev_screen_options = [
     {value: 'flight', label: 'Flight'},
     {value: 'combat', label: 'Flight in a fight'},
     {value: 'arcade', label: 'Arcade'},
+    {value: 'arcade-cleared', label: 'Arcade: world cleared'},
+    {value: 'rocks', label: 'Facing a mining field'},
     {value: 'station-jobs', label: 'Station: contracts'},
     {value: 'station-arsenal', label: 'Station: arsenal'},
     {value: 'station-career', label: 'Station: goals'},
@@ -14,9 +16,12 @@ const dev_screen_options = [
     {value: 'menu', label: 'Main menu'},
 ];
 const dev_screen = new URLSearchParams(location.search).get('screen');
+// read at load: starting the scene rewrites the URL
+const dev_screen_modules = new URLSearchParams(location.search).get('modules') || '';
 
 function dev_screen_open()
 {
+    dev_screen_modules_set();
     if (!dev_screen_options.some(v => v.value === dev_screen)) {
         return;
     }
@@ -29,6 +34,25 @@ function dev_screen_open()
     }
     if (dev_screen === 'arcade') {
         dev_arcade_start();
+        dev_screen_modules_set();
+        return;
+    }
+    if (dev_screen === 'arcade-cleared') {
+        dev_arcade_start();
+        dev_screen_modules_set();
+        player.hp = hull_max()*0.32;
+        salvage = 375;
+        arcade_world_clear();
+        return;
+    }
+    if (dev_screen === 'rocks') {
+        // a kilometre east of the first mining field, nose to it, still
+        const field = mining_fields[0];
+        player.x = field.x + 1000;
+        player.y = field.y;
+        player.angle = Math.PI;
+        player.vx = player.vy = 0;
+        update_camera(0, true);
         return;
     }
     if (dev_screen === 'combat') {
@@ -56,5 +80,16 @@ function dev_screen_open()
     }
     if (dev_screen === 'pause') {
         toggle_pause();
+    }
+}
+
+// &modules=evasive:3,speed:2 sets module levels for the screen (again after an arcade start, which resets them)
+function dev_screen_modules_set()
+{
+    for (const pair of dev_screen_modules.split(',').filter(Boolean)) {
+        const [key, level] = pair.split(':');
+        if (Object.hasOwn(upgrades, key)) {
+            upgrades[key] = Number(level) || 0;
+        }
     }
 }

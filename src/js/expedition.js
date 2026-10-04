@@ -283,13 +283,13 @@ function radiation_rate()
 {
     const c = expedition_conditions[campaign.world];
     const radiation = arcade.active ? c.radiation*arcade_radiation : c.radiation;
-    return (distance(player, station) < 500) ? 0 : radiation*(1 - radiation_protection())*2.5;
+    return (distance(player, station) < station_shelter) ? 0 : radiation*(1 - radiation_protection())*2.5;
 }
 
 function update_expedition_environment(dt)
 {
     const c = expedition_conditions[campaign.world];
-    const safe = distance(player, station) < 500;
+    const safe = distance(player, station) < station_shelter;
     const protection = radiation_protection();
     const radiation = arcade.active ? c.radiation*arcade_radiation : c.radiation;
     const rate = radiation_rate();
@@ -320,10 +320,10 @@ function update_expedition_environment(dt)
             drifting_debri.vy *= -1;
             drifting_debri.y = clamp(drifting_debri.y, drifting_debri.r, world.h - drifting_debri.r);
         }
-        const sanctuary = [station, ...portals, ...world_gates].find(v => distance(drifting_debri, v) < ((v === station) ? 560 : 180) + drifting_debri.r);
+        const sanctuary = [station, ...portals, ...world_gates].find(v => distance(drifting_debri, v) < ((v === station) ? station_size/2 + 60 : 180) + drifting_debri.r);
         if (sanctuary) {
             const a = Math.atan2(drifting_debri.y - sanctuary.y, drifting_debri.x - sanctuary.x);
-            const r = ((sanctuary === station) ? 560 : 180) + drifting_debri.r;
+            const r = ((sanctuary === station) ? station_size/2 + 60 : 180) + drifting_debri.r;
             drifting_debri.x = sanctuary.x + Math.cos(a)*r;
             drifting_debri.y = sanctuary.y + Math.sin(a)*r;
             drifting_debri.vx = Math.cos(a)*40;
@@ -476,7 +476,7 @@ function update_expedition_readout()
 {
     const readout = document.getElementById('expedition_readout');
     const c = expedition_conditions[campaign.world];
-    const safe = distance(player, station) < 500;
+    const safe = distance(player, station) < station_shelter;
     const speed = Math.round(Math.hypot(player.vx, player.vy));
     let text = `FLIGHT ${speed} m/s · TURBO ${turbo_duration()}s`;
     if (c.radiation) {

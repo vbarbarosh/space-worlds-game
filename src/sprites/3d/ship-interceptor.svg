@@ -38,5 +38,15 @@
 <g id="anchors"><line id="flame-main-1" x1="84.34" y1="231.09" x2="84.34" y2="269.89" stroke="#ff0000" stroke-width="16.98" /><line id="flame-main-2" x1="171.66" y1="231.09" x2="171.66" y2="269.89" stroke="#ff0000" stroke-width="16.98" /><line id="flame-main-3" x1="128" y1="223.81" x2="128" y2="257.77" stroke="#ff0000" stroke-width="16.98" /><line id="flame-reverse-1" x1="84.34" y1="61.3" x2="84.34" y2="34.62" stroke="#ff0000" stroke-width="7.28" /><line id="flame-reverse-2" x1="171.66" y1="61.3" x2="171.66" y2="34.62" stroke="#ff0000" stroke-width="7.28" /><line id="flame-side-1" x1="74.64" y1="117.09" x2="52.81" y2="117.09" stroke="#ff0000" stroke-width="6.06" /><line id="flame-side-2" x1="181.36" y1="117.09" x2="203.19" y2="117.09" stroke="#ff0000" stroke-width="6.06" /><line id="flame-side-3" x1="14" y1="175.3" x2="-7.83" y2="175.3" stroke="#ff0000" stroke-width="6.06" /><line id="flame-side-4" x1="242" y1="175.3" x2="263.83" y2="175.3" stroke="#ff0000" stroke-width="6.06" />
 <circle id="turret-medium-1" cx="84.34" cy="92" r="6" fill="#0000ff"/>
 <circle id="turret-medium-2" cx="171.66" cy="92" r="6" fill="#0000ff"/>
+<line id="armor-1" x1="78.39" y1="150.08" x2="54.18" y2="113.78" stroke="#ff0000" stroke-width="30"/>
+<line id="armor-2" x1="177.61" y1="150.08" x2="201.82" y2="113.78" stroke="#ff0000" stroke-width="30"/>
+<line id="armor-3" x1="94.81" y1="79.48" x2="59.9" y2="53.3" stroke="#ff0000" stroke-width="30"/>
+<line id="armor-4" x1="161.19" y1="79.48" x2="196.1" y2="53.3" stroke="#ff0000" stroke-width="30"/>
+<line id="armor-5" x1="96.64" y1="192" x2="53" y2="192" stroke="#ff0000" stroke-width="30"/>
+<line id="armor-6" x1="159.36" y1="192" x2="203" y2="192" stroke="#ff0000" stroke-width="30"/>
+<circle id="module-1" cx="66" cy="166" r="10" fill="#0000ff"/>
+<circle id="module-2" cx="128" cy="150" r="11" fill="#0000ff"/>
+<circle id="nose" cx="128" cy="44" r="8" fill="#0000ff"/>
+<circle id="shield" cx="128" cy="128" r="135.25" fill="none" stroke="#0000ff" stroke-width="2"/>
 </g>
 </svg>

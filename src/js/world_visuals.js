@@ -493,7 +493,7 @@ function wireframe_render_world_ore(v)
 
 function wireframe_render_world_station()
 {
-    if (!in_view(station, 550)) {
+    if (!in_view(station, station_shelter + 50)) {
         return;
     }
     const id = campaign.world;
@@ -505,9 +505,11 @@ function wireframe_render_world_station()
     ctx.lineWidth = 1;
     ctx.setLineDash([5, 15]);
     ctx.beginPath();
-    ctx.arc(0, 0, 500, 0, Math.PI*2);
+    ctx.arc(0, 0, station_shelter, 0, Math.PI*2);
     ctx.stroke();
     ctx.setLineDash([]);
+    // each world's outline station is drawn about 300 m across; scaled up to the station's size
+    ctx.scale(station_size/300, station_size/300);
     ctx.shadowColor = w.accent;
     ctx.shadowBlur = full_fx ? 12 : 0;
     if (id === 0) {
@@ -655,8 +657,9 @@ function wireframe_render_world_station()
         polygon(0, 0, 31, 3, clock*0.08, '#bd86e7', '#1b0d32');
     }
     ctx.shadowBlur = 0;
-    world_label(0, 153, w.station.toUpperCase(), `${look.station} · R dock`, w.accent);
+    world_label(0, 171, arcade.active ? 'DEPOT' : w.station.toUpperCase(), arcade.active ? (depot_shield_up() ? 'Shielded · clear the raiders' : 'R repairs and weapons') : `${look.station} · R dock`, w.accent);
     ctx.restore();
+    depot_shield_draw();
 }
 
 function physics_base_generate_map()

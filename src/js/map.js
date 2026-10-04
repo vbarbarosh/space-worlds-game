@@ -233,6 +233,7 @@ function update_gravity_objects(dt)
         }
         gravity_move(v, dt);
         if (in_gravity_core(v, v.r*0.4)) {
+            v.core_kill = true;
             damage_enemy(v, v.hp/(1 - (v.armor || 0)) + (v.shield || 0) + 1);
         }
     }

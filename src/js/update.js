@@ -12,8 +12,10 @@ function base_update_hud()
     el.health_fill.style.width = `${(player.hp/hull_max())*100}%`;
     el.pulse_text.textContent = (player.energy >= 100) ? 'Ready' : `${Math.floor(player.energy)}%`;
     el.pulse_fill.style.width = `${player.energy}%`;
+    // short values only, so the gauge keeps one line: while thrusting the seconds left, lit
+    el.dash_text.classList.toggle('t-cyan', !!player.turbo_active);
     el.dash_text.textContent = player.turbo_active
-        ? `Thrust ${turbo_fuel().toFixed(1)}s`
+        ? `${turbo_fuel().toFixed(1)}s`
         : (player.dash_cd > 0)
             ? 'Cooling'
             : (turbo_fuel() >= turbo_duration() - 0.05)
@@ -110,6 +112,7 @@ function update(dt)
     phase_timer += dt;
     stasis_time = Math.max(0, stasis_time - dt);
     const enemy_dt = dt*((stasis_time > 0) ? 0.35 : 1);
+    bodies_frame();
     player.since_hit += dt;
     if (player.since_hit > 5) {
         player.shield = Math.min(
@@ -187,7 +190,14 @@ function update(dt)
             player.vy = 0;
         }
         else if (md > 3) {
-            const approach = Math.min(1, md/45);
+            // following the cursor (double click) or steering with the button held, the farther it is on screen the
+            // faster the ship goes, at any zoom and screen size: easing in close, full cruise at three quarters of the
+            // way to the nearer screen edge, above cruise past it (mouse_drive.follow_boost); a click's flight keeps its
+            // own arrival
+            const chasing = mouse_drive.following || mouse_drive.held;
+            const reach = (md*zoom)/(Math.min(width, height)/2);
+            const approach = chasing ? clamp((reach - 0.07)/0.68, 0, 1) : Math.min(1, md/45);
+            mouse_drive.follow_boost = chasing ? 1 + 0.6*clamp((reach - 0.9)/0.8, 0, 1) : 1;
             dx = (mx/md)*approach;
             dy = (my/md)*approach;
         }
@@ -197,9 +207,19 @@ function update(dt)
         dx /= length;
         dy /= length;
     }
+    const evaded = evasion_steer(dx, dy);
+    dx = evaded.x;
+    dy = evaded.y;
+    if (Math.hypot(dx, dy) > 1) {
+        const k = Math.hypot(dx, dy);
+        dx /= k;
+        dy /= k;
+    }
+    player.evading = Math.max(0, (player.evading || 0) - dt);
     fly_in_world(dt, dx, dy);
     player.x = clamp(player.x + player.vx*dt, 24, world.w - 24);
     player.y = clamp(player.y + player.vy*dt, 24, world.h - 24);
+    docking_update(dt);
     if (!update_player_navigation(dt, previous_player)) {
         return;
     }
@@ -365,41 +385,28 @@ function update(dt)
                 move = 0;
             }
         }
+        // raiders steer round the asteroids and structures ahead, as the rule for everything solid asks
+        if (move > 0) {
+            heading = raider_avoid(v, heading);
+        }
+        // the Leviathan's thrust is too weak against a black hole's pull: that is how it is caught
+        if (v.leviathan && in_gravity_pull(v)) {
+            move *= 0.35;
+        }
         v.x += Math.cos(heading)*v.speed*move*enemy_dt;
         v.y += Math.sin(heading)*v.speed*move*enemy_dt;
         v.x = clamp(v.x, 24, world.w - 24);
         v.y = clamp(v.y, 24, world.h - 24);
         update_enemy_portal(v, enemy_dt);
-        if (v.type !== 'boss') {
-            for (let j = i + 1; j < enemies.length; ++j) {
-                const o = enemies[j];
-                if (o.type === 'boss') {
-                    continue;
-                }
-                const dd = distance(v, o);
-                const min = v.r + o.r;
-                if ((dd > 0) && (dd < min)) {
-                    const push = (min - dd)*0.9*dt;
-                    const ax = (v.x - o.x)/dd;
-                    const ay = (v.y - o.y)/dd;
-                    v.x += ax*push;
-                    v.y += ay*push;
-                    o.x -= ax*push;
-                    o.y -= ay*push;
-                }
-            }
-        }
         if (d < v.r + player.r) {
             damage_player((v.type === 'boss') ? 35 : (v.type === 'tank') ? 25 : 16);
             if (player.dash_time > 0) {
                 damage_enemy(v, 35*dt);
             }
-            {
-                v.x -= Math.cos(a)*dt*100;
-                v.y -= Math.sin(a)*dt*100;
-            }
         }
     }
+    // no two hulls overlap: raiders out of asteroids, structures, the freighter, you and each other
+    bodies_resolve();
     apply_world_projectile_physics(dt);
     for (let i = 0, end = bullets.length; i < end; ++i) {
         const b = bullets[i];

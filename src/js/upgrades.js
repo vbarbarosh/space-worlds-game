@@ -7,8 +7,12 @@ const upgrade_options = [
         cap: 7,
         cost: 32,
         group: 'utility',
+        shelf: 'helpers',
+        line: 'Pulls in salvage from further away.',
+        tags: 'magnet pickup collect loot range магнит',
+        part: 'magnet',
     },
-    {key: 'drone', icon: '✧', title: 'Orbit drones', description: 'Add an orbiting companion that targets nearby enemies.', cap: 3, cost: 65, group: 'weapon'},
+    {key: 'drone', icon: '✧', title: 'Orbit drones', description: 'Add an orbiting companion that targets nearby enemies.', cap: 3, cost: 65, group: 'weapon', shelf: 'helpers', line: 'A drone circles you and shoots.', tags: 'drone companion pet helper orbit дрон', part: 'drone'},
     {
         key: 'shield',
         icon: '⬡',
@@ -17,6 +21,10 @@ const upgrade_options = [
         cap: 3,
         cost: 44,
         group: 'defense',
+        shelf: 'defence',
+        line: 'A shield bubble soaks up hits.',
+        tags: 'shield bubble protect barrier щит',
+        part: 'shield',
     },
     {
         key: 'nanites',
@@ -26,6 +34,9 @@ const upgrade_options = [
         cap: 3,
         cost: 60,
         group: 'defense',
+        shelf: 'defence',
+        line: 'The hull slowly repairs itself.',
+        tags: 'repair heal regen hull ремонт лечение',
     },
     {
         key: 'homing',
@@ -35,6 +46,9 @@ const upgrade_options = [
         cap: 2,
         cost: 55,
         group: 'weapon',
+        shelf: 'shots',
+        line: 'Your shots curve toward the nearest enemy.',
+        tags: 'homing aim auto-aim seek guided tracking наведение самонаведение прицел',
     },
     {
         key: 'reactor',
@@ -44,8 +58,12 @@ const upgrade_options = [
         cap: 3,
         cost: 42,
         group: 'utility',
+        shelf: 'shots',
+        line: 'Pulse recharges faster.',
+        tags: 'pulse recharge energy reactor энергия',
+        part: 'reactor',
     },
-    {key: 'salvager', icon: '◆', title: 'Relic processor', description: 'Artifacts yield 25% more salvage per level.', cap: 3, cost: 35, group: 'utility'},
+    {key: 'salvager', icon: '◆', title: 'Relic processor', description: 'Artifacts yield 25% more salvage per level.', cap: 3, cost: 35, group: 'utility', shelf: 'helpers', line: 'More salvage from every wreck.', tags: 'salvage money loot coins income деньги'},
     {
         key: 'dash',
         icon: '»',
@@ -55,6 +73,10 @@ const upgrade_options = [
         cap: 3,
         cost: 70,
         group: 'utility',
+        shelf: 'flight',
+        line: 'Stronger turbo (Shift).',
+        tags: 'turbo boost speed engine ускорение турбо',
+        part: 'booster',
     },
     {
         key: 'turbo_tank',
@@ -64,6 +86,9 @@ const upgrade_options = [
         cap: 4,
         cost: 65,
         group: 'utility',
+        shelf: 'flight',
+        line: 'Turbo lasts longer.',
+        tags: 'turbo fuel duration boost топливо',
     },
     {
         key: 'radshield',
@@ -73,6 +98,9 @@ const upgrade_options = [
         cap: 4,
         cost: 90,
         group: 'defense',
+        shelf: 'defence',
+        line: 'No damage in radiation zones.',
+        tags: 'radiation zone filter hazard радиация',
     },
     {
         key: 'stabilizer',
@@ -82,6 +110,22 @@ const upgrade_options = [
         cap: 3,
         cost: 60,
         group: 'utility',
+        shelf: 'flight',
+        line: 'Tighter turns, less drift.',
+        tags: 'turn drift handling control управление занос',
+    },
+    {
+        key: 'evasive',
+        icon: '⤳',
+        title: 'Evasive thrusters',
+        description: 'Looks ahead along your course and steers you round asteroids, debris and ships before you hit them. Each level sees farther (250, 400, 550 m) and turns harder.',
+        cap: 3,
+        cost: 70,
+        group: 'utility',
+        shelf: 'flight',
+        line: 'Steers you round rocks and ships before you hit them.',
+        tags: 'dodge evade strafe side уклонение',
+        part: 'rcs',
     },
     {
         key: 'cooling',
@@ -91,12 +135,16 @@ const upgrade_options = [
         cap: 3,
         cost: 75,
         group: 'defense',
+        shelf: 'shots',
+        line: 'Fire longer before the gun overheats.',
+        tags: 'heat overheat cooling radiator перегрев',
+        part: 'radiator',
     },
-    {key: 'spread', icon: '⋔', title: 'Prism cannon', description: 'Two additional bolts per shot. Cover a wider arc.', cap: 2, cost: 75, group: 'weapon'},
-    {key: 'damage', icon: '↗', title: 'Hotter plasma', description: '+5 damage per bolt. Break heavy hulls faster.', cap: 5, cost: 38, group: 'weapon'},
-    {key: 'rate', icon: '≋', title: 'Rapid resonance', description: '15% faster firing per level. Keep the pressure on.', cap: 3, cost: 45, group: 'weapon'},
-    {key: 'speed', icon: '➤', title: 'Slipstream', description: '15% more movement speed per level.', cap: 3, cost: 30, group: 'utility'},
-    {key: 'armor', icon: '◇', title: 'Phase armor', description: '12% less incoming damage per level.', cap: 3, cost: 46, group: 'defense'},
+    {key: 'spread', icon: '⋔', title: 'Prism cannon', description: 'Two additional bolts per shot. Cover a wider arc.', cap: 2, cost: 75, group: 'weapon', shelf: 'shots', line: 'A crystal on the nose fires a split beam.', tags: 'beam laser crystal extra gun луч', part: 'prism'},
+    {key: 'damage', icon: '↗', title: 'Hotter plasma', description: '+5 damage per bolt. Break heavy hulls faster.', cap: 5, cost: 38, group: 'weapon', shelf: 'shots', line: 'Every shot hits harder.', tags: 'damage dmg power hot урон'},
+    {key: 'rate', icon: '≋', title: 'Rapid resonance', description: '15% faster firing per level. Keep the pressure on.', cap: 3, cost: 45, group: 'weapon', shelf: 'shots', line: 'Your gun fires faster.', tags: 'fire rate speed faster скорострельность'},
+    {key: 'speed', icon: '➤', title: 'Slipstream', description: '15% more movement speed per level.', cap: 3, cost: 30, group: 'utility', shelf: 'flight', line: 'Faster cruising speed.', tags: 'speed fast cruise скорость'},
+    {key: 'armor', icon: '◇', title: 'Phase armor', description: '12% less incoming damage per level.', cap: 3, cost: 46, group: 'defense', shelf: 'defence', line: 'Hull plates: every hit does less damage.', tags: 'armor armour plates hull tank defence броня', part: 'plate'},
     {
         key: 'pulse',
         icon: '◎',
@@ -105,13 +153,30 @@ const upgrade_options = [
         cap: 3,
         cost: 42,
         group: 'weapon',
+        shelf: 'shots',
+        line: 'Your pulse (Space) blasts wider.',
+        tags: 'pulse space blast area aoe импульс',
     },
 ];
 const supply_options = [
-    {key: 'medkit', icon: '✚', title: 'Repair kit', description: 'Q / restore 40 hull. Use only when damaged.', cost: 20, cap: 8, group: 'defense'},
-    {key: 'emp', icon: '⊛', title: 'EMP charge', description: 'E / clear all enemy bullets and blast nearby enemies.', cost: 26, cap: 8, group: 'weapon'},
-    {key: 'stasis', icon: '◷', title: 'Stasis cell', description: 'F / slow enemies and their bullets for 8 seconds.', cost: 24, cap: 8, group: 'utility'},
+    {key: 'medkit', icon: '✚', title: 'Repair kit', description: 'Q / restore 40 hull. Use only when damaged.', cost: 20, cap: 8, group: 'defense', shelf: 'defence'},
+    {key: 'emp', icon: '⊛', title: 'EMP charge', description: 'E / clear all enemy bullets and blast nearby enemies.', cost: 26, cap: 8, group: 'weapon', shelf: 'shots'},
+    {key: 'stasis', icon: '◷', title: 'Stasis cell', description: 'F / slow enemies and their bullets for 8 seconds.', cost: 24, cap: 8, group: 'utility', shelf: 'helpers'},
 ];
+// The shelves the depots sort modules on (each option's shelf), with what is on each
+const module_shelves = [
+    {value: 'shots', label: 'Shots', note: 'damage, fire rate, aiming'},
+    {value: 'defence', label: 'Defence', note: 'take less damage'},
+    {value: 'flight', label: 'Flight', note: 'speed, turbo, dodging'},
+    {value: 'helpers', label: 'Helpers', note: 'salvage and companions'},
+];
+
+// A module's icon (sprites/modules, named after its title) as an image URL
+function module_icon(option)
+{
+    return menu_sprite_url(sprite_svgs.modules?.[option.title.toLowerCase().replace(/\s+/g, '-')]);
+}
+
 function drop_pickup(x, y, type, value = 0)
 {
     pickups.push({x: clamp(x, 25, world.w - 25), y: clamp(y, 25, world.h - 25), type, value, life: (type === 'artifact') ? 36 : 28, phase: rand(0, 6.28)});
@@ -240,7 +305,7 @@ function base_render_shop()
     el.shop_grid.replaceChildren();
     // What the guide says the next world needs stands out
     const wanted = new Set((guide_context().purchases || []).map(v => v.key));
-    for (const v of upgrade_options.concat(supply_options).filter(v => (shop_filter === 'all') || (v.group === shop_filter))) {
+    for (const v of upgrade_options.concat(supply_options).filter(v => (shop_filter === 'all') || (v.shelf === shop_filter))) {
         const is_supply = supplies[v.key] !== undefined;
         const level = is_supply ? supplies[v.key] : upgrades[v.key];
         const price = is_supply ? v.cost : module_cost(v);
@@ -248,6 +313,9 @@ function base_render_shop()
         const card = document.createElement('div');
         card.className = wanted.has(v.key) ? 'shop-item wanted' : 'shop-item';
         card.dataset.key = v.key;
+        // the kit card (ui_shop_item) shows the module's icon, and says when you will see it on the ship
+        card.dataset.icon = is_supply ? '' : module_icon(v);
+        card.dataset.part = v.part ? '1' : '';
         card.innerHTML =
             `<b>${v.icon} &nbsp;${v.title}</b><span class="item-level">${is_supply ? `IN CARGO ${level} / ${v.cap}` : `LEVEL ${level} / ${v.cap}`}</span><p>${v.description}</p>`;
         const b = document.createElement('button');

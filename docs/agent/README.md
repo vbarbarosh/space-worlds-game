@@ -70,12 +70,12 @@ screen you read, or press by label.
 
 ## How the game works, in short
 
-- **The menu**: press `CAMPAIGN` for the story game. `CONTINUE` resumes a
-  saved one. `ARCADE` is the action game; see below.
+- **The menu**: press `New campaign` for the story game. `Continue` resumes a
+  saved one. `Arcade` is the action game; see below.
 - **At a station** (the screen is `upgrade_overlay`, and time stands still):
-  - CONTRACTS lists the contracts you can take: `ACCEPT CONTRACT`. You can
+  - CONTRACTS lists the contracts you can take: `Accept`. You can
     hold up to three. A finished one is collected here with
-    `COLLECT REWARD`.
+    `Collect reward`.
   - CARGO MARKET buys and sells ore, energy cells and relic components. The
     price differs from world to world, so carry goods to where they are dear.
     It also buys each world's own resource (Haven iron, Spore resin, ...),
@@ -84,11 +84,11 @@ screen you read, or press by label.
   - TRADE INTEL compares the stations.
   - MODULES are upgrades, HANGAR sells ships and ARSENAL weapons. Ranks
     unlock ships and weapons.
-  - `UNDOCK` takes you into flight.
+  - `Undock` takes you into flight.
 - **In flight** (the screen is `flight`):
   - The autopilot flies to the current stage of your tracked contract,
     through gates and around gravity wells, and your cannons fire on their
-    own. It starts by itself within a couple of seconds; `FLY TO OBJECTIVE`
+    own. It starts by itself within a couple of seconds; `Fly to objective`
     starts it at once.
   - The autopilot docks and jumps for you. By hand: near the station
     `key KeyR` docks, near a world gate `key KeyR` jumps.
@@ -123,9 +123,9 @@ Your part:
   modules. After each world the depot opens by itself (screen
   `arcade_depot`), with a bonus for the world cleared: this is the main
   decision of the run, so think about the next world's rules, shown under
-  your salvage. Press what you buy, then `NEXT: <WORLD>`. Mid-world,
+  your salvage. Press what you buy, then `Launch to <World>`. Mid-world,
   `bin/captain dock` sends the pilot to the station; the depot opens as soon
-  as no raider is within 700 m, and `LAUNCH` returns to the fight.
+  as its shield is down (no raider near the station), and `Launch` returns to the fight.
 - **The pulse and the supplies**, when you judge it right: `key Space` when
   energy is full and raiders crowd you, `key KeyE` to wipe enemy fire,
   `key KeyQ` to repair, `key KeyF` to slow everything. The pilot also uses

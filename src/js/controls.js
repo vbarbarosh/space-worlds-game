@@ -7,7 +7,7 @@ function save_best()
     }
     catch {
     }
-    el.best_intro.textContent = `Best ${String(best).padStart(6, '0')}`;
+    menu_best_sync();
     return score > previous;
 }
 
@@ -75,6 +75,7 @@ function toggle_pause()
         mouse_drive.following = false;
         set_hidden(el.pause_overlay, false);
         document.getElementById('pause_layout').classList.remove('is-controls');
+
         document.getElementById('pause_checkpoint').textContent = checkpoint_notice;
         set_pause_icon(true);
         document.getElementById('resume_button').focus();
@@ -206,6 +207,9 @@ addEventListener('keydown', function (event) {
         else if (state === 'inventory') {
             toggle_inventory();
         }
+        else if ((state === 'paused') && document.getElementById('pause_layout').classList.contains('is-controls')) {
+            pause_controls_show(false);
+        }
         else {
             toggle_pause();
         }
@@ -227,13 +231,12 @@ addEventListener('keyup', function (event) {
         stop_turbo();
     }
 });
+// Another window taking the focus lets go of the keys held, but the game plays on in view; only a hidden tab pauses
+// (the browser stops drawing it anyway)
 addEventListener('blur', function () {
     stop_turbo();
     touch_boost_hold = false;
     keys.clear();
-    if (pause_on_blur && (state === 'playing')) {
-        toggle_pause();
-    }
 });
 document.addEventListener('visibilitychange', function () {
     if (pause_on_blur && document.hidden && (state === 'playing')) {
