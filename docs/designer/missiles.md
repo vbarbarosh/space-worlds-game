@@ -11,22 +11,22 @@ Rocket motor (faster, a new engine and exhaust each level) and Shaped warhead
 (a bigger blast). The game already plays all of this with today's drawings
 and code-drawn stand-ins; this brief lists what to draw so it looks finished.
 
-Screenshots from the game (2026-10-04, in `data/missiles/`, kept out of git):
+Screenshots from the game (2026-10-04, in `docs/designer/missiles/`):
 
 | Shot | What it shows |
 |---|---|
-| [before.png](../../data/missiles/before.png) | The launcher before this work: small rockets with a flame, no trail |
-| [closeup-stock.png](../../data/missiles/closeup-stock.png) | One stock missile at 200%: drawing, flame, smoke puffs |
-| [engine-1.png](../../data/missiles/engine-1.png) | Rocket motor level 0, solid rocket: orange core, grey smoke |
-| [engine-2.png](../../data/missiles/engine-2.png) | Level 1, hot-fuel rocket: yellow core, thin smoke |
-| [engine-3.png](../../data/missiles/engine-3.png) | Level 2, ion sustainer: blue ribbon, no smoke |
-| [engine-4.png](../../data/missiles/engine-4.png) | Level 3, fusion torch: long violet ribbon |
-| [flight-stock.png](../../data/missiles/flight-stock.png) | Stock blast (100 m ring) and the lock bracket on a raider |
-| [flight-maxed.png](../../data/missiles/flight-maxed.png) | All modules: fusion torch trail, 175 m blast |
-| [campaign-arsenal-after.png](../../data/missiles/campaign-arsenal-after.png) | Station arsenal: the launcher card, two launchers on an interceptor |
-| [campaign-modules.png](../../data/missiles/campaign-modules.png) | Station modules: the three missile modules with stand-in icons |
-| [arcade-depot-search.png](../../data/missiles/arcade-depot-search.png) | Arcade depot: launcher, and modules that wait for it |
-| [arcade-depot-bought.png](../../data/missiles/arcade-depot-bought.png) | Arcade depot after buying: launcher on the ship preview |
+| [before](missiles/before.jpg) | The launcher before this work: small rockets with a flame, no trail |
+| [closeup-stock](missiles/closeup-stock.jpg) | One stock missile at 200%: drawing, flame, smoke puffs |
+| [engine-1](missiles/engine-1.jpg) | Rocket motor level 0, solid rocket: orange core, grey smoke |
+| [engine-2](missiles/engine-2.jpg) | Level 1, hot-fuel rocket: yellow core, thin smoke |
+| [engine-3](missiles/engine-3.jpg) | Level 2, ion sustainer: blue ribbon, no smoke |
+| [engine-4](missiles/engine-4.jpg) | Level 3, fusion torch: long violet ribbon |
+| [flight-stock](missiles/flight-stock.jpg) | Stock blast (100 m ring) and the lock bracket on a raider |
+| [flight-maxed](missiles/flight-maxed.jpg) | All modules: fusion torch trail, 175 m blast |
+| [campaign-arsenal-after](missiles/campaign-arsenal-after.jpg) | Station arsenal: the launcher card, two launchers on an interceptor |
+| [campaign-modules](missiles/campaign-modules.jpg) | Station modules: the three missile modules with stand-in icons |
+| [arcade-depot-search](missiles/arcade-depot-search.jpg) | Arcade depot: launcher, and modules that wait for it |
+| [arcade-depot-bought](missiles/arcade-depot-bought.jpg) | Arcade depot after buying: launcher on the ship preview |
 
 ## What to draw
 
@@ -142,7 +142,7 @@ in the depot's Installed strip.
   welcome, and the code will follow it.
 - A missile that burns out without a hit ends in a small grey spark.
 - A raider a missile of yours has locked wears four turning corner ticks in
-  `#ff9a68` (flight-stock.png). A restyle is welcome as a reference.
+  `#ff9a68` (flight-stock.jpg). A restyle is welcome as a reference.
 
 ## What already exists and stays
 
