@@ -154,12 +154,7 @@ function update(dt)
     }
     let dx = ((keys.has('KeyD') || keys.has('ArrowRight')) ? 1 : 0) - ((keys.has('KeyA') || keys.has('ArrowLeft')) ? 1 : 0);
     let dy = ((keys.has('KeyS') || keys.has('ArrowDown')) ? 1 : 0) - ((keys.has('KeyW') || keys.has('ArrowUp')) ? 1 : 0);
-    if (view_mode === 'cockpit') {
-        const movement = cabin_movement(dt, dx, dy);
-        dx = movement.x;
-        dy = movement.y;
-    }
-    else if (joystick.active) {
+    if (joystick.active) {
         dx = joystick.dx;
         dy = joystick.dy;
     }
@@ -171,9 +166,6 @@ function update(dt)
         if (steer) {
             dx = steer.x;
             dy = steer.y;
-            if ((view_mode === 'cockpit') && (Math.hypot(dx, dy) > 0.04)) {
-                cabin.yaw = cabin_angle_from_delta(cabin.yaw + cabin_angle_from_delta(Math.atan2(dy, dx) - cabin.yaw)*(1 - Math.exp(-3.5*dt)));
-            }
         }
     }
     waypoint_steer();
@@ -224,15 +216,8 @@ function update(dt)
         return;
     }
     update_camera(dt);
-    if (view_mode === 'cockpit') {
-        const point = cabin_point_from_screen({x: pointer.screen_x, y: pointer.screen_y});
-        pointer.x = point.x;
-        pointer.y = point.y;
-    }
-    else {
-        pointer.x = pointer.screen_x/zoom + camera.x;
-        pointer.y = pointer.screen_y/zoom + camera.y;
-    }
+    pointer.x = pointer.screen_x/zoom + camera.x;
+    pointer.y = pointer.screen_y/zoom + camera.y;
     let target = null;
     let near = Infinity;
     for (let i = 0, end = enemies.length; i < end; ++i) {

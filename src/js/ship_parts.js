@@ -1,4 +1,4 @@
-// Upgrades you can see on the ship (the designer's ship-composer.js): the parts (sprites/parts/3d and flat) for what
+// Upgrades you can see on the ship (the designer's ship-composer.js): the parts (sprites/parts/3d) for what
 // the ship carries, pinned on the anchors of its drawing; armour plates on the flanks, boosters on the main engines,
 // side thrusters on the small ones, the magnet, the reactor and its radiator, the prism on the nose, the shield bubble.
 // Laid out once per change of loadout, in the ship drawing's 256 canvas.
@@ -25,7 +25,7 @@ function ship_parts_loadout(levels = upgrades)
 // The parts of a ship with a loadout: [{sprite, x, y, size, rot}] on the 256 canvas, in draw order
 function ship_parts_layout(ship_id, loadout)
 {
-    const text = sprite_svgs[sprite_set]?.[`ship-${ship_id}`] || '';
+    const text = sprite_svgs['3d']?.[`ship-${ship_id}`] || '';
     const a = ship_parts_anchors(text);
     const ids = Object.keys(a);
     const out = [];
@@ -65,6 +65,15 @@ function ship_parts_layout(ship_id, loadout)
     if (loadout.prism && a.nose) {
         out.push({sprite: 'prism', x: a.nose.x, y: a.nose.y - a.nose.r*0.6, size: a.nose.r*6.4, rot: 0});
     }
+    // the gun, on the turret marks the flight draws it on (the first two), its barrel to the nose as drawn
+    if (loadout.gun) {
+        const ship = ship_catalog.find(v => v.id === ship_id);
+        const size = (turret_box(ship)*sprite_span)/ship_sprite(ship).length;
+        const marks = ids.filter(v => v.startsWith('turret-')).sort().map(v => a[v]);
+        for (const m of marks.slice(0, 2)) {
+            out.push({sprite: `turret-${loadout.gun}`, art: `weapons/turret-${loadout.gun}`, x: m.x, y: m.y, size, rot: 0});
+        }
+    }
     if (loadout.shield && a.shield) {
         out.push({sprite: `shield-${loadout.shield}`, x: a.shield.x, y: a.shield.y, size: (256*a.shield.r)/120, rot: 0, shield: true});
     }
@@ -97,7 +106,7 @@ function ship_parts_pinned(sprite, x, y, dx, dy, size)
 function ship_parts_player()
 {
     const loadout = ship_parts_loadout();
-    const key = `${current_ship().id}:${sprite_set}:${JSON.stringify(loadout)}`;
+    const key = `${current_ship().id}:3d:${JSON.stringify(loadout)}`;
     if (ship_parts_cache.key !== key) {
         ship_parts_cache = {key, ops: ship_parts_layout(current_ship().id, loadout)};
     }
@@ -119,19 +128,21 @@ function ship_parts_draw(length, x, y, angle, alpha)
     ctx.scale(unit, unit);
     for (const v of ops) {
         const k = v.shield ? clamp(player.shield/Math.max(1, shield_max()), 0.25, 1) : 1;
-        sprite_draw_box(`parts/${sprite_set}/${v.sprite}`, null, v.size, v.x - 128, v.y - 128, v.rot, alpha*k);
+        sprite_draw_box(`parts/3d/${v.sprite}`, null, v.size, v.x - 128, v.y - 128, v.rot, alpha*k);
     }
     ctx.restore();
 }
 
-// A ship with a loadout as one <svg> (the depot's preview): the hull, its parts and its orbiting drones, as the
-// designer's toSvg does; with base, what the loadout adds to it pulses gold
-function ship_parts_svg(ship_id, loadout, base = null)
+// A ship with a loadout as one <svg> (the depot's preview): the hull, its parts, its gun (loadout.gun) and its orbiting
+// drones, as the designer's toSvg does; with base, what the loadout adds to it pulses gold, and so do the parts named
+// `pulse` (e.g. magnet), for a level that adds no drawing of its own
+function ship_parts_svg(ship_id, loadout, base = null, pulse = '')
 {
     const had = new Set(base ? ship_parts_layout(ship_id, base).map(ship_parts_place) : []);
     const parts = ship_parts_layout(ship_id, loadout).map(function (v) {
-        const ghost = base && !had.has(ship_parts_place(v)) ? ' class="parts-ghost"' : '';
-        return `<image${ghost} href="${ship_parts_url(`parts/3d/${v.sprite}`)}" x="${-v.size/2}" y="${-v.size/2}" width="${v.size}" height="${v.size}" transform="translate(${v.x} ${v.y}) rotate(${(v.rot*180)/Math.PI})"/>`;
+        const ghost = ((base && !had.has(ship_parts_place(v))) || (pulse && v.sprite.startsWith(pulse))) ? ' class="parts-ghost"' : '';
+        const href = v.art ? ship_parts_clean_url(v.art) : ship_parts_url(`parts/3d/${v.sprite}`);
+        return `<image${ghost} href="${href}" x="${-v.size/2}" y="${-v.size/2}" width="${v.size}" height="${v.size}" transform="translate(${v.x} ${v.y}) rotate(${(v.rot*180)/Math.PI})"/>`;
     });
     for (let i = 0; i < (loadout.drones || 0); ++i) {
         const ghost = base && (i >= (base.drones || 0)) ? ' parts-ghost' : '';
@@ -156,13 +167,19 @@ function ship_parts_url(path)
     return ship_parts_urls.get(path);
 }
 
-// The ship's drawing without its anchor marks (sprite() strips them) as an image URL
+// The ship's drawing without its anchor marks as an image URL
 function ship_parts_hull_url(ship_id)
 {
-    const key = `hull:${ship_id}`;
+    return ship_parts_clean_url(`3d/ship-${ship_id}`);
+}
+
+// A drawing without its anchor marks (sprite() strips them) as an image URL: a hull, a turret
+function ship_parts_clean_url(name)
+{
+    const key = `clean:${name}`;
     if (!ship_parts_urls.has(key)) {
-        const ship = sprite(`3d/ship-${ship_id}`);
-        ship_parts_urls.set(key, ship ? menu_sprite_url(new XMLSerializer().serializeToString(ship.svg)) : '');
+        const art = sprite(name);
+        ship_parts_urls.set(key, art ? menu_sprite_url(new XMLSerializer().serializeToString(art.svg)) : '');
     }
     return ship_parts_urls.get(key);
 }

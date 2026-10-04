@@ -1,5 +1,5 @@
-// Settings, one panel for the menu, pause, the station and the HUD: music, sound, the ships' drawings, the view, effects
-// and fullscreen as switches, the volumes under them. Every switch does what its old toolbar button did.
+// Settings, one panel for the menu, pause, the station and the HUD: music, sound, effects and fullscreen
+// as switches, the volumes under them. Every switch does what its old toolbar button did.
 let settings_music_volume = 0.65;
 
 for (const v of document.querySelectorAll('[data-setting] [data-value]')) {
@@ -24,14 +24,6 @@ function settings_set(name, value)
     else if ((name === 'sound') && ((value === 'off') !== muted)) {
         toggle_sound();
     }
-    else if ((name === 'ships') && (sprite_set !== value)) {
-        sprite_set_toggle();
-    }
-    else if (name === 'view') {
-        for (let i = 0; (i < 3) && (view_mode !== value); ++i) {
-            toggle_view();
-        }
-    }
     else if ((name === 'effects') && ((value === 'on') !== full_fx)) {
         full_fx = !full_fx;
     }
@@ -45,8 +37,6 @@ function sync_settings_rows()
     const now = {
         music: (volume_settings.music > 0) ? 'on' : 'off',
         sound: muted ? 'off' : 'on',
-        ships: sprite_set,
-        view: view_mode,
         effects: full_fx ? 'on' : 'off',
     };
     for (const v of document.querySelectorAll('[data-setting] [data-value]')) {

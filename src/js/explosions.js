@@ -233,25 +233,12 @@ function shield_hit_show(target, before)
     }
 }
 
-// The top-down views draw in world units; the cockpit passes the projected point and its scale.
+// Drawn in world units.
 function render_explosions()
 {
     for (const explosion of explosions) {
         if ((explosion.t >= 0) && in_view(explosion, explosion.size*3)) {
             explosion_draw(explosion, explosion.x, explosion.y, 1);
-        }
-    }
-}
-
-function render_explosions_in_cabin()
-{
-    for (const explosion of explosions) {
-        if (explosion.t < 0) {
-            continue;
-        }
-        const p = cabin_project(explosion, 0, explosion.size*3);
-        if (p) {
-            explosion_draw(explosion, p.x, p.y, p.k);
         }
     }
 }

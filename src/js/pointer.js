@@ -1,8 +1,5 @@
 function pointer_position(event)
 {
-    if (view_mode === 'cockpit') {
-        return {x: clamp(event.clientX, 0, width), y: clamp(event.clientY, 0, height)};
-    }
     return {x: clamp((event.clientX - ox)/scale, 0, W), y: clamp((event.clientY - oy)/scale, 0, H)};
 }
 
@@ -10,7 +7,7 @@ function update_pointer(p)
 {
     pointer.screen_x = p.x;
     pointer.screen_y = p.y;
-    const point = (view_mode === 'cockpit') ? cabin_point_from_screen(p) : {x: p.x/zoom + camera.x, y: p.y/zoom + camera.y};
+    const point = {x: p.x/zoom + camera.x, y: p.y/zoom + camera.y};
     pointer.x = point.x;
     pointer.y = point.y;
     pointer.active = true;
@@ -18,7 +15,7 @@ function update_pointer(p)
 
 function set_mouse_destination(p)
 {
-    const point = (view_mode === 'cockpit') ? cabin_point_from_screen(p, true) : {x: p.x/zoom + camera.x, y: p.y/zoom + camera.y};
+    const point = {x: p.x/zoom + camera.x, y: p.y/zoom + camera.y};
     mouse_drive.x = clamp(point.x, 24, world.w - 24);
     mouse_drive.y = clamp(point.y, 24, world.h - 24);
     mouse_drive.screen_x = p.x;

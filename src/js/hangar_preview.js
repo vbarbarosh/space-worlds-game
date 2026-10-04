@@ -1,4 +1,4 @@
-// Hangar previews: in the rendered view each ship card shows its ship alive on a small canvas. The engines idle, the
+// Hangar previews: each ship card shows its ship alive on a small canvas. The engines idle, the
 // turrets follow the pointer over the card, a press fires the equipped weapon, and holding BOOST (or Shift over the
 // card) lights the engines up. The game's frame loop draws them while the hangar is open.
 const hangar_previews = new WeakMap();
@@ -19,7 +19,7 @@ function hangar_preview_html(v)
 
 function hangar_previews_tick(dt)
 {
-    if ((state !== 'upgrade') || (station_tab !== 'hangar') || (view_mode === 'wireframe')) {
+    if ((state !== 'upgrade') || (station_tab !== 'hangar')) {
         return;
     }
     for (const canvas of document.querySelectorAll('.fleet-preview')) {

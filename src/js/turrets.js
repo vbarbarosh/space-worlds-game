@@ -15,9 +15,6 @@ function update_ship_orientation(dt, target, dx, dy)
     else if (target) {
         aim = Math.atan2(target.y - player.y, target.x - player.x);
     }
-    else if (view_mode === 'cockpit') {
-        aim = cabin.yaw;
-    }
     else if (Math.hypot(dx, dy) > 0.1) {
         aim = Math.atan2(dy, dx);
     }
@@ -27,9 +24,8 @@ function update_ship_orientation(dt, target, dx, dy)
 
 function turret_mounts(ship = current_ship())
 {
-    // In the rendered view the turrets sit where the drawing marks them: its first two gun mounts, or its one mount
-    // twice
-    const art = (view_mode === 'wireframe') ? null : ship_sprite(ship);
+    // The turrets sit where the drawing marks them: its first two gun mounts, or its one mount twice
+    const art = ship_sprite(ship);
     const points = (art && sprite(art.name) && sprite_anchors(art.name, art.length).points) || {};
     const marks = Object.keys(points).filter(v => v.startsWith('turret-')).sort().map(v => points[v]);
     if (marks.length) {
@@ -76,11 +72,11 @@ function turret_box(ship)
 }
 
 // The muzzle marks of the weapon's turret on that ship, in game units from the turret's pivot, barrel along +x;
-// null in the wireframe view or without a drawing
+// null without a drawing
 function turret_muzzles(ship, weapon)
 {
     const name = `weapons/turret-${weapon.id}`;
-    if ((view_mode === 'wireframe') || !sprite(name)) {
+    if (!sprite(name)) {
         return null;
     }
     const points = sprite_anchors_box(name, turret_box(ship)).points;
@@ -119,55 +115,25 @@ function render_ship_turrets(alpha = 1)
 }
 
 // One turret at the origin of `draw`, barrel along +x, pulled back by `recoil` after a shot: the weapon's drawing,
-// `box` game units across, in the weapon's colour; the plain turret in the wireframe view or while it loads
+// `box` game units across, in the weapon's colour; the plain turret while it loads
 function turret_draw(draw, weapon, box, recoil)
 {
-    if ((view_mode !== 'wireframe') && sprite_draw_box(`weapons/turret-${weapon.id}`, weapon.color, box, -recoil*0.4, 0, 0, 1, 0, draw)) {
+    if (sprite_draw_box(`weapons/turret-${weapon.id}`, weapon.color, box, -recoil*0.4, 0, 0, 1, 0, draw)) {
         return;
     }
     const color = weapon.color;
     draw.fillStyle = '#07101b';
-    draw.strokeStyle = (view_mode === 'wireframe') ? color : '#b7ced9';
+    draw.strokeStyle = '#b7ced9';
     draw.lineWidth = 1;
     draw.beginPath();
     draw.arc(0, 0, 4.5, 0, Math.PI*2);
     draw.fill();
     draw.stroke();
-    draw.fillStyle = (view_mode === 'wireframe') ? '#214e5a' : '#8396a7';
+    draw.fillStyle = '#8396a7';
     draw.fillRect(0, -2, 12 - recoil, 4);
     draw.strokeRect(0, -2, 12 - recoil, 4);
     draw.fillStyle = color;
     draw.fillRect(10 - recoil, -1.3, 3, 2.6);
-}
-
-function cabin_render_turrets(deck, accent)
-{
-    const W = width;
-    const H = height;
-    const bearing = Math.atan2(Math.sin((player.turret_angle ?? player.angle) - cabin.yaw), Math.cos((player.turret_angle ?? player.angle) - cabin.yaw));
-    const fire = (player.shoot_cd > 0) && (player.shoot_cd < 0.09) && (state === 'playing');
-    for (const side of [-1, 1]) {
-        const x = W*0.5 + side*W*0.2;
-        material_box(ctx, x - W*0.028, deck - H*0.012, W*0.056, H*0.12, '#425361');
-        ctx.save();
-        ctx.translate(x, deck + H*0.022);
-        ctx.rotate(clamp(bearing, -1.6, 1.6)*0.65);
-        material_box(ctx, -W*0.014, -H*0.05, W*0.028, H*0.06, '#687e92');
-        ctx.fillStyle = '#0a1019';
-        ctx.fillRect(-W*0.007, -H*0.06, W*0.014, H*0.044);
-        ctx.fillStyle = accent;
-        ctx.fillRect(-W*0.007, -H*0.063, W*0.014, 3);
-        if (fire && full_fx) {
-            ctx.fillStyle = `${accent}77`;
-            ctx.beginPath();
-            ctx.moveTo(-5, -H*0.061);
-            ctx.lineTo(0, -H*0.11);
-            ctx.lineTo(5, -H*0.061);
-            ctx.fill();
-        }
-        ctx.restore();
-    }
-    cabin_label(`TURRET ${Math.round((bearing*180)/Math.PI)}°`, W*0.6, H*0.888, (W < 700) ? 6 : 8, accent, 'center');
 }
 
 // The minimap's corner button hides it and brings it back (minimap_on, in globals), and the choice is kept

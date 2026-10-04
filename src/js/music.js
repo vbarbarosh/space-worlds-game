@@ -77,7 +77,7 @@ function schedule_music()
         v.bus.disconnect();
         return false;
     });
-    const active = (settings_open || ['menu', 'playing', 'upgrade', 'transit', 'victory'].includes(state)) && !document.hidden && !muted;
+    const active = (settings_open || ['menu', 'playing', 'upgrade', 'transit', 'victory', 'finale'].includes(state)) && !document.hidden && !muted;
     const level = active
         ? (now < sound.duck_until)
             ? 0.38
@@ -231,8 +231,7 @@ function sfx(kind, volume = 1, position = null, when)
     let pan = 0;
     if (position && player) {
         const dx = position.x - player.x;
-        const dy = position.y - player.y;
-        pan = clamp(((view_mode === 'cockpit') ? Math.sin(Math.atan2(dy, dx) - player.angle)*Math.hypot(dx, dy) : dx)/750, -0.85, 0.85);
+        pan = clamp(dx/750, -0.85, 0.85);
         volume *= clamp(1 - distance(player, position)/1500, 0.12, 1);
     }
     const shape = {pan};

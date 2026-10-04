@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-<g id="base" stroke="#1b1f27" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"><path d="M17 20 L47 20 L49 34 L15 34 Z" fill="#5d6874"/><path d="M19 32 L45 32 L50 50 Q32 54 14 50 Z" fill="#a9b3be"/><path d="M32 32 L45 32 L50 50 Q32 54 32 52 Z" fill="#1b1f27" fill-opacity="0.14" stroke="none"/><ellipse cx="32" cy="50" rx="16" ry="3.2" fill="#2c343e" stroke-width="1.6"/><ellipse cx="32" cy="50" rx="14" ry="2.2" fill="#ff9a4a" stroke="none"/><path d="M15 34 L7 46 L8 52 L14 46 Z" fill="#a9b3be"/><path d="M49 34 L57 46 L56 52 L50 46 Z" fill="#a9b3be"/><path d="M16 12 L12 12 L11 22 L17 22 Z" fill="#5d6874"/><path d="M48 12 L52 12 L53 22 L47 22 Z" fill="#5d6874"/></g>
-<g id="accent" stroke="#1b1f27" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"><path d="M18 24 L46 24 L47 29 L17 29 Z" fill="#e8743b" stroke-width="1.4"/><circle cx="14" cy="16" r="1.8" fill="#e8743b" stroke-width="1"/><circle cx="50" cy="16" r="1.8" fill="#e8743b" stroke-width="1"/></g>
-</svg>

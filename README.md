@@ -10,8 +10,8 @@ Two modes:
   flagship in the third. Raiders come in squadrons; from the second world
   on, elites lead some of them; the flagship turns at 66% and 33%. A ship
   that explodes hurts what is close to it. The salvage you collect buys
-  repairs, weapons, supplies and modules at the station's depot (R). A cleared world pays a fixed bonus, the weapon
-  grows a tier, and the depot opens before the next world. Score, combo and a best score; no
+  repairs, weapons, ships, supplies and modules at the station's depot (R). A cleared world pays a fixed bonus, the weapon
+  grows a tier, and the depot opens before the next world. Score, combo and a best score (salvage left at the end scores 10 points each); no
   stations, contracts or saves.
 - **Campaign**: the stations, contracts, trading and story chapters; see
   [docs/scenario/](docs/scenario/README.md).
@@ -73,9 +73,9 @@ for the dev page.
     src/js/worlds/   one file per world: map, look, flight rules, expedition, music
     src/js/ships/    one file per ship class: catalog entry and hull profile
     src/js/sfx/      one file per sound effect: its cooldown and its synth calls
-    src/sprites/     drawings (SVG): ships in 3d and flat, weapons, pickups, worlds/<world>; a
+    src/sprites/     drawings (SVG): ships in 3d, weapons, pickups, worlds/<world>; a
                      `<!-- svgs sprites as sprite_svgs -->` line packs them
-                     into the page, and the 3D / FLAT button switches the set
+                     into the page
     src/dev.html     what the dev page adds into the slots of src/index.html
     src/js/dev/      the dev panel: time, cheats, scenario, one file per tab
     src/agent.html   what the agent's page adds: storage of its own, the captain hook

@@ -230,10 +230,6 @@ function start_jump(destination)
     player.dash_time = 0;
     hostile = [];
     bullets = [];
-    if (view_mode === 'cockpit') {
-        ring(player.x, player.y, destination.color, 260, 0.8);
-        burst(player.x, player.y, destination.color, 75, 450);
-    }
     sfx('portal');
 }
 
@@ -269,10 +265,6 @@ function guide_base_update_jump(dt)
         player.invincible = 3;
         trail = [];
         update_camera(0, true);
-        if (view_mode === 'cockpit') {
-            burst(player.x, player.y, jump.color, 90, 450);
-            ring(player.x, player.y, jump.color, 280, 0.9);
-        }
     }
     teleport_view();
     if (jump.t >= jump.duration) {
@@ -287,56 +279,6 @@ function guide_base_update_jump(dt)
         (previous.world !== undefined) ? show_world_arrival(previous.label) : show_toast(previous.label, `LOCAL ARRIVAL / ${current_world_rules().name}`, 3);
         save_checkpoint();
     }
-}
-
-// The cockpit's jump; the other views play the teleport (teleport.js)
-function render_jump()
-{
-    if (!jump) {
-        return;
-    }
-    if (view_mode !== 'cockpit') {
-        render_teleport_screen();
-        return;
-    }
-    const p = jump.t/jump.duration;
-    const envelope = Math.sin(Math.PI*p);
-    ctx.save();
-    ctx.fillStyle = `rgba(3,6,20,${envelope*0.94})`;
-    ctx.fillRect(0, 0, W, H);
-    ctx.translate(W/2, H/2);
-    ctx.strokeStyle = jump.color;
-    ctx.globalAlpha = envelope;
-    ctx.lineWidth = 2;
-    const r = Math.max(W, H);
-    for (let i = 0; i < (full_fx ? 65 : 12); ++i) {
-        const a = i*2.39996 + clock*0.08;
-        const phase = (i*0.137 + p*3) % 1;
-        const near = 30 + phase*phase*r;
-        const far = near + 40 + phase*160;
-        ctx.globalAlpha = envelope*(0.3 + phase*0.7);
-        ctx.beginPath();
-        ctx.moveTo(Math.cos(a)*near, Math.sin(a)*near);
-        ctx.lineTo(Math.cos(a)*far, Math.sin(a)*far);
-        ctx.stroke();
-    }
-    ctx.globalAlpha = envelope;
-    for (let i = 0; i < 7; ++i) {
-        const radius = 35 + ((i/7 + p*1.6) % 1)*r*0.65;
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.ellipse(0, 0, radius, radius*0.6, p*1.4, 0, Math.PI*2);
-        ctx.stroke();
-    }
-    ship(0, 0, -Math.PI/2, 1);
-    ctx.fillStyle = '#f0fffc';
-    ctx.textAlign = 'center';
-    ctx.font = 'bold 18px ui-monospace,monospace';
-    ctx.fillText(jump.label, 0, H*0.25);
-    ctx.font = '10px ui-monospace,monospace';
-    ctx.fillStyle = jump.color;
-    ctx.fillText((p < 0.5) ? 'GATE ALIGNMENT / SPACETIME FOLD' : 'FLIGHT VECTOR / ARRIVAL', 0, H*0.25 + 25);
-    ctx.restore();
 }
 
 function guide_base_update_frontier(dt)
@@ -493,7 +435,7 @@ function physics_base_render_navigation_objects()
         if (!in_view(world_gate, 200)) {
             continue;
         }
-        if ((view_mode === 'rendered') && render_gate_shell(world_gate, true)) {
+        if (render_gate_shell(world_gate, true)) {
             // The drawing has its own rings; a glow fills its opening in the colour of where it leads
             const g = ctx.createRadialGradient(world_gate.x, world_gate.y, 4, world_gate.x, world_gate.y, 78);
             g.addColorStop(0, `${world_gate.color}55`);
@@ -535,12 +477,7 @@ function physics_base_render_navigation_objects()
     }
     if (escort) {
         const angle = Math.atan2(escort.destination.y - escort.y, escort.destination.x - escort.x);
-        if (view_mode === 'wireframe') {
-            wireframe_hauler(escort.x, escort.y, angle, sprite_sizes.freighter, gold);
-        }
-        else {
-            render_surface_ship(escort.x, escort.y, angle, 1, false, {...current_ship(), sprite: {name: 'freighter', length: sprite_sizes.freighter}});
-        }
+        render_surface_ship(escort.x, escort.y, angle, 1, false, {...current_ship(), sprite: {name: 'freighter', length: sprite_sizes.freighter}});
         // below the hull; the guide's marker names it above
         world_label(escort.x, escort.y + sprite_sizes.freighter*0.6 + 4, 'FREIGHTER', `${Math.ceil(escort.hp)} hull`, gold);
     }
@@ -582,7 +519,7 @@ function guide_base_render_screen_controls()
             world_label(px, py - above - 31, waypoint.label.toUpperCase(), `${d} m`, gold);
         }
     }
-    render_jump();
+    render_teleport_screen();
 }
 document.getElementById('nav_button').addEventListener('click', toggle_navigation);
 document.getElementById('dock_button').addEventListener('click', interact);

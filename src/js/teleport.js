@@ -2,14 +2,14 @@
 // between the gates of a pair keeps the world on screen: the ship is pulled into the gate, a comet crosses to the other
 // one with the camera after it, and the ship leaves that gate the way it was flying. A jump through a world gate
 // charges the gate, pulls the ship in with a flash, runs a tunnel of this world's rings and then the destination's, and
-// flashes again on arrival. The cockpit view keeps the old effect.
+// flashes again on arrival.
 const hop_duration = 0.9;
 const warp_duration = 2.5;
 const teleport_px = {'hop-burst': 512, 'hop-trail': 512, 'warp-burst': 1024, 'warp-ring': 1024};
 
 function teleport_active()
 {
-    return !!jump && (view_mode !== 'cockpit');
+    return !!jump;
 }
 
 // What a jump needs to be played, filled in as it starts: where the ship was, the camera's zoom, and for a hop the
@@ -44,10 +44,8 @@ function teleport_end(v)
         player.vy = v.vy;
         player.angle = v.angle;
     }
-    if (view_mode !== 'cockpit') {
-        zoom_target = null;
-        zoom_apply(v.zoom0);
-    }
+    zoom_target = null;
+    zoom_apply(v.zoom0);
 }
 
 // Each frame of a hop the camera eases out and follows the comet from gate to gate
@@ -108,9 +106,6 @@ function teleport_gate_spin(v)
 // A visible gate asks for its jump's parts ahead, so the first frames of a jump have them ready
 function teleport_warm(v, world_gate)
 {
-    if (view_mode === 'wireframe') {
-        return;
-    }
     if (world_gate) {
         teleport_raster(campaign.world, 'warp-burst', v.color);
         teleport_raster(campaign.world, 'warp-ring', null);
@@ -123,13 +118,10 @@ function teleport_warm(v, world_gate)
     }
 }
 
-// A world's part, its accent painted `tint` (null keeps the world's own); null in the wireframe view, where the world
+// A world's part, its accent painted `tint` (null keeps the world's own); null where the world
 // has none, or while it loads
 function teleport_raster(id, part, tint)
 {
-    if (view_mode === 'wireframe') {
-        return null;
-    }
     const name = `worlds/${world_slug(id)}/${part}`;
     return sprite(name) ? sprite_raster(name, tint, teleport_px[part]) : null;
 }

@@ -88,7 +88,7 @@ function render_projectiles()
     gather(bullets, true);
     gather(hostile, false);
     // Missiles are drawn rockets when the designer's drawing is there
-    const rocket = (view_mode !== 'wireframe') && sprite('weapons/projectile-missile');
+    const rocket = sprite('weapons/projectile-missile');
     for (const group of groups.values()) {
         if (rocket && (group.type === 'missile')) {
             for (const v of group.items) {

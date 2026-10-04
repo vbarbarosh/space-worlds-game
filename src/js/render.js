@@ -49,9 +49,7 @@ function base_render_navigation_objects()
         if (!in_view(portal, 120)) {
             continue;
         }
-        if (view_mode === 'rendered') {
-            render_gate_shell(portal, false);
-        }
+        render_gate_shell(portal, false);
         ctx.save();
         ctx.translate(portal.x, portal.y);
         ctx.shadowColor = portal.color;
@@ -84,50 +82,7 @@ function base_render_navigation_objects()
         if (!in_view(black_hole, black_hole.radius)) {
             continue;
         }
-        if (view_mode === 'rendered') {
-            render_singularity_surface(black_hole);
-            continue;
-        }
-        ctx.save();
-        const g = ctx.createRadialGradient(black_hole.x, black_hole.y, black_hole.core, black_hole.x, black_hole.y, black_hole.radius);
-        g.addColorStop(0, '#ff5baf35');
-        g.addColorStop(0.45, '#8d9cff0d');
-        g.addColorStop(1, '#8d9cff00');
-        ctx.fillStyle = g;
-        ctx.beginPath();
-        ctx.arc(black_hole.x, black_hole.y, black_hole.radius, 0, Math.PI*2);
-        ctx.fill();
-        ctx.strokeStyle = '#ff5baf22';
-        ctx.setLineDash([3, 17]);
-        ctx.beginPath();
-        ctx.arc(black_hole.x, black_hole.y, black_hole.radius, 0, Math.PI*2);
-        ctx.stroke();
-        ctx.setLineDash([]);
-        ctx.strokeStyle = '#ff5baf55';
-        ctx.lineWidth = 1;
-        for (let i = 0; i < 6; ++i) {
-            const a = clock*0.4 + black_hole.phase + (i*Math.PI)/3;
-            ctx.beginPath();
-            ctx.arc(black_hole.x, black_hole.y, black_hole.core + 35 + i*22, a, a + Math.PI*0.9);
-            ctx.stroke();
-        }
-        ctx.shadowColor = pink;
-        ctx.shadowBlur = full_fx ? 28 : 0;
-        ctx.strokeStyle = '#ffb77b';
-        ctx.lineWidth = 5;
-        ctx.beginPath();
-        ctx.ellipse(black_hole.x, black_hole.y, black_hole.core*1.8, black_hole.core*0.55, -0.3, 0, Math.PI*2);
-        ctx.stroke();
-        ctx.shadowBlur = 0;
-        ctx.fillStyle = '#000';
-        ctx.beginPath();
-        ctx.arc(black_hole.x, black_hole.y, black_hole.core, 0, Math.PI*2);
-        ctx.fill();
-        ctx.strokeStyle = pink;
-        ctx.lineWidth = 2;
-        ctx.stroke();
-        world_label(black_hole.x, black_hole.y + black_hole.core + 60, 'BLACK HOLE', 'Fatal core', pink);
-        ctx.restore();
+        render_singularity_surface(black_hole);
     }
 }
 
@@ -242,10 +197,6 @@ function base_render_screen_controls()
 
 function render()
 {
-    if ((view_mode === 'cockpit') && player && (state !== 'menu')) {
-        render_cabin();
-        return;
-    }
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     if (ox || oy) {
         ctx.fillStyle = '#080b17';
@@ -373,7 +324,7 @@ function render()
 // Orbit drones circle just outside the rings around the ship, whatever its size
 function orbit_drone_radius()
 {
-    return (view_mode === 'wireframe') ? 46 : Math.max(46, ship_halo() + 18);
+    return Math.max(46, ship_halo() + 18);
 }
 
 function update_equipment(dt)
@@ -435,7 +386,7 @@ function render_equipment()
         const x = player.x + Math.cos(a)*orbit_drone_radius();
         const y = player.y + Math.sin(a)*orbit_drone_radius();
         // the designer's combat drone, flying along its orbit in the player ships' colour
-        if ((view_mode === 'wireframe') || !sprite_draw('drones/orbit-drone', '#e8743b', 18, x, y, a + Math.PI/2)) {
+        if (!sprite_draw('drones/orbit-drone', '#e8743b', 18, x, y, a + Math.PI/2)) {
             polygon(x, y, 6, 4, -a, blue, '#18263c');
         }
     }

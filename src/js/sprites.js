@@ -1,5 +1,4 @@
-// Sprites: the SVGs of src/sprites/, packed into sprite_svgs by bin/build. Ships come in two sets, 3d and flat, picked
-// with the sprites button; weapons/ holds the turrets and the missile, drones/ the orbit, builder and survey drones,
+// Sprites: the SVGs of src/sprites/, packed into sprite_svgs by bin/build. Ships are in 3d/; weapons/ holds the turrets and the missile, drones/ the orbit, builder and survey drones,
 // structures/ what the builder builds, pickups/ the loot of every world, worlds/<world>/ a world's objects. A ship is nose up on a 256 canvas, its longest side 228 units; an anchors layer marks flames
 // (lines from the nozzle, as long as a full-thrust flame) and points (turrets, muzzles, berths, beam).
 const sprite_cache = new Map();
@@ -17,41 +16,17 @@ const sprite_sizes = {
     pickup: 15,
 };
 const sprite_span = 228;
-const sprite_sets = ['3d', 'flat'];
-let sprite_set = '3d';
-try {
-    const saved = localStorage.getItem('pulse_drift_sprites');
-    if (sprite_sets.includes(saved)) {
-        sprite_set = saved;
-    }
-}
-catch {
-}
-
-function sprite_set_toggle()
-{
-    sprite_set = sprite_sets[(sprite_sets.indexOf(sprite_set) + 1) % sprite_sets.length];
-    try {
-        localStorage.setItem('pulse_drift_sprites', sprite_set);
-    }
-    catch {
-    }
-    performance_render_dirty = true;
-    if ((state === 'upgrade') && (station_tab === 'hangar')) {
-        render_station();
-    }
-}
 
 // The parsed drawing, its anchors as fractions of the canvas from its centre, and its rasters; null for a name with
-// no file. A plain name is a ship of the chosen set; a path (weapons/turret-ion, worlds/haven/station) is that file.
+// no file. A plain name is a ship of 3d/; a path (weapons/turret-ion, worlds/haven/station) is that file.
 // Ships, turrets, the missile and drones point their nose up and are turned to +x; the rest keep their orientation.
 function sprite(name)
 {
-    const key = name.includes('/') ? name : `${sprite_set}:${name}`;
+    const key = name.includes('/') ? name : `3d:${name}`;
     if (sprite_cache.has(key)) {
         return sprite_cache.get(key);
     }
-    const text = name.includes('/') ? name.split('/').reduce((v, k) => v?.[k], sprite_svgs) : sprite_svgs[sprite_set][name];
+    const text = name.includes('/') ? name.split('/').reduce((v, k) => v?.[k], sprite_svgs) : sprite_svgs['3d'][name];
     if (typeof text !== 'string') {
         sprite_cache.set(key, null);
         return null;
@@ -237,12 +212,9 @@ function sprite_flames(draw, flames, power, color, flicker = 0)
 }
 
 // The current world's drawing of an object (worlds/haven/station), or null where the world has none yet, so the
-// caller draws today's look; the wireframe view never uses them
+// caller draws today's look
 function world_art(name)
 {
-    if (view_mode === 'wireframe') {
-        return null;
-    }
     const path = `worlds/${world_slug()}/${name}`;
     return sprite(path) ? path : null;
 }
@@ -269,9 +241,8 @@ function enemy_sprite(enemy)
     return {name: `enemy-${enemy.type}${enemy.elite ? '-elite' : ''}`, length: enemy.r*sprite_sizes.raider};
 }
 
-// The radius of the rings around your ship (shield, invincibility, pulse ready): clear of its hull in the rendered
-// view, as before in the wireframe one
+// The radius of the rings around your ship (shield, invincibility, pulse ready): clear of its hull
 function ship_halo()
 {
-    return (view_mode === 'wireframe') ? 26 : Math.max(26, ship_sprite(current_ship()).length*0.58);
+    return Math.max(26, ship_sprite(current_ship()).length*0.58);
 }

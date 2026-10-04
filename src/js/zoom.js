@@ -46,15 +46,8 @@ function zoom_apply(next)
 {
     zoom = next;
     update_camera(0, true);
-    if (view_mode === 'cockpit') {
-        const point = cabin_point_from_screen({x: pointer.screen_x, y: pointer.screen_y});
-        pointer.x = point.x;
-        pointer.y = point.y;
-    }
-    else {
-        pointer.x = pointer.screen_x/zoom + camera.x;
-        pointer.y = pointer.screen_y/zoom + camera.y;
-    }
+    pointer.x = pointer.screen_x/zoom + camera.x;
+    pointer.y = pointer.screen_y/zoom + camera.y;
     performance_render_dirty = true;
 }
 

@@ -466,7 +466,7 @@ function render_outpost_crew(site)
         }
         const key = Object.keys(drone.load).find(v => drone.load[v] > 0);
         const color = key ? ore_color({resource: (key === 'ore') ? null : key}) : null;
-        if ((view_mode === 'wireframe') || !sprite_draw('drone-mining', gold, 18, drone.x, drone.y, drone.angle)) {
+        if (!sprite_draw('drone-mining', gold, 18, drone.x, drone.y, drone.angle)) {
             polygon(drone.x, drone.y, 7, 4, drone.angle, gold, '#2b2210');
         }
         drone_load_dot(drone.x, drone.y, color);

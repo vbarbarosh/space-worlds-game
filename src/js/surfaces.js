@@ -1,36 +1,5 @@
-// The second view uses pre-rendered material sprites, with the original view kept intact.
+// The view uses pre-rendered material sprites.
 const surface_asset_cache = new Map();
-// The page knows the view (CSS keys off data-view); Settings shows it
-function sync_view_button()
-{
-    document.body.setAttribute('data-view', view_mode);
-}
-
-function toggle_view()
-{
-    const modes = ['wireframe', 'rendered', 'cockpit'];
-    view_mode = modes[(modes.indexOf(view_mode) + 1) % modes.length];
-    if ((view_mode === 'cockpit') && player) {
-        cabin.yaw = player.angle;
-    }
-    pointer.active = false;
-    mouse_drive.following = false;
-    try {
-        localStorage.setItem('pulse_drift_view', view_mode);
-    }
-    catch {
-    }
-    sync_view_button();
-    performance_render_dirty = true;
-    if ((state === 'upgrade') && (station_tab === 'hangar')) {
-        render_station();
-    }
-}
-addEventListener('keydown', function (event) {
-    if ((event.code === 'KeyV') && !settings_open && !event.repeat && !['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) {
-        toggle_view();
-    }
-});
 function color_from_shade(hex, amount)
 {
     const n = parseInt(hex.slice(1), 16);
@@ -237,12 +206,7 @@ function render_surface_ship(x, y, angle, alpha = 1, ghost = false, definition =
 
 function ship(x, y, angle, alpha = 1, ghost = false)
 {
-    if (view_mode === 'wireframe') {
-        wireframe_ship(x, y, angle, alpha, ghost);
-    }
-    else {
-        render_surface_ship(x, y, angle, alpha, ghost);
-    }
+    render_surface_ship(x, y, angle, alpha, ghost);
     if (!ghost && player && (x === player.x) && (y === player.y)) {
         render_ship_turrets(alpha);
     }
@@ -276,10 +240,6 @@ function render_hostile_marks()
 
 function render_enemies()
 {
-    if (view_mode === 'wireframe') {
-        wireframe_render_enemies();
-        return;
-    }
     for (const enemy of enemies) {
         if (!in_view(enemy, enemy.r + 40)) {
             continue;
@@ -473,10 +433,6 @@ function scenery_surface(id, variant)
 
 function render_map()
 {
-    if (view_mode === 'wireframe') {
-        wireframe_render_map();
-        return;
-    }
     ctx.save();
     ctx.strokeStyle = `${worlds[campaign.world].accent}22`;
     ctx.lineWidth = 2;
@@ -511,10 +467,6 @@ function render_map()
 
 function render_world_ore(v)
 {
-    if (view_mode === 'wireframe') {
-        wireframe_render_world_ore(v);
-        return;
-    }
     if (!in_view(v, v.r + 8)) {
         return;
     }
@@ -693,10 +645,6 @@ function station_surface(id)
 
 function render_world_station()
 {
-    if (view_mode === 'wireframe') {
-        wireframe_render_world_station();
-        return;
-    }
     if (!in_view(station, station_shelter + 50)) {
         return;
     }
@@ -800,9 +748,6 @@ function render_singularity_surface(v)
 
 function ship_svg(v)
 {
-    if (view_mode === 'wireframe') {
-        return wireframe_ship_svg(v);
-    }
     // The designer's sprite, alive: see hangar_preview.js
     if (sprite(ship_sprite(v).name)) {
         return hangar_preview_html(v);
@@ -815,10 +760,6 @@ function ship_svg(v)
 
 function render_pickups()
 {
-    if (view_mode === 'wireframe') {
-        wireframe_render_pickups();
-        return;
-    }
     const radius = magnetic_radius();
     for (const pickup of pickups) {
         if (!in_view(pickup, radius)) {
@@ -826,7 +767,7 @@ function render_pickups()
         }
         const color = pickup_color(pickup);
         const art = `pickups/${pickup_art(pickup)}`;
-        if ((view_mode !== 'wireframe') && sprite(art)) {
+        if (sprite(art)) {
             const ore = (pickup.type === 'cargo') && resource_of(pickup.key);
             const alpha = (pickup.life < 5) ? 0.5 + Math.sin(clock*10)*0.3 : 1;
             if (sprite_draw_box(art, ore ? color : null, sprite_sizes.pickup, pickup.x, pickup.y, Math.sin(clock*1.5 + pickup.x)*0.25, alpha)) {
@@ -900,124 +841,5 @@ function pickup_tether(pickup, color, radius)
         ctx.lineTo(player.x, player.y);
         ctx.stroke();
         ctx.restore();
-    }
-}
-
-function wireframe_render_pickups()
-{
-    for (const pickup of pickups) {
-        if (!in_view(pickup, magnetic_radius())) {
-            continue;
-        }
-        const color = pickup_color(pickup);
-        ctx.globalAlpha = (pickup.life < 5) ? 0.5 + Math.sin(clock*10)*0.3 : 1;
-        const size = (pickup.type === 'artifact') ? 7 : 11;
-        polygon(pickup.x, pickup.y, size + Math.sin(clock*4 + pickup.phase)*1.5, (pickup.type === 'artifact') ? 6 : 4, Math.PI/4, color, '#102b30');
-        ctx.strokeStyle = color;
-        ctx.lineWidth = 2;
-        if (pickup.type === 'artifact') {
-            ctx.fillStyle = gold;
-            ctx.fillRect(pickup.x - 2, pickup.y - 2, 4, 4);
-        }
-        else {
-            ctx.beginPath();
-            ctx.moveTo(pickup.x - 4, pickup.y);
-            ctx.lineTo(pickup.x + 4, pickup.y);
-            if ((pickup.type === 'health') || (pickup.type === 'medkit')) {
-                ctx.moveTo(pickup.x, pickup.y - 4);
-                ctx.lineTo(pickup.x, pickup.y + 4);
-            }
-            ctx.stroke();
-        }
-        if (full_fx && (distance(pickup, player) < magnetic_radius())) {
-            ctx.globalAlpha = 0.16;
-            ctx.strokeStyle = color;
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.moveTo(pickup.x, pickup.y);
-            ctx.lineTo(player.x, player.y);
-            ctx.stroke();
-        }
-        ctx.globalAlpha = 1;
-    }
-    render_pickup_glints();
-}
-sync_view_button();
-function wireframe_render_enemies()
-{
-    for (const enemy of enemies) {
-        if (!in_view(enemy)) {
-            continue;
-        }
-        const color =
-            (enemy.flash > 0)
-                ? '#ffffff'
-                : enemy.color ||
-                  (((enemy.type === 'shooter') || (enemy.type === 'lancer')) ? gold : (enemy.type === 'tank') ? blue : (enemy.type === 'splitter') ? '#9dff9b' : pink);
-        ctx.shadowColor = color;
-        ctx.shadowBlur = full_fx ? 14 : 0;
-        if (enemy.type === 'boss') {
-            polygon(enemy.x, enemy.y, enemy.r, 6, clock*0.35, color, '#30132d');
-            polygon(enemy.x, enemy.y, enemy.r*0.7, 6, -clock*0.5, color, '#241435');
-            ctx.beginPath();
-            ctx.arc(enemy.x, enemy.y, enemy.r*0.33, 0, Math.PI*2);
-            ctx.fillStyle = color;
-            ctx.fill();
-            ctx.lineWidth = 2;
-            ctx.strokeStyle = pink;
-            ctx.beginPath();
-            ctx.arc(enemy.x, enemy.y, enemy.r + 12, clock, clock + Math.PI*1.5);
-            ctx.stroke();
-        }
-        else if (enemy.type === 'chaser') {
-            polygon(enemy.x, enemy.y, enemy.r, 3, enemy.angle, color, '#311528');
-        }
-        else if (enemy.type === 'splitter') {
-            polygon(enemy.x, enemy.y, enemy.r, 5, clock*0.5, color, '#173229');
-            polygon(enemy.x, enemy.y, enemy.r*0.45, 3, -clock, color, '#173229');
-        }
-        else if (enemy.type === 'lancer') {
-            polygon(enemy.x, enemy.y, enemy.r, 3, (enemy.charge_time > 0) ? enemy.charge_angle : enemy.angle, color, '#30251c');
-            if ((enemy.charge_cd < 0.7) && (enemy.charge_time <= 0)) {
-                ctx.strokeStyle = '#ffd16e55';
-                ctx.setLineDash([5, 5]);
-                ctx.beginPath();
-                ctx.moveTo(enemy.x, enemy.y);
-                ctx.lineTo(enemy.x + Math.cos(enemy.charge_angle)*200, enemy.y + Math.sin(enemy.charge_angle)*200);
-                ctx.stroke();
-                ctx.setLineDash([]);
-            }
-        }
-        else if (enemy.type === 'shooter') {
-            polygon(enemy.x, enemy.y, enemy.r, 4, enemy.angle + Math.PI/4, color, '#30251c');
-            ctx.fillStyle = color;
-            ctx.fillRect(enemy.x - 3, enemy.y - 3, 6, 6);
-        }
-        else {
-            polygon(enemy.x, enemy.y, enemy.r, 6, -clock*0.5, color, '#1e2141');
-            polygon(enemy.x, enemy.y, enemy.r*0.5, 6, clock*0.5, color, '#16192c');
-        }
-        ctx.shadowBlur = 0;
-        if (enemy.shield > 0) {
-            ctx.strokeStyle = `${enemy.color}99`;
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.arc(enemy.x, enemy.y, enemy.r + 7, clock, clock + (Math.PI*2*enemy.shield)/enemy.max_shield);
-            ctx.stroke();
-            shield_shimmer(enemy, enemy.r + 7);
-        }
-        if (enemy.armor > 0) {
-            ctx.strokeStyle = '#e4dcad77';
-            ctx.lineWidth = 3;
-            ctx.beginPath();
-            ctx.arc(enemy.x, enemy.y, enemy.r + 3, 0, Math.PI*0.55);
-            ctx.stroke();
-        }
-        if ((enemy.hp < enemy.max_hp) && (enemy.type !== 'boss')) {
-            ctx.fillStyle = '#ffffff16';
-            ctx.fillRect(enemy.x - enemy.r, enemy.y - enemy.r - 10, enemy.r*2, 3);
-            ctx.fillStyle = color;
-            ctx.fillRect(enemy.x - enemy.r, enemy.y - enemy.r - 10, (enemy.r*2*enemy.hp)/enemy.max_hp, 3);
-        }
     }
 }

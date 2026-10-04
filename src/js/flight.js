@@ -24,10 +24,7 @@ function fly_in_world(dt, dx, dy)
         }
     }
     let target = player.angle;
-    if (view_mode === 'cockpit') {
-        target = cabin.yaw;
-    }
-    else if (input > 0.04) {
+    if (input > 0.04) {
         target = Math.atan2(dy - (auto ? drift.y/speed : 0), dx - (auto ? drift.x/speed : 0));
     }
     const velocity = Math.hypot(player.vx, player.vy);
@@ -45,7 +42,6 @@ function fly_in_world(dt, dx, dy)
         player.vx *= f;
         player.vy *= f;
         player.engine_thrust = 0;
-        player.engine_reverse = false;
     }
     else if ((input > 0.04) || player.turbo_active) {
         const boost = !!player.turbo_active;
@@ -62,9 +58,8 @@ function fly_in_world(dt, dx, dy)
                 desiredSpeed = Math.min(desiredSpeed, speed);
             }
         }
-        const reverse = ((view_mode === 'cockpit') && (input > 0.04) && (dx*Math.cos(player.angle) + dy*Math.sin(player.angle) < 0) && !boost) ? -1 : 1;
-        const tx = Math.cos(player.angle)*desiredSpeed*reverse;
-        const ty = Math.sin(player.angle)*desiredSpeed*reverse;
+        const tx = Math.cos(player.angle)*desiredSpeed;
+        const ty = Math.sin(player.angle)*desiredSpeed;
         const ax = tx - player.vx;
         const ay = ty - player.vy;
         const delta = Math.hypot(ax, ay);
@@ -73,7 +68,6 @@ function fly_in_world(dt, dx, dy)
         player.vx += ax*factor;
         player.vy += ay*factor;
         player.engine_thrust = (boost ? 1 : input)*facing;
-        player.engine_reverse = reverse < 0;
     }
     else {
         const drag = rule.inertial ? Math.max(0.35, rule.drag*4)*(1 + upgrades.stabilizer*0.35) : 6*ship.braking;
@@ -84,7 +78,6 @@ function fly_in_world(dt, dx, dy)
             player.vx = player.vy = 0;
         }
         player.engine_thrust = 0;
-        player.engine_reverse = false;
     }
     if (player.turbo_active) {
         player.dash_time = Math.max(0, player.dash_time - dt);
@@ -313,7 +306,7 @@ function dash(held = false)
         return;
     }
     const moving = Math.hypot(player.vx, player.vy) > 10;
-    player.turbo_heading = moving ? Math.atan2(player.vy, player.vx) : (view_mode === 'cockpit') ? cabin.yaw : player.angle;
+    player.turbo_heading = moving ? Math.atan2(player.vy, player.vx) : player.angle;
     player.dash_time = turbo_fuel();
     player.turbo_active = true;
     player.dash_cd = 0;

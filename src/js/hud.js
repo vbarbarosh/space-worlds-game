@@ -172,7 +172,7 @@ function sync_hud_kit()
 }
 
 // The arcade's card: the world and its wave, the raiders left with the way to the nearest, EMP and Repair in a fight,
-// the depot [R] at the station, and the run's waves as one bar; no routes, contracts or goals
+// the depot [R] at the station (from afar, the course there), and the run's waves as one bar; no routes, contracts or goals
 function sync_arcade_card()
 {
     const id = campaign.world;
@@ -211,6 +211,9 @@ function sync_arcade_card()
         }
         else if (at_depot) {
             acts.append(ui_button({label: 'Depot', key: 'R', kind: 'primary', on: interact}));
+        }
+        else {
+            acts.append(ui_button({label: 'Fly to the depot', key: 'R', on: interact}));
         }
     }
     const done = (wave - 1) + ((arcade.pause > 0) ? 1 : 0);

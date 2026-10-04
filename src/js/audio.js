@@ -305,7 +305,6 @@ function update_audio_scene()
 
 function sync_settings()
 {
-    sync_view_button();
     sync_audio_controls();
     document.getElementById('scanlines').style.display = full_fx ? '' : 'none';
     if (settings_open) {

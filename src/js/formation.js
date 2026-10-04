@@ -9,9 +9,6 @@ function formation_candidates()
 
 function formation_screen_point(ship)
 {
-    if (view_mode === 'cockpit') {
-        return cabin_project(ship, 35, 100);
-    }
     return {x: (ship.x - camera.x)*zoom, y: (ship.y - camera.y)*zoom};
 }
 

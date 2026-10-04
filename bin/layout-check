@@ -13,6 +13,8 @@ const screens = [
     {value: 'combat', label: 'hud-combat'},
     {value: 'arcade', label: 'hud-arcade'},
     {value: 'arcade-cleared', label: 'arcade-cleared'},
+    // the finale held after its results are in
+    {value: 'arcade-finale', label: 'arcade-finale', query: '&t=13'},
     {value: 'station-jobs', label: 'station-contracts'},
     {value: 'station-arsenal', label: 'station-arsenal'},
     {value: 'station-career', label: 'station-goals'},
@@ -32,8 +34,9 @@ const sizes = [
 const selectors = {
     blocks: ['.hud-top .readouts', '.hud-top .toolbar', '.hud-top .brand', '.ui.hud .mission', '.ui.hud .minimap',
         '.hud-toasts > *', '.ui.hud .banners > *', '.hud-bottom .qbar', '.hud-bottom .shipstat', '.hud-bottom .hud-end', '.menu-left', '.menu-foot',
-        '.depot-title', '.depot-stats', '.depot-wallet', '.depot-filters .seg', '.depot-search', '.depot-ship', '.depot-next'],
-    contained: ['.modal', '.pause-layout', '.menu-left', '.menu-foot', '.depot-side', '.depot-top', '.depot-filters'],
+        '.depot-title', '.depot-stats', '.depot-wallet', '.depot-filters .seg', '.depot-search', '.depot-ship', '.depot-next',
+        '.finale-title', '.finale-res'],
+    contained: ['.modal', '.pause-layout', '.menu-left', '.menu-foot', '.depot-side', '.depot-top', '.depot-filters', '.finale-title h1', '.finale-res'],
     clip: '.btn, .tab, .badge, .key, .qslot, .size, .alert, .seg button, .wallet, .meter-mini',
     boxes: '.card, .toast, .panel',
 };
@@ -63,7 +66,7 @@ async function main()
         for (const [w, h] of sizes) {
             const page = await browser.newPage({viewport: {width: w, height: h}});
             for (const screen of chosen) {
-                await page.goto(`file://${page_file}?world=0&screen=${screen.value}`);
+                await page.goto(`file://${page_file}?world=0&screen=${screen.value}${screen.query || ''}`);
                 await page.waitForTimeout(1200);
                 const shot = path.join(out_dir, screen.label, `${w}x${h}.png`);
                 fs.mkdirSync(path.dirname(shot), {recursive: true});

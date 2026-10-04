@@ -71,7 +71,7 @@ function waypoints_compose_end()
 // Ctrl+click: a new point at the end of the route; the first one starts the flight
 function waypoint_add(p)
 {
-    const point = (view_mode === 'cockpit') ? cabin_point_from_screen(p, true) : {x: p.x/zoom + camera.x, y: p.y/zoom + camera.y};
+    const point = {x: p.x/zoom + camera.x, y: p.y/zoom + camera.y};
     // On a point already set, with at least two: the route closes into a loop from that point on
     const hit = waypoints.findIndex(v => distance(v, point) < 18/zoom);
     if ((hit >= 0) && (waypoints.length >= 2)) {
@@ -103,7 +103,7 @@ function waypoint_draw_move(p)
     if (!waypoint_drawing || !waypoints.length) {
         return;
     }
-    const point = (view_mode === 'cockpit') ? cabin_point_from_screen(p, true) : {x: p.x/zoom + camera.x, y: p.y/zoom + camera.y};
+    const point = {x: p.x/zoom + camera.x, y: p.y/zoom + camera.y};
     const last = waypoints.at(-1);
     if (distance(last, point) >= waypoint_spacing) {
         waypoints.push({x: clamp(point.x, 24, world.w - 24), y: clamp(point.y, 24, world.h - 24), n: waypoints.length + 1});

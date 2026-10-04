@@ -5,6 +5,7 @@ const dev_screen_options = [
     {value: 'combat', label: 'Flight in a fight'},
     {value: 'arcade', label: 'Arcade'},
     {value: 'arcade-cleared', label: 'Arcade: world cleared'},
+    {value: 'arcade-finale', label: 'Arcade: finale'},
     {value: 'rocks', label: 'Facing a mining field'},
     {value: 'station-jobs', label: 'Station: contracts'},
     {value: 'station-arsenal', label: 'Station: arsenal'},
@@ -18,6 +19,8 @@ const dev_screen_options = [
 const dev_screen = new URLSearchParams(location.search).get('screen');
 // read at load: starting the scene rewrites the URL
 const dev_screen_modules = new URLSearchParams(location.search).get('modules') || '';
+// &t=7.5 holds the finale at one moment
+const dev_screen_time = new URLSearchParams(location.search).get('t');
 
 function dev_screen_open()
 {
@@ -35,6 +38,18 @@ function dev_screen_open()
     if (dev_screen === 'arcade') {
         dev_arcade_start();
         dev_screen_modules_set();
+        return;
+    }
+    if (dev_screen === 'arcade-finale') {
+        dev_arcade_start();
+        dev_screen_modules_set();
+        campaign.world = worlds.length - 1;
+        score = 556825;
+        kills = 700;
+        run_time = 824;
+        salvage = 455;
+        finale.frozen = (dev_screen_time === null) ? null : Number(dev_screen_time);
+        arcade_finish(true);
         return;
     }
     if (dev_screen === 'arcade-cleared') {

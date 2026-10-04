@@ -1,19 +1,40 @@
 // The main menu, from the designer's main-menu.html: the modes as one family of rows (Continue the big one), and on the
-// right a scene for the mode you point at (hover, arrow keys or its key): your ship orbiting the world you left, the
-// route through the eight worlds, a live arcade demo, the save slots, the settings, the keys. Enter plays.
+// right a scene for the mode you pick (a click, the arrow keys or its key): your ship orbiting the world you left, the
+// route through the eight worlds, a live arcade demo, the save slots, the settings, the keys. Pointing changes nothing;
+// a second click, Enter or the scene's own button plays.
 const menu_arcade = {timer: 0, foes: [], score: 0, angle: 0, spawn: 0, fire: 0};
 // the demo never has more raiders than this on its stage
 const menu_arcade_foes_max = 8;
 const menu_arcade_centre = {x: 360, y: 320};
 let menu_scene_now = '';
+// the scene showing when the pointer went down: the focus a click gives a mode switches the scene before the click
+let menu_pointer_scene = '';
 
 for (const v of document.querySelectorAll('#menu_modes .mode')) {
-    v.addEventListener('mouseenter', () => menu_scene(v.dataset.scene));
     v.addEventListener('focus', () => menu_scene(v.dataset.scene));
 }
-document.getElementById('intro_controls').addEventListener('click', () => menu_scene('controls'));
+document.getElementById('menu_modes').addEventListener('pointerdown', function () {
+    menu_pointer_scene = menu_scene_now;
+}, true);
+// A mode's first click shows its scene, the second does it; Load, Settings and Controls stay scenes, their slots and
+// switches work in place
+document.getElementById('menu_modes').addEventListener('click', function (event) {
+    const mode = event.target.closest('.mode');
+    if (!mode || (mode.id === 'continue_button')) {
+        return;
+    }
+    const before = event.detail ? menu_pointer_scene : menu_scene_now;
+    menu_scene(mode.dataset.scene);
+    if ((before !== mode.dataset.scene) || ['load', 'settings', 'controls'].includes(mode.dataset.scene)) {
+        event.stopPropagation();
+    }
+}, true);
+document.getElementById('menu_campaign_go').addEventListener('click', () => document.getElementById('start_button').click());
+document.getElementById('menu_arcade_go').addEventListener('click', () => document.getElementById('arcade_button').click());
+document.getElementById('menu_all_saves').addEventListener('click', () => saves_open('menu'));
 document.getElementById('menu_volume').addEventListener('click', toggle_audio_settings);
 addEventListener('keydown', on_menu_key);
+menu_controls_fill();
 
 // N, A, L, S and ? point at their mode; the arrows move between the modes; Enter does the one pointed at
 function on_menu_key(event)
@@ -121,27 +142,34 @@ function menu_best_sync()
     document.getElementById('menu_best').textContent = `Best ${ui_number(best)}`;
 }
 
-// The save slots, as the Load scene shows them; a filled one loads at once
+// The Load scene: the four games saved last, the newest first, each with its Load; All slots has the six
 function menu_slots_render()
 {
     const parent = document.getElementById('menu_slots');
     parent.replaceChildren();
     const slots = saves_read();
-    for (let i = 0; i < 3; ++i) {
+    const recent = slots.map((v, i) => i).filter(v => slots[v]).sort((a, b) => slots[b].saved_at - slots[a].saved_at).slice(0, 4);
+    for (const [n, i] of recent.entries()) {
         const slot = slots[i];
         const row = document.createElement('div');
-        row.className = `slot${slot ? '' : ' empty'}`;
-        row.style.setProperty('--d', `${0.05 + i*0.08}s`);
+        row.className = 'slot';
+        row.style.setProperty('--d', `${0.05 + n*0.08}s`);
         row.innerHTML = '<img alt=""><div><b></b><small></small></div>';
-        const world = slot ? worlds.findIndex(v => v.name === slot.world) : 0;
+        const world = worlds.findIndex(v => v.name === slot.world);
         row.querySelector('img').src = menu_sprite_url(menu_planet_text(Math.max(0, world)));
-        row.querySelector('b').textContent = slot ? `Slot ${i + 1} · ${slot.world}` : `Slot ${i + 1}`;
-        row.querySelector('small').textContent = slot ? `${slot.ship} · ${slot.arcade ? `arcade, score ${ui_number(slot.arcade.score)}` : `story ${slot.story}`} · ${save_time(slot.saved_at)}` : 'Empty';
-        if (slot) {
-            row.append(ui_button({label: 'Load', size: 'sm', on: () => load_from_slot(i)}));
-        }
+        row.querySelector('b').textContent = slot.arcade ? `Arcade · ${slot.world}` : `${slot.world} · story ${slot.story}`;
+        row.querySelector('small').textContent = `Slot ${i + 1} · ${slot.ship} · ${slot.arcade ? `score ${ui_number(slot.arcade.score)}` : `◆ ${ui_number(slot.salvage)}`} · ${save_time(slot.saved_at)}`;
+        row.append(ui_button({label: 'Load', size: 'sm', kind: n ? '' : 'primary', disabled: !save_slot_valid(slot), on: () => load_from_slot(i)}));
         parent.append(row);
     }
+}
+
+// The Controls scene: the keys as the pause menu lists them, one list for both
+function menu_controls_fill()
+{
+    const list = document.querySelector('#controls_card .keys-list').cloneNode(true);
+    list.removeAttribute('id');
+    document.getElementById('menu_keys').replaceChildren(list);
 }
 
 // The arcade demo: raiders come in from the edges, the ship turns to the nearest and fires, the score runs. A timer

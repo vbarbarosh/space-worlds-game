@@ -99,15 +99,6 @@ try {
 }
 catch {
 }
-let view_mode = 'wireframe';
-try {
-    const saved_view = localStorage.getItem('pulse_drift_view');
-    if (['rendered', 'cockpit'].includes(saved_view)) {
-        view_mode = saved_view;
-    }
-}
-catch {
-}
 let state = 'menu';
 // A window that loses focus pauses the game; the agent's window plays on, since nobody there is looking away.
 let pause_on_blur = true;

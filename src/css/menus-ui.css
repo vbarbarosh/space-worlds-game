@@ -82,9 +82,10 @@
     }
 }
 
-/* the main menu, from the designer's main-menu.html: the modes on the left, a scene for the one you point at on the
-   right; the HUD's top row (its settings button) stays above it, the flight-only rows hide */
-body:not(.in-game) .ui.hud .hud-bottom {
+/* the main menu, from the designer's main-menu.html: the modes on the left, a scene for the one you pick on the right;
+   the HUD's rows hide, its settings button too (Settings is a mode of the menu) */
+body:not(.in-game) .ui.hud .hud-bottom,
+body:not(.in-game) .ui.hud .hud-top .toolbar {
     display: none;
 }
 
@@ -194,8 +195,8 @@ body:not(.in-game) .ui.hud .hud-bottom {
 .ui .s-settings .opt:last-child { border-bottom: 0; }
 .ui .s-settings.on .opt { animation: menu-rise 0.4s var(--d) forwards; }
 .ui .s-settings .opt b { flex: 1; font: 600 15px/1 var(--font-ui); color: var(--text-1); }
-.ui .s-controls .menu-keys { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 460px; display: grid; grid-template-columns: auto 1fr; gap: 10px 18px; align-items: center; }
-.ui .s-controls .menu-key { display: flex; gap: 4px; }
+.ui .s-controls .menu-keys { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 640px; padding: 22px 26px; border-radius: 14px; background: rgba(8, 17, 31, 0.85); border: 1px solid var(--line-1); }
+.ui .s-controls .keys-list { grid-template-columns: auto minmax(0, 1fr) auto minmax(0, 1fr); gap: 12px 18px; font-size: 14px; }
 
 /* small and short windows: the scene fades behind the menu; the title goes on one line and the rows lose their second */
 @container screen (max-width: 1100px) {
@@ -1089,5 +1090,304 @@ body:not(.in-game) .ui.hud .hud-bottom {
     .ui .depot-next-world,
     .ui .depot-chips {
         display: none;
+    }
+}
+
+/* the arcade's ending (the designer's arcade-finale.html): a canvas for the sky, the trail and the fireworks; the
+   planets, the ship, the title and the results over it, placed each frame by arcade_finale.js */
+.ui.overlay#arcade_finale {
+    display: block;
+    padding: 0;
+    background: #02050b;
+}
+
+.ui .finale {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    cursor: pointer;
+    text-align: left;
+}
+
+.ui .finale canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.ui .finale-planet,
+.ui .finale-name,
+.ui .finale-ship,
+.ui .finale-art {
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+}
+
+.ui .finale-planet {
+    transform-origin: 50% 50%;
+    will-change: transform, opacity, filter;
+}
+
+.ui .finale-name {
+    padding: 4px 8px;
+    border-radius: 5px;
+    background: rgba(2, 5, 11, 0.7);
+    font: 700 12px/1 var(--font-mono);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    opacity: 0;
+}
+
+.ui .finale-name s {
+    margin-left: 6px;
+    font-weight: 400;
+    text-decoration: none;
+    color: var(--text-3);
+}
+
+.ui .finale-ship {
+    width: 80px;
+    filter: drop-shadow(0 0 14px rgba(108, 248, 236, 0.6));
+    will-change: transform;
+}
+
+.ui .finale-art {
+    transform-origin: 50% 50%;
+    opacity: 0;
+    mix-blend-mode: screen;
+}
+
+.ui .finale-flash {
+    position: absolute;
+    inset: 0;
+    background: #fff;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.ui .finale-title {
+    position: absolute;
+    right: 0;
+    left: 0;
+    text-align: center;
+    pointer-events: none;
+}
+
+.ui .finale-title .eyebrow {
+    display: block;
+    letter-spacing: 0.4em;
+    opacity: 0;
+}
+
+.ui .finale-title h1 {
+    margin: 10px 0 0;
+    font: 900 clamp(40px, 7.4cqw, 104px)/0.9 var(--font-ui);
+    letter-spacing: -0.04em;
+    color: var(--text-1);
+    white-space: nowrap;
+}
+
+.ui .finale-title h1 span {
+    display: inline-block;
+    opacity: 0;
+}
+
+.ui .finale-title h1 .c {
+    color: var(--cyan);
+    text-shadow: 0 0 50px rgba(108, 248, 236, 0.4);
+}
+
+.ui .finale-title p {
+    margin: 14px 0 0;
+    font: 500 16px/1.3 var(--font-ui);
+    color: var(--text-2);
+    opacity: 0;
+}
+
+.ui .finale-res {
+    position: absolute;
+    left: 50%;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    width: min(760px, calc(100% - 32px));
+    opacity: 0;
+    cursor: default;
+}
+
+.ui .finale-stats {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 1fr;
+    gap: 10px;
+}
+
+.ui .finale-st,
+.ui .finale-best,
+.ui .finale-flags {
+    border: 1px solid var(--line-1);
+    border-radius: 12px;
+    background: rgba(8, 17, 31, 0.82);
+    backdrop-filter: blur(10px);
+}
+
+.ui .finale-st {
+    padding: 14px 16px;
+}
+
+.ui .finale-st .readout {
+    display: block;
+    margin-top: 8px;
+    font-size: 30px;
+}
+
+.ui .finale-kept {
+    display: block;
+    margin-top: 4px;
+    color: var(--text-3);
+}
+
+.ui .finale-st.is-big .readout {
+    font-size: 38px;
+    color: var(--gold);
+    text-shadow: 0 0 24px rgba(255, 204, 77, 0.35);
+}
+
+.ui .finale-flags {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 14px;
+}
+
+.ui .finale-flags .eyebrow {
+    margin-right: auto;
+}
+
+.ui .finale-flags img {
+    width: 44px;
+    height: 44px;
+    opacity: 0;
+    transform: scale(0.4);
+}
+
+.ui .finale-best {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+}
+
+.ui .finale-best .bar {
+    flex: 1;
+    height: 6px;
+    border-radius: 3px;
+    background: rgba(255, 204, 77, 0.15);
+    overflow: hidden;
+}
+
+.ui .finale-best .bar i {
+    display: block;
+    width: 0;
+    height: 100%;
+    background: var(--gold);
+    box-shadow: 0 0 10px var(--gold);
+}
+
+.ui .finale-new {
+    padding: 5px 8px;
+    border-radius: 5px;
+    background: var(--gold);
+    font: 800 12px/1 var(--font-mono);
+    letter-spacing: 0.14em;
+    color: var(--gold-ink);
+}
+
+.ui .finale-acts {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    opacity: 0;
+}
+
+.ui .finale-acts .btn {
+    height: 50px;
+    padding: 0 22px;
+    font-size: 15px;
+}
+
+.ui .finale-skip {
+    position: absolute;
+    right: 18px;
+    bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font: 600 11px/1 var(--font-mono);
+    letter-spacing: 0.14em;
+    color: var(--text-3);
+    text-transform: uppercase;
+}
+
+/* a short window: the results on the left, the emblem on the right (arcade_finale.js sets .is-short) */
+.ui .finale.is-short .finale-res {
+    left: 24px;
+    gap: 8px;
+    width: min(560px, 52%);
+}
+
+.ui .finale.is-short .finale-title {
+    left: 24px;
+    text-align: left;
+}
+
+.ui .finale.is-short .finale-title h1 {
+    font-size: clamp(28px, 4cqw, 56px);
+}
+
+.ui .finale.is-short .finale-title p,
+.ui .finale.is-short .finale-flags {
+    display: none;
+}
+
+.ui .finale.is-short .finale-acts {
+    justify-content: flex-start;
+}
+
+.ui .finale.is-short .finale-acts .btn {
+    height: 40px;
+}
+
+.ui .finale.is-short .finale-st {
+    padding: 8px 12px;
+}
+
+.ui .finale.is-short .finale-st .readout {
+    font-size: 22px;
+}
+
+.ui .finale.is-short .finale-st.is-big .readout {
+    font-size: 26px;
+}
+
+.ui .finale.is-short .finale-best {
+    padding: 6px 12px;
+}
+
+@container screen (max-width: 700px) {
+    .ui .finale-stats {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .ui .finale-st.is-big {
+        grid-column: 1 / -1;
+    }
+
+    .ui .finale-flags img {
+        width: 30px;
+        height: 30px;
     }
 }

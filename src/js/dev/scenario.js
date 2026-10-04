@@ -1,10 +1,5 @@
 // A sandbox run is a checkpoint made up on the spot and resumed: any world, ship, weapon and loadout, already in flight.
 const dev_scenario = dev_scenario_from_url();
-const dev_view_options = [
-    {value: 'wireframe', label: 'Wireframe'},
-    {value: 'rendered', label: 'Rendered'},
-    {value: 'cockpit', label: 'Cockpit'},
-];
 const dev_difficulty_options = [
     {value: 'chill', label: 'Chill'},
     {value: 'normal', label: 'Standard'},
@@ -34,7 +29,6 @@ function dev_scenario_from_url()
         weapon: weapon_catalog.some(v => v.id === params.get('weapon')) ? params.get('weapon') : 'plasma',
         tier: clamp(Number(params.get('tier')) || 1, 1, 5),
         difficulty: ['chill', 'normal', 'overload'].includes(params.get('difficulty')) ? params.get('difficulty') : 'normal',
-        view: ['wireframe', 'rendered', 'cockpit'].includes(params.get('view')) ? params.get('view') : view_mode,
         speed: [0.1, 0.25, 1, 2, 4].includes(Number(params.get('speed'))) ? Number(params.get('speed')) : 1,
         tab: params.get('tab') || 'scenario',
         god: flag('god', true),
@@ -53,7 +47,6 @@ function dev_scenario_save()
     params.set('weapon', dev_scenario.weapon);
     params.set('tier', dev_scenario.tier);
     params.set('difficulty', dev_scenario.difficulty);
-    params.set('view', dev_scenario.view);
     params.set('speed', dev_scenario.speed);
     params.set('tab', dev_scenario.tab);
     params.set('god', dev_scenario.god ? '1' : '0');
@@ -108,7 +101,6 @@ function dev_scenario_start()
         },
     };
     reset_run(true);
-    dev_view_set(dev_scenario.view);
     dev_scenario_save();
     dev_panel_refresh();
 }
@@ -117,15 +109,6 @@ function dev_arcade_start()
 {
     difficulty = dev_scenario.difficulty;
     arcade_start(dev_scenario.world);
-    dev_view_set(dev_scenario.view);
-    dev_panel_refresh();
-}
-
-function dev_view_set(value)
-{
-    dev_scenario.view = value;
-    for (let i = 0; (i < 3) && (view_mode !== value); ++i) {
-        toggle_view();
-    }
     dev_scenario_save();
+    dev_panel_refresh();
 }

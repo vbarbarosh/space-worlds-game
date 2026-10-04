@@ -16,22 +16,20 @@ function update_engine_effects(dt)
         player.engine_emit = 0;
         const c = Math.cos(player.angle);
         const s = Math.sin(player.angle);
-        const art = (view_mode === 'wireframe') ? null : ship_sprite(current_ship());
+        const art = ship_sprite(current_ship());
         const anchors = art && sprite(art.name) && sprite_anchors(art.name, art.length);
         const nozzles = anchors
-            ? ((player.engine_reverse && !boost) ? anchors.flames.reverse : anchors.flames.main).map(v => ({x: v.x, y: v.y}))
-            : [-1, 1].map(v => ({x: (player.engine_reverse && !boost) ? 14 : -17, y: v*((current_ship().shape >= 4) ? 14 : 7)}));
+            ? anchors.flames.main.map(v => ({x: v.x, y: v.y}))
+            : [-1, 1].map(v => ({x: -17, y: v*((current_ship().shape >= 4) ? 14 : 7)}));
         for (const nozzle of nozzles) {
-            const reverse = player.engine_reverse && !boost;
             const x = nozzle.x;
             const y = nozzle.y;
-            const direction = reverse ? 1 : -1;
             const life = boost ? 0.24 : 0.12;
             particles.push({
                 x: player.x + x*c - y*s,
                 y: player.y + x*s + y*c,
-                vx: direction*c*(boost ? 130 : 55) + player.vx*0.25,
-                vy: direction*s*(boost ? 130 : 55) + player.vy*0.25,
+                vx: -c*(boost ? 130 : 55) + player.vx*0.25,
+                vy: -s*(boost ? 130 : 55) + player.vy*0.25,
                 life,
                 total: life,
                 color: '#9bcfff',
@@ -79,16 +77,15 @@ function render_engine_plumes()
         }
         ctx.restore();
     }
-    const art = (view_mode === 'wireframe') ? null : ship_sprite(current_ship());
+    const art = ship_sprite(current_ship());
     const anchors = art && sprite(art.name) && sprite_anchors(art.name, art.length);
     if (anchors) {
         // The drawing's own nozzles: a full-thrust flame is as long as its anchor, cruising thrust under half of it.
         // Turning fires a steering jet at the nose on one side and at the tail on the other.
         ctx.globalCompositeOperation = 'lighter';
-        const reverse = player.engine_reverse && !boost;
         const flicker = full_fx ? Math.sin(clock*31)*0.08 : 0;
         if (power > 0.03) {
-            sprite_flames(ctx, reverse ? anchors.flames.reverse : anchors.flames.main, boost ? 1 : power*0.45, '#90c9ff', flicker);
+            sprite_flames(ctx, anchors.flames.main, boost ? 1 : power*0.45, '#90c9ff', flicker);
         }
         if (Math.abs(turn) > 0.15) {
             const side = -Math.sign(turn);
@@ -101,7 +98,7 @@ function render_engine_plumes()
     if (power > 0.03) {
         const y = (current_ship().shape >= 4) ? 14 : 7;
         for (const side of [-1, 1]) {
-            plume((player.engine_reverse && !boost) ? 14 : -17, side*y, (player.engine_reverse && !boost) ? 0 : Math.PI, (boost ? 42 : 18)*power);
+            plume(-17, side*y, Math.PI, (boost ? 42 : 18)*power);
         }
     }
     if (Math.abs(turn) > 0.15) {
@@ -111,13 +108,4 @@ function render_engine_plumes()
         plume(-12, -side*10, (-side*Math.PI)/2, 9, intensity);
     }
     ctx.restore();
-}
-
-function cabin_render_engine_effects()
-{
-    const W = width;
-    const H = height;
-    const boost = !!player.turbo_active;
-    const power = boost ? 1 : player.engine_thrust || 0;
-    cabin_label(boost ? 'BOOST THRUST' : `THRUST ${Math.round(power*100)}%`, W*0.17, H*0.91, (W < 700) ? 7 : 9, boost ? '#a9d4ff' : '#8aafc5');
 }

@@ -792,14 +792,6 @@ function render_station()
     }
 }
 
-function wireframe_ship_svg(v)
-{
-    const points = ship_outline(v.shape)
-        .map(v => v.join(','))
-        .join(' ');
-    return `<svg viewBox="-38 -32 76 64" aria-label="${v.name}"><polygon points="${points}" fill="${v.color}22" stroke="${v.color}" stroke-width="1.5"/><path d="M10 0L-4 -5L-9 0L-4 5Z" fill="${v.color}"/></svg>`;
-}
-
 function ship_outline(shape)
 {
     return [
@@ -863,52 +855,6 @@ function ship_outline(shape)
             [12, 12],
         ],
     ][shape || 0];
-}
-
-function draw_fleet_ship(x, y, angle, alpha, ghost)
-{
-    const v = current_ship();
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.rotate(angle);
-    ctx.globalAlpha = alpha;
-    ctx.strokeStyle = v.color;
-    ctx.fillStyle = ghost ? v.color : `${v.color}25`;
-    ctx.lineWidth = 1.7;
-    ctx.shadowColor = v.color;
-    ctx.shadowBlur = (full_fx && !ghost) ? 16 : 0;
-    const points = ship_outline(v.shape);
-    ctx.beginPath();
-    for (let i = 0, end = points.length; i < end; ++i) {
-        const point = points[i];
-        if (i) {
-            ctx.lineTo(...point);
-        }
-        else {
-            ctx.moveTo(...point);
-        }
-    }
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-    if (!ghost) {
-        ctx.fillStyle = '#e5ffff';
-        ctx.beginPath();
-        ctx.moveTo(11, 0);
-        ctx.lineTo(-4, -4);
-        ctx.lineTo(-6, 0);
-        ctx.lineTo(-4, 4);
-        ctx.fill();
-        if (!is_player_vessel(x, y)) {
-            ctx.fillStyle = `${v.color}88`;
-            ctx.beginPath();
-            ctx.moveTo(-15, -5);
-            ctx.lineTo(-29 - rand(0, 7), 0);
-            ctx.lineTo(-15, 5);
-            ctx.fill();
-        }
-    }
-    ctx.restore();
 }
 
 function update_frontier(dt)
@@ -999,8 +945,6 @@ function reset_run(resume = false)
     if (state === 'upgrade') {
         render_station();
     }
-    cabin.yaw = player.angle;
-    cabin.turn = 0;
 }
 
 function update_hud()

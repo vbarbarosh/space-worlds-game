@@ -129,7 +129,7 @@ function mounts_text(ship)
 function mount_points(ship = current_ship())
 {
     const sizes = ship_mounts(ship);
-    const art = (view_mode === 'wireframe') ? null : ship_sprite(ship);
+    const art = ship_sprite(ship);
     const points = (art && sprite(art.name) && sprite_anchors(art.name, art.length).points) || {};
     // the drawing's marks, numbered within each size: turret-medium-1, turret-medium-2, turret-heavy-1
     const marks = sizes.map((v, i) => points[`turret-${v}-${sizes.slice(0, i + 1).filter(vv => vv === v).length}`]);
@@ -166,7 +166,7 @@ function mount_points(ship = current_ship())
 function gun_muzzles(weapon, box)
 {
     const name = `weapons/turret-${weapon.id}`;
-    if ((view_mode === 'wireframe') || !sprite(name)) {
+    if (!sprite(name)) {
         return null;
     }
     const points = sprite_anchors_box(name, box).points;

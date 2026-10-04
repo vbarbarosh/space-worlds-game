@@ -392,13 +392,8 @@ function render_drifting_debris()
         ctx.translate(drifting_debri.x, drifting_debri.y);
         ctx.rotate(drifting_debri.angle);
         if (drifting_debri.kind === 'asteroid') {
-            if (view_mode === 'wireframe') {
-                polygon(0, 0, drifting_debri.r, 7, 0, '#e08f7a', '#312a24');
-            }
-            else {
-                const asset = rock_surface(campaign.world, 3);
-                ctx.drawImage(asset.layer, -drifting_debri.r*1.25, -drifting_debri.r*1.25, drifting_debri.r*2.5, drifting_debri.r*2.5);
-            }
+            const asset = rock_surface(campaign.world, 3);
+            ctx.drawImage(asset.layer, -drifting_debri.r*1.25, -drifting_debri.r*1.25, drifting_debri.r*2.5, drifting_debri.r*2.5);
             // A hazard rim: this rock drifts, hits hard and breaks under fire.
             ctx.strokeStyle = '#ff7a5c66';
             ctx.lineWidth = 2;

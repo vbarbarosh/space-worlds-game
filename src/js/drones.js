@@ -251,7 +251,7 @@ function render_drones()
             ctx.globalCompositeOperation = 'source-over';
         }
         // Your drones are in your ship's cyan (an outpost's are gold), with a dot of the ore they carry
-        if ((view_mode !== 'wireframe') && sprite_draw('drone-mining', cyan, drone_tier().size, drone.x, drone.y, drone.angle)) {
+        if (sprite_draw('drone-mining', cyan, drone_tier().size, drone.x, drone.y, drone.angle)) {
             drone_load_dot(drone.x, drone.y, drone.loads.length ? ore_color(drone.loads[0]) : null);
             continue;
         }

@@ -5,6 +5,10 @@ const arcade_waves = 3;
 const arcade_radiation = 0.35;
 const arcade_defense = 0.5;
 const arcade_wave_names = ['', 'SCOUTS', 'ASSAULT', 'FLAGSHIP'];
+// salvage left unspent when the run ends adds this many points each, so keeping it is a choice too
+const arcade_salvage_points = 10;
+// the depot sells ships at this share of the campaign's prices
+const arcade_ship_price = 0.5;
 // What each difficulty changes in the arcade: extra raiders per squadron and per wave, the gap between squadrons, the
 // first world with elites, the share of repairs that still drop, the medkits a run starts with, whether every raider
 // fires its world's gun (Haven's plasma included), how often (a factor on the gun's cooldown), and how hard its shots
@@ -411,10 +415,12 @@ function arcade_weapon_take(weapon)
     fleet.weapon_levels[weapon.id] = tier;
 }
 
-// R at the station opens the depot, unless raiders are close: the depot is a shop, not a hiding place.
+// R at the station opens the depot, unless raiders are close: the depot is a shop, not a hiding place. From afar, R
+// sets the course to the station, as in the campaign.
 function arcade_interact()
 {
     if (distance(player, station) > station_reach) {
+        station_course();
         return;
     }
     if (depot_shield_up()) {
@@ -469,7 +475,7 @@ function arcade_depot_fill()
     document.getElementById('arcade_depot_next').textContent = `${arcade_waves} waves · flagship`;
     document.getElementById('cleared_rules').innerHTML = world_rules[shown].summary.split(' · ').map(v => ui_badge(ui_sentence(v))).join('');
     document.getElementById('arcade_depot_launch').innerHTML = `<span>${(next === null) ? 'Back to the fight' : `Launch to ${worlds[next].name}`}</span><span class="key">Enter</span>`;
-    const tabs = [{value: 'all', label: 'All'}, {value: 'repairs', label: 'Repairs'}, {value: 'weapons', label: 'Weapons'}, ...module_shelves];
+    const tabs = [{value: 'all', label: 'All'}, {value: 'repairs', label: 'Repairs'}, {value: 'weapons', label: 'Weapons'}, {value: 'ships', label: 'Ships'}, ...module_shelves];
     document.getElementById('arcade_depot_tabs').innerHTML = tabs.map(v => `<button type="button" class="${(v.value === arcade_depot_view.tab) ? 'is-active' : ''}" data-tab="${v.value}">${module_shelves.includes(v) ? `<i class="depot-dot depot-dot--${v.value}"></i>` : ''}${v.label}</button>`).join('');
     arcade_depot_render_list();
     arcade_depot_sync_hover();
@@ -506,17 +512,34 @@ function arcade_depot_items()
             },
         });
     }
-    // your gun first, then the others, their stats against yours
+    // the guns in the catalog's order, so a card stays under the pointer as you switch, their stats against yours; a
+    // gun bought is yours for the run, and equipping it again is free
     const mine = current_weapon();
-    for (const weapon of [mine, ...weapon_catalog.filter(v => v.id !== mine.id)]) {
-        const own = weapon.id === mine.id;
+    const owned = ensure_career().weapons;
+    for (const weapon of weapon_catalog) {
+        const equipped = weapon.id === mine.id;
+        const have = owned.includes(weapon.id);
         out.push({
-            kind: 'weapon', id: weapon.id, section: 'weapons', title: own ? `${weapon.name} T${weapon_level()}` : weapon.name,
-            line: own ? 'Your gun. It grows a tier with every world you clear.' : weapon.line, tags: 'weapon gun оружие пушка',
-            icon: ship_parts_url(`weapons/turret-${weapon.id}`), chips: arcade_weapon_chips(weapon, mine),
-            price: own ? null : 120 + weapon.rating*45, done: own ? 'Equipped' : '', owned: own,
+            kind: 'weapon', id: weapon.id, section: 'weapons', title: equipped ? `${weapon.name} T${weapon_level()}` : weapon.name,
+            line: equipped ? 'Your gun. It grows a tier with every world you clear.' : have ? `Yours. ${weapon.line}` : weapon.line,
+            tags: 'weapon gun оружие пушка', icon: ship_parts_clean_url(`weapons/turret-${weapon.id}`), chips: arcade_weapon_chips(weapon, mine),
+            price: equipped ? null : have ? 0 : 120 + weapon.rating*45, done: equipped ? 'Equipped' : '', owned: equipped, label: have ? 'Equip' : 'Buy',
             buy: function () {
                 arcade_weapon_take(weapon);
+            },
+        });
+    }
+    // the ships in the catalog's order, their hull, shield and speed against yours; a ship bought stays yours too
+    const flying = current_ship();
+    for (const ship of ship_catalog) {
+        const now = ship.id === flying.id;
+        const have = ensure_career().ships.includes(ship.id);
+        out.push({
+            kind: 'ship', id: ship.id, section: 'ships', title: ship.name, line: now ? 'Your ship.' : have ? `Yours. ${ship.role}.` : `${ship.role}.`,
+            tags: `ship hull ${ship.role.toLowerCase()} корабль`, icon: ship_parts_clean_url(`3d/ship-${ship.id}`), chips: arcade_ship_chips(ship, flying),
+            price: now ? null : have ? 0 : Math.round((ship.price*arcade_ship_price)/10)*10, done: now ? 'Flying' : '', owned: now, label: have ? 'Fly' : 'Buy',
+            buy: function () {
+                arcade_ship_take(ship);
             },
         });
     }
@@ -542,7 +565,8 @@ function arcade_depot_render_list()
     const found = arcade_depot_items().filter(v => words.every(vv => `${v.title} ${v.line} ${v.tags}`.toLowerCase().includes(vv)));
     const sections = [
         {value: 'repairs', label: 'Repairs and supplies', note: 'kept for the next world'},
-        {value: 'weapons', label: 'Weapons', note: 'one gun · a new one replaces yours'},
+        {value: 'weapons', label: 'Weapons', note: 'guns you buy stay yours · equip any for free'},
+        {value: 'ships', label: 'Ships', note: 'your modules and gun move with you'},
         ...module_shelves,
     ];
     const html = [];
@@ -571,7 +595,8 @@ function arcade_depot_item_html(item, words)
     }
     else if (item.price !== null) {
         const kind = short ? ' is-disabled is-short' : item.primary ? ' btn-primary' : '';
-        action = `<button type="button" class="btn btn-sm${kind}" data-buy${short ? ` disabled title="You need ${ui_number(item.price - salvage)} more salvage"` : ''}><span>${short ? `Need ${ui_number(item.price - salvage)}` : (item.label || 'Buy')}</span><span class="price">${ui_number(item.price)}</span></button>`;
+        const price = item.price ? `<span class="price">${ui_number(item.price)}</span>` : '';
+        action = `<button type="button" class="btn btn-sm${kind}" data-buy${short ? ` disabled title="You need ${ui_number(item.price - salvage)} more salvage"` : ''}><span>${short ? `Need ${ui_number(item.price - salvage)}` : (item.label || 'Buy')}</span>${price}</button>`;
     }
     const keycap = item.keycap ? `<span class="key key--sm">${item.keycap}</span>` : '';
     const part = item.part ? '<span class="depot-onship" title="You will see it on your ship">ON SHIP</span>' : '';
@@ -597,11 +622,119 @@ function arcade_depot_sync_hover()
     document.getElementById('arcade_depot_wallet').textContent = ui_number(salvage);
     const after = document.getElementById('arcade_depot_after');
     after.className = (buyable && (salvage < item.price)) ? 'after is-short' : 'after';
-    after.innerHTML = !buyable ? '' : (salvage < item.price) ? `need <b>${ui_number(item.price - salvage)}</b>` : `after <b>${ui_number(salvage - item.price)}</b>`;
-    const base = ship_parts_loadout();
-    const preview = buyable && item.part ? ship_parts_loadout({...upgrades, [item.id]: upgrades[item.id] + 1}) : null;
-    document.getElementById('arcade_depot_ship').innerHTML = ship_parts_svg(current_ship().id, preview || base, preview ? base : null);
-    document.getElementById('arcade_depot_shipbox').classList.toggle('is-preview', !!preview);
+    after.innerHTML = (!buyable || !item.price) ? '' : (salvage < item.price) ? `need <b>${ui_number(item.price - salvage)}</b>` : `after <b>${ui_number(salvage - item.price)}</b>`;
+    const base = {...ship_parts_loadout(), gun: current_weapon().id};
+    const ship_id = current_ship().id;
+    let preview = null;
+    let pulse = '';
+    if (buyable && item.part) {
+        preview = {...ship_parts_loadout({...upgrades, [item.id]: upgrades[item.id] + 1}), gun: base.gun};
+        // a level the drawing does not show (magnet 3, the second prism) lights the part it improves
+        if (arcade_depot_ship_signature(ship_id, preview) === arcade_depot_ship_signature(ship_id, base)) {
+            pulse = item.part;
+        }
+    }
+    else if (buyable && (item.kind === 'weapon')) {
+        preview = {...base, gun: item.id};
+    }
+    // a ship shows as it would fly: your parts and gun on its hull
+    const ship = (buyable && (item.kind === 'ship')) ? ship_catalog.find(v => v.id === item.id) : null;
+    if (ship) {
+        arcade_depot_ship_show(ship_parts_svg(ship.id, base));
+    }
+    else {
+        arcade_depot_ship_show(ship_parts_svg(ship_id, preview || base, preview ? base : null, pulse));
+    }
+    document.getElementById('arcade_depot_ship_name').textContent = (ship || current_ship()).name;
+    document.getElementById('arcade_depot_shipbox').classList.toggle('is-preview', !!(preview || ship));
+}
+
+// What a loadout draws on the ship: its parts where they sit, and its drones
+function arcade_depot_ship_signature(ship_id, loadout)
+{
+    return ship_parts_layout(ship_id, loadout).map(ship_parts_place).join() + loadout.drones;
+}
+
+// The ship in the depot, changed in place: the parts it keeps stay as they are, so the drones keep their orbit and
+// nothing blinks while the pointer runs down the list; a new drone joins the others' orbit at its own place
+function arcade_depot_ship_show(html)
+{
+    const holder = document.getElementById('arcade_depot_ship');
+    const box = document.createElement('div');
+    box.innerHTML = html;
+    const next = box.firstElementChild;
+    const svg = holder.querySelector('svg');
+    if (!svg) {
+        holder.replaceChildren(next);
+        return;
+    }
+    const kept = [...svg.children].map(v => ({key: arcade_depot_part_key(v), element: v}));
+    let last = null;
+    for (const element of [...next.children]) {
+        const key = arcade_depot_part_key(element);
+        const i = kept.findIndex(v => v.key === key);
+        if (i >= 0) {
+            const old = kept.splice(i, 1)[0].element;
+            old.setAttribute('class', element.getAttribute('class') || '');
+            last = old;
+            continue;
+        }
+        if (last) {
+            last.after(element);
+        }
+        else {
+            svg.prepend(element);
+        }
+        last = element;
+    }
+    for (const v of kept) {
+        v.element.remove();
+    }
+    const orbits = [...svg.querySelectorAll('.parts-orbit')].flatMap(v => v.getAnimations()).filter(v => v.animationName === 'parts-orbit');
+    const start = orbits.find(v => v.startTime !== null)?.startTime;
+    if (start !== undefined) {
+        for (const v of orbits) {
+            v.startTime = start;
+        }
+    }
+}
+
+// A part of the ship's <svg> by what it draws and where, whatever its class (a previewed part keeps its node once bought)
+function arcade_depot_part_key(element)
+{
+    const copy = element.cloneNode(true);
+    copy.removeAttribute('class');
+    return copy.outerHTML;
+}
+
+// A ship's hull, shield and speed as chips, each marked against yours: up better, down worse
+function arcade_ship_chips(ship, mine)
+{
+    function mark(name, text, value, now) {
+        return [name, text, (ship.id === mine.id) ? '' : (value > now) ? 'up' : (value < now) ? 'down' : ''];
+    }
+    return [
+        mark('HULL', String(ship.hull), ship.hull, mine.hull),
+        mark('SHIELD', String(ship.shield), ship.shield, mine.shield),
+        mark('SPEED', `×${ship.speed}`, ship.speed, mine.speed),
+    ];
+}
+
+// A ship bought or taken out again; the modules and the gun move over, a new hull comes repaired and one you had keeps
+// its share of the damage
+function arcade_ship_take(ship)
+{
+    const fleet = ensure_career();
+    const fresh = !fleet.ships.includes(ship.id);
+    const share = player.hp/hull_max();
+    if (fresh) {
+        fleet.ships.push(ship.id);
+    }
+    fleet.ship_id = ship.id;
+    player.hp = fresh ? hull_max() : Math.max(1, Math.round(share*hull_max()));
+    player.shield = shield_max();
+    player.turbo_fuel = turbo_duration();
+    player.r = ship.radius;
 }
 
 // A gun's damage, fire interval and range as chips, each marked against your gun: up better, down worse
@@ -654,7 +787,18 @@ function arcade_depot_close()
 function arcade_finish(won)
 {
     state = won ? 'won' : 'dead';
+    const kept = salvage*arcade_salvage_points;
+    score += kept;
+    const previous = best;
     const record = save_best();
+    if (won) {
+        for (const v of [el.loadout, el.inventory_button, el.mission, el.pause_button, el.touch_buttons, el.bossbar]) {
+            set_hidden(v, true);
+        }
+        toasts_clear();
+        arcade_finale_open({score, best: previous, raiders: kills, time: run_time, salvage, kept});
+        return;
+    }
     set_hidden(document.getElementById('retry_sector'), true);
     set_hidden(el.result_overlay, false);
     for (const v of [el.loadout, el.inventory_button, el.mission, el.pause_button, el.touch_buttons, el.bossbar]) {
@@ -665,7 +809,7 @@ function arcade_finish(won)
     el.result_title.textContent = won ? 'All eight worlds.' : 'One more run?';
     el.result_description.textContent = won
         ? `Eight worlds, eight flagships, ${format_time(run_time)}.`
-        : `You reached ${worlds[campaign.world].name}, wave ${arcade.wave} of ${arcade_waves}.`;
+        : `You reached ${worlds[campaign.world].name}, wave ${arcade.wave} of ${arcade_waves}.${salvage ? ` Salvage kept: ◆ ${ui_number(salvage)}, +${ui_number(kept)} points.` : ''}`;
     el.result_score.textContent = score.toLocaleString();
     el.result_sector.textContent = `${campaign.world + 1} / ${worlds.length}`;
     el.result_best.textContent = `${record ? 'NEW PERSONAL BEST · ' : 'PERSONAL BEST · '}${best.toLocaleString()}  /  ${kills} ELIMINATIONS · ${format_time(run_time)}`;
