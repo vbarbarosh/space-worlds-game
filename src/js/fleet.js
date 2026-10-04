@@ -68,18 +68,20 @@ const weapon_catalog = [
     },
     {
         id: 'missile',
-        size: 'heavy',
+        size: 'medium',
         name: 'Seeker launcher',
         rank: 3,
         price: 1400,
         rating: 6,
-        damage: 65,
-        interval: 0.95,
-        speed: 700,
-        life: 2.5,
+        damage: 60,
+        interval: 1.05,
+        speed: 760,
+        life: 2.4,
+        missile: true,
         color: '#ff9a68',
-        description: 'Self-guided missiles explode across a 115 m radius. Good for grouped enemies.',
+        description: 'Homing missiles: launched slow, they speed up, turn toward a locked raider and burst across 100 m. A nimble target can make one overshoot. Seeker head, rocket motor and warhead modules tune them.',
         line: 'Homing missiles with splash.',
+        tags: 'missile rocket homing ракета',
     },
     {
         id: 'beam',
@@ -140,10 +142,22 @@ function current_ship()
     return ship_catalog.find(v => v.id === f.ship_id) || ship_catalog[0];
 }
 
-// How far the guns reach, the farthest of them, at most a screen's width.
+// How far the guns reach, the farthest of them
 function gun_reach()
 {
-    return Math.max(...mounted_weapons().map(v => Math.min(900, v.speed*v.life)));
+    return Math.max(...mounted_weapons().map(weapon_reach));
+}
+
+// A gun's range: how far its shot flies; a missile's, how far its seeker locks
+function weapon_range(v)
+{
+    return v.missile ? missile_stats().lock : v.speed*v.life;
+}
+
+// How far a gun fires: its range, a gun's at most a screen's width
+function weapon_reach(v)
+{
+    return v.missile ? weapon_range(v) : Math.min(900, weapon_range(v));
 }
 
 // The main gun: the arcade's one gun; in the campaign the biggest, then strongest, on your mounts
@@ -267,19 +281,17 @@ function fire_equipped_weapon(mount = null)
         // The ship's speed along the shot, when it flies that way, rides on top: a shot always outruns a chasing ship,
         // and still flies straight
         const carry = Math.max(0, player.vx*Math.cos(a) + player.vy*Math.sin(a));
-        bullets.push({
+        bullets.push(v.missile ? missile_new(muzzle, a, player.barrels[slot] + i, damage, v, carry) : {
             x: muzzle.x,
             y: muzzle.y,
             vx: Math.cos(a)*(v.speed + carry),
             vy: Math.sin(a)*(v.speed + carry),
             life: v.life,
             damage,
-            r: (v.id === 'missile') ? 7 : (v.id === 'beam') ? 5 : 3,
+            r: (v.id === 'beam') ? 5 : 3,
             weapon: v.id,
             color: v.color,
-            homing: (v.id === 'missile') || (['plasma', 'ion'].includes(v.id) && (upgrades.homing > 0)),
-            seeker: v.id === 'missile',
-            splash: (v.id === 'missile') ? 115 : 0,
+            homing: ['plasma', 'ion'].includes(v.id) && (upgrades.homing > 0),
             width: muzzle.bore,
         });
         explode(muzzle.x, muzzle.y, muzzle.bore ? Math.max(3, muzzle.bore*3) : 9, v.color, 0, 'muzzle');
@@ -292,17 +304,19 @@ function fire_equipped_weapon(mount = null)
         player.gun_cd = player.gun_cd || [];
         player.gun_cd[mount] = player.shoot_cd;
     }
-    sfx((v.id === 'plasma') ? 'shot' : `enemy_${v.id}`);
+    sfx((v.id === 'plasma') ? 'shot' : v.missile ? 'missile' : `enemy_${v.id}`);
 }
 
+// A missile's blast: the raiders within its splash take the warhead's share of the hit
 function blast_payload(b, direct)
 {
+    b.exploded = true;
     ring(b.x, b.y, b.color || gold, b.splash, 0.35);
     burst(b.x, b.y, b.color || gold, 22, 190);
     explode(b.x, b.y, b.splash*0.45, b.color || gold);
     for (const enemy of enemies.slice()) {
         if ((enemy !== direct) && (enemy.hp > 0) && (distance(enemy, b) < b.splash)) {
-            damage_enemy(enemy, b.damage*0.65);
+            damage_enemy(enemy, b.damage*b.splash_share);
         }
     }
 }
@@ -339,18 +353,4 @@ function hit_with_weapon(enemy, b)
     if (b.splash) {
         blast_payload(b, enemy);
     }
-}
-
-function nearest_enemy(v, radius)
-{
-    let out = null;
-    let near = radius;
-    for (const enemy of enemies) {
-        const d = distance(v, enemy);
-        if ((enemy.hp > 0) && (d < near)) {
-            out = enemy;
-            near = d;
-        }
-    }
-    return out;
 }

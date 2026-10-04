@@ -197,6 +197,7 @@ const sfx_by_kind = {
     enemy_plasma: sfx_enemy_plasma,
     enemy_scatter: sfx_enemy_scatter,
     enemy_missile: sfx_enemy_missile,
+    missile: sfx_missile,
     enemy_ion: sfx_enemy_ion,
     enemy_railgun: sfx_enemy_railgun,
     enemy_beam: sfx_enemy_beam,

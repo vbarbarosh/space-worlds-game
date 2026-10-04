@@ -50,21 +50,6 @@ function render_nebula_layer(id, sky)
     ctx.drawImage(v.layer, -v.pad - camera.x*0.018 + drift, -v.pad - camera.y*0.012, v.w, v.h);
 }
 
-// The seeker missile: the designer's rocket, 14 units across its canvas, its band in the shooter's colour, and its
-// flame from the tail mark
-function projectile_missile_draw(v, color)
-{
-    const angle = Math.atan2(v.vy, v.vx);
-    const name = 'weapons/projectile-missile';
-    ctx.save();
-    ctx.translate(v.x, v.y);
-    ctx.rotate(angle);
-    ctx.globalCompositeOperation = 'lighter';
-    sprite_flames(ctx, sprite_anchors_box(name, 14).flames.main, 1, '#ffb27a', Math.sin(clock*40 + v.x)*0.2);
-    ctx.restore();
-    sprite_draw_box(name, color, 14, v.x, v.y, angle);
-}
-
 function render_projectiles()
 {
     const groups = new Map();
@@ -87,46 +72,25 @@ function render_projectiles()
     }
     gather(bullets, true);
     gather(hostile, false);
-    // Missiles are drawn rockets when the designer's drawing is there
-    const rocket = sprite('weapons/projectile-missile');
+    // Missiles fly with their trails (missiles.js); every other shot is a bolt along its flight, a raider's too
+    missile_wakes_draw();
     for (const group of groups.values()) {
-        if (rocket && (group.type === 'missile')) {
-            for (const v of group.items) {
-                projectile_missile_draw(v, group.color);
-            }
+        if (group.items[0].missile) {
+            missile_group_draw(group);
             continue;
         }
-        const missile = !group.friendly && (group.type === 'missile');
-        // Every shot but a missile is a bolt along its flight, a raider's too: no slow round blobs
-        const line = !missile;
-        ctx.fillStyle = missile ? '#301a1c' : group.color;
         ctx.strokeStyle = group.color;
         // A player's shot is as wide as the bore it left; a raider's by its gun
         const bore = group.friendly && group.items[0].width;
-        ctx.lineWidth = bore ? Math.max(1.4, bore) : missile ? 1.7 : (group.type === 'rail') ? 4 : (group.type === 'beam') ? 5 : 3;
+        ctx.lineWidth = bore ? Math.max(1.4, bore) : (group.type === 'rail') ? 4 : (group.type === 'beam') ? 5 : 3;
         ctx.shadowBlur = 0;
         ctx.beginPath();
         const items = group.items;
+        const length = (group.type === 'beam') ? 0.042 : (group.type === 'rail') ? 0.03 : 0.018;
         for (let i = 0, end = items.length; i < end; ++i) {
             const v = items[i];
-            if (missile) {
-                const speed = Math.sqrt(v.vx*v.vx + v.vy*v.vy) || 1;
-                const c = v.vx/speed;
-                const n = v.vy/speed;
-                ctx.moveTo(v.x + c*7, v.y + n*7);
-                ctx.lineTo(v.x - c*3.5 + n*6.1, v.y - n*3.5 - c*6.1);
-                ctx.lineTo(v.x - c*3.5 - n*6.1, v.y - n*3.5 + c*6.1);
-                ctx.closePath();
-            }
-            else if (line) {
-                const length = (group.type === 'beam') ? 0.042 : (group.type === 'rail') ? 0.03 : 0.018;
-                ctx.moveTo(v.x, v.y);
-                ctx.lineTo(v.x - v.vx*length, v.y - v.vy*length);
-            }
-            else {
-                ctx.moveTo(v.x + v.r, v.y);
-                ctx.arc(v.x, v.y, v.r, 0, Math.PI*2);
-            }
+            ctx.moveTo(v.x, v.y);
+            ctx.lineTo(v.x - v.vx*length, v.y - v.vy*length);
         }
         const stroke_width = ctx.lineWidth;
         if (full_fx) {
@@ -139,16 +103,7 @@ function render_projectiles()
             ctx.globalAlpha = 1;
             ctx.lineWidth = stroke_width;
         }
-        if (missile) {
-            ctx.fill();
-            ctx.stroke();
-        }
-        else if (line) {
-            ctx.stroke();
-        }
-        else {
-            ctx.fill();
-        }
+        ctx.stroke();
     }
     ctx.shadowBlur = 0;
 }

@@ -87,6 +87,7 @@ function update_effects(dt)
         v.life -= dt;
     }
     trail = trail.filter(v => v.life > 0);
+    missile_wakes_update(dt);
     shake = Math.max(0, shake - dt*32);
     flash = Math.max(0, flash - dt);
 }
@@ -397,13 +398,14 @@ function update(dt)
         const b = bullets[i];
         const px = b.x;
         const py = b.y;
-        let guided_target = b.seeker ? nearest_enemy(b, 1100) : target;
-        if (b.homing && guided_target && (distance(b, guided_target) < (b.seeker ? 1100 : 400))) {
-            const target = guided_target;
+        if (b.missile) {
+            missile_guide(b, dt);
+        }
+        else if (b.homing && target && (distance(b, target) < 400)) {
             const angle = Math.atan2(target.y - b.y, target.x - b.x);
             const current = Math.atan2(b.vy, b.vx);
             const delta = Math.atan2(Math.sin(angle - current), Math.cos(angle - current));
-            const next = current + clamp(delta, -dt*(b.seeker ? 3.5 : upgrades.homing*2.2), dt*(b.seeker ? 3.5 : upgrades.homing*2.2));
+            const next = current + clamp(delta, -dt*upgrades.homing*2.2, dt*upgrades.homing*2.2);
             const speed = Math.hypot(b.vx, b.vy);
             b.vx = Math.cos(next)*speed;
             b.vy = Math.sin(next)*speed;
@@ -469,15 +471,8 @@ function update(dt)
         if (b.life <= 0) {
             continue;
         }
-        if (b.weapon === 'missile') {
-            const missile_target = (b.escort_target && escort) ? escort : player;
-            const a = Math.atan2(missile_target.y - b.y, missile_target.x - b.x);
-            const c = Math.atan2(b.vy, b.vx);
-            const d = Math.atan2(Math.sin(a - c), Math.cos(a - c));
-            const n = c + clamp(d, -enemy_dt*0.85, enemy_dt*0.85);
-            const speed = Math.hypot(b.vx, b.vy);
-            b.vx = Math.cos(n)*speed;
-            b.vy = Math.sin(n)*speed;
+        if (b.missile) {
+            missile_fly(b, (b.escort_target && escort) ? escort : player, enemy_dt);
         }
         b.x += b.vx*enemy_dt;
         b.y += b.vy*enemy_dt;
@@ -502,6 +497,8 @@ function update(dt)
             b.life = 0;
         }
     }
+    missile_wakes_keep(bullets);
+    missile_wakes_keep(hostile);
     bullets = bullets.filter(v => (v.life > 0) && (v.x > -40) && (v.x < world.w + 40) && (v.y > -40) && (v.y < world.h + 40));
     hostile = hostile.filter(v => (v.life > 0) && (v.x > -40) && (v.x < world.w + 40) && (v.y > -40) && (v.y < world.h + 40));
     enemies = enemies.filter(v => v.hp > 0);

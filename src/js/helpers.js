@@ -20,6 +20,9 @@ function initial_upgrades()
         cooling: 0,
         turbo_tank: 0,
         evasive: 0,
+        seeker: 0,
+        motor: 0,
+        warhead: 0,
     };
 }
 

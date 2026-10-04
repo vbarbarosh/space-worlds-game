@@ -227,6 +227,7 @@ function world_audio_base_enemy_fire(enemy, angle, speed = 210, pattern = false)
             escort_target: !!enemy.escort_raider,
             damage: (w === 'rail') ? 30 : (w === 'missile') ? 23 : (w === 'scatter') ? 12 : (w === 'ion') ? 17 : 10,
             color: enemy.color,
+            ...((w === 'missile') ? missile_raider(s, 6/fast) : {}),
         });
     }
     explode(enemy.x + Math.cos(angle)*enemy.r, enemy.y + Math.sin(angle)*enemy.r, 11, enemy.color || pink, 0, 'muzzle');

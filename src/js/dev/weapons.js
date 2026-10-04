@@ -11,7 +11,7 @@ function dev_weapons_fill()
 {
     const rows = [];
     for (const weapon of weapon_catalog) {
-        const range = Math.round(weapon.speed*weapon.life);
+        const range = Math.round(weapon_range(weapon));
         rows.push({value: weapon.id, cells: [weapon.name, weapon.damage, `${weapon.interval} s`, weapon.speed, range, weapon.rating]});
     }
     const headers = ['Weapon', 'Dmg', 'Every', 'Speed', 'Range', 'Rating'];

@@ -201,7 +201,7 @@ function guns_fire(target_distance)
     const guns = mounted_weapons();
     player.gun_cd = player.gun_cd || [];
     for (let i = 0; i < guns.length; ++i) {
-        if (((player.gun_cd[i] || 0) <= 0) && (target_distance < Math.min(900, guns[i].speed*guns[i].life))) {
+        if (((player.gun_cd[i] || 0) <= 0) && (target_distance < weapon_reach(guns[i]))) {
             fire(i);
         }
     }
@@ -321,7 +321,7 @@ function arsenal_gun_card(v)
     return ui_card({
         tags: `${ui_size(v.size)}${owned ? ui_tier(level) : ''}${on.length ? ui_badge(`Equipped${(on.length > 1) ? ` ×${on.length}` : ''}`, 'cyan') : ''}`,
         title: v.name,
-        stats: [['DMG', damage], ['RATE', `${v.interval.toFixed(2)}s`], ['RANGE', `${((v.speed*v.life)/1000).toFixed(1)} km`]],
+        stats: [['DMG', damage], ['RATE', `${v.interval.toFixed(2)}s`], ['RANGE', `${(weapon_range(v)/1000).toFixed(1)} km`]],
         note,
         action,
         state: on.length ? 'is-equipped' : locked ? 'is-locked' : '',
