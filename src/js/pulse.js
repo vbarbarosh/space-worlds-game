@@ -67,10 +67,10 @@ function pulse_fire(x, y)
 }
 
 // The EMP: 160 + 12 × threat level to each raider within 650 m (400 to a flagship), the same all the way out; it wipes
-// raiders' shots as its front passes and leaves rocks alone
+// raiders' shots as its front passes and breaks rocks as the pulse does
 function emp_fire(x, y)
 {
-    pulse_waves.push(pulse_wave_create('emp', x, y, {reach: emp_reach, speed: emp_speed, damage: 160 + wave*12, boss_damage: 400, shots: true}));
+    pulse_waves.push(pulse_wave_create('emp', x, y, {reach: emp_reach, speed: emp_speed, damage: 160 + wave*12, boss_damage: 400, shots: true, rocks: true}));
     pulse_glow_start(pulse_looks.emp.color);
 }
 
