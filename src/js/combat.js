@@ -24,6 +24,7 @@ function base_reset_run(resume = false)
     labels = [];
     trail = [];
     hazards = [];
+    pulse_clear();
     stasis_time = 0;
     drone_cd = 0;
     score = 0;
@@ -104,6 +105,7 @@ function begin_wave()
     drop_timer = 14;
     hazard_timer = 12;
     hazards = [];
+    pulse_clear();
     generate_map();
     player.x = station.x + station_size/2 + 60;
     player.y = station.y;
@@ -263,7 +265,8 @@ function base_damage_enemy(enemy, damage)
     kills++;
     combo = (combo_timer > 0) ? Math.min(8, combo + 1) : 1;
     combo_timer = 4;
-    const points = ((enemy.type === 'boss') ? 5000 : (enemy.type === 'tank') ? 140 : (enemy.type === 'shooter') ? 100 : (enemy.type === 'splitter') ? 110 : 80)*combo;
+    const chain = pulse_score_scale();
+    const points = Math.round(((enemy.type === 'boss') ? 5000 : (enemy.type === 'tank') ? 140 : (enemy.type === 'shooter') ? 100 : (enemy.type === 'splitter') ? 110 : 80)*combo*chain);
     score += points;
     player.energy = Math.min(100, player.energy + 4 + upgrades.pulse);
     burst(
@@ -274,7 +277,7 @@ function base_damage_enemy(enemy, damage)
         (enemy.type === 'boss') ? 450 : 190
     );
     ring(enemy.x, enemy.y, (enemy.type === 'shooter') ? gold : pink, enemy.r*3, 0.35);
-    label(enemy.x, enemy.y - 10, `+${points}`);
+    label(enemy.x, enemy.y - 10, `+${points}`, (chain > 1) ? gold : cyan);
     shake = Math.max(shake, arcade.active ? arcade_kill_shake(enemy) : ((enemy.type === 'boss') ? 22 : 4));
     if (arcade.active && (enemy.type === 'boss')) {
         arcade.slowmo = 1.4;
@@ -361,17 +364,9 @@ function pulse()
     }
     player.energy = 0;
     player.invincible = 0.75;
-    shake = 18;
-    flash = 0.15;
-    ring(player.x, player.y, cyan, Math.max(W, H), 0.65);
-    ring(player.x, player.y, pink, Math.max(W, H)*0.8, 0.7);
-    burst(player.x, player.y, cyan, 65, 500);
-    hostile = [];
-    for (const enemy of enemies.slice()) {
-        if (distance(enemy, player) < 480 + upgrades.pulse*80) {
-            damage_enemy(enemy, (enemy.type === 'boss') ? 320 + upgrades.pulse*120 : 140 + upgrades.pulse*60);
-        }
-    }
+    shake = Math.max(shake, 10);
+    // nothing is hit here: the ring travels and hits each target as its front reaches it (src/js/pulse.js)
+    pulse_fire(player.x, player.y);
     sfx('pulse');
     show_toast('PULSE RELEASED', 'THE STORM BENDS TO YOU', 1.1);
 }

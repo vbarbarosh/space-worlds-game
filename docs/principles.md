@@ -124,6 +124,9 @@ difficulty; none of that changes the campaign's rules.
   (`arcade_kill_shake`), a flagship's death plays at 30% speed for a moment
   (`arcade_time_step`), and a ship that explodes hurts what is close to it
   (`arcade_blast_from_kill`).
+- The pulse's chain rings are the pulse's own, in both modes; their score
+  (×(1 + 0.5 × depth)) is arcade-only, and like your shots the pulse and its
+  chains break ore rocks only in the arcade (`src/js/pulse.js`).
 - Where it lives: `src/js/arcade.js`.
 
 ## A station is a shelter

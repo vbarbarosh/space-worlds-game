@@ -287,6 +287,7 @@ function update(dt)
     update_equipment(dt);
     update_hazards(dt);
     update_frontier(dt);
+    pulse_update(dt);
     if (arcade.active) {
         arcade_update(dt);
     }

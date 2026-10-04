@@ -165,6 +165,48 @@
     transition: opacity 0.4s ease;
 }
 
+/* the pulse's gold ×N CHAIN counter, heading the toasts so they stack under it; pulse_chain_update sets its pop
+   (--s) and fade */
+.ui.hud .pulse-chain {
+    pointer-events: none;
+    text-align: center;
+    font-family: var(--font-mono);
+    font-weight: 700;
+    color: var(--gold);
+    text-shadow: 0 0 18px rgba(255, 179, 92, 0.55);
+    transform: scale(var(--s, 1));
+}
+
+.ui.hud .pulse-chain b {
+    display: block;
+    font-size: 44px;
+    line-height: 1;
+}
+
+.ui.hud .pulse-chain span {
+    display: block;
+    font-size: 12px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: #ffe2a8;
+}
+
+/* short: one line, so the toasts under it still clear the bottom row */
+@container screen (max-height: 560px) {
+    .ui.hud .pulse-chain b,
+    .ui.hud .pulse-chain span {
+        display: inline;
+    }
+
+    .ui.hud .pulse-chain b {
+        font-size: 24px;
+    }
+
+    .ui.hud .pulse-chain span {
+        margin-left: 8px;
+    }
+}
+
 .ui.hud .banners .banner.is-leaving {
     opacity: 0;
 }

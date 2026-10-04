@@ -263,6 +263,7 @@ function render()
     render_hostile_marks();
     render_enemies();
     render_explosions();
+    render_pulse();
     render_pickups();
     render_equipment();
     render_hazards();

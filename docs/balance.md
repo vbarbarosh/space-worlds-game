@@ -185,9 +185,12 @@ A module level costs its base price × (1 + 0.48 per level you have)
 - Where: `upgrade_options` and `supply_options` in `src/js/upgrades.js`; the
   effects in `src/js/update.js`, `src/js/helpers.js`, `src/js/expedition.js`,
   `src/js/flight.js`, `src/js/combat.js`.
-- The pulse (Space) fires at 100 energy and hits within 480 m for 140 damage,
-  320 on a flagship, before the amplifier (`pulse` in `src/js/combat.js`). A
-  kill gives 4 energy + the amplifier level.
+- The pulse (Space) fires at 100 energy: a ring runs out at 760 m/s to 480 m
+  and hits each thing as its front arrives, 200 damage beside you down to 110
+  at the edge (140 on average, as before; a flagship 457 to 251), before the
+  amplifier; a kill blows up 0.05–0.14 s later and sends a chain ring: 110 m,
+  28 damage, ×0.82 a step, 3 steps, ×1.35 from a tank, elite or flagship
+  (`src/js/pulse.js`). A kill gives 4 energy + the amplifier level.
 
 ## Salvage in
 

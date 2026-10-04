@@ -296,7 +296,8 @@ function draw_background()
         ctx.fillStyle = (i % 5) ? look.star : worlds[id].accent;
         const x = (((star.x - camera.x*star.z*0.055) % W) + W) % W;
         const y = (((star.y - camera.y*star.z*0.045) % H) + H) % H;
-        ctx.fillRect(x, y, star.z*((id === 5) ? 2 : 1.5), star.z*1.5);
+        const bent = pulse_star_bend(x, y);
+        ctx.fillRect(bent.x, bent.y, star.z*((id === 5) ? 2 : 1.5), star.z*1.5);
     }
     ctx.globalAlpha = 1;
     for (let i = 0, end = sky.motes.length; i < end; ++i) {
