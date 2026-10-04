@@ -70,9 +70,10 @@ screen you read, or press by label.
 
 ## How the game works, in short
 
-- **The menu**: a mode only picks it; the button under it starts. `New campaign`
-  then `Start campaign` for the story game; `Continue campaign` then `Continue`
-  resumes a saved one. `Arcade` then `Start arcade` is the action game; see below.
+- **The menu**: a row opens in place, and only its button starts. `New campaign`
+  then `Start campaign` for the story game; `Continue campaign` then `Play`
+  resumes a saved one. `Arcade` opens three difficulty tiles (`Chill`,
+  `Standard`, `Overload`), then `Start arcade` is the action game; see below.
 - **At a station** (the screen is `upgrade_overlay`, and time stands still):
   - CONTRACTS lists the contracts you can take: `Accept`. You can
     hold up to three. A finished one is collected here with

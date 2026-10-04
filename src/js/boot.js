@@ -3,7 +3,7 @@ sync_load_button();
 hud_init();
 menu_art_sync(0, 'scout');
 load_checkpoint();
-menu_scene(el.continue_button.classList.contains('hidden') ? 'campaign' : 'continue');
+menu_scene(el.continue_row.classList.contains('hidden') ? 'campaign' : 'continue');
 // The next frame is asked for first, so an error in this one is reported without stopping the game
 function frame(timestamp)
 {

@@ -95,7 +95,7 @@ function finale_build()
     document.getElementById('finale_ship').src = menu_sprite_url(ship_parts_svg(current_ship().id, {...ship_parts_loadout(), gun: current_weapon().id}));
     document.getElementById('finale_burst').src = ship_parts_url('worlds/haven/warp-burst');
     document.getElementById('finale_ring').src = ship_parts_url('worlds/haven/warp-ring');
-    const mode = document.querySelector(`[data-mode="${difficulty}"]`)?.textContent || '';
+    const mode = document.querySelector(`[data-mode="${difficulty}"] .tile-name`)?.textContent || '';
     document.getElementById('finale_eyebrow').textContent = mode ? `Arcade · ${mode}` : 'Arcade';
     document.getElementById('finale_letters').innerHTML = [...'FRONTIER CLEARED'].map((v, i) => `<span${(i > 8) ? ' class="c"' : ''}>${(v === ' ') ? '&nbsp;' : v}</span>`).join('');
     set_hidden(document.getElementById('finale_overload'), difficulty === 'overload');

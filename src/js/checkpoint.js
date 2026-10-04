@@ -74,7 +74,7 @@ function clear_checkpoint()
     }
     catch {
     }
-    set_hidden(el.continue_button, true);
+    set_hidden(el.continue_row, true);
 }
 
 function load_checkpoint()

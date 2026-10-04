@@ -45,7 +45,7 @@ for (const id of [
     'dock_summary',
     'dock_status',
     'next_sector',
-    'continue_button',
+    'continue_row',
     'shield_readout',
     'map_coordinates',
     'navigation_status',
