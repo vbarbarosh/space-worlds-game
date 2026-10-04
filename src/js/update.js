@@ -121,7 +121,6 @@ function update(dt)
         );
         player.hp = Math.min(hull_max(), player.hp + dt*upgrades.nanites*0.35);
     }
-    player.energy = Math.min(100, player.energy + dt*upgrades.reactor*1.5);
     player.invincible = Math.max(0, player.invincible - dt);
     recharge_turbo(dt);
     player.shoot_cd -= dt;
