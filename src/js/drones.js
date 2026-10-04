@@ -101,6 +101,23 @@ function drone_prey(enemy)
     return best;
 }
 
+// A drone's load: a small dot of the ore's colour beside it; none while it flies empty
+function drone_load_dot(x, y, color)
+{
+    if (!color) {
+        return;
+    }
+    ctx.save();
+    ctx.fillStyle = color;
+    ctx.strokeStyle = '#0b1222';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(x + 7, y - 7, 3.2, 0, Math.PI*2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+}
+
 function drone_fly(drone, to, dt, speed = drone_tier().speed)
 {
     const dx = to.x - drone.x;
@@ -155,7 +172,7 @@ function drones_update(dt)
                 drone.beam = 1;
                 // A chunk at a time into the load; full, the drone flies home, and a rock drilled empty sends it on
                 // to the next one near it while it has room
-                rock.cutter = drone;
+                rock.cutter = true;
                 const got = ore_chip(rock, drone_cut_rate()*dt);
                 rock.cutter = null;
                 if (got) {
@@ -233,8 +250,9 @@ function render_drones()
             ctx.stroke();
             ctx.globalCompositeOperation = 'source-over';
         }
-        // The drawing's accent takes the colour of the ore it carries
-        if ((view_mode !== 'wireframe') && sprite_draw('drone-mining', drone.loads.length ? ore_color(drone.loads[0]) : null, drone_tier().size, drone.x, drone.y, drone.angle)) {
+        // Your drones are in your ship's cyan (an outpost's are gold), with a dot of the ore they carry
+        if ((view_mode !== 'wireframe') && sprite_draw('drone-mining', cyan, drone_tier().size, drone.x, drone.y, drone.angle)) {
+            drone_load_dot(drone.x, drone.y, drone.loads.length ? ore_color(drone.loads[0]) : null);
             continue;
         }
         ctx.save();
@@ -303,18 +321,23 @@ function render_drone_tier_card(after)
     const b = document.createElement('button');
     b.disabled = !next || (salvage < next.price);
     b.textContent = next ? `UPGRADE · ◆ ${next.price}` : 'FULLY UPGRADED';
-    b.addEventListener('click', on_upgrade);
+    b.addEventListener('click', buy_drone_tier);
     card.append(b);
     after.after(card);
-    function on_upgrade() {
-        if ((state !== 'upgrade') || !next || (salvage < next.price)) {
-            return;
-        }
-        salvage -= next.price;
-        campaign.drone_tier = tier + 1;
-        sfx('upgrade');
-        dock_message = `Drones upgraded to ${next.name} ${next.mark}.`;
-        render_shop();
-        save_checkpoint('dock');
+}
+
+// Docked: the next drone tier, for the whole fleet
+function buy_drone_tier()
+{
+    const tier = Number.isInteger(campaign.drone_tier) ? campaign.drone_tier : 0;
+    const next = drone_tiers[tier + 1];
+    if ((state !== 'upgrade') || !next || (salvage < next.price)) {
+        return;
     }
+    salvage -= next.price;
+    campaign.drone_tier = tier + 1;
+    sfx('upgrade');
+    dock_message = `Drones upgraded to ${next.name} ${next.mark}.`;
+    refresh_station_tab();
+    save_checkpoint('dock');
 }

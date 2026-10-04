@@ -8,18 +8,17 @@ function base_update_hud()
     if (!player) {
         return;
     }
-    el.health_text.textContent = `${Math.ceil(player.hp)} / ${hull_max()}`;
+    el.health_text.innerHTML = `${Math.ceil(player.hp)} <small>/ ${hull_max()}</small>`;
     el.health_fill.style.width = `${(player.hp/hull_max())*100}%`;
-    el.health_fill.style.background = (player.hp < 30) ? pink : cyan;
-    el.pulse_text.textContent = (player.energy >= 100) ? 'READY' : `${Math.floor(player.energy)}%`;
+    el.pulse_text.textContent = (player.energy >= 100) ? 'Ready' : `${Math.floor(player.energy)}%`;
     el.pulse_fill.style.width = `${player.energy}%`;
     el.dash_text.textContent = player.turbo_active
-        ? `THRUST ${turbo_fuel().toFixed(1)}s`
+        ? `Thrust ${turbo_fuel().toFixed(1)}s`
         : (player.dash_cd > 0)
-            ? 'COOLING'
+            ? 'Cooling'
             : (turbo_fuel() >= turbo_duration() - 0.05)
-                ? 'READY'
-                : `CHARGING ${turbo_fuel().toFixed(1)}s`;
+                ? 'Ready'
+                : `${turbo_fuel().toFixed(1)}s`;
     el.dash_fill.style.width = `${(turbo_fuel()/turbo_duration())*100}%`;
     document.getElementById('touch_pulse').disabled = player.energy < 100;
     document.getElementById('touch_dash').disabled = !player.turbo_active && ((player.dash_cd > 0) || (turbo_fuel() < 0.25));
@@ -44,21 +43,22 @@ function base_update_hud()
     set_hidden(document.getElementById('quick_route'), arcade.active);
     const convoy = document.getElementById('quick_convoy');
     set_hidden(convoy, !formation_candidates().some(v => distance(v, player) < 1500));
-    convoy.querySelector('b').textContent = formation.leader ? 'BREAK OFF' : 'FOLLOW';
+    convoy.querySelector('b').textContent = formation.leader ? 'Break off' : 'Formation';
     convoy.classList.toggle('on', !!formation.leader);
     const drone_button = document.getElementById('quick_drones');
     set_hidden(drone_button, arcade.active);
-    drone_button.querySelector('b').textContent = drones_out ? `OUT ${drones.length}/${drones_owned()}` : drones_owned();
+    drone_button.querySelector('b').textContent = drones_out ? `${drones.length}/${drones_owned()}` : drones_owned();
     drone_button.classList.toggle('on', drones_out);
     drone_button.disabled = (state !== 'playing') || (!drones_out && !drones_owned());
-    document.getElementById('quick_magnet').querySelector('b').textContent = `MAGNET ${upgrades.magnet}/7 · ${format_reading(magnetic_radius())} px`;
+    document.getElementById('quick_magnet').querySelector('b').textContent = `Magnet ${upgrades.magnet}/7`;
+    document.getElementById('quick_magnet').title = `Magnet level ${upgrades.magnet} of 7: ${format_reading(magnetic_radius())} px reach. Always on; upgrade it at a station.`;
     el.map_coordinates.textContent = `X ${Math.round(player.x)} / Y ${Math.round(player.y)} · ${world.w} × ${world.h}`;
     const danger = black_holes.some(v => distance(v, player) < gravity_reach(v));
     const steering = formation.leader ? 'IN FORMATION · G TO BREAK OFF' : `FOLLOW ${mouse_drive.following ? 'ON · DOUBLE CLICK TO STOP' : 'OFF · DOUBLE CLICK TO START'}`;
     const warning = danger ? ' / GRAVITY WELL · CORE FATAL' : (player.portal_cd > 0) ? ` / GATE COOLDOWN ${player.portal_cd.toFixed(1)}s` : '';
     el.navigation_status.textContent = `${steering}${warning}`;
     el.navigation_status.classList.toggle('danger', danger);
-    el.shield_readout.textContent = `SHIELD ${Math.ceil(player.shield)} / ${shield_max()}`;
+    el.shield_readout.textContent = `Shield ${Math.ceil(player.shield)}/${shield_max()}`;
 }
 
 function update_effects(dt)
@@ -87,12 +87,6 @@ function update_effects(dt)
     trail = trail.filter(v => v.life > 0);
     shake = Math.max(0, shake - dt*32);
     flash = Math.max(0, flash - dt);
-    if (toast_timer > 0) {
-        toast_timer -= dt;
-        if (toast_timer <= 0) {
-            el.toast.classList.remove('show');
-        }
-    }
 }
 
 function update(dt)
@@ -128,6 +122,7 @@ function update(dt)
     player.invincible = Math.max(0, player.invincible - dt);
     recharge_turbo(dt);
     player.shoot_cd -= dt;
+    guns_cool(dt);
     combo_timer -= dt;
     if (combo_timer <= 0) {
         combo = 1;
@@ -252,8 +247,8 @@ function update(dt)
     }
     update_ship_orientation(dt, target, dx, dy);
     // The guns fire only at a target in their reach: a raider, debris about to hit, or (arcade) a rock; never into empty space.
-    if ((player.shoot_cd <= 0) && target && (near < gun_reach())) {
-        fire();
+    if (target) {
+        guns_fire(near);
     }
     if (Math.hypot(player.vx, player.vy) > 20) {
         trail.push({x: player.x, y: player.y, angle: player.angle, life: (player.dash_time > 0) ? 0.3 : 0.16, total: (player.dash_time > 0) ? 0.3 : 0.16});

@@ -264,7 +264,8 @@ function block_hostile_ore(b, previous)
     return true;
 }
 
-function fire()
+// mount: the campaign gun to fire; null for the arcade's one gun
+function fire(mount = null)
 {
     // The main engines' boost takes the reactor: the guns hold fire until it ends
     if (player.turbo_active) {
@@ -272,12 +273,19 @@ function fire()
     }
     if ((campaign.world === 6) && player.overheated) {
         player.shoot_cd = 0.2;
+        if (mount !== null) {
+            player.gun_cd[mount] = 0.2;
+        }
         return;
     }
-    physics_base_fire();
+    physics_base_fire(mount);
     player.shoot_cd *= current_world_rules().gun;
+    if (mount !== null) {
+        player.gun_cd[mount] *= current_world_rules().gun;
+    }
     if (campaign.world === 6) {
-        player.heat = Math.min(100, (player.heat || 0) + 3);
+        // the reactor heats by the volley, however many guns share it
+        player.heat = Math.min(100, (player.heat || 0) + 3/((mount === null) ? 1 : mounted_weapons().length));
         if (player.heat >= 100) {
             player.overheated = true;
         }

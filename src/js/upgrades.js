@@ -236,7 +236,7 @@ function shop_buy(v)
 
 function base_render_shop()
 {
-    el.shop_wallet.textContent = salvage;
+    el.shop_wallet.textContent = ui_number(salvage);
     el.shop_grid.replaceChildren();
     // What the guide says the next world needs stands out
     const wanted = new Set((guide_context().purchases || []).map(v => v.key));
@@ -259,7 +259,7 @@ function base_render_shop()
     }
     el.dock_status.textContent = dock_message;
     el.next_sector.disabled = !dock_free_chosen;
-    el.next_sector.textContent = `LAUNCH SECTOR ${String(wave + 1).padStart(2, '0')} ↗`;
+    el.next_sector.innerHTML = `<span>Launch sector ${String(wave + 1).padStart(2, '0')}</span>`;
     update_hud();
 }
 
@@ -278,7 +278,7 @@ function choose_upgrade(restored = false)
     combo_timer = 0;
     combo = 1;
     set_hidden(el.bossbar, true);
-    el.toast.classList.remove('show');
+    toasts_clear();
     if (!restored) {
         for (const v of pickups.filter(v => (v.life > 0) && !v.cache)) {
             collect_pickup(v, true);
@@ -310,7 +310,7 @@ function choose_upgrade(restored = false)
     }
     shop_filter = 'all';
     for (const v of document.querySelectorAll('[data-filter]')) {
-        v.classList.toggle('selected', v.dataset.filter === 'all');
+        v.classList.toggle('is-active', v.dataset.filter === 'all');
     }
     el.dock_summary.textContent =
         `Sector ${String(wave).padStart(2, '0')} cleared · +30 hull · ${format_time(run_time)} elapsed. Select one free module, then shop.`;
@@ -331,7 +331,7 @@ for (const v of document.querySelectorAll('[data-filter]')) {
     v.addEventListener('click', function () {
         shop_filter = v.dataset.filter;
         for (const b of document.querySelectorAll('[data-filter]')) {
-            b.classList.toggle('selected', b === v);
+            b.classList.toggle('is-active', b === v);
         }
         render_shop();
     });

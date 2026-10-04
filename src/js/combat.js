@@ -71,6 +71,7 @@ function base_reset_run(resume = false)
         turret_angle: -Math.PI/2,
         invincible: 2.4,
         shoot_cd: 0,
+        gun_cd: [],
         r: current_ship().radius,
         shield: shield_max(),
         since_hit: 8,
@@ -83,19 +84,11 @@ function base_reset_run(resume = false)
         set_hidden(v, false);
     }
     state = 'playing';
-    el.pause_button.textContent = 'Ⅱ';
+    set_pause_icon(false);
     begin_wave();
     save_checkpoint();
     update_hud();
     canvas.focus();
-}
-
-function show_toast(title, sub, duration = 2.5)
-{
-    el.toast_title.textContent = title;
-    el.toast_sub.textContent = sub;
-    el.toast.classList.add('show');
-    toast_timer = duration;
 }
 
 function begin_wave()
@@ -383,9 +376,9 @@ function pulse()
     show_toast('PULSE RELEASED', 'THE STORM BENDS TO YOU', 1.1);
 }
 
-function physics_base_fire()
+function physics_base_fire(mount = null)
 {
-    fire_equipped_weapon();
+    fire_equipped_weapon(mount);
 }
 
 function base_enemy_fire(enemy, angle, speed = 210)

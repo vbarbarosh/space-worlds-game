@@ -85,9 +85,10 @@ function resize()
     dpr = Math.min(devicePixelRatio || 1, 1.7);
     canvas.width = Math.round(width*dpr);
     canvas.height = Math.round(height*dpr);
-    W = Math.max(620, width);
-    H = Math.max(550, height);
-    scale = Math.min(width/W, height/H);
+    // A window smaller than 620 × 550 shows the scene scaled down, widened to the window's shape so it fills it
+    scale = Math.min(1, width/620, height/550);
+    W = width/scale;
+    H = height/scale;
     ox = (width - W*scale)/2;
     oy = (height - H*scale)/2;
     world.w = Math.max(world.w, W + 200);

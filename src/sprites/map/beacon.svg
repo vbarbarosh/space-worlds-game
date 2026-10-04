@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+<defs><linearGradient id="accent-fill" x1="0" y1="0" x2="1" y2="1"><stop id="accent-light" offset="0" stop-color="#b6eebf"/><stop id="accent-base" offset="0.5" stop-color="#7be08a"/><stop id="accent-dark" offset="1" stop-color="#50925a"/></linearGradient></defs>
+<g id="base">
+<path d="M24 58 L40 58 L35 30 L29 30 Z" fill="#a9b3be" stroke="#070b14" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M32 30 L35 30 L40 58 L32 58 Z" fill="#070b14" stroke="none" fill-opacity="0.18"/>
+<circle cx="32" cy="26" r="8" fill="#e3e9ef" stroke="#070b14" stroke-width="4"/>
+</g>
+<g id="accent">
+<circle cx="32" cy="26" r="4" fill="url(#accent-fill)" stroke="#070b14" stroke-width="2"/>
+<path d="M21.28 35 A14 14 0 0 1 21.28 17" fill="none" stroke="#070b14" stroke-width="7.5" stroke-linecap="round"/>
+<path d="M21.28 35 A14 14 0 0 1 21.28 17" fill="none" stroke="url(#accent-fill)" stroke-width="3.5" stroke-linecap="round"/>
+<path d="M42.72 17 A14 14 0 0 1 42.72 35" fill="none" stroke="#070b14" stroke-width="7.5" stroke-linecap="round"/>
+<path d="M42.72 17 A14 14 0 0 1 42.72 35" fill="none" stroke="url(#accent-fill)" stroke-width="3.5" stroke-linecap="round"/>
+<path d="M15.15 40.14 A22 22 0 0 1 15.15 11.86" fill="none" stroke="#070b14" stroke-width="7.5" stroke-linecap="round"/>
+<path d="M15.15 40.14 A22 22 0 0 1 15.15 11.86" fill="none" stroke="url(#accent-fill)" stroke-width="3.5" stroke-linecap="round"/>
+<path d="M48.85 11.86 A22 22 0 0 1 48.85 40.14" fill="none" stroke="#070b14" stroke-width="7.5" stroke-linecap="round"/>
+<path d="M48.85 11.86 A22 22 0 0 1 48.85 40.14" fill="none" stroke="url(#accent-fill)" stroke-width="3.5" stroke-linecap="round"/>
+</g>
+</svg>

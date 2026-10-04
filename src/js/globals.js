@@ -28,9 +28,6 @@ for (const id of [
     'best_intro',
     'bossbar',
     'boss_fill',
-    'toast',
-    'toast_title',
-    'toast_sub',
     'touch_buttons',
     'sound_button',
     'fx_button',
@@ -123,7 +120,6 @@ let time = 0;
 let last_frame = 0;
 let clock = 0;
 let ui_timer = 0;
-let toast_timer = 0;
 let score = 0;
 let best = 0;
 let kills = 0;

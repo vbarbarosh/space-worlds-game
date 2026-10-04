@@ -389,13 +389,13 @@ function update_escort(dt)
         }
     }
     for (const b of hostile) {
-        if ((b.life > 0) && (distance(b, escort) < b.r + 20)) {
+        if ((b.life > 0) && (distance(b, escort) < b.r + sprite_sizes.freighter*0.2)) {
             escort.hp -= b.damage || 13;
             b.life = 0;
         }
     }
     for (const enemy of enemies) {
-        if ((enemy.hp > 0) && (distance(enemy, escort) < enemy.r + 20)) {
+        if ((enemy.hp > 0) && (distance(enemy, escort) < enemy.r + sprite_sizes.freighter*0.2)) {
             escort.hp -= 18*dt;
         }
     }
@@ -590,7 +590,7 @@ function stage_description(v, m, index)
         return `Sell ${Math.ceil(left)} ${v.commodity || m.commodity} at ${worlds[v.world].station}. This uses your real cargo.`;
     }
     if (v.type === 'mining') {
-        return `Mine ${Math.ceil(left)} live ore deposits. FLY TO OBJECTIVE follows the remaining deposits until this stage is complete. A Prospector extracts ore 2.5× faster. You keep the salvage and cargo.`;
+        return `Mine ${Math.ceil(left)} units from the deposits: launch your drones (H) at a mining field, and each chunk they drill counts. FLY TO OBJECTIVE leads to the nearest field. A Prospector extracts ore 2.5× faster. You keep the salvage and cargo.`;
     }
     if (v.type === 'boss') {
         return 'Approach the marked flagship zone and destroy the warship. Prepare your ship and weapon tier before jumping.';
@@ -600,6 +600,11 @@ function stage_description(v, m, index)
 
 function render_contracts(parent, board = false)
 {
+    // the station on the UI kit draws its own contract cards, stage and all
+    if (board && parent.closest('.ui')) {
+        render_station_contracts(parent);
+        return;
+    }
     expedition_base_render_contracts(parent, board);
     for (let i = 0, end = campaign.contracts.length; i < end; ++i) {
         const contract = campaign.contracts[i];
@@ -662,7 +667,7 @@ function render_station()
                 parent,
                 `${v.name} / ${v.role}`,
                 v.description,
-                `HULL ${v.hull} · SHIELD +${v.shield} · SPEED ${Math.round(v.speed*100)}% · CARGO ${v.cargo} · GUN ${Math.round(v.damage*100)}%`,
+                `HULL ${v.hull} · SHIELD +${v.shield} · SPEED ${Math.round(v.speed*100)}% · CARGO ${v.cargo} · GUNS ${mounts_text(v)}`,
                 action,
                 on_select,
                 selected || locked || oversize || (!owned && (salvage < v.price)),
@@ -675,81 +680,39 @@ function render_station()
             const note = document.createElement('small');
             note.textContent =
                 `RAD HULL ${Math.round(v.radiation*100)}% · EQUIPPED ${Math.round(radiation_protection(v)*100)}% · GRAVITY THRUST ×${v.traction} · BRAKES ×${v.braking} · TURBO ${8 + v.endurance + upgrades.turbo_tank*3}s`;
-            c.append(note);
             const match = expedition_conditions.map((e, i) => ((e.ship === v.id) ? worlds[i].name : null)).filter(Boolean);
             const usage = document.createElement('p');
             usage.textContent = `Suited to ${match.join(', ') || 'specialized expeditions'}. Protection and engines differ by hull.`;
-            c.append(usage);
+            // on the UI kit, above the card's button, in the kit's small type
+            const foot = c.querySelector('.foot');
+            if (foot) {
+                note.className = 'small card-meta';
+                usage.className = 'small';
+                foot.before(note, usage);
+            }
+            else {
+                c.append(note, usage);
+            }
         }
     }
     if (station_tab === 'arsenal') {
-        for (const v of weapon_catalog) {
-            const owned = f.weapons.includes(v.id);
-            const selected = f.weapon_id === v.id;
-            const locked = rank < v.rank;
-            const level = f.weapon_levels[v.id] || 1;
-            function on_select() {
-                fleet_purchase(v.id, 'weapon');
-            }
-            const c = card(
-                parent,
-                v.name,
-                v.description,
-                `TIER ${owned ? level : '—'}/5 · DMG ${v.damage} · ${v.interval.toFixed(2)}s / SHOT · RANGE ${Math.round(v.speed*v.life)} m`,
-                selected ? 'EQUIPPED' : locked ? `REQUIRES ${rank_names[v.rank].toUpperCase()}` : owned ? 'EQUIP WEAPON' : `BUY · ◆ ${v.price}`,
-                on_select,
-                selected || locked || (!owned && (salvage < v.price)),
-                selected ? 'active' : ''
-            );
-            if (owned) {
-                const cost = Math.round((130 + v.price*0.22)*level);
-                const b = document.createElement('button');
-                b.textContent = (level >= 5) ? 'MAXIMUM TIER' : `UPGRADE TO TIER ${level + 1} · ◆ ${cost}`;
-                b.disabled = (level >= 5) || (salvage < cost);
-                b.addEventListener('click', function () {
-                    upgrade_weapon(v.id);
-                });
-                c.append(b);
-            }
-        }
+        render_arsenal(parent);
     }
     if (station_tab === 'career') {
-        const next = rank_thresholds[rank + 1];
-        card(
-            parent,
-            `${rank_names[rank]} / PILOT CAREER`,
-            'Complete operations to earn experience and permanent ship licenses. Collect mission rewards at stations to receive XP.',
-            `XP ${campaign.xp}${next ? ` / ${next} · NEXT ${rank_names[rank + 1]}` : ' · LEGEND'} · CONTRACTS ${campaign.completed} · EXPEDITION ${campaign.expedition}`
-        );
-        const progress = (rank < 5)
-            ? `Earn ${Math.max(0, rank_thresholds[5] - campaign.xp)} XP to license the Aurora Cruiser. Explore the hangar and arsenal for your current unlocks.`
-            : 'Build a tier-5 arsenal, earn reputation in all eight worlds, and push frontier expedition numbers higher.';
-        card(
-            parent,
-            'Your next goal',
-            progress,
-            `FLEET ${f.ships.length}/6 · WEAPONS ${f.weapons.length}/6 · CHAPTERS ${campaign.story}/${story.length}`
-        );
-        for (let i = 0, end = worlds.length; i < end; ++i) {
-            const world = worlds[i];
-            card(
-                parent,
-                `${world.name} / reputation`,
-                (campaign.reputation[i] >= 8) ? 'Trusted expedition partner' : (campaign.reputation[i] >= 3) ? 'Established contractor' : 'Independent visitor',
-                `${campaign.reputation[i]} completed local contracts · ${campaign.visited.includes(i) ? 'VISITED' : 'UNEXPLORED'}`
-            );
-        }
+        render_station_goals(parent);
     }
-    el.dock_summary.textContent =
-        `${current_ship().name} · ${rank_names[rank]} · ${current_weapon().name} T${weapon_level()} · Cargo ${cargo_count()}/${cargo_capacity()} · Story ${campaign.story}/${story.length}`;
-    if (['hangar', 'arsenal', 'career'].includes(station_tab)) {
-        el.dock_status.textContent = 'Ships and weapons remain owned. Modules transfer between ships; switching ships repairs the hull.';
+    el.dock_summary.textContent = `${current_ship().name} · rank ${rank_names[rank]} · story ${campaign.story}/${story.length}`;
+    if (['hangar', 'arsenal'].includes(station_tab)) {
+        el.dock_status.textContent = 'Ships and guns stay yours. Guns move between ships with their mounts; switching ships repairs the hull.';
+    }
+    if (station_tab === 'career') {
+        el.dock_status.textContent = 'One goal at a time; its next step shows in the HUD and on the map.';
     }
     if (station_tab === 'jobs') {
         el.dock_status.textContent = 'Choose a contract or collect a completed reward. Your progress saves automatically.';
     }
     else if (station_tab === 'market') {
-        el.dock_status.textContent = 'Choose a quantity to buy or sell. BUY MAX uses available credits and cargo space.';
+        el.dock_status.textContent = 'Pick a quantity, then Buy or Sell. All buys what fits your hold and your salvage.';
     }
     else if (station_tab === 'intel') {
         el.dock_status.textContent = 'Station demand pays a limited premium. Prices and route margins update after each trade.';
@@ -943,7 +906,7 @@ function render_inventory()
     const c = document.createElement('div');
     c.className = 'inventory-card';
     c.innerHTML =
-        `<b>${current_ship().name}</b><span>${current_weapon().name} / TIER ${weapon_level()}</span><p>Hull ${hull_max()} · Cargo ${cargo_count()}/${cargo_capacity()} · ${rank_names[pilot_rank()]} · Dock at HANGAR / ARSENAL to change equipment.</p>`;
+        `<b>${current_ship().name}</b><span>${guns_text()}</span><p>Hull ${hull_max()} · Cargo ${cargo_count()}/${cargo_capacity()} · ${rank_names[pilot_rank()]} · Dock at HANGAR / ARSENAL to change equipment.</p>`;
     el.inventory_grid.append(c);
 }
 
@@ -984,9 +947,10 @@ function update_hud()
             : `STAGE ${m.stage_index + 1}/${m.stages.length} · ${Math.floor(m.progress)}/${m.target}`;
         el.sector_progress.style.width = `${((m.stage_index + Math.min(1, m.progress/m.target))/m.stages.length)*100}%`;
     }
-    el.shield_readout.textContent =
-        `${current_ship().name} · ${current_weapon().name} T${weapon_level()} · SHIELD ${Math.ceil(player.shield)}/${shield_max()} · RAD ${Math.round(radiation_protection()*100)}%`;
     update_expedition_readout();
+    goal_tick();
+    charting_tick();
+    sync_hud_kit();
     if (arcade.active) {
         arcade_update_hud();
     }

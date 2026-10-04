@@ -23,8 +23,9 @@ function base_damage_ore(v, amount)
 
 function base_render_navigation_objects()
 {
+    // a field shows what it still holds, and disappears once mined out
     for (const mining_field of mining_fields) {
-        if (!in_view(mining_field, mining_field.r + 80)) {
+        if (!in_view(mining_field, mining_field.r + 80) || !ore_nodes.some(v => (v.hp > 0) && (v.field === mining_field.id))) {
             continue;
         }
         ctx.save();
@@ -37,7 +38,7 @@ function base_render_navigation_objects()
         ctx.fillStyle = '#ffd16e88';
         ctx.font = '10px ui-monospace,monospace';
         ctx.textAlign = 'center';
-        ctx.fillText(`MINING FIELD ${String(mining_field.id + 1).padStart(2, '0')}`, mining_field.x, mining_field.y - mining_field.r - 20);
+        ctx.fillText(`MINING FIELD ${String(mining_field.id + 1).padStart(2, '0')} · ${field_reserves_text(mining_field)}`, mining_field.x, mining_field.y - mining_field.r - 20);
         ctx.restore();
     }
     for (const ore_node of ore_nodes) {
@@ -184,82 +185,6 @@ function visual_base_render_map()
     ctx.restore();
 }
 
-function base_render_minimap()
-{
-    if (!player || !['playing', 'paused', 'inventory', 'upgrade', 'victory'].includes(state)) {
-        return;
-    }
-    const viewport_width = (view_mode === 'cockpit') ? width : W;
-    const w = (viewport_width < 800) ? 165 : 186;
-    const h = (viewport_width < 800) ? 125 : 140;
-    const x = viewport_width - w - 22;
-    const y = 87;
-    const sx = w/world.w;
-    const sy = (h - 25)/world.h;
-    ctx.save();
-    ctx.fillStyle = '#080e1be8';
-    ctx.fillRect(x - 5, y - 5, w + 10, h + 10);
-    ctx.strokeStyle = '#6cf8ec33';
-    ctx.lineWidth = 1;
-    ctx.strokeRect(x, y + 20, w, h - 20);
-    ctx.font = '9px ui-monospace,monospace';
-    ctx.fillStyle = '#9ba8c5';
-    ctx.textAlign = 'left';
-    ctx.fillText('WORLD MAP', x, y + 8);
-    ctx.fillStyle = '#ffd16e';
-    for (const pickup of pickups) {
-        if (!pickup.cache) {
-            continue;
-        }
-        ctx.fillRect(x + pickup.x*sx, y + 23 + pickup.y*sy, 2, 2);
-    }
-    ctx.save();
-    ctx.beginPath();
-    ctx.rect(x, y + 23, w, h - 25);
-    ctx.clip();
-    for (const black_hole of black_holes) {
-        ctx.strokeStyle = pink;
-        ctx.beginPath();
-        ctx.arc(x + black_hole.x*sx, y + 23 + black_hole.y*sy, Math.max(4, gravity_reach(black_hole)*sx), 0, Math.PI*2);
-        ctx.stroke();
-        ctx.fillStyle = '#000';
-        ctx.beginPath();
-        ctx.arc(x + black_hole.x*sx, y + 23 + black_hole.y*sy, 3, 0, Math.PI*2);
-        ctx.fill();
-    }
-    ctx.restore();
-    for (const portal of portals) {
-        ctx.strokeStyle = portal.color;
-        ctx.beginPath();
-        ctx.arc(x + portal.x*sx, y + 23 + portal.y*sy, 4, 0, Math.PI*2);
-        ctx.stroke();
-        ctx.fillStyle = portal.color;
-        ctx.font = '7px ui-monospace,monospace';
-        ctx.fillText(portal.label, x + portal.x*sx + 5, y + 23 + portal.y*sy + 3);
-    }
-    for (const mining_field of mining_fields) {
-        ctx.fillStyle = '#cba06a';
-        ctx.fillRect(x + mining_field.x*sx - 2, y + 23 + mining_field.y*sy - 2, 4, 4);
-    }
-    ctx.fillStyle = pink;
-    for (const enemy of enemies) {
-        ctx.fillRect(x + enemy.x*sx - 1, y + 23 + enemy.y*sy - 1, (enemy.type === 'boss') ? 5 : 2, (enemy.type === 'boss') ? 5 : 2);
-    }
-    ctx.strokeStyle = '#6cf8ec66';
-    ctx.strokeRect(x + camera.x*sx, y + 23 + camera.y*sy, (W/zoom)*sx, (H/zoom)*sy);
-    ctx.fillStyle = cyan;
-    ctx.beginPath();
-    ctx.arc(x + player.x*sx, y + 23 + player.y*sy, 3, 0, Math.PI*2);
-    ctx.fill();
-    if (mouse_drive.active) {
-        ctx.strokeStyle = cyan;
-        ctx.beginPath();
-        ctx.arc(x + mouse_drive.x*sx, y + 23 + mouse_drive.y*sy, 4, 0, Math.PI*2);
-        ctx.stroke();
-    }
-    ctx.restore();
-}
-
 function base_render_screen_controls()
 {
     ctx.save();
@@ -389,6 +314,7 @@ function render()
     ctx.globalAlpha = 1;
     ctx.restore();
     render_structures();
+    render_transport();
     render_waypoints();
     render_survey_robot();
     render_hostile_marks();
@@ -397,7 +323,8 @@ function render()
     render_pickups();
     render_equipment();
     render_hazards();
-    if (player && (state !== 'dead')) {
+    render_teleport();
+    if (player && (state !== 'dead') && !teleport_active()) {
         if (player.invincible > 0) {
             ctx.strokeStyle = '#6cf8ec55';
             ctx.lineWidth = 1;

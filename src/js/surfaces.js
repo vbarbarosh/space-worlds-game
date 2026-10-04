@@ -7,7 +7,8 @@ function sync_view_button()
         return;
     }
     const title = (view_mode === 'cockpit') ? 'Cockpit' : (view_mode === 'rendered') ? 'Rendered' : 'Wireframe';
-    b.textContent = title.toUpperCase();
+    b.title = `View: ${title}. V or click for the next (rendered, wireframe, cockpit)`;
+    b.setAttribute('aria-label', `View mode: ${title}`);
     b.classList.toggle('rendered', view_mode !== 'wireframe');
     b.classList.toggle('cockpit', view_mode === 'cockpit');
     b.setAttribute('aria-label', `View mode: ${title}. Click to cycle views.`);
@@ -731,7 +732,8 @@ function render_gate_shell(v, world_gate)
     const radius = world_gate ? 82 : 55;
     // The designer's gates, in the colour of where they lead; the inner ring turns, a jump gate's lights run backwards
     const art = world_art(world_gate ? 'world-gate' : 'jump-gate');
-    if (art && sprite_draw_box(art, v.color, radius*2.9, v.x, v.y, 0, 1, clock*(world_gate ? 0.15 : -0.25))) {
+    teleport_warm(v, world_gate);
+    if (art && sprite_draw_box(art, v.color, radius*2.9, v.x, v.y, 0, 1, clock*(world_gate ? 0.15 : -0.25) + teleport_gate_spin(v))) {
         return true;
     }
     const asset = surface_asset(`gate:${v.color}`, 192, function (draw) {

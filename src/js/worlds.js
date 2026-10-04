@@ -38,7 +38,7 @@ const story = [
         world: 0,
         target: 6,
         reward: 170,
-        description: 'Mine six ore rocks around Haven. Keep the ore to sell or trade.',
+        description: 'Mine ore from the deposits around Haven. Keep the ore to sell or trade.',
     },
     {title: 'Thorns in the canopy', type: 'hunt', world: 1, target: 10, reward: 290, description: 'Eliminate ten Thorn Swarm ships in Verdant.'},
     {

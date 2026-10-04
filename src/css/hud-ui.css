@@ -1,0 +1,264 @@
+/* The flight HUD on the UI kit: where its pieces sit over the game, and the few states the kit leaves to the game.
+   Today's rules for .mission, .toast and the old HUD classes set positions the kit does not; those are reset here. */
+.ui.hud-root {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    pointer-events: none;
+}
+
+.ui.hud-root .hud-top,
+.ui.hud-root .hud-bottom,
+.ui.hud-root .mission,
+.ui.hud-root .toasts,
+.ui.hud-root .banners,
+.ui.hud-root .alert,
+.ui.hud-root .bossbar,
+.ui.hud-root .touch-buttons {
+    z-index: 3;
+}
+
+.ui.hud-root .hud-top > *,
+.ui.hud-root .hud-bottom > *,
+.ui.hud-root .mission,
+.ui.hud-root .touch-buttons {
+    pointer-events: auto;
+}
+
+.ui .hud-top .readouts {
+    justify-self: center;
+}
+
+/* the toolbar folded: the cube opens the toggles as a menu below it */
+.ui .hud-top .toolbar {
+    position: relative;
+}
+
+@media (max-width: 1440px) {
+    .ui .hud-top .toolbar.is-open .grp {
+        display: flex;
+        position: absolute;
+        top: 44px;
+        right: 0;
+        z-index: 4;
+    }
+}
+
+/* the mission card, top left under the brand */
+.ui.hud-root .mission {
+    position: absolute;
+    top: 56px;
+    left: var(--hud-pad);
+    width: var(--hud-card-w);
+    padding: 14px 16px;
+    background: var(--glass);
+    border: 1px solid var(--line-1);
+    border-radius: var(--r-lg);
+    z-index: 2;
+}
+
+.ui .mission .next h3:empty {
+    display: none;
+}
+
+.ui .mission .dist.is-danger .readout,
+.ui .mission .dist.is-danger .readout small {
+    color: var(--red-2);
+}
+
+.ui .mission .dist.is-danger .arrow {
+    background: rgba(255, 77, 94, 0.14);
+    border-color: rgba(255, 77, 94, 0.45);
+    color: var(--red-2);
+}
+
+.ui .mission .dist .arrow {
+    color: var(--gold);
+}
+
+.ui .mission .dist .arrow svg {
+    width: 14px;
+    height: 14px;
+}
+
+.ui .mission .track-row .prog .track b.now {
+    background: linear-gradient(90deg, var(--gold) var(--p, 50%), var(--line-2) var(--p, 50%));
+}
+
+.ui .mission .track-row.is-danger .prog .track b.done,
+.ui .mission .track-row.is-danger .prog .track b.now {
+    background: var(--red);
+}
+
+.ui .mission .track-row p {
+    margin: 0;
+}
+
+.ui .mission #mc_tracks {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.ui .mission #mc_tracks:empty {
+    display: none;
+}
+
+/* Details: today's lines, folded under the card */
+.ui .mission .details {
+    padding-top: 10px;
+    border-top: 1px solid var(--line-1);
+    font-size: var(--fs-sm);
+    color: var(--text-2);
+}
+
+.ui .mission .details .guide-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+/* the arcade keeps its own lines: they show in place of the card's new parts */
+.ui .mission.is-arcade > :not(.details) {
+    display: none;
+}
+
+.ui .mission.is-arcade .details {
+    display: flex;
+    padding-top: 0;
+    border-top: 0;
+}
+
+/* toasts under the readouts, banners high in the middle, the threat chip above the toasts */
+.ui.hud-root .toasts {
+    position: absolute;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: min(420px, calc(100vw - 32px));
+    pointer-events: none;
+}
+
+.ui.hud-root .toasts .toast {
+    position: static;
+    opacity: 1;
+    transform: none;
+    transition: opacity 0.35s ease, transform 0.35s ease;
+}
+
+.ui.hud-root .toasts .toast.is-leaving {
+    opacity: 0;
+    transform: translateY(-6px);
+}
+
+.ui.hud-root .banners {
+    position: absolute;
+    top: 22%;
+    left: 50%;
+    transform: translateX(-50%);
+    pointer-events: none;
+}
+
+.ui.hud-root .banners .banner {
+    transition: opacity 0.4s ease;
+}
+
+.ui.hud-root .banners .banner.is-leaving {
+    opacity: 0;
+}
+
+.ui.hud-root > .alert {
+    position: absolute;
+    top: 80px;
+    left: 50%;
+    transform: translate(-50%, -44px);
+}
+
+/* the bottom row */
+.ui .qslot.on {
+    border-color: rgba(108, 248, 236, 0.7);
+    box-shadow: var(--glow-cyan);
+}
+
+.ui .zoom .v.btn {
+    width: auto;
+    min-width: 50px;
+    padding: 0 6px;
+    background: transparent;
+    border-color: transparent;
+    font: 650 12px/1 var(--font-mono);
+}
+
+.ui .hud-bottom .shipstat .line #ship_guns {
+    color: var(--text-3);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ui .hud-bottom .shipstat .line .end .badge b {
+    font: inherit;
+}
+
+/* today's rules centre the panel's text, give .mission .track a 2 px height and spread out the toast's line in
+   capitals; on the kit the card and the toasts read left to right in sentence case */
+.ui.hud-root .mission,
+.ui.hud-root .toast {
+    text-align: left;
+}
+
+.ui .mission .prog .track {
+    height: auto;
+}
+
+.ui.hud-root .toast span {
+    margin: 0;
+    max-width: none;
+    font-size: 12px;
+    line-height: 1.35;
+    letter-spacing: normal;
+    color: var(--text-3);
+}
+
+.ui.hud-root .toast .amt {
+    color: var(--gold);
+}
+
+.ui .hud-top .brand {
+    text-transform: uppercase;
+}
+
+.ui .hud-bottom .shipstat .line b {
+    white-space: nowrap;
+}
+
+/* in a fight the threat chip sits under the readouts and the toasts move down beneath it */
+.ui.hud-root > .alert {
+    transform: translateX(-50%);
+}
+
+.ui.hud-root.has-alert .toasts {
+    top: 124px;
+}
+
+/* the minimap's corner label (outside the kit's container) */
+.minimap-button span {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.minimap-button .key {
+    display: inline-grid;
+    place-items: center;
+    min-width: 15px;
+    height: 15px;
+    padding: 0 3px;
+    border: 1px solid rgba(120, 170, 220, 0.42);
+    border-radius: 4px;
+    font: 600 9px/1 "JetBrains Mono", ui-monospace, monospace;
+    color: #eef5fb;
+}

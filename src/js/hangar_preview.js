@@ -86,7 +86,9 @@ function hangar_preview_draw(canvas, preview, dt)
     const k = (size*sprite_span)/(256*art.length);
     const cx = w/2;
     const cy = h/2;
-    const weapon = current_weapon();
+    // each mount with the gun the ship would carry, at its mount's size
+    const loadout = ship_loadout(preview.ship).map(weapon_by_id);
+    const weapon = loadout[0];
     const boost = preview.boost || (hangar_shift && !!preview.pointer);
     // Turrets turn toward the pointer, or back to the nose once it leaves
     const target = preview.pointer ? Math.atan2(preview.pointer.y - cy, preview.pointer.x - cx) : 0;
@@ -94,17 +96,17 @@ function hangar_preview_draw(canvas, preview, dt)
     preview.aim += clamp(delta, -9*dt, 9*dt);
     preview.cooldown -= dt;
     preview.recoil = Math.max(0, preview.recoil - dt*12);
-    const mounts = turret_mounts(preview.ship);
+    const mounts = mount_points(preview.ship);
     if (preview.firing && !boost && (preview.cooldown <= 0)) {
         preview.cooldown = Math.max(0.12, weapon.interval);
         preview.recoil = 1.5;
-        const muzzles = turret_muzzles(preview.ship, weapon) || [{x: 13, y: 0, r: 0}];
         preview.volley = (preview.volley || 0) + 1;
-        const m = muzzles[preview.volley % muzzles.length];
         const c = Math.cos(preview.aim);
         const s = Math.sin(preview.aim);
-        for (const mount of mounts) {
-            preview.shots.push({x: cx + (mount[0] + m.x*c - m.y*s)*k, y: cy + (mount[1] + m.x*s + m.y*c)*k, vx: c*520, vy: s*520, life: 0.9, width: Math.max(1.4, m.r)*k});
+        for (let i = 0; i < mounts.length; ++i) {
+            const muzzles = gun_muzzles(loadout[i], gun_boxes[mounts[i].size]) || [{x: 13, y: 0, r: 0}];
+            const m = muzzles[preview.volley % muzzles.length];
+            preview.shots.push({x: cx + (mounts[i].x + m.x*c - m.y*s)*k, y: cy + (mounts[i].y + m.x*s + m.y*c)*k, vx: c*520, vy: s*520, life: 0.9, width: Math.max(1.4, m.r)*k, color: loadout[i].color});
         }
         sfx((weapon.id === 'plasma') ? 'shot' : `enemy_${weapon.id}`);
     }
@@ -131,18 +133,18 @@ function hangar_preview_draw(canvas, preview, dt)
     draw.save();
     draw.translate(cx, cy);
     draw.scale(k, k);
-    for (const mount of mounts) {
+    for (let i = 0; i < mounts.length; ++i) {
         draw.save();
-        draw.translate(mount[0], mount[1]);
+        draw.translate(mounts[i].x, mounts[i].y);
         draw.rotate(preview.aim);
-        turret_draw(draw, weapon, turret_box(preview.ship), preview.recoil);
+        turret_draw(draw, loadout[i], gun_boxes[mounts[i].size], preview.recoil);
         draw.restore();
     }
     draw.restore();
     draw.lineCap = 'round';
     for (const shot of preview.shots) {
         const speed = Math.hypot(shot.vx, shot.vy);
-        draw.strokeStyle = weapon.color;
+        draw.strokeStyle = shot.color || weapon.color;
         draw.globalAlpha = Math.min(1, shot.life*3);
         draw.lineWidth = shot.width;
         draw.beginPath();

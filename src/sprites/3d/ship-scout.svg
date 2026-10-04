@@ -28,6 +28,7 @@
 <linearGradient id="accent-fill" x1="0" y1="0" x2="1" y2="1">
 <stop id="accent-light" offset="0" stop-color="#ffa36b"/><stop id="accent-base" offset="0.55" stop-color="#e8743b"/><stop id="accent-dark" offset="1" stop-color="#9c4119"/>
 </linearGradient>
+<radialGradient id="hp-ring" cx="0.35" cy="0.3" r="0.8"><stop offset="0" stop-color="#eef2f6"/><stop offset="0.55" stop-color="#a9b3be"/><stop offset="1" stop-color="#4a5562"/></radialGradient><radialGradient id="hp-well" cx="0.4" cy="0.35" r="0.75"><stop offset="0" stop-color="#3a4552"/><stop offset="1" stop-color="#0b1016"/></radialGradient><linearGradient id="hp-plate" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#d3dae2"/><stop offset="1" stop-color="#5d6874"/></linearGradient>
 </defs>
 <g id="hull" stroke="#141a22" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
 <path d="M112 112 L40 186 Q35 199 46 204 L108 194 Z" fill="url(#wingL)"/>
@@ -51,8 +52,11 @@
 <ellipse cx="128" cy="84" rx="13" ry="30" fill="#3a4552" stroke-width="3"/>
 <ellipse cx="128" cy="85" rx="9.5" ry="25" fill="url(#glass)" stroke="none"/>
 <ellipse cx="124" cy="73" rx="3" ry="9" fill="#ffffff" fill-opacity="0.85" stroke="none"/>
-<circle cx="77" cy="172" r="10" fill="url(#mount)" stroke-width="3"/>
-<circle cx="179" cy="172" r="10" fill="url(#mount)" stroke-width="3"/>
+
+<circle cx="128" cy="131" r="14.5" fill="url(#hp-ring)" stroke-width="3.5"/>
+<circle cx="128" cy="131" r="11.6" fill="none" stroke="#3b4652" stroke-width="1.6"/>
+<circle cx="128" cy="131" r="7.98" fill="url(#hp-well)" stroke-width="2.8"/>
+<path d="M115.74 126.54 A13.05 13.05 0 0 1 130.27 118.15" fill="none" stroke="#ffffff" stroke-opacity="0.6" stroke-width="1.89"/>
 </g>
 <g id="accent" stroke="#141a22" stroke-width="4" stroke-linejoin="round">
 <path d="M40 186 L57 169 L62 201 L46 204 Q35 199 40 186 Z" fill="url(#accent-fill)"/>
@@ -67,7 +71,6 @@
 <line id="flame-side-2" x1="146" y1="100" x2="164" y2="100" stroke="#ff0000" stroke-width="5"/>
 <line id="flame-side-3" x1="41" y1="195" x2="23" y2="195" stroke="#ff0000" stroke-width="5"/>
 <line id="flame-side-4" x1="215" y1="195" x2="233" y2="195" stroke="#ff0000" stroke-width="5"/>
-<circle id="turret-1" cx="77" cy="172" r="6" fill="#0000ff"/>
-<circle id="turret-2" cx="179" cy="172" r="6" fill="#0000ff"/>
+<circle id="turret-light-1" cx="128" cy="131" r="6" fill="#0000ff"/>
 </g>
 </svg>

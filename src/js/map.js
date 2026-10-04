@@ -181,7 +181,7 @@ function update_player_navigation(dt, previous)
             if (segment_distance(p, previous, player) > p.r + player.r) {
                 continue;
             }
-            start_jump({local: p.destination, color: p.color, label: `LOCAL GATE ${p.label}`});
+            start_jump({local: p.destination, color: p.color, label: `LOCAL GATE ${p.label}`, gate: p});
             return false;
         }
     }

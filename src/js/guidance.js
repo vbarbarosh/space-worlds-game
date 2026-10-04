@@ -30,6 +30,7 @@ function refresh_guidance()
                 : (guide_path.length > 1)
                     ? 'SAFE ROUTE / NEXT MARKER'
                     : c.goal.label,
+        follow: (guide_path.length > 1) ? null : c.goal.follow,
     };
     if (guide_flying && (state === 'playing')) {
         const arrival =
@@ -255,7 +256,6 @@ function visual_base_update_hud()
     }
     const c = refresh_guidance();
     const m = c.mission;
-    document.getElementById('nav_button').textContent = 'J MAP & GUIDE';
     document.getElementById('nav_button').disabled = !['playing', 'paused', 'upgrade', 'navigation'].includes(state);
     el.mission_name.textContent = c.title;
     document.getElementById('mission_instruction').textContent = c.instruction;
@@ -379,15 +379,28 @@ function render_shop()
 {
     guide_base_render_shop();
     if (document.getElementById('station_briefing') && player) {
-        render_guide_plan(document.getElementById('station_briefing'), guide_context());
+        render_next_strip(document.getElementById('station_briefing'), guide_context());
     }
 }
 
 function expedition_base_render_station()
 {
     guide_base_render_station();
-    const c = guide_context();
-    render_guide_plan(document.getElementById('station_briefing'), c);
+    render_next_strip(document.getElementById('station_briefing'), guide_context());
+}
+
+// The station's NEXT strip: the guide's next step in one line, with its button ([T]); a goal you follow leads it
+function render_next_strip(parent, c)
+{
+    const g = goal_state();
+    const step = (g && (g.index >= 0)) ? g.steps[g.index] : null;
+    const lead = step ? `${g.kind.title} ${g.index + 1}/${g.steps.length}` : c.title;
+    const text = step ? step.title : c.instruction;
+    parent.innerHTML = `<span class="eyebrow eyebrow--gold">Next</span><p class="next-text"><b>${lead}</b> · ${text}</p>`;
+    if (c.goal || step) {
+        const label = guide_action_label(c).toLowerCase().replace(/^\w/, v => v.toUpperCase());
+        parent.append(ui_button({label, key: 'T', size: 'sm', on: guide_action}));
+    }
 }
 
 function toggle_navigation()

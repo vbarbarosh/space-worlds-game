@@ -307,10 +307,13 @@ function sync_settings()
 {
     sync_view_button();
     sync_audio_controls();
-    el.sound_button.textContent = muted ? '♫ OFF' : '♫ ON';
+    el.sound_button.classList.toggle('is-active', !muted);
+    el.sound_button.setAttribute('aria-pressed', String(!muted));
     el.sound_button.classList.toggle('on', !muted);
     el.sound_button.setAttribute('aria-pressed', String(!muted));
     el.fx_button.classList.toggle('on', full_fx);
+    el.fx_button.classList.toggle('is-active', full_fx);
+    el.fx_button.setAttribute('aria-pressed', String(full_fx));
     el.fx_button.setAttribute('aria-pressed', String(full_fx));
     document.getElementById('scanlines').style.display = full_fx ? '' : 'none';
 }

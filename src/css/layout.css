@@ -28,6 +28,23 @@ body {
     max-height: 100%;
 }
 
+/* The start menu scrolls in a window too short for it, by wheel or touch, with no bar */
+.overlay > .intro {
+    max-height: 100%;
+    overflow-y: auto;
+    scrollbar-width: none;
+}
+
+.overlay > .intro::-webkit-scrollbar {
+    display: none;
+}
+
+/* Panels that scroll show a thin bar in the game's colours */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: #405978 transparent;
+}
+
 .dock,
 .navigation-panel {
     display: flex;
@@ -398,4 +415,10 @@ body {
 
 .save-slot.empty b {
     color: #6d8193;
+}
+
+.last-save span {
+    margin-right: 6px;
+    font-size: 0.8em;
+    opacity: 0.6;
 }

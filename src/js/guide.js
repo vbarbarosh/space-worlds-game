@@ -264,6 +264,8 @@ function expedition_base_guide_context()
         if ((route.length === 1) && (blocked === undefined)) {
             out.goal = {
                 ...goal,
+                // a goal that moves (the convoy's freighter) is followed live by the marker, not where it was
+                follow: (m.type === 'escort') ? escort : null,
                 label:
                     ((m.type === 'courier') || (m.type === 'trade'))
                         ? worlds[m.world].station

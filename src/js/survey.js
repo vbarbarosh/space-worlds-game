@@ -38,6 +38,8 @@ function survey_update(m, point, d, dt)
         robot.angle += dt*0.8;
         const pressed = enemies.some(v => (v.hp > 0) && (distance(v, robot) < 240));
         mission_event('scan', dt*(pressed ? 0.3 : 1), {contract_id: m.id});
+        // the scan charts the area round the beacon
+        chart_reveal(point, chart_home());
     }
     m.wave_clock = (m.wave_clock ?? 12) - dt;
     if ((m.wave_clock <= 0) && (robot.state === 'scanning')) {

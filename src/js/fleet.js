@@ -8,6 +8,7 @@ for (const v of ship_catalog) {
 const weapon_catalog = [
     {
         id: 'plasma',
+        size: 'light',
         name: 'Pulse cannon',
         rank: 0,
         price: 0,
@@ -21,6 +22,7 @@ const weapon_catalog = [
     },
     {
         id: 'scatter',
+        size: 'light',
         name: 'Shard shotgun',
         rank: 1,
         price: 220,
@@ -34,6 +36,7 @@ const weapon_catalog = [
     },
     {
         id: 'ion',
+        size: 'medium',
         name: 'Ion disruptor',
         rank: 2,
         price: 550,
@@ -47,6 +50,7 @@ const weapon_catalog = [
     },
     {
         id: 'rail',
+        size: 'heavy',
         name: 'Lance railgun',
         rank: 3,
         price: 1100,
@@ -60,6 +64,7 @@ const weapon_catalog = [
     },
     {
         id: 'missile',
+        size: 'heavy',
         name: 'Seeker launcher',
         rank: 3,
         price: 1400,
@@ -73,6 +78,7 @@ const weapon_catalog = [
     },
     {
         id: 'beam',
+        size: 'medium',
         name: 'Flux beam',
         rank: 4,
         price: 2600,
@@ -128,17 +134,34 @@ function current_ship()
     return ship_catalog.find(v => v.id === f.ship_id) || ship_catalog[0];
 }
 
-// How far the current weapon's shots fly, at most a screen's width.
+// How far the guns reach, the farthest of them, at most a screen's width.
 function gun_reach()
 {
-    const weapon = current_weapon();
-    return Math.min(900, weapon.speed*weapon.life);
+    return Math.max(...mounted_weapons().map(v => Math.min(900, v.speed*v.life)));
 }
 
+// The main gun: the arcade's one gun; in the campaign the biggest, then strongest, on your mounts
 function current_weapon()
 {
-    const f = ensure_career();
-    return weapon_catalog.find(v => v.id === f.weapon_id) || weapon_catalog[0];
+    if (arcade.active) {
+        const f = ensure_career();
+        return weapon_catalog.find(v => v.id === f.weapon_id) || weapon_catalog[0];
+    }
+    return mounted_weapons().slice().sort((a, b) => (gun_sizes.indexOf(b.size) - gun_sizes.indexOf(a.size)) || (b.rating - a.rating))[0];
+}
+
+// Your guns in words: Pulse cannon ×2 + Lance railgun
+function guns_text()
+{
+    const counts = new Map();
+    for (const v of mounted_weapons()) {
+        counts.set(v.name, (counts.get(v.name) || 0) + 1);
+    }
+    const parts = [];
+    for (const [name, n] of counts) {
+        parts.push((n > 1) ? `${name} ×${n}` : name);
+    }
+    return parts.join(' + ');
 }
 
 function hull_max()
@@ -181,6 +204,9 @@ function fleet_purchase(id, kind)
         owned.push(id);
         if (kind !== 'ship') {
             f.weapon_levels[id] = 1;
+            if (!arcade.active && !mount_new_gun(id)) {
+                show_toast('NO MOUNT FITS IT YET', `${v.size.toUpperCase()} GUN · ${ships_for_gun_text(v)}`, 4);
+            }
         }
     }
     if (kind === 'ship') {
@@ -193,6 +219,7 @@ function fleet_purchase(id, kind)
     else {
         f.weapon_id = id;
     }
+    player.gun_cd = [];
     save_checkpoint();
     render_station();
     sfx('upgrade');
@@ -214,9 +241,10 @@ function upgrade_weapon(id)
     sfx('upgrade');
 }
 
-function fire_equipped_weapon()
+// One volley: the arcade's gun from the turrets in turn (mount null), or the gun on one mount
+function fire_equipped_weapon(mount = null)
 {
-    let v = current_weapon();
+    let v = (mount === null) ? current_weapon() : mounted_weapons()[mount];
     if ((v.id === 'beam') && (player.energy < 8)) {
         v = weapon_catalog[0];
     }
@@ -224,10 +252,12 @@ function fire_equipped_weapon()
     const tier = f.weapon_levels[v.id] || 1;
     const damage = (v.damage + upgrades.damage*5)*(1 + (tier - 1)*0.22)*current_ship().damage;
     const count = (v.id === 'scatter') ? 5 + upgrades.spread*2 : ['plasma', 'ion'].includes(v.id) ? 1 + upgrades.spread*2 : 1;
-    player.weapon_barrel = (player.weapon_barrel || 0) + 1;
+    player.barrels = player.barrels || [];
+    const slot = mount ?? 0;
+    player.barrels[slot] = (player.barrels[slot] || 0) + 1;
     for (let i = 0, end = count; i < end; ++i) {
         const a = (player.turret_angle ?? player.angle) + (i - (count - 1)/2)*((v.id === 'scatter') ? 0.12 : 0.11);
-        const muzzle = turret_muzzle((player.weapon_barrel + i) % 2, a);
+        const muzzle = (mount === null) ? turret_muzzle((player.barrels[slot] + i) % 2, a) : mount_muzzle(mount, player.barrels[slot] + i, a, v);
         // The ship's speed along the shot, when it flies that way, rides on top: a shot always outruns a chasing ship,
         // and still flies straight
         const carry = Math.max(0, player.vx*Math.cos(a) + player.vy*Math.sin(a));
@@ -252,6 +282,10 @@ function fire_equipped_weapon()
         player.energy = Math.max(0, player.energy - 1.8);
     }
     player.shoot_cd = Math.max(0.065, v.interval*(1 - upgrades.rate*0.12));
+    if (mount !== null) {
+        player.gun_cd = player.gun_cd || [];
+        player.gun_cd[mount] = player.shoot_cd;
+    }
     sfx((v.id === 'plasma') ? 'shot' : `enemy_${v.id}`);
 }
 

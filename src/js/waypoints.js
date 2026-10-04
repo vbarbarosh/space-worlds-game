@@ -49,7 +49,7 @@ function on_route_button()
 function sync_route_button()
 {
     const b = document.getElementById('quick_route');
-    b.querySelector('b').textContent = waypoints_composing ? 'DONE' : 'ROUTE';
+    b.querySelector('b').textContent = waypoints_composing ? 'Done' : 'Route';
     b.classList.toggle('on', waypoints_composing);
 }
 

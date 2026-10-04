@@ -11,9 +11,7 @@ function attack_rating()
         upgrades.spread*3 +
         upgrades.drone*2 +
         upgrades.homing +
-        current_weapon().rating +
-        weapon_level() -
-        1 +
+        guns_rating() +
         Math.round((current_ship().damage - 1)*5)
     );
 }
@@ -129,7 +127,7 @@ function store_world()
     }
     campaign.maps[campaign.world] = {
         size: {w: world.w, h: world.h},
-        ore: ore_nodes.filter(v => v.hp > 0).map(v => ({...v})),
+        ore: ore_nodes.filter(v => v.hp > 0).map(v => ({...v, cutter: null})),
         pickups: pickups.filter(v => v.cache && (v.life > 0)).map(v => ({...v})),
     };
 }

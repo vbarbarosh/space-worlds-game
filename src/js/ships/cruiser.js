@@ -11,10 +11,11 @@ const ship_cruiser = {
         handling: 0.65,
         cargo: 120,
         radius: 25,
-        damage: 1.85,
+        damage: 1,
+        mounts: ['medium', 'medium', 'heavy', 'heavy'],
         color: '#e8c4ff',
         shape: 5,
-        description: 'A slow flagship with immense shields and 85% stronger guns. Prepare for elite expeditions.',
+        description: 'A slow flagship with immense shields and four guns, two of them heavy. Prepare for elite expeditions.',
     },
     hull_profile: {radiation: 0.75, traction: 1.9, braking: 1.6, cooling: 0.6, turbo: 1.1, endurance: 7},
 };

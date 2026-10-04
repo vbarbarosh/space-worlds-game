@@ -16,6 +16,71 @@
     margin-top: 9px;
 }
 
+/* The goal you follow, under the mission card: what step you are on, and its button */
+.goal-strip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 8px 0;
+    padding: 7px 8px;
+    border: 1px solid #ffd16e33;
+    border-radius: 8px;
+    font-size: 10px;
+    line-height: 1.35;
+    color: #ffd16e;
+}
+
+.goal-strip > span {
+    flex: 1;
+}
+
+.goal-strip button {
+    pointer-events: auto;
+    padding: 6px 9px;
+    font-size: 9px;
+    white-space: nowrap;
+    color: #ffd16e;
+    border-color: #ffd16e55;
+}
+
+.goal-strip button span {
+    margin-right: 4px;
+    opacity: 0.6;
+}
+
+/* The goal's steps on the station's GOALS tab */
+.goal-steps {
+    margin: 10px 0;
+    padding: 0;
+    list-style: none;
+}
+
+.goal-steps li {
+    padding: 6px 0;
+    border-top: 1px solid #ffffff12;
+    color: #8fa3bd;
+}
+
+.goal-steps li.done {
+    color: #7fd99a;
+}
+
+.goal-steps li.current {
+    color: #ffd16e;
+}
+
+.goal-steps li p {
+    margin: 4px 0 8px 16px;
+    color: #c9d6e6;
+}
+
+.goal-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-left: 16px;
+}
+
 .guide-actions {
     display: flex;
     gap: 6px;
@@ -272,5 +337,113 @@
     .navigation-panel .dock-heading button {
         padding: 8px 12px;
         font-size: 10px;
+    }
+}
+
+/* ARSENAL: your ship's mounts, each with a picker of the guns that fit */
+.mount-list {
+    display: grid;
+    gap: 8px;
+    margin: 10px 0;
+}
+
+.mount-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    font-size: 11px;
+    color: #ffd16e;
+}
+
+.mount-row select {
+    min-width: 0;
+    padding: 6px 8px;
+    border: 1px solid #405978;
+    border-radius: 8px;
+    background: #0c1626;
+    color: #e9f6ff;
+    font: inherit;
+}
+
+/* The local map: layer switches, the map and its legend side by side */
+.map-layers button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.map-layers button span {
+    opacity: 0.6;
+}
+
+.map-layers button:not(.selected) {
+    opacity: 0.55;
+}
+
+.chart-wrap {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 190px;
+    gap: 12px;
+    align-items: start;
+}
+
+.chart-wrap .local-chart {
+    width: 100%;
+    height: auto;
+}
+
+.map-legend {
+    display: grid;
+    gap: 8px;
+    padding: 10px 12px;
+    border: 1px solid #6cf8ec26;
+    border-radius: 10px;
+    background: #081221;
+    font-size: 11px;
+    color: #c9d6e6;
+}
+
+.map-legend div {
+    display: grid;
+    gap: 3px;
+}
+
+.map-legend div.off {
+    opacity: 0.4;
+}
+
+.map-legend b {
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    color: #8fa3bd;
+}
+
+.map-legend span {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.map-legend i {
+    display: inline-block;
+    width: 14px;
+    height: 10px;
+    border-radius: 3px;
+}
+
+.map-legend i.charted {
+    background: #0d1f3a;
+    border: 1px solid #3a5a8a;
+}
+
+.map-legend i.fog {
+    background: #060a14;
+    border: 1px dashed #6cf8ec55;
+}
+
+@media (max-width: 760px) {
+    .chart-wrap {
+        grid-template-columns: 1fr;
     }
 }

@@ -9,7 +9,7 @@ const structure_kinds = {
         cost: {salvage: 120, ore: 6},
         hp: 220,
         size: 70,
-        text: 'Stands on a mining field and drills its rocks on its own. A full store ships to the station and pays you, wherever you are.',
+        text: 'Stands on a mining field; its two drones mine the rocks into its store of 60. Fly by to take the load, or let a transport line collect it.',
     },
     platform: {
         title: 'Defence platform',
@@ -20,9 +20,12 @@ const structure_kinds = {
     },
 };
 const structure_build_time = 6;
-const outpost_drill = 9;
-const outpost_store = 20;
+const outpost_store = 60;
 const outpost_reach = 320;
+// an outpost drone's beam per second (a unit costs deposit_chunk_cost, 70: a unit every 3 s), and the units it
+// brings home a trip
+const outpost_cut = 23;
+const outpost_carry = 10;
 const platform_range = 480;
 let build_placing = null;
 let builder_drone = null;
@@ -155,6 +158,11 @@ function structures_update(dt)
     if (arcade.active || !player) {
         return;
     }
+    // a structure that was being assembled when the game was saved: the builder goes back to it
+    const unfinished = !builder_drone && campaign.builder && structures_here().find(v => v.built < 1);
+    if (unfinished) {
+        builder_drone = {x: player.x, y: player.y, angle: 0, site: unfinished.id, state: 'out'};
+    }
     builder_update(dt);
     for (const v of structures_here()) {
         if (v.built < 1) {
@@ -224,28 +232,18 @@ function builder_update(dt)
     }
 }
 
-// An outpost drills the nearest rock of its field with a beam, a chunk at a time, into its store. A full store ships
-// to the station by courier and the salvage is paid at once, wherever you are; flying within 220 m instead moves the
-// store into your hold. With no rock left in reach it stands idle.
+// An outpost keeps two mining drones. Each flies to a rock of its field within reach, cuts it a chunk at a time and
+// brings the units home to the store; a full store keeps them docked until it is emptied. Flying within 220 m moves
+// the store into your hold, and a transport line (transports.js) collects it too.
 function outpost_update(site, dt)
 {
-    let rock = ore_nodes.find(v => v.id === site.drill);
-    if (!rock || (rock.hp <= 0) || (distance(rock, site) > outpost_reach)) {
-        rock = ore_nodes.filter(v => (v.hp > 0) && (distance(v, site) < outpost_reach)).sort((a, b) => distance(a, site) - distance(b, site))[0];
-        site.drill = rock ? (rock.id = rock.id || `${rock.x}:${rock.y}`) : null;
+    if (!Array.isArray(site.crew)) {
+        site.crew = [0, 1].map(() => ({x: site.x, y: site.y, angle: 0, state: 'docked', rock: null, load: {}, count: 0}));
     }
-    site.idle = !rock;
-    if (rock && (site.store < outpost_store)) {
-        if (ore_chip(rock, (deposit_chunk_cost/outpost_drill)*dt)) {
-            site.store++;
-            site.resource = rock.resource || site.resource || null;
-            site.loads = site.loads || {};
-            const key = rock.resource || 'ore';
-            site.loads[key] = (site.loads[key] || 0) + 1;
-        }
-    }
-    if (site.store >= outpost_store) {
-        outpost_ship(site);
+    const rocks = ore_nodes.filter(v => (v.hp > 0) && (distance(v, site) < outpost_reach));
+    site.idle = !rocks.length;
+    for (const drone of site.crew) {
+        outpost_drone(site, drone, rocks, dt);
     }
     if (site.store && (distance(player, site) < 220) && (cargo_count() < cargo_capacity())) {
         let room = cargo_capacity() - cargo_count();
@@ -263,22 +261,71 @@ function outpost_update(site, dt)
     }
 }
 
-// A full outpost's load, sold at this world's station prices and paid at once
-function outpost_ship(site)
+// One outpost drone: docked, out to a rock, cutting it, or home with its load
+function outpost_drone(site, drone, rocks, dt)
 {
-    let value = 0;
-    for (const [key, amount] of Object.entries(site.loads || {})) {
-        if (amount > 0) {
-            value += trade_total(campaign.world, key, 'sell', amount);
-        }
+    const room = site.store + drone.count < outpost_store;
+    let rock = ore_nodes.find(v => (v.id === drone.rock) && (v.hp > 0)) || null;
+    if (['out', 'cut'].includes(drone.state) && !rock) {
+        rock = outpost_pick_rock(drone, rocks);
+        drone.state = (rock && room) ? 'out' : 'home';
     }
-    salvage += value;
-    site.earned = (site.earned || 0) + value;
-    show_toast('OUTPOST SHIPMENT', `${site.store} UNITS SOLD AT ${worlds[campaign.world].station.toUpperCase()} · ◆ ${value}`, 3);
-    sfx('pickup');
-    site.store = 0;
-    site.loads = {};
-    save_checkpoint();
+    if (drone.state === 'docked') {
+        drone.x = site.x;
+        drone.y = site.y;
+        rock = room && outpost_pick_rock(drone, rocks);
+        if (rock) {
+            drone.state = 'out';
+        }
+        return;
+    }
+    if (drone.state === 'home') {
+        if (drone_fly(drone, site, dt, 200) > 6) {
+            return;
+        }
+        site.loads = site.loads || {};
+        for (const [key, n] of Object.entries(drone.load)) {
+            site.loads[key] = (site.loads[key] || 0) + n;
+            site.store += n;
+        }
+        if (drone.count) {
+            save_checkpoint();
+        }
+        drone.load = {};
+        drone.count = 0;
+        drone.rock = null;
+        drone.state = 'docked';
+        return;
+    }
+    if (drone.state === 'out') {
+        // to the near side of the rock
+        const d = Math.max(1, distance(drone, rock));
+        const at = {x: rock.x + ((drone.x - rock.x)/d)*(rock.r + 14), y: rock.y + ((drone.y - rock.y)/d)*(rock.r + 14)};
+        if (drone_fly(drone, at, dt, 200) < 4) {
+            drone.state = 'cut';
+        }
+        return;
+    }
+    drone.angle = Math.atan2(rock.y - drone.y, rock.x - drone.x);
+    rock.cutter = true;
+    const got = ore_chip(rock, outpost_cut*dt);
+    rock.cutter = null;
+    if (got) {
+        const key = rock.resource || 'ore';
+        drone.load[key] = (drone.load[key] || 0) + got;
+        drone.count += got;
+    }
+    if ((drone.count >= outpost_carry) || (rock.hp <= 0) || (site.store + drone.count >= outpost_store)) {
+        drone.state = 'home';
+    }
+}
+
+// The rock nearest the drone among those in reach, now its target; null when there is none
+function outpost_pick_rock(drone, rocks)
+{
+    const rock = rocks.slice().sort((a, b) => distance(a, drone) - distance(b, drone))[0];
+    drone.rock = rock ? (rock.id = rock.id || `${rock.x}:${rock.y}`) : null;
+    return rock || null;
 }
 
 // A platform turns to the nearest raider within range and fires heavy plasma at it
@@ -340,11 +387,14 @@ function structure_raids(dt)
     show_toast(`RAID ON YOUR ${structure_kinds[v.kind].title.toUpperCase()}`, `${Math.round(distance(player, v))} m AWAY · DEFEND IT`, 3);
 }
 
-// The structure a raider was sent for, while it stands
+// The structure (or the transport) a raider was sent for, while it stands
 function structure_prey(enemy)
 {
     if (!enemy.structure_target) {
         return null;
+    }
+    if (enemy.structure_target === 'transport') {
+        return transport_prey();
     }
     return structures_here().find(v => v.id === enemy.structure_target) || null;
 }
@@ -358,10 +408,14 @@ function render_structures()
         const k = structure_kinds[v.kind];
         ctx.save();
         ctx.globalAlpha = 0.35 + v.built*0.65;
-        // The designer's outpost turns its drill ring while it mines; the platform carries the heavy turret
-        const drawn = sprite_draw_box(`structures/${(v.kind === 'outpost') ? 'mining-outpost' : 'defence-platform'}`, null, k.size*1.1, v.x, v.y, 0, ctx.globalAlpha, (v.kind === 'outpost') && (v.store < outpost_store) ? clock*1.2 : 0);
+        // The designer's outpost turns its drill ring while its drones are out; the platform carries the heavy turret
+        const working = (v.kind === 'outpost') && outpost_busy(v);
+        const drawn = sprite_draw_box(`structures/${(v.kind === 'outpost') ? 'mining-outpost' : 'defence-platform'}`, null, k.size*1.1, v.x, v.y, 0, ctx.globalAlpha, working ? clock*1.2 : 0);
         if (!drawn) {
             polygon(v.x, v.y, k.size*0.42, (v.kind === 'outpost') ? 6 : 8, 0, gold, '#2b2210');
+        }
+        if (v.kind === 'outpost') {
+            render_outpost_crew(v);
         }
         if (v.kind === 'platform') {
             ctx.save();
@@ -371,7 +425,8 @@ function render_structures()
             ctx.restore();
         }
         ctx.restore();
-        const label_text = (v.built < 1) ? `BUILDING ${Math.round(v.built*100)}%` : (v.kind === 'outpost') ? `OUTPOST · ${v.store}/${outpost_store}` : 'DEFENCE PLATFORM';
+        const outpost_text = v.idle ? `OUTPOST · FIELD EMPTY · ${v.store}/${outpost_store}` : (v.store >= outpost_store) ? `OUTPOST · FULL ${v.store}/${outpost_store} · AWAITING PICKUP` : `OUTPOST · MINING · ${v.store}/${outpost_store}`;
+        const label_text = (v.built < 1) ? `BUILDING ${Math.round(v.built*100)}%` : (v.kind === 'outpost') ? outpost_text : 'DEFENCE PLATFORM';
         ctx.save();
         ctx.font = '10px ui-monospace,monospace';
         ctx.textAlign = 'center';
@@ -384,6 +439,41 @@ function render_structures()
         ctx.restore();
     }
     render_builder();
+}
+
+// Whether any of an outpost's drones is out of its dock
+function outpost_busy(site)
+{
+    return (site.crew || []).some(v => v.state !== 'docked');
+}
+
+// An outpost's drones out of their dock, each with its beam on the rock it cuts: gold, the structures' colour, so they
+// are told apart from your ship's cyan drones, with a dot of the ore they carry
+function render_outpost_crew(site)
+{
+    for (const drone of site.crew || []) {
+        if (drone.state === 'docked') {
+            continue;
+        }
+        const rock = (drone.state === 'cut') && ore_nodes.find(v => (v.id === drone.rock) && (v.hp > 0));
+        if (rock) {
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+            ctx.strokeStyle = color_with_alpha(ore_color(rock), 0.5 + 0.4*Math.sin(clock*40));
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(drone.x, drone.y);
+            ctx.lineTo(rock.x, rock.y);
+            ctx.stroke();
+            ctx.restore();
+        }
+        const key = Object.keys(drone.load).find(v => drone.load[v] > 0);
+        const color = key ? ore_color({resource: (key === 'ore') ? null : key}) : null;
+        if ((view_mode === 'wireframe') || !sprite_draw('drone-mining', gold, 18, drone.x, drone.y, drone.angle)) {
+            polygon(drone.x, drone.y, 7, 4, drone.angle, gold, '#2b2210');
+        }
+        drone_load_dot(drone.x, drone.y, color);
+    }
 }
 
 // The builder drone in gold, and the ghost of a structure being placed
@@ -443,18 +533,21 @@ function render_builder_shop_card()
     const b = document.createElement('button');
     b.disabled = !!campaign.builder || (salvage < builder_price);
     b.textContent = campaign.builder ? 'OWNED' : `BUY · ◆ ${builder_price}`;
-    b.addEventListener('click', on_buy);
+    b.addEventListener('click', buy_builder);
     card.append(b);
     el.shop_grid.prepend(card);
-    function on_buy() {
-        if ((state !== 'upgrade') || campaign.builder || (salvage < builder_price)) {
-            return;
-        }
-        salvage -= builder_price;
-        campaign.builder = true;
-        sfx('upgrade');
-        dock_message = 'Builder drone added. Press K in flight to build.';
-        render_shop();
-        save_checkpoint('dock');
+}
+
+// Docked: the builder drone bought, once
+function buy_builder()
+{
+    if ((state !== 'upgrade') || campaign.builder || (salvage < builder_price)) {
+        return;
     }
+    salvage -= builder_price;
+    campaign.builder = true;
+    sfx('upgrade');
+    dock_message = 'Builder drone added. Press K in flight to build.';
+    refresh_station_tab();
+    save_checkpoint('dock');
 }

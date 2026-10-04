@@ -1,21 +1,49 @@
-function sync_zoom_controls()
+// The controls show the level the zoom is heading to
+function sync_zoom_controls(level = zoom_target ?? zoom)
 {
-    document.getElementById('zoom_reset').textContent = `${Math.round(zoom*100)}%`;
-    document.getElementById('zoom_out').disabled = zoom <= 0.5;
-    document.getElementById('zoom_in').disabled = zoom >= 2;
+    document.getElementById('zoom_reset').textContent = `${Math.round(level*100)}%`;
+    document.getElementById('zoom_out').disabled = level <= 0.5;
+    document.getElementById('zoom_in').disabled = level >= 2;
 }
 
-function set_zoom(value)
+// The zoom eases to the level asked for over about a fifth of a second (zoom_step, every frame); instant: at once, for
+// a scene set up in code
+let zoom_target = null;
+
+function set_zoom(value, instant = false)
 {
     value = Number(value);
     if (!Number.isFinite(value)) {
         return;
     }
     const next = clamp(Math.round(value*100)/100, 0.5, 2);
-    if (next === zoom) {
-        sync_zoom_controls();
+    zoom_target = instant ? null : next;
+    try {
+        localStorage.setItem('pulse_drift_zoom', String(next));
+    }
+    catch {
+    }
+    if (instant) {
+        zoom_apply(next);
+    }
+    sync_zoom_controls(next);
+}
+
+function zoom_step(dt)
+{
+    if (zoom_target === null) {
         return;
     }
+    const next = (Math.abs(zoom_target - zoom) < 0.002) ? zoom_target : zoom + (zoom_target - zoom)*(1 - Math.exp(-dt*14));
+    if (next === zoom_target) {
+        zoom_target = null;
+    }
+    zoom_apply(next);
+}
+
+// The camera keeps the ship where it was on screen while the zoom changes
+function zoom_apply(next)
+{
     zoom = next;
     update_camera(0, true);
     if (view_mode === 'cockpit') {
@@ -27,28 +55,24 @@ function set_zoom(value)
         pointer.x = pointer.screen_x/zoom + camera.x;
         pointer.y = pointer.screen_y/zoom + camera.y;
     }
-    try {
-        localStorage.setItem('pulse_drift_zoom', String(zoom));
-    }
-    catch {
-    }
-    sync_zoom_controls();
     performance_render_dirty = true;
 }
 
 function step_zoom(direction)
 {
     const steps = [0.5, 0.65, 0.8, 1, 1.25, 1.5, 2];
-    let next = zoom;
+    // from the level the zoom is heading to, so quick presses add up
+    const from = zoom_target ?? zoom;
+    let next = from;
     if (direction > 0) {
-        next = steps.find(v => v > zoom + 0.001) || 2;
+        next = steps.find(v => v > from + 0.001) || 2;
     }
     else {
         next =
             steps
                 .slice()
                 .reverse()
-                .find(v => v < zoom - 0.001) || 0.5;
+                .find(v => v < from - 0.001) || 0.5;
     }
     set_zoom(next);
 }
@@ -94,5 +118,5 @@ function on_wheel(event)
         return;
     }
     event.preventDefault();
-    set_zoom(zoom*Math.exp(clamp(-event.deltaY*0.0015, -0.18, 0.18)));
+    set_zoom((zoom_target ?? zoom)*Math.exp(clamp(-event.deltaY*0.0015, -0.18, 0.18)));
 }

@@ -7,8 +7,10 @@ let saves_return = null;
 document.getElementById('saves_close').addEventListener('click', saves_close);
 document.getElementById('pause_saves_button').addEventListener('click', () => saves_open('pause'));
 document.getElementById('load_button').addEventListener('click', () => saves_open('menu'));
+for (const id of ['pause_last_save', 'menu_last_save', 'result_last_save']) {
+    document.getElementById(id).addEventListener('click', load_last_save);
+}
 addEventListener('keydown', on_saves_key, true);
-sync_load_button();
 
 function saves_read()
 {
@@ -32,10 +34,20 @@ function saves_write(slots)
     }
 }
 
-// The main menu shows LOAD GAME once any slot holds a game
+// The main menu shows LOAD GAME once any slot holds a game; every LOAD LAST SAVE button names the slot and its time
 function sync_load_button()
 {
     set_hidden(document.getElementById('load_button'), !saves_read().some(Boolean));
+    const i = last_save_slot();
+    const v = (i >= 0) ? saves_read()[i] : null;
+    for (const id of ['pause_last_save', 'menu_last_save', 'result_last_save']) {
+        const b = document.getElementById(id);
+        set_hidden(b, !v);
+        if (v) {
+            b.innerHTML = `<span>F9</span> LOAD LAST SAVE · ${i + 1} · ${save_time(v.saved_at)}`;
+            b.title = `Slot ${i + 1}: ${v.world}, story ${v.story}, saved ${save_time(v.saved_at)} (F9)`;
+        }
+    }
 }
 
 // from: 'pause' saves and loads; 'menu' only loads
@@ -58,8 +70,34 @@ function saves_close()
     saves_return = null;
 }
 
+// F9, or a LOAD LAST SAVE button (pause, main menu, the end-of-flight screen): the slot saved most recently
+function last_save_slot()
+{
+    const slots = saves_read();
+    let best = -1;
+    for (let i = 0; i < slots.length; ++i) {
+        if (slots[i] && valid_checkpoint(slots[i].checkpoint) && ((best < 0) || (slots[i].saved_at > slots[best].saved_at))) {
+            best = i;
+        }
+    }
+    return best;
+}
+
+function load_last_save()
+{
+    const i = last_save_slot();
+    if (i >= 0) {
+        load_from_slot(i);
+    }
+}
+
 function on_saves_key(event)
 {
+    if ((event.code === 'F9') && !event.repeat && ['playing', 'paused', 'menu', 'dead', 'won'].includes(state)) {
+        event.preventDefault();
+        load_last_save();
+        return;
+    }
     if ((event.code === 'Escape') && !document.getElementById('saves_overlay').classList.contains('hidden')) {
         event.preventDefault();
         event.stopPropagation();
@@ -149,7 +187,7 @@ function load_from_slot(i)
     set_hidden(document.getElementById('saves_overlay'), true);
     set_hidden(el.pause_overlay, true);
     saves_return = null;
-    el.pause_button.textContent = 'Ⅱ';
+    set_pause_icon(false);
     arcade_stop();
     reset_run(true);
     show_toast('GAME LOADED', `SLOT ${i + 1} · ${v.world.toUpperCase()}`, 2);

@@ -30,7 +30,7 @@ function base_finish(won)
     set_hidden(el.pause_button, true);
     set_hidden(el.touch_buttons, true);
     set_hidden(el.bossbar, true);
-    el.toast.classList.remove('show');
+    toasts_clear();
     el.result_eyebrow.textContent = won ? 'SINGULARITY COLLAPSED' : 'SIGNAL LOST';
     el.result_title.textContent = won ? 'You broke the storm.' : 'One more drift?';
     el.result_description.textContent = won
@@ -75,29 +75,29 @@ function toggle_pause()
         mouse_drive.following = false;
         set_hidden(el.pause_overlay, false);
         document.getElementById('pause_checkpoint').textContent = checkpoint_notice;
-        el.pause_button.textContent = '▶';
+        set_pause_icon(true);
         document.getElementById('resume_button').focus();
     }
     else if (state === 'paused') {
         state = 'playing';
         set_hidden(el.pause_overlay, true);
-        el.pause_button.textContent = 'Ⅱ';
+        set_pause_icon(false);
     }
 }
 el.pause_button.addEventListener('click', toggle_pause);
 document.getElementById('resume_button').addEventListener('click', toggle_pause);
 document.getElementById('start_button').addEventListener('click', function () {
-    el.pause_button.textContent = 'Ⅱ';
+    set_pause_icon(false);
     arcade_stop();
     reset_run();
 });
 document.getElementById('arcade_button').addEventListener('click', function () {
-    el.pause_button.textContent = 'Ⅱ';
+    set_pause_icon(false);
     arcade_start();
 });
 for (const id of ['restart_button', 'restart_pause']) {
     document.getElementById(id).addEventListener('click', function () {
-        el.pause_button.textContent = 'Ⅱ';
+        set_pause_icon(false);
         if (arcade.active) {
             arcade_start();
         }
@@ -154,7 +154,7 @@ addEventListener('keydown', function (event) {
     if (event.code === 'KeyM') {
         toggle_sound();
     }
-    if ((event.code === 'KeyI') || (event.code === 'Tab')) {
+    if (event.code === 'Tab') {
         if (['playing', 'paused', 'inventory'].includes(state)) {
             event.preventDefault();
             toggle_inventory();

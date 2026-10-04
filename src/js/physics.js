@@ -24,6 +24,9 @@ function generate_map()
 function expedition_base_reset_run(resume = false)
 {
     const saved = (resume && checkpoint?.physics) ? clone(checkpoint.physics) : null;
+    // read now: the reset below saves along the way, and the checkpoint would no longer hold them
+    const guide = saved ? clone(checkpoint.guide || null) : null;
+    const route = saved ? clone(checkpoint.route || {points: [], loop: false}) : null;
     physics_base_reset_run(resume);
     if (saved) {
         player.heat = clamp(Number(saved.heat) || 0, 0, 100);
@@ -39,15 +42,20 @@ function expedition_base_reset_run(resume = false)
         player.dash_time = 0;
         player.turbo_active = false;
         player.turbo_heading = Number.isFinite(saved.turbo_heading) ? saved.turbo_heading : player.angle;
+        // the guide's marker and your route, before the save below writes the checkpoint again
+        guide_manual = guide;
+        waypoints = route.points;
+        waypoints_loop = !!route.loop;
         save_checkpoint();
     }
     update_hud();
 }
 
+// Arriving in a world: its banner, in its colour, high on the screen
 function show_world_arrival(title)
 {
     const r = current_world_rules();
-    show_toast(title, `${r.name.toUpperCase()} / ${r.summary} / J → WORLD RULES`, 5);
+    show_banner('world', `World ${campaign.world + 1} · arrived`, worlds[campaign.world].name, `${r.name} · ${r.summary}`, 4.5);
 }
 
 function render_celestial_body(body)
@@ -166,77 +174,9 @@ function expedition_base_render_navigation_objects()
     render_world_fields();
 }
 
-function render_environment_on_chart(map)
-{
-    const draw = map.getContext('2d');
-    const b = local_chart_bounds;
-    if (!b) {
-        return;
-    }
-    draw.save();
-    for (const world_body of world_bodies) {
-        const x = ((world_body.x - b.x)/b.w)*960;
-        const y = ((world_body.y - b.y)/b.h)*620;
-        draw.strokeStyle = '#9ba8c533';
-        draw.lineWidth = 1;
-        draw.beginPath();
-        draw.ellipse(x, y, ((world_body.diam*0.437)/b.w)*960, ((world_body.diam*0.437)/b.h)*620, 0, 0, Math.PI*2);
-        draw.stroke();
-        draw.fillStyle = '#9ba8c566';
-        draw.font = '9px ui-monospace,monospace';
-        draw.textAlign = 'center';
-        draw.fillText(world_body.name, x, y);
-    }
-    for (const world_zone of world_zones) {
-        const x = ((world_zone.x - b.x)/b.w)*960;
-        const y = ((world_zone.y - b.y)/b.h)*620;
-        const color = (world_zone.type === 'storm') ? blue : '#ff9469';
-        draw.strokeStyle = `${color}88`;
-        draw.fillStyle = `${color}11`;
-        draw.beginPath();
-        draw.ellipse(x, y, (world_zone.r/b.w)*960, (world_zone.r/b.h)*620, 0, 0, Math.PI*2);
-        draw.fill();
-        draw.stroke();
-        draw.fillStyle = color;
-        draw.font = '10px ui-monospace,monospace';
-        draw.fillText((world_zone.type === 'storm') ? 'ION FIELD' : 'SOLAR FIELD', x, y);
-    }
-    draw.restore();
-}
-
 function render_local_map_canvas(map)
 {
-    physics_base_render_local_map_canvas(map);
-    render_environment_on_chart(map);
-}
-
-function render_minimap()
-{
-    physics_base_render_minimap();
-    if (!player || (state === 'menu') || (state === 'dead')) {
-        return;
-    }
-    const viewport_width = (view_mode === 'cockpit') ? width : W;
-    const w = (viewport_width < 800) ? 165 : 186;
-    const h = (viewport_width < 800) ? 125 : 140;
-    const x = viewport_width - w - 22;
-    const y = 87;
-    const sx = w/world.w;
-    const sy = (h - 25)/world.h;
-    ctx.save();
-    for (const world_body of world_bodies) {
-        ctx.strokeStyle = '#a6b9d133';
-        ctx.beginPath();
-        ctx.ellipse(x + world_body.x*sx, y + 23 + world_body.y*sy, world_body.diam*0.437*sx, world_body.diam*0.437*sy, 0, 0, Math.PI*2);
-        ctx.stroke();
-    }
-    for (const world_zone of world_zones) {
-        ctx.strokeStyle = (world_zone.type === 'storm') ? blue : '#ff9469';
-        ctx.beginPath();
-        ctx.arc(x + world_zone.x*sx, y + 23 + world_zone.y*sy, Math.max(3, world_zone.r*sx), 0, Math.PI*2);
-        ctx.stroke();
-    }
-    ctx.restore();
+    render_chart_local(map);
 }
 
 function open_world_rules()

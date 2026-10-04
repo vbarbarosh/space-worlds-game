@@ -12,6 +12,7 @@ const ship_scout = {
         cargo: 40,
         radius: 12,
         damage: 1,
+        mounts: ['light'],
         color: cyan,
         shape: 0,
         description: 'Your original balanced shuttle. Low running costs and responsive flight.',

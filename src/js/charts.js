@@ -14,16 +14,20 @@ function render_galaxy_chart(parent, c)
     for (let i = 1, end = c.route.length; i < end; ++i) {
         route_edges.add([c.route[i - 1], c.route[i]].sort((a, b) => a - b).join(':'));
     }
+    // A lane is known once you have stood at either end; it reads as open when both worlds are open to you
     let out =
-        '<svg viewBox="0 0 960 340" role="img" aria-label="Connected worlds. Gold lines mark your mission route."><defs><radialGradient id="chart_glow"><stop stop-color="#203b53"/><stop offset="1" stop-color="#091321"/></radialGradient></defs><rect width="960" height="340" rx="14" fill="url(#chart_glow)"/>';
+        '<svg viewBox="0 0 960 340" role="img" aria-label="Connected worlds. Gold lines mark your route."><defs><radialGradient id="chart_glow"><stop stop-color="#16294a"/><stop offset="1" stop-color="#070d1a"/></radialGradient></defs><rect width="960" height="340" rx="14" fill="url(#chart_glow)"/>';
     for (let i = 0, ii = worlds.length; i < ii; ++i) {
         const world = worlds[i];
         for (const id of world.links.filter(v => v > i)) {
             const a = positions[i];
             const b = positions[id];
             const active = route_edges.has(`${i}:${id}`);
+            const known = campaign.visited.includes(i) || campaign.visited.includes(id);
+            const open = allowed_world(i) && allowed_world(id);
+            const stroke = active ? gold : open ? '#6f8fb8' : '#b0457a';
             out +=
-                `<path d="M ${a[0]} ${a[1]} L ${b[0]} ${b[1]}" stroke="${active ? gold : '#39516f'}" stroke-width="${active ? 4 : 2}"${active ? '' : ' stroke-dasharray="6 7"'}/>`;
+                `<path d="M ${a[0]} ${a[1]} L ${b[0]} ${b[1]}" stroke="${stroke}" stroke-width="${active ? 4 : 2}"${(active || !open) ? ' stroke-dasharray="7 7"' : ''} opacity="${(active || known) ? 1 : 0.45}"/>`;
         }
     }
     for (let i = 0, end = worlds.length; i < end; ++i) {
@@ -31,13 +35,32 @@ function render_galaxy_chart(parent, c)
         const p = positions[i];
         const current = i === campaign.world;
         const target = i === c.target;
-        out +=
-            `<g data-chart-world="${i}" role="button" tabindex="0" aria-label="Set route to ${world.name}" class="chart-node"><circle cx="${p[0]}" cy="${p[1]}" r="${current ? 30 : 25}" fill="${world.color}" stroke="${target ? gold : current ? cyan : allowed_world(i) ? world.accent : '#ff5baf'}" stroke-width="3"/>`;
+        const reached = campaign.visited.includes(i);
+        const locked = !allowed_world(i) && !current;
+        // a world not reached yet is faded, a locked one more, the one you are heading for less
+        const opacity = reached ? 1 : target ? 0.85 : locked ? 0.45 : 0.7;
+        const status = current ? 'YOU ARE HERE' : locked ? 'UPGRADES REQUIRED' : reached ? 'VISITED' : 'OPEN · NOT VISITED';
+        const status_color = current ? cyan : locked ? pink : reached ? '#9dff9b' : '#c9d6e6';
+        const ring = current ? cyan : target ? gold : reached ? '#9dff9b' : locked ? '#b0457a' : '#c9d6e6';
+        const art = sprite_svgs.worlds?.[world_slug(i)]?.[`planet-${world_slug(i)}`];
+        out += `<g data-chart-world="${i}" role="button" tabindex="0" aria-label="Set route to ${world.name}" class="chart-node" opacity="${opacity}">`;
+        out += `<circle cx="${p[0]}" cy="${p[1]}" r="31" fill="${world.color}"/>`;
+        if (art) {
+            out += `<image href="data:image/svg+xml;charset=utf-8,${encodeURIComponent(art)}" x="${p[0] - 31}" y="${p[1] - 31}" width="62" height="62"${locked ? ' opacity="0.5"' : ''}/>`;
+        }
+        out += `<circle cx="${p[0]}" cy="${p[1]}" r="33" fill="none" stroke="${ring}" stroke-width="3"${(!reached && !current && !locked) ? ' stroke-dasharray="5 5"' : ''}/>`;
         if (current) {
-            out += `<circle cx="${p[0]}" cy="${p[1]}" r="36" stroke="${cyan}" fill="none" opacity=".4"/>`;
+            out += `<circle cx="${p[0]}" cy="${p[1]}" r="40" stroke="${cyan}" fill="none" opacity=".45"/>`;
+        }
+        if (locked) {
+            // a padlock
+            out += `<rect x="${p[0] - 10}" y="${p[1] - 3}" width="20" height="15" rx="3" fill="${pink}"/><path d="M ${p[0] - 6} ${p[1] - 3} v -5 a 6 6 0 0 1 12 0 v 5" stroke="${pink}" stroke-width="3" fill="none"/>`;
+        }
+        if (reached && !current) {
+            out += `<circle cx="${p[0] + 24}" cy="${p[1] - 24}" r="8" fill="#0b1a14" stroke="#9dff9b" stroke-width="2"/><path d="M ${p[0] + 20} ${p[1] - 24} l 3 3 l 5 -6" stroke="#9dff9b" stroke-width="2" fill="none"/>`;
         }
         out +=
-            `<text x="${p[0]}" y="${p[1] + 5}" fill="${world.accent}" text-anchor="middle" font-size="14">${i + 1}</text><text x="${p[0]}" y="${p[1] + 53}" text-anchor="middle" fill="#e9f6ff" font-size="14">${world.name}</text><text x="${p[0]}" y="${p[1] + 70}" text-anchor="middle" fill="${allowed_world(i) ? '#9ba8c5' : pink}" font-size="10">${current ? 'YOU ARE HERE' : allowed_world(i) ? `THREAT ${i + 1}` : 'UPGRADES REQUIRED'}</text></g>`;
+            `<text x="${p[0]}" y="${p[1] + 53}" text-anchor="middle" fill="#e9f6ff" font-size="15" font-weight="bold">${world.name}</text><text x="${p[0]}" y="${p[1] + 70}" text-anchor="middle" fill="${status_color}" font-size="10">${status}</text></g>`;
     }
     out += '</svg>';
     const div = document.createElement('div');
@@ -60,7 +83,7 @@ function render_galaxy_chart(parent, c)
     const legend = document.createElement('p');
     legend.className = 'chart-legend';
     legend.textContent =
-        'CLICK A WORLD TO PLAN TRAVEL · GOLD: ACTIVE ROUTE / DESTINATION · CYAN: YOU · PINK: UPGRADE REQUIRED · Links are world gates, not local A–H portals.';
+        `${campaign.visited.length} OF ${worlds.length} WORLDS VISITED · CLICK A WORLD TO PLAN TRAVEL · CYAN RING: YOU · ✓ VISITED · DASHED RING: OPEN, NOT VISITED · PADLOCK: UPGRADES REQUIRED · GOLD: YOUR ROUTE · Lanes are world gates, not the local jump gates.`;
     parent.append(legend);
 }
 
@@ -79,6 +102,10 @@ function render_local_chart(parent)
         controls.append(b);
     }
     parent.append(controls);
+    render_layer_switches(parent);
+    const wrap = document.createElement('div');
+    wrap.className = 'chart-wrap';
+    parent.append(wrap);
     const map = document.createElement('canvas');
     map.setAttribute('id', 'local_navigation_canvas');
     map.width = 960;
@@ -91,13 +118,13 @@ function render_local_chart(parent)
         const y = ((event.clientY - rect.top)*620)/rect.height;
         local_map_select(x, y);
     });
-    parent.append(map);
+    wrap.append(map);
     render_local_map_canvas(map);
-    const legend = document.createElement('p');
-    legend.className = 'chart-legend';
-    legend.textContent =
-        'CLICK AN OBJECT OR EMPTY SPACE TO PLAN A PORTAL ROUTE · GOLD: ROUTE · CYAN TRIANGLE: YOUR SHIP · HEXAGON: STATION · DIAMOND: WORLD GATE (R) · SMALL A–H RINGS: LOCAL PORTALS · BROWN: ORE · LARGE PINK CIRCLES: EARLY GRAVITY FIELD / BLACK CORE: FATAL';
-    parent.append(legend);
+    wrap.append(render_map_legend());
+    const hint = document.createElement('p');
+    hint.className = 'chart-legend';
+    hint.textContent = 'CLICK A THING OR EMPTY SPACE TO PLAN A ROUTE · THE MAP SHOWS WHAT YOU HAVE CHARTED: FLY TO CHART MORE, OR SCAN A BEACON';
+    parent.append(hint);
 }
 
 function local_map_bounds()
@@ -119,13 +146,8 @@ function local_map_select(x, y)
     const point = {x: b.x + (x/960)*b.w, y: b.y + (y/620)*b.h};
     let best = null;
     let near = Infinity;
-    const targets = [
-        {...station, label: worlds[campaign.world].station},
-        ...world_gates.map(v => ({...v, label: `WORLD GATE → ${worlds[v.destination].name}`})),
-        ...beacons.map((v, i) => ({...v, label: `SCAN BEACON ${i + 1}`})),
-        ...mining_fields.filter(v => ore_nodes.some(vv => (vv.hp > 0) && (vv.field === v.id))).map(v => ({...v, label: `MINING FIELD ${v.id + 1}`})),
-        ...portals.map((v, i) => ({...v, portal: i, label: `LOCAL PORTAL ${v.label}`})),
-    ];
+    // what the map shows can be picked: the station and what is charted on the layers that are on
+    const targets = [{...station, label: worlds[campaign.world].station}, ...map_things().filter(v => v.target).map(v => v.target)];
     for (const target of targets) {
         const d = Math.hypot(((target.x - point.x)/b.w)*960, ((target.y - point.y)/b.h)*620);
         if (d < near) {
@@ -150,188 +172,6 @@ function local_map_select(x, y)
         }
         render_navigation();
     }
-}
-
-function physics_base_render_local_map_canvas(map)
-{
-    const draw = map.getContext('2d');
-    const b = local_map_bounds();
-    const map_labels = [];
-    local_chart_bounds = b;
-    const sx = 960/b.w;
-    const sy = 620/b.h;
-    function point(v) {
-        return {x: (v.x - b.x)*sx, y: (v.y - b.y)*sy};
-    }
-    function label(v, text, color, dy = 20) {
-        const p = point(v);
-        if ((p.x < 0) || (p.x > 960) || (p.y < 0) || (p.y > 620)) {
-            return;
-        }
-        draw.font = '12px ui-monospace,monospace';
-        draw.textAlign = 'center';
-        const width = draw.measureText(text).width + 10;
-        const x = clamp(p.x, width/2 + 3, 960 - width/2 - 3);
-        let y = clamp(p.y + dy, 16, 614);
-        for (let i = 0; i < 7; ++i) {
-            const candidate = clamp(p.y + dy + ((i % 2) ? -1 : 1)*Math.ceil(i/2)*20, 16, 614);
-            const box = {x: x - width/2, y: candidate - 12, w: width, h: 17};
-            if (!map_labels.some(v => (box.x < v.x + v.w + 4) && (box.x + box.w + 4 > v.x) && (box.y < v.y + v.h + 3) && (box.y + box.h + 3 > v.y))) {
-                y = candidate;
-                break;
-            }
-        }
-        map_labels.push({x: x - width/2, y: y - 12, w: width, h: 17});
-        draw.fillStyle = '#081221e8';
-        draw.fillRect(x - width/2, y - 12, width, 17);
-        draw.fillStyle = color;
-        draw.fillText(text, x, y);
-    }
-    function ring(v, r, color) {
-        const p = point(v);
-        draw.strokeStyle = color;
-        draw.beginPath();
-        draw.arc(p.x, p.y, r, 0, Math.PI*2);
-        draw.stroke();
-    }
-    draw.fillStyle = '#091321';
-    draw.fillRect(0, 0, 960, 620);
-    draw.strokeStyle = '#30425b33';
-    draw.lineWidth = 1;
-    for (let i = 0; i < 960; i += 80) {
-        draw.beginPath();
-        draw.moveTo(i, 0);
-        draw.lineTo(i, 620);
-        draw.stroke();
-    }
-    for (let i = 0; i < 620; i += 80) {
-        draw.beginPath();
-        draw.moveTo(0, i);
-        draw.lineTo(960, i);
-        draw.stroke();
-    }
-    for (const black_hole of black_holes) {
-        const p = point(black_hole);
-        draw.fillStyle = '#ff5baf0d';
-        draw.strokeStyle = '#ff5baf88';
-        draw.beginPath();
-        draw.ellipse(p.x, p.y, gravity_reach(black_hole)*sx, gravity_reach(black_hole)*sy, 0, 0, Math.PI*2);
-        draw.fill();
-        draw.stroke();
-        draw.fillStyle = '#000';
-        draw.beginPath();
-        draw.arc(p.x, p.y, Math.max(5, black_hole.core*sx), 0, Math.PI*2);
-        draw.fill();
-        label(black_hole, 'BLACK HOLE', pink, 30);
-    }
-    for (const mining_field of mining_fields) {
-        if (!ore_nodes.some(v => v.field === mining_field.id)) {
-            continue;
-        }
-        const p = point(mining_field);
-        draw.fillStyle = '#ffd16e14';
-        draw.strokeStyle = '#a78a58';
-        draw.beginPath();
-        draw.ellipse(p.x, p.y, mining_field.r*sx, mining_field.r*sy, 0, 0, Math.PI*2);
-        draw.fill();
-        draw.stroke();
-        draw.fillStyle = gold;
-        draw.fillRect(p.x - 3, p.y - 3, 6, 6);
-        label(mining_field, `MINE ${mining_field.id + 1}`, '#cbae79', 25);
-    }
-    for (const portal of portals) {
-        ring(portal, 7, `${portal.color}99`);
-        label(portal, `LOCAL ${portal.label}`, portal.color, 22);
-    }
-    for (let i = 0, end = beacons.length; i < end; ++i) {
-        const beacon = beacons[i];
-        ring(beacon, 6, cyan);
-        label(beacon, `SCAN ${i + 1}`, '#8db8ba', -12);
-    }
-    for (let i = 0, end = world_gates.length; i < end; ++i) {
-        const world_gate = world_gates[i];
-        const p = point(world_gate);
-        draw.strokeStyle = world_gate.color;
-        draw.fillStyle = `${world_gate.color}22`;
-        draw.beginPath();
-        draw.moveTo(p.x, p.y - 12);
-        draw.lineTo(p.x + 12, p.y);
-        draw.lineTo(p.x, p.y + 12);
-        draw.lineTo(p.x - 12, p.y);
-        draw.closePath();
-        draw.fill();
-        draw.stroke();
-        label(world_gate, `WORLD → ${worlds[world_gate.destination].name.toUpperCase()}`, world_gate.color, (i === 2) ? -20 : 30);
-    }
-    const p = point(station);
-    draw.strokeStyle = cyan;
-    draw.fillStyle = '#123747';
-    draw.beginPath();
-    for (let i = 0; i < 6; ++i) {
-        const a = (i/6)*Math.PI*2;
-        if (i === 0) {
-            draw.moveTo(p.x + Math.cos(a)*14, p.y + Math.sin(a)*14);
-        }
-        else {
-            draw.lineTo(p.x + Math.cos(a)*14, p.y + Math.sin(a)*14);
-        }
-    }
-    draw.closePath();
-    draw.fill();
-    draw.stroke();
-    label(station, worlds[campaign.world].station.toUpperCase(), cyan, 32);
-    const current = point(player);
-    draw.save();
-    draw.translate(current.x, current.y);
-    draw.rotate(player.angle);
-    draw.fillStyle = cyan;
-    draw.beginPath();
-    draw.moveTo(10, 0);
-    draw.lineTo(-7, -6);
-    draw.lineTo(-4, 0);
-    draw.lineTo(-7, 6);
-    draw.closePath();
-    draw.fill();
-    draw.restore();
-    label(player, 'YOUR SHIP', '#e2fffc', -22);
-    const c = refresh_guidance();
-    if (c?.goal) {
-        draw.strokeStyle = gold;
-        draw.lineWidth = 2;
-        draw.setLineDash([6, 6]);
-        draw.beginPath();
-        draw.moveTo(current.x, current.y);
-        let last = current;
-        for (const v of guide_path) {
-            const p = point(v);
-            if (v.jump_exit) {
-                draw.stroke();
-                draw.setLineDash([2, 10]);
-                draw.beginPath();
-                draw.moveTo(last.x, last.y);
-                draw.lineTo(p.x, p.y);
-                draw.stroke();
-                draw.setLineDash([6, 6]);
-                draw.beginPath();
-                draw.moveTo(p.x, p.y);
-            }
-            else {
-                draw.lineTo(p.x, p.y);
-            }
-            last = p;
-        }
-        draw.stroke();
-        draw.setLineDash([]);
-        ring(c.goal, 20, gold);
-        label(c.goal, 'OBJECTIVE', gold, -32);
-    }
-    for (const enemy of enemies) {
-        const p = point(enemy);
-        draw.fillStyle = pink;
-        draw.fillRect(p.x - 2, p.y - 2, 4, 4);
-    }
-    draw.strokeStyle = '#6cf8ec44';
-    draw.strokeRect((camera.x - b.x)*sx, (camera.y - b.y)*sy, (W/zoom)*sx, (H/zoom)*sy);
 }
 
 function render_screen_controls()

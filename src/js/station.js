@@ -110,6 +110,21 @@ function expedition_base_guide_base_claim_contract(id)
 
 function card(parent, title, text, meta, button_label, action, disabled = false, className = '')
 {
+    // inside a screen on the UI kit, the kit's card
+    if (parent.closest('.ui')) {
+        const c = ui_card({
+            title,
+            text,
+            note: '',
+            state: (className === 'active') ? 'is-selected' : '',
+            action: button_label ? ui_button_from_label(button_label, {size: 'sm', disabled, on: action}) : null,
+        });
+        if (meta) {
+            c.querySelector('.foot').insertAdjacentHTML('beforebegin', `<p class="small card-meta">${meta}</p>`);
+        }
+        parent.append(c);
+        return c;
+    }
     const c = document.createElement('div');
     c.className = `frontier-card ${className}`;
     const h = document.createElement('h3');
@@ -130,6 +145,94 @@ function card(parent, title, text, meta, button_label, action, disabled = false,
     }
     parent.append(c);
     return c;
+}
+
+// The station's contracts on the kit: the ones you carry on the left (with their free slots), the ones offered here
+// on the right; a finished one carries the panel's primary button, Collect reward [C]
+function render_station_contracts(parent)
+{
+    parent.classList.add('contracts');
+    const taken = document.createElement('div');
+    taken.className = 'contracts-column';
+    taken.innerHTML = `<h3 class="h-section">Taken <span class="eyebrow eyebrow--muted">${campaign.contracts.length} of 3</span></h3>`;
+    const offered = document.createElement('div');
+    offered.className = 'contracts-column offered';
+    offered.innerHTML = `<h3 class="h-section">Offered here <span class="eyebrow eyebrow--muted">${worlds[campaign.world].station} · refreshes on undock</span></h3>`;
+    parent.append(taken, offered);
+    const full = campaign.contracts.length >= 3;
+    for (const m of campaign.contracts) {
+        const tracked = focused_contract() === m;
+        const actions = document.createElement('span');
+        actions.className = 'card-actions';
+        if (m.ready) {
+            actions.append(ui_button({label: 'Collect reward', key: 'C', kind: 'primary', size: 'sm', on: () => claim_contract(m.id)}));
+        }
+        else {
+            actions.append(ui_button({label: 'Abandon', kind: 'ghost', size: 'sm', on: () => contract_abandon(m)}));
+            actions.append(ui_button({label: tracked ? 'Following' : 'Follow', key: tracked ? '' : 'T', size: 'sm', disabled: tracked, on: () => contract_follow(m)}));
+        }
+        taken.append(ui_card({
+            tags: `${ui_world_badge(m.world)}<span class="eyebrow eyebrow--muted" style="margin-left:auto">${m.ready ? 'Complete' : contract_stage_text(m)}</span>`,
+            title: m.title,
+            text: m.description,
+            note: `<span class="money">${ui_number(m.reward)}</span>`,
+            action: actions,
+            state: m.ready ? 'is-done' : tracked ? 'is-selected' : '',
+        }));
+        taken.lastChild.querySelector('.foot').insertAdjacentHTML('beforebegin', contract_stages_html(m));
+    }
+    for (let i = campaign.contracts.length; i < 3; ++i) {
+        taken.insertAdjacentHTML('beforeend', `<div class="contract-slot">${(i === campaign.contracts.length) ? 'One slot free' : 'Slot free'}</div>`);
+    }
+    const offers = [];
+    if ((campaign.story < story.length) && !campaign.contracts.some(v => v.main)) {
+        offers.push({...story[campaign.story], main: true, label: `Story ${campaign.story + 1} / ${story.length} · ${story[campaign.story].title}`});
+    }
+    for (const m of offered_jobs()) {
+        offers.push({...m, label: m.title});
+    }
+    for (const m of offers) {
+        const dupe = campaign.contracts.some(v => v.title === m.title);
+        offered.append(ui_card({
+            tags: `${ui_world_badge(m.world)}<span class="eyebrow eyebrow--muted" style="margin-left:auto">${m.main ? 'Story' : m.type}</span>`,
+            title: m.label,
+            text: m.description,
+            note: `<span class="money">${ui_number(m.reward)}</span>`,
+            action: ui_button({label: dupe ? 'Taken' : full ? 'No free slot' : 'Accept', size: 'sm', disabled: full || dupe, on: () => accept_contract(m, !!m.main)}),
+        }));
+    }
+}
+
+// A contract's stage, for its card: Stage 2 of 3, or how far along a one-stage one is
+function contract_stage_text(m)
+{
+    return m.stages ? `Stage ${m.stage_index + 1} of ${m.stages.length}` : `${format_progress(m.progress)} / ${m.target}`;
+}
+
+// A contract's stages as gold bars: done, the one under way, and those to come
+function contract_stages_html(m)
+{
+    const count = m.stages ? m.stages.length : 1;
+    const now = m.stages ? m.stage_index : 0;
+    const bars = [];
+    for (let i = 0; i < count; ++i) {
+        bars.push(`<b class="${(m.ready || (i < now)) ? 'done' : (i === now) ? 'now' : ''}"></b>`);
+    }
+    return `<div class="stages">${bars.join('')}</div>`;
+}
+
+function contract_follow(m)
+{
+    track_contract(m);
+    render_station();
+}
+
+function contract_abandon(m)
+{
+    campaign.contracts = campaign.contracts.filter(v => v.id !== m.id);
+    escort = null;
+    save_checkpoint();
+    render_station();
 }
 
 function guide_base_render_contracts(parent, board = false)
@@ -252,19 +355,82 @@ function undock()
     canvas.focus();
 }
 
+// After a purchase, the open tab drawn again; the shop keeps the purchase's message
+function refresh_station_tab()
+{
+    if (station_tab === 'outfit') {
+        render_shop();
+    }
+    else {
+        render_station();
+    }
+}
+
+const station_undock_label = '<span class="key">R</span><span>Undock</span>';
+// The station's tabs in the order of their number keys
+const station_tab_keys = ['jobs', 'market', 'intel', 'outfit', 'hangar', 'arsenal', 'career'];
+
+addEventListener('keydown', on_station_key);
+
+function station_tab_open(tab)
+{
+    station_tab = tab;
+    render_station();
+}
+
+// Docked: 1–7 open the tabs, C collects a finished reward, T does what the NEXT strip offers, R undocks
+function on_station_key(event)
+{
+    if ((state !== 'upgrade') || arcade.active || event.repeat || event.ctrlKey || event.metaKey || event.altKey || ['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
+        return;
+    }
+    const n = Number(event.key);
+    if (Number.isInteger(n) && (n >= 1) && (n <= station_tab_keys.length)) {
+        event.preventDefault();
+        station_tab_open(station_tab_keys[n - 1]);
+    }
+    else if (event.code === 'KeyC') {
+        const m = campaign.contracts.find(v => v.ready);
+        if (m) {
+            claim_contract(m.id);
+        }
+    }
+    else if (event.code === 'KeyT') {
+        guide_action();
+    }
+    else if (event.code === 'KeyR') {
+        undock();
+    }
+}
+
+// The tabs' gold counts: rewards ready to collect on CONTRACTS, the goal's step on GOALS when it can be done here
+function sync_station_tab_counts()
+{
+    const ready = campaign.contracts.filter(v => v.ready).length;
+    const g = goal_state();
+    const goal_here = g && (g.index >= 0) && !!g.steps[g.index].buy;
+    for (const [tab, n, text] of [['jobs', ready, String(ready)], ['career', goal_here ? 1 : 0, '!']]) {
+        const count = document.querySelector(`[data-station="${tab}"] .count`);
+        set_hidden(count, !n);
+        count.textContent = text;
+        count.classList.add('is-alert');
+    }
+}
+
 function guide_base_render_station()
 {
-    const w = worlds[campaign.world];
-    el.dock_summary.textContent =
-        `${w.faction} · ${w.weapons} · Cargo ${cargo_count()}/${cargo_capacity()} · Story ${campaign.story}/${story.length} · ${campaign.completed} contracts completed.`;
+    el.dock_summary.textContent = `${current_ship().name} · rank ${rank_names[pilot_rank()]} · story ${campaign.story}/${story.length}`;
     for (const b of document.querySelectorAll('[data-station]')) {
-        b.classList.toggle('selected', b.dataset.station === station_tab);
+        b.classList.toggle('is-active', b.dataset.station === station_tab);
     }
+    sync_station_tab_counts();
+    document.getElementById('station_cargo').innerHTML = `${cargo_count()}<small>/${cargo_capacity()}</small>`;
     const out = station_tab === 'outfit';
     set_hidden(el.shop_grid, !out);
     set_hidden(document.getElementById('outfit_heading'), !out);
     const content = document.getElementById('station_content');
     content.replaceChildren();
+    content.classList.remove('contracts', 'arsenal', 'goals');
     if (out) {
         render_shop();
         dock_message =
@@ -276,10 +442,10 @@ function guide_base_render_station()
     else {
         render_market(content);
     }
-    el.shop_wallet.textContent = salvage;
+    el.shop_wallet.textContent = ui_number(salvage);
     el.dock_status.textContent = dock_message;
     el.next_sector.disabled = false;
-    el.next_sector.textContent = 'UNDOCK ↗';
+    el.next_sector.innerHTML = station_undock_label;
     update_hud();
 }
 
@@ -288,7 +454,14 @@ function guide_base_render_shop()
     base_render_shop();
     render_drone_shop_card();
     render_builder_shop_card();
-    el.next_sector.textContent = 'UNDOCK ↗';
+    render_transport_shop_card();
+    // on the UI kit every shop card becomes a kit item card
+    if (el.shop_grid.closest('.ui')) {
+        for (const old of [...el.shop_grid.querySelectorAll('.shop-item')]) {
+            old.replaceWith(ui_shop_item(old));
+        }
+    }
+    el.next_sector.innerHTML = station_undock_label;
     el.next_sector.disabled = false;
 }
 const market_quantity = {ore: 1, cells: 1, relics: 1};
@@ -328,7 +501,7 @@ function sync_sell_all_button()
     const offer = sell_all_offer();
     set_hidden(b, arcade.active);
     b.disabled = !offer.keys.length;
-    b.textContent = offer.keys.length ? `SELL ALL CARGO · ◆ ${offer.total}` : 'NOTHING TO SELL';
+    b.innerHTML = offer.keys.length ? `<span>Sell all cargo</span><span class="price">${ui_number(offer.total)}</span>` : '<span>Nothing to sell</span>';
 }
 
 function trade_cargo(key, side, requested)
@@ -363,8 +536,60 @@ function trade_cargo(key, side, requested)
     return amount;
 }
 
+// The CARGO MARKET on the UI kit: a card per good with what you hold and the prices, a quantity (×1, ×10, ×50, all)
+// and Buy and Sell with their totals
+function render_market_kit(parent)
+{
+    for (let i = 0, ii = commodities.length; i < ii; ++i) {
+        const commodity = commodities[i];
+        const resource = resource_of(commodity.key);
+        if (resource && (resource.world !== campaign.world) && !campaign.cargo[commodity.key]) {
+            continue;
+        }
+        const price = market_price(campaign.world, i, 'buy');
+        const sell = market_price(campaign.world, i, 'sell');
+        const owned = campaign.cargo[commodity.key];
+        const max_buy = Math.max(0, Math.min(cargo_capacity() - cargo_count(), Math.floor(salvage/price)));
+        const demand = ensure_markets()[campaign.world].demand[commodity.key];
+        const pick = market_quantity[commodity.key] || 1;
+        const buy_n = (pick === 'all') ? max_buy : Math.min(pick, max_buy);
+        const sell_n = (pick === 'all') ? owned : Math.min(pick, owned);
+        const actions = document.createElement('span');
+        actions.className = 'card-actions';
+        if (!resource) {
+            actions.append(ui_button({label: `Buy ${buy_n}`, price: buy_n*price, size: 'sm', disabled: buy_n < 1, on: () => trade_cargo(commodity.key, 'buy', buy_n)}));
+        }
+        actions.append(ui_button({label: `Sell ${sell_n}`, price: trade_total(campaign.world, commodity.key, 'sell', sell_n), size: 'sm', kind: (sell_n > 0) ? 'primary' : '', disabled: sell_n < 1, on: () => trade_cargo(commodity.key, 'sell', sell_n)}));
+        const c = ui_card({
+            tags: resource ? `${ui_world_badge(resource.world)}${ui_badge('Resource')}` : (demand > 0) ? ui_badge(`Demand ${demand}`, 'gold') : ui_badge('No demand'),
+            title: commodity.name,
+            text: resource ? `Mined, never sold here: ${worlds[resource.world].name} pays 60% of its worth, each world farther away 30% more.` : 'Demand pays +6 a unit until it is filled. TRADE INTEL compares every station.',
+            stats: [['CARGO', String(owned)], ...(resource ? [] : [['BUY', `◆ ${price}`]]), ['SELL', `◆ ${sell}`]],
+            action: actions,
+        });
+        const seg = document.createElement('div');
+        seg.className = 'seg';
+        for (const n of [1, 10, 50, 'all']) {
+            const b = document.createElement('button');
+            b.textContent = (n === 'all') ? 'All' : `×${n}`;
+            b.classList.toggle('is-active', n === pick);
+            b.addEventListener('click', function () {
+                market_quantity[commodity.key] = n;
+                render_station();
+            });
+            seg.append(b);
+        }
+        c.querySelector('.foot').before(seg);
+        parent.append(c);
+    }
+}
+
 function render_market(parent)
 {
+    if (parent.closest('.ui')) {
+        render_market_kit(parent);
+        return;
+    }
     for (let i = 0, ii = commodities.length; i < ii; ++i) {
         const commodity = commodities[i];
         const resource = resource_of(commodity.key);

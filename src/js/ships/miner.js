@@ -12,6 +12,7 @@ const ship_miner = {
         cargo: 150,
         radius: 19,
         damage: 1,
+        mounts: ['medium'],
         mining: 2.5,
         color: '#eabb7e',
         shape: 3,

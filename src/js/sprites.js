@@ -10,7 +10,8 @@ const sprite_sizes = {
     ships: {interceptor: 42, scout: 48, courier: 58, miner: 74, gunship: 84, cruiser: 104},
     raider: 2.9,
     flagship: 3.2,
-    freighter: 120,
+    freighter: 170,
+    transport: 210,
     pickup: 15,
 };
 const sprite_span = 228;
@@ -46,7 +47,8 @@ function sync_sprites_button()
 {
     const b = document.getElementById('sprites_button');
     const title = (sprite_set === '3d') ? '3D' : 'Flat';
-    b.textContent = title.toUpperCase();
+    b.title = `Ship drawings: ${title}. Click for the other set`;
+    b.classList.toggle('is-active', sprite_set === '3d');
     b.setAttribute('aria-label', `Ship sprites: ${title}. Click to switch.`);
 }
 
@@ -65,11 +67,18 @@ function sprite(name)
         return null;
     }
     const svg = new DOMParser().parseFromString(text, 'image/svg+xml').documentElement;
-    const box = Number(svg.getAttribute('viewBox').split(/\s+/)[2]);
+    // A wide drawing (the 512 × 128 comet) is centred on a square canvas as wide as it is
+    const [left, top, w, h] = svg.getAttribute('viewBox').split(/\s+/).map(Number);
+    const box = Math.max(w, h);
+    if (w !== h) {
+        svg.setAttribute('viewBox', `${left - (box - w)/2} ${top - (box - h)/2} ${box} ${box}`);
+    }
     const turned = !name.includes('/') || /^(weapons|drones)\//.test(name);
     // A drawing's point as a fraction of the canvas from its centre, in the game's frame
     function at(x, y) {
-        return turned ? {x: (box/2 - y)/box, y: (x - box/2)/box} : {x: (x - box/2)/box, y: (y - box/2)/box};
+        const cx = left + w/2;
+        const cy = top + h/2;
+        return turned ? {x: (cy - y)/box, y: (x - cx)/box} : {x: (x - cx)/box, y: (y - cy)/box};
     }
     const flames = [];
     const points = {};
@@ -248,10 +257,10 @@ function world_art(name)
     return sprite(path) ? path : null;
 }
 
-// The current world's name as a file name: haven, ion-reach
-function world_slug()
+// A world's name as a file name, the current world's by default: haven, ion-reach
+function world_slug(id = campaign.world)
 {
-    return worlds[campaign.world].name.toLowerCase().replace(/\s+/g, '-');
+    return worlds[id].name.toLowerCase().replace(/\s+/g, '-');
 }
 
 // The sprite of a player ship class, and its length: the size follows the class's radius

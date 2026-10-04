@@ -444,7 +444,7 @@ function arcade_finish(won)
     for (const v of [el.loadout, el.inventory_button, el.mission, el.pause_button, el.touch_buttons, el.bossbar]) {
         set_hidden(v, true);
     }
-    el.toast.classList.remove('show');
+    toasts_clear();
     el.result_eyebrow.textContent = won ? 'ARCADE · FRONTIER CLEARED' : 'ARCADE · SIGNAL LOST';
     el.result_title.textContent = won ? 'All eight worlds.' : 'One more run?';
     el.result_description.textContent = won

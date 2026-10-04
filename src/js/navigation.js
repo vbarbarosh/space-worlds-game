@@ -190,7 +190,7 @@ function interact()
             show_toast('SHUTTLE NOT PREPARED', `${requirements(g.destination)} / DOCK AT THE OUTFITTER`, 5);
             return;
         }
-        start_jump({world: g.destination, color: g.color, label: `JUMP TO ${worlds[g.destination].name}`});
+        start_jump({world: g.destination, color: g.color, label: `JUMP TO ${worlds[g.destination].name}`, gate: g});
     }
 }
 
@@ -203,7 +203,9 @@ function start_jump(destination)
         return;
     }
     state = 'transit';
-    jump = {...destination, t: 0, duration: full_fx ? 2.2 : 0.7, switched: false, following: mouse_drive.following};
+    const duration = (destination.world === undefined) ? hop_duration : full_fx ? warp_duration : warp_duration*0.55;
+    jump = {...destination, t: 0, duration, switched: false, following: mouse_drive.following, from: {x: player.x, y: player.y}, angle: player.angle, vx: player.vx, vy: player.vy};
+    teleport_start(jump);
     mouse_drive.active = false;
     joystick.active = false;
     stop_turbo();
@@ -213,8 +215,10 @@ function start_jump(destination)
     player.dash_time = 0;
     hostile = [];
     bullets = [];
-    ring(player.x, player.y, destination.color, 260, 0.8);
-    burst(player.x, player.y, destination.color, 75, 450);
+    if (view_mode === 'cockpit') {
+        ring(player.x, player.y, destination.color, 260, 0.8);
+        burst(player.x, player.y, destination.color, 75, 450);
+    }
     sfx('portal');
 }
 
@@ -242,7 +246,7 @@ function guide_base_update_jump(dt)
             waypoint = {...station, label: worlds[campaign.world].station};
         }
         else {
-            const exit = portal_exit(portals[jump.local]);
+            const exit = jump.exit_point || portal_exit(portals[jump.local]);
             player.x = exit.x;
             player.y = exit.y;
         }
@@ -250,13 +254,17 @@ function guide_base_update_jump(dt)
         player.invincible = 3;
         trail = [];
         update_camera(0, true);
-        burst(player.x, player.y, jump.color, 90, 450);
-        ring(player.x, player.y, jump.color, 280, 0.9);
+        if (view_mode === 'cockpit') {
+            burst(player.x, player.y, jump.color, 90, 450);
+            ring(player.x, player.y, jump.color, 280, 0.9);
+        }
     }
+    teleport_view();
     if (jump.t >= jump.duration) {
         const previous = jump;
         state = 'playing';
         jump = null;
+        teleport_end(previous);
         mouse_drive.following = previous.following;
         if (mouse_drive.following) {
             set_mouse_destination({x: mouse_drive.screen_x, y: mouse_drive.screen_y});
@@ -266,9 +274,14 @@ function guide_base_update_jump(dt)
     }
 }
 
+// The cockpit's jump; the other views play the teleport (teleport.js)
 function render_jump()
 {
     if (!jump) {
+        return;
+    }
+    if (view_mode !== 'cockpit') {
+        render_teleport_screen();
         return;
     }
     const p = jump.t/jump.duration;
@@ -371,6 +384,7 @@ function guide_base_update_frontier(dt)
     update_escort(dt);
     drones_update(dt);
     structures_update(dt);
+    transports_update(dt);
     if (waypoint && (distance(player, waypoint) < 110)) {
         waypoint = null;
     }
@@ -404,7 +418,7 @@ function guide_base_update_hud()
     const b = document.getElementById('dock_button');
     const g = world_gates.find(v => distance(player, v) < 155);
     b.disabled = (state !== 'playing') || !((distance(player, station) < 230) || g);
-    b.textContent = g ? 'R JUMP' : 'R DOCK';
+    b.innerHTML = `${hud_dock_icon}<span>${g ? 'Jump' : 'Dock'}</span><span class="key">R</span>`;
     document.getElementById('nav_button').disabled = !['playing', 'paused', 'navigation'].includes(state);
     if ((state === 'playing') && (distance(player, station) < 230)) {
         el.navigation_status.textContent += ' / R DOCK';
@@ -518,68 +532,45 @@ function physics_base_render_navigation_objects()
         ctx.fillStyle = gold;
         ctx.font = '10px ui-monospace,monospace';
         ctx.textAlign = 'center';
-        ctx.fillText(`FREIGHTER · ${Math.ceil(escort.hp)} HULL`, escort.x, escort.y - 35);
+        // below the hull; the guide's marker names it above
+        ctx.fillText(`FREIGHTER · ${Math.ceil(escort.hp)} HULL`, escort.x, escort.y + sprite_sizes.freighter*0.6 + 14);
     }
     if (waypoint) {
+        const p = waypoint_live();
         ctx.strokeStyle = gold;
         ctx.setLineDash([5, 10]);
         ctx.beginPath();
-        ctx.arc(waypoint.x, waypoint.y, 65, 0, Math.PI*2);
+        // round a moving goal (the freighter) the ring clears its hull
+        ctx.arc(p.x, p.y, waypoint.follow ? Math.max(65, sprite_sizes.freighter*0.62) : 65, 0, Math.PI*2);
         ctx.stroke();
         ctx.setLineDash([]);
     }
     ctx.restore();
 }
 
-function physics_base_render_minimap()
+// Where the guide's marker is now: on a moving goal (the convoy's freighter) where that is this frame
+function waypoint_live()
 {
-    base_render_minimap();
-    if (!player || (state === 'menu') || (state === 'dead')) {
-        return;
-    }
-    const viewport_width = (view_mode === 'cockpit') ? width : W;
-    const w = (viewport_width < 800) ? 165 : 186;
-    const h = (viewport_width < 800) ? 125 : 140;
-    const x = viewport_width - w - 22;
-    const y = 87;
-    const sx = w/world.w;
-    const sy = (h - 25)/world.h;
-    ctx.save();
-    ctx.fillStyle = cyan;
-    ctx.fillRect(x + station.x*sx - 3, y + 23 + station.y*sy - 3, 6, 6);
-    for (const world_gate of world_gates) {
-        ctx.strokeStyle = world_gate.color;
-        ctx.beginPath();
-        ctx.arc(x + world_gate.x*sx, y + 23 + world_gate.y*sy, 5, 0, Math.PI*2);
-        ctx.stroke();
-    }
-    for (const beacon of beacons) {
-        ctx.fillStyle = '#6cf8ec77';
-        ctx.fillRect(x + beacon.x*sx - 1, y + 23 + beacon.y*sy - 1, 3, 3);
-    }
-    if (waypoint) {
-        ctx.strokeStyle = gold;
-        ctx.beginPath();
-        ctx.arc(x + waypoint.x*sx, y + 23 + waypoint.y*sy, 6, 0, Math.PI*2);
-        ctx.stroke();
-    }
-    ctx.restore();
+    return (Number.isFinite(waypoint.follow?.x) && Number.isFinite(waypoint.follow?.y)) ? waypoint.follow : waypoint;
 }
 
 function guide_base_render_screen_controls()
 {
     base_render_screen_controls();
     if (waypoint && player) {
-        const px = (waypoint.x - camera.x)*zoom;
-        const py = (waypoint.y - camera.y)*zoom;
+        const live = waypoint_live();
+        const px = (live.x - camera.x)*zoom;
+        const py = (live.y - camera.y)*zoom;
         const x = clamp(px, 50, W - 50);
         const y = clamp(py, 255, H - 165);
-        const d = Math.round(distance(player, waypoint));
+        const d = Math.round(distance(player, live));
         ctx.save();
         ctx.fillStyle = gold;
         ctx.font = '10px ui-monospace,monospace';
         ctx.textAlign = 'center';
-        ctx.fillText(`${waypoint.label.toUpperCase()} · ${d} m`, x, y - 20);
+        // above the marker's ring, which is wider round a moving goal's hull
+        const above = waypoint.follow ? Math.max(65, sprite_sizes.freighter*0.62)*zoom + 10 : 20;
+        ctx.fillText(`${waypoint.label.toUpperCase()} · ${d} m`, x, y - above);
         const a = Math.atan2(py - y, px - x);
         ctx.translate(x, y);
         ctx.rotate(a);
@@ -602,8 +593,5 @@ for (const b of document.querySelectorAll('[data-nav]')) {
     });
 }
 for (const b of document.querySelectorAll('[data-station]')) {
-    b.addEventListener('click', function () {
-        station_tab = b.dataset.station;
-        render_station();
-    });
+    b.addEventListener('click', () => station_tab_open(b.dataset.station));
 }
