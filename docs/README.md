@@ -21,3 +21,5 @@ look.
   reputation and world guards.
 - [agent/](agent/README.md): the instructions for a coding agent that plays
   the campaign as your rival.
+- [designer/missiles.md](designer/missiles.md): the designer's brief for the
+  homing missiles, their motors and module icons.
