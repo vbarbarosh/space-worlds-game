@@ -95,13 +95,17 @@ function depot_shield_draw()
         }
     }
     ctx.restore();
+    if (full_fx && !ring_glow(0, 0, r, 4, 24, '#6cf8ec', 0.75*k)) {
+        ctx.shadowColor = '#6cf8ec';
+        ctx.shadowBlur = 24;
+    }
     ctx.strokeStyle = `rgba(108, 248, 236, ${0.75*k})`;
     ctx.lineWidth = 4;
-    ctx.shadowColor = '#6cf8ec';
-    ctx.shadowBlur = full_fx ? 24 : 0;
     ctx.beginPath();
     ctx.arc(0, 0, r, 0, Math.PI*2);
     ctx.stroke();
+    ctx.shadowColor = '#6cf8ec';
+    ctx.shadowBlur = full_fx ? 24 : 0;
     for (const h of depot_shield.hits) {
         ctx.strokeStyle = `rgba(220, 255, 252, ${h.life*1.6})`;
         ctx.lineWidth = 10;

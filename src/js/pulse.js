@@ -366,7 +366,7 @@ function pulse_star_bend(x, y)
     for (const wave of pulse_waves) {
         const dx = x - (wave.x - camera.x)*zoom;
         const dy = y - (wave.y - camera.y)*zoom;
-        const d = Math.hypot(dx, dy) || 1;
+        const d = Math.sqrt(dx*dx + dy*dy) || 1;
         const band = 60*zoom;
         const off = Math.abs(d - wave.r*zoom);
         if (off < band) {
@@ -464,8 +464,10 @@ function render_pulse_wave(wave)
         ctx.stroke();
     }
     ctx.globalAlpha = alpha;
-    ctx.shadowColor = look.color;
-    ctx.shadowBlur = full_fx ? 18 : 0;
+    if (full_fx && !ring_glow(x, y, r, wave.depth ? 2.5 : 4, 18, look.color)) {
+        ctx.shadowColor = look.color;
+        ctx.shadowBlur = 18;
+    }
     ctx.strokeStyle = look.edge;
     ctx.lineWidth = wave.depth ? 2.5 : 4;
     explosion_circle(x, y, r);

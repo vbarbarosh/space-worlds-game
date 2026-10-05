@@ -20,6 +20,39 @@ function polygon(x, y, r, sides, angle, color, fill)
     ctx.stroke();
 }
 
+// The glow a canvas shadow (shadowBlur blur, in canvas pixels) gives a circle's stroke `width` wide, as a gradient
+// ring: a blurred shadow costs up to 100 ms on a large circle. False for a small one, which keeps its cheap shadow.
+function ring_glow(x, y, r, width, blur, color, alpha = 1)
+{
+    const t = ctx.getTransform();
+    const sigma = blur/2/Math.sqrt(t.a*t.a + t.b*t.b);
+    if (r < sigma*4) {
+        return false;
+    }
+    const inner = r - sigma*4;
+    const outer = r + sigma*4;
+    const g = ctx.createRadialGradient(x, y, inner, x, y, outer);
+    for (let i = 0; i <= 24; ++i) {
+        const d = inner + ((outer - inner)*i)/24 - r;
+        g.addColorStop(i/24, color_with_alpha(color, alpha*(normal_cdf((d + width/2)/sigma) - normal_cdf((d - width/2)/sigma))));
+    }
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(x, y, outer, 0, Math.PI*2);
+    ctx.arc(x, y, inner, 0, Math.PI*2, true);
+    ctx.fill();
+    return true;
+}
+
+// The standard normal distribution's share below x (Abramowitz and Stegun 7.1.26, within 1.5e-7)
+function normal_cdf(x)
+{
+    const z = Math.abs(x)/Math.SQRT2;
+    const t = 1/(1 + 0.3275911*z);
+    const erf = 1 - (((((1.061405429*t - 1.453152027)*t + 1.421413741)*t - 0.284496736)*t + 0.254829592)*t)*Math.exp(-z*z);
+    return (x >= 0) ? (1 + erf)/2 : (1 - erf)/2;
+}
+
 function visual_base_draw_background()
 {
     ctx.fillStyle = '#080b17';
