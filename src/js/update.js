@@ -289,6 +289,8 @@ function update(dt)
     if (arcade.active) {
         arcade_update(dt);
     }
+    // the solid things as they are now, for raider_avoid: the pulse may have shrunk a mined rock this frame
+    bodies_statics_load();
     for (let i = 0, end = enemies.length; i < end; ++i) {
         const v = enemies[i];
         if (v.hp <= 0) {
@@ -406,7 +408,7 @@ function update(dt)
             const current = Math.atan2(b.vy, b.vx);
             const delta = Math.atan2(Math.sin(angle - current), Math.cos(angle - current));
             const next = current + clamp(delta, -dt*upgrades.homing*2.2, dt*upgrades.homing*2.2);
-            const speed = Math.hypot(b.vx, b.vy);
+            const speed = Math.sqrt(b.vx*b.vx + b.vy*b.vy);
             b.vx = Math.cos(next)*speed;
             b.vy = Math.sin(next)*speed;
         }
@@ -425,7 +427,9 @@ function update(dt)
             const vy = b.y - py;
             const l = vx*vx + vy*vy;
             const t = l ? clamp(((v.x - px)*vx + (v.y - py)*vy)/l, 0, 1) : 0;
-            if (Math.hypot(v.x - (px + vx*t), v.y - (py + vy*t)) < v.r + b.r) {
+            const ex = v.x - (px + vx*t);
+            const ey = v.y - (py + vy*t);
+            if (ex*ex + ey*ey < (v.r + b.r)*(v.r + b.r)) {
                 hit_with_weapon(v, b);
                 b.life = 0;
                 burst(b.x, b.y, b.color || cyan, 3, 70);
