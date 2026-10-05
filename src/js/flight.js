@@ -245,12 +245,31 @@ function resolve_solid_ore()
 
 function block_hostile_ore(b, previous)
 {
-    const hits = ore_nodes.filter(v => (v.hp > 0) && (segment_distance(v, previous, b) < v.r + b.r));
-    if (!hits.length) {
+    // the rock hit nearest to where the shot was; one clear of the shot's box by its reach is skipped unmeasured
+    const left = Math.min(previous.x, b.x) - 1;
+    const right = Math.max(previous.x, b.x) + 1;
+    const top = Math.min(previous.y, b.y) - 1;
+    const bottom = Math.max(previous.y, b.y) + 1;
+    let v = null;
+    let near = Infinity;
+    for (let i = 0, end = ore_nodes.length; i < end; ++i) {
+        const node = ore_nodes[i];
+        const reach = node.r + b.r;
+        if (!(node.hp > 0) || (node.x + reach < left) || (node.x - reach > right) || (node.y + reach < top) || (node.y - reach > bottom)) {
+            continue;
+        }
+        if (!(segment_distance(node, previous, b) < reach)) {
+            continue;
+        }
+        const d = distance(node, previous);
+        if (d < near) {
+            near = d;
+            v = node;
+        }
+    }
+    if (!v) {
         return false;
     }
-    hits.sort((a, c) => distance(a, previous) - distance(c, previous));
-    const v = hits[0];
     b.life = 0;
     if (current_world_rules().solid) {
         v.hp = Math.max(0, v.hp - (b.damage || 13)*0.5);

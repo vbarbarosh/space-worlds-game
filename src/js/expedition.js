@@ -340,7 +340,7 @@ function update_expedition_environment(dt)
             drifting_debri.vy *= -1;
             drifting_debri.y = clamp(drifting_debri.y, drifting_debri.r, world.h - drifting_debri.r);
         }
-        const sanctuary = [station, ...portals, ...world_gates].find(v => distance(drifting_debri, v) < ((v === station) ? station_size/2 + 60 : 180) + drifting_debri.r);
+        const sanctuary = debris_sanctuary(drifting_debri);
         if (sanctuary) {
             const a = Math.atan2(drifting_debri.y - sanctuary.y, drifting_debri.x - sanctuary.x);
             const r = ((sanctuary === station) ? station_size/2 + 60 : 180) + drifting_debri.r;
@@ -374,6 +374,25 @@ function update_expedition_environment(dt)
             market.demand[key] = Math.min(80 + i*20, market.demand[key] + 10);
         }
     }
+}
+
+// The station, portal or world gate a drifting piece has strayed into, looked up in that order; null when it is clear
+function debris_sanctuary(piece)
+{
+    if (distance(piece, station) < station_size/2 + 60 + piece.r) {
+        return station;
+    }
+    for (const v of portals) {
+        if (distance(piece, v) < 180 + piece.r) {
+            return v;
+        }
+    }
+    for (const v of world_gates) {
+        if (distance(piece, v) < 180 + piece.r) {
+            return v;
+        }
+    }
+    return null;
 }
 
 // Shots break drifting asteroids and wrecks; a broken one explodes and leaves a little salvage.
