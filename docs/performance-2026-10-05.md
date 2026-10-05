@@ -140,6 +140,39 @@ about 20 pixels (the sky layer's new edge) and, in Eclipse at 50%, by at most
 6. **`bin/perf`**, the tool, and this page (`bin/perf`,
    `docs/performance-2026-10-05.md`, `docs/README.md`).
 
+7. **The HUD writes only what changed** (`src/js/hud.js`, `src/js/operations.js`,
+   `src/js/update.js`, `src/js/navigation.js`, `src/js/guidance.js`,
+   `src/js/world_visuals.js`, `src/js/physics.js`, `src/js/music.js`,
+   `src/js/expedition.js`, `src/js/goals.js`, `src/js/arcade.js`). Every 0.12 s
+   the HUD's layers wrote about 35 texts and markups whether or not they
+   changed, and four of them (act, mission name and phase, navigation status)
+   twice, a later layer overwriting an earlier one; each write rebuilds the
+   element and costs a style and layout pass. `hud_text()` and `hud_html()`
+   now hold the writes until the end of `update_hud` and write only a value
+   that differs from the page's (text) or from the last one written (markup,
+   while the element still holds the nodes it made). In a fight 35 writes a
+   tick fall to 2–6 (the distance, the alert, a changing readout). Script in
+   `update_hud` 0.07 → 0.04 ms a frame, style and layout 0.21 → 0.14 ms in a
+   fight and 0.09 → 0.00 calm: the tick's spike falls from about 2 to 1.4 ms
+   in a fight and from 1.1 to 0.2 ms in calm flight (×2, 300 frames, the same
+   scenes before and after). Every element of the HUD reads the same as before
+   at frames 30, 97 and 300 of a calm flight, a fight and the arcade
+   (`bin/perf --mode=shots` now saves the HUD's text beside the canvas), and a
+   driven check moves hull 40 → 100, pulse 43% → Ready, turbo 8.0 s → Ready,
+   Dock → Jump at a gate and back at the station.
+
+The missile smoke trails stay as they are. Behind 53 raider missiles in Nova
+Forge at 50% they cost 0.5 ms of script and 3.4 ms of software raster a frame,
+nearly all of it in the one `arc` and `fill` per puff that the look needs:
+building no arrays per trail and caching the ribbon's colours and the sprites'
+anchors measured 0.51 → 0.49 ms and was left out. Puff sprites cost more
+(1600 puffs: 1.6 ms of script instead of 0.4, and 70 ms instead of 3 in
+SwiftShader); one path per colour would draw overlapping puffs once, and they
+overlap by most of their size, so the smoke would turn flat and lighter; the
+smallest puff, a dart's newest, is about 1 px across at 50% and ×1 (1.7 px at
+×2), and dropping it would remove its share of grey. A graphics card batches
+such circles into one draw.
+
 Items 3–5 together: in the CPU profile of the Ion Reach fight at 50% the
 collision functions fall from 2.8 ms a frame to below the top 30; over the 16
 fights, update falls from 2.6 to 1.0 ms a frame, allocation from 2.7 to 0.7 MB
@@ -270,17 +303,10 @@ Eclipse sky are the changes that hold in every run.
 
 ## What is left
 
-- The arcade at 50% keeps its p99 at 9–12 ms: `render_projectiles` (the
-  raiders' missile trails, one `arc` and `fill` per smoke puff) is the
-  largest drawing pass there, 1.9 ms of JavaScript a frame in Nova Forge, and
-  its p99 wanders by ±1.5 ms between runs.
 - The sky layer, kept at half resolution, is scaled up to the canvas every
   frame: 20–27 ms in software, a single textured quad on a graphics card. The
   depot shield's hex lattice is about 460 separate strokes; one path would
   merge the shared edges and change their brightness, so it stays.
-- The HUD writes `innerHTML` and `textContent` every 0.12 s whether the text
-  changed or not: about 1 ms of script and 1–2 ms of style and layout every
-  seventh frame. Writing only on change would flatten that.
 - Smaller garbage: `debris_sanctuary`, `gravity_move` and `in_gravity_core`
   still allocate about 50 KB a frame each (numbers V8 boxes),
   `block_hostile_ore` 170 KB a frame in the arcade's Eclipse.

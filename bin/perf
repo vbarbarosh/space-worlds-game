@@ -40,7 +40,7 @@ const usage = `usage: bin/perf [--dpr=2] [--mode=frames] [--label=name] [--frame
         layers   each render pass with the canvas flushed around it, so its raster counts (software canvas)
         profile  a CPU and an allocation profile of each scene: the top functions
         shots    a screenshot of each scene after 240 frames and 60 drawn (--frames), the page and the canvas alone,
-                 for comparing the look before and after a change
+                 and the HUD's text, for comparing the look before and after a change
 
     --wrap times more of the game's functions in split and layers modes.
     --gpu draws the canvas on Chromium's GPU path, SwiftShader standing in for a graphics card (slow).
@@ -120,6 +120,9 @@ async function scene_measure(page, scene, mode, measured, out_dir)
         await page.screenshot({path: shot});
         const png = await page.evaluate(() => document.getElementById('arena').toDataURL('image/png').split(',')[1]);
         fs.writeFileSync(path.join(out_dir, `${scene.value}-canvas.png`), Buffer.from(png, 'base64'));
+        // and the HUD's text, every element of it, to compare the readouts too
+        const hud = await page.evaluate(() => [...document.querySelectorAll('#hud_root *')].map(vv => `${vv.id || vv.className}|${vv.textContent.trim().slice(0, 160)}|${vv.disabled ?? ''}|${vv.className}`).join('\n'));
+        fs.writeFileSync(path.join(out_dir, `${scene.value}-hud.txt`), hud);
         return {scene: scene.value, shot};
     }
     // 60 drawn frames first: the first one after the fast-forward rasters every sprite in view
