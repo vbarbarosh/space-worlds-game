@@ -3,7 +3,6 @@ const arcade = {active: false, world: -1, wave: 0, pause: 0, squad_timer: 0, squ
 const arcade_extent = [7200, 5600];
 const arcade_waves = 3;
 const arcade_radiation = 0.35;
-const arcade_defense = 0.5;
 const arcade_wave_names = ['', 'SCOUTS', 'ASSAULT', 'FLAGSHIP'];
 // salvage left unspent when the run ends adds this many points each, so keeping it is a choice too
 const arcade_salvage_points = 10;
@@ -12,12 +11,12 @@ const arcade_ship_price = 0.5;
 // What each difficulty changes in the arcade: extra raiders per squadron and per wave, the gap between squadrons, the
 // first world with elites, the share of repairs that still drop, the medkits a run starts with, whether every raider
 // fires its world's gun (Haven's plasma included), how often (a factor on the gun's cooldown), and how hard its shots
-// hit, the raiders' hull, the blast damage you take, raiders that grow with your weapon tier, and the flagship's
-// overdrive. CHILL is the run as it was before.
+// hit, the raiders' hull and how much it grows a world past Haven, the share of the world's armour and shield they
+// carry, the blast damage you take, raiders that grow with your weapon tier, and the flagship's overdrive.
 const arcade_modes = {
-    chill: {squad: 0, wave: 0, gap: 1, elite_world: 1, repairs: 1, medkits: 2, armed: false, gun_gap: 1, hits: 1, hull: 1, blast: 0.8, tier_hp: false, overdrive: false},
-    normal: {squad: 1, wave: 3, gap: 0.8, elite_world: 0, repairs: 0.35, medkits: 1, armed: true, gun_gap: 0.45, hits: 1.6, hull: 1.5, blast: 0.8, tier_hp: false, overdrive: false},
-    overload: {squad: 2, wave: 5, gap: 0.7, elite_world: 0, repairs: 0, medkits: 1, armed: true, gun_gap: 0.4, hits: 1.75, hull: 1.8, blast: 1.2, tier_hp: true, overdrive: true},
+    chill: {squad: 0, wave: 0, gap: 1, elite_world: 1, repairs: 1, medkits: 2, armed: false, gun_gap: 1, hits: 1, hull: 1, growth: 0.1, defense: 0.8, blast: 0.8, tier_hp: false, overdrive: false},
+    normal: {squad: 1, wave: 3, gap: 0.8, elite_world: 0, repairs: 0.35, medkits: 1, armed: true, gun_gap: 0.45, hits: 1.6, hull: 1.5, growth: 0.15, defense: 0.8, blast: 0.8, tier_hp: false, overdrive: false},
+    overload: {squad: 2, wave: 5, gap: 0.7, elite_world: 0, repairs: 0, medkits: 1, armed: true, gun_gap: 0.4, hits: 1.75, hull: 1.8, growth: 0, defense: 0.5, blast: 1.2, tier_hp: true, overdrive: true},
 };
 
 document.getElementById('arcade_depot_launch').addEventListener('click', arcade_depot_close);
@@ -170,11 +169,12 @@ function repair_drop_allowed()
     return !arcade.active || (Math.random() < arcade_mode().repairs);
 }
 
-// A raider's hull by the mode (the flagship has its own scale); on OVERLOAD it also grows as your weapon's tier does,
-// by the same 22% a tier adds to your damage.
+// A raider's hull by the mode and the world (the flagship has its own scale); on OVERLOAD it also grows as your weapon's
+// tier does, by the same 22% a tier adds to your damage.
 function arcade_hull_scale(enemy)
 {
-    const k = ((enemy.type === 'boss') ? 1 : arcade_mode().hull)*(arcade_mode().tier_hp ? 1 + (weapon_level() - 1)*0.22 : 1);
+    const mode = arcade_mode();
+    const k = ((enemy.type === 'boss') ? 1 : mode.hull*(1 + mode.growth*campaign.world))*(mode.tier_hp ? 1 + (weapon_level() - 1)*0.22 : 1);
     enemy.hp = Math.round(enemy.hp*k);
     enemy.max_hp = Math.round(enemy.max_hp*k);
 }
@@ -196,9 +196,9 @@ function arcade_update(dt)
     for (const enemy of enemies) {
         if (!enemy.arcade_scaled) {
             enemy.arcade_scaled = true;
-            enemy.armor = (enemy.armor || 0)*arcade_defense;
-            enemy.shield = (enemy.shield || 0)*arcade_defense;
-            enemy.max_shield = (enemy.max_shield || 0)*arcade_defense;
+            enemy.armor = (enemy.armor || 0)*arcade_mode().defense;
+            enemy.shield = (enemy.shield || 0)*arcade_mode().defense;
+            enemy.max_shield = (enemy.max_shield || 0)*arcade_mode().defense;
             arcade_hull_scale(enemy);
         }
     }
@@ -297,7 +297,7 @@ function arcade_elite_make(enemy)
     enemy.hp = Math.round(enemy.max_hp*3);
     enemy.max_hp = enemy.hp;
     enemy.r = Math.round(enemy.r*1.35);
-    enemy.armor = (enemy.armor || 0)*arcade_defense;
+    enemy.armor = (enemy.armor || 0)*arcade_mode().defense;
     enemy.max_shield = 40 + campaign.world*25;
     enemy.shield = enemy.max_shield;
     arcade_hull_scale(enemy);

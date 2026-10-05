@@ -297,15 +297,32 @@ before rocks and the Relic processor.
 | raider gun cooldown | ×1 | ×0.45 | ×0.4 |
 | raider shot damage | ×1 | ×1.6 | ×1.75 |
 | raider hull | ×1 | ×1.5 | ×1.8 |
+| raider hull growth a world past Haven | +10% | +15% | none |
+| share of the world's armour and shield | 80% | 80% | 50% |
 | blast damage to you | ×0.8 | ×0.8 | ×1.2 |
 | raiders grow with your gun tier | no | no | +22% a tier |
 | flagship overdrive | no | no | yes |
 
 - Where: `arcade_modes` in `src/js/arcade.js`; the menu's line for each mode
   is `sync_mode_note`.
-- On top of the mode, every arcade raider carries half the world's armour and
-  shield (`arcade_defense`), and radiation is 35% of the campaign's
-  (`arcade_radiation`).
+- A raider's hull is the campaign's × the mode's hull × (1 + growth × world
+  index), so on NORMAL an Eclipse raider has ×2.05 on top of the mode's
+  ×1.5; the flagship keeps its own scale (`arcade_hull_scale`). Raiders carry
+  the mode's share of the world's armour and shield, elites of its armour
+  (`defense`, read in `arcade_update` and `arcade_elite_make`). Radiation is
+  35% of the campaign's (`arcade_radiation`).
+- Measured (a bot through the keyboard, NORMAL, 4 runs each of a careful and
+  a casual player, before growth and with the share at 50%, then as now):
+  8 of 8 runs won instead of 7 of 8. From Dustfall to Nova Forge a world
+  costs the careful player 40 to 65 hull and shield instead of 21 to 48, and
+  the casual one 72 to 195 instead of 37 to 74. Eclipse costs them 533 and
+  705 instead of 163 and 153, with one casual death there. Haven and
+  Verdant (no armour or shield to speak of) stay as they were. A run takes
+  394 to 448 s instead of 368 to 486. CHILL: still no deaths, Eclipse 90
+  instead of 44. OVERLOAD is unchanged. The cost: with the railgun or the
+  beam instead of the cannon (one run each) the careful player now dies
+  three times in Eclipse, where both got through before. Why: problem 1 of
+  [playtest-2026-10-05.md](playtest-2026-10-05.md).
 - A wave holds 10 + 2 × world index + 4 per wave past the first + the mode's
   extra raiders (`arcade_wave_size`). A squadron is
   3 + min(3, world index / 2) + (wave − 1) + the mode's extra, and the next
@@ -319,16 +336,16 @@ before rocks and the Relic processor.
 
 NORMAL in numbers:
 
-| World | chaser | tank | elite shield | flagship | raiders a wave | squadron | gap (s) | clear bonus |
-|---|---|---|---|---|---|---|---|---|
-| Haven | 44 | 140 | 40 | 1500 | 13 / 17 / 21 | 4 / 5 / 6 | 4.40 | 80 |
-| Verdant | 65 | 179 | 65 | 2400 | 15 / 19 / 23 | 4 / 5 / 6 | 4.16 | 120 |
-| Dustfall | 86 | 218 | 90 | 3300 | 17 / 21 / 25 | 5 / 6 / 7 | 3.92 | 160 |
-| Ion Reach | 107 | 257 | 115 | 4200 | 19 / 23 / 27 | 5 / 6 / 7 | 3.68 | 200 |
-| Obsidian | 128 | 296 | 140 | 5100 | 21 / 25 / 29 | 6 / 7 / 8 | 3.44 | 240 |
-| Cryosphere | 149 | 335 | 165 | 6000 | 23 / 27 / 31 | 6 / 7 / 8 | 3.20 | 280 |
-| Nova Forge | 170 | 374 | 190 | 6900 | 25 / 29 / 33 | 7 / 8 / 9 | 2.96 | 320 |
-| Eclipse | 191 | 413 | 215 | 7800 | 27 / 31 / 35 | 7 / 8 / 9 | 2.72 | (run ends) |
+| World | chaser | tank | armour, shield (tank) | elite shield | flagship | raiders a wave | squadron | gap (s) | clear bonus |
+|---|---|---|---|---|---|---|---|---|---|
+| Haven | 44 | 140 | 0%, 0 | 40 | 1500 | 13 / 17 / 21 | 4 / 5 / 6 | 4.40 | 80 |
+| Verdant | 74 | 205 | 10%, 0 | 65 | 2400 | 15 / 19 / 23 | 4 / 5 / 6 | 4.16 | 120 |
+| Dustfall | 111 | 283 | 20%, 0 | 90 | 3300 | 17 / 21 / 25 | 5 / 6 / 7 | 3.92 | 160 |
+| Ion Reach | 154 | 372 | 16%, 52 (73) | 115 | 4200 | 19 / 23 / 27 | 5 / 6 / 7 | 3.68 | 200 |
+| Obsidian | 204 | 473 | 40%, 36 (50) | 140 | 5100 | 21 / 25 / 29 | 6 / 7 / 8 | 3.44 | 240 |
+| Cryosphere | 260 | 585 | 28%, 112 (157) | 165 | 6000 | 23 / 27 / 31 | 6 / 7 / 8 | 3.20 | 280 |
+| Nova Forge | 322 | 710 | 48%, 72 (101) | 190 | 6900 | 25 / 29 / 33 | 7 / 8 / 9 | 2.96 | 320 |
+| Eclipse | 391 | 846 | 52%, 160 (224) | 215 | 7800 | 27 / 31 / 35 | 7 / 8 / 9 | 2.72 | (run ends) |
 
 ## Campaign pace
 
