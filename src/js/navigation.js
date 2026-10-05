@@ -361,28 +361,26 @@ function guide_base_update_hud()
     const w = worlds[campaign.world];
     const m = campaign.contracts.find(v => !v.ready) || campaign.contracts[0];
     const sector_html = `${campaign.world + 1}<small>/${worlds.length}</small>`;
-    if (el.sector.innerHTML !== sector_html) {
-        el.sector.innerHTML = sector_html;
-    }
-    el.act_label.textContent = `${w.name.toUpperCase()} / THREAT ${campaign.world + 1}`;
-    el.mission_name.textContent = m ? m.title : `FREE FLIGHT / ${w.station}`;
-    el.mission_phase.textContent = m
+    hud_html(el.sector, sector_html);
+    hud_text(el.act_label, `${w.name.toUpperCase()} / THREAT ${campaign.world + 1}`);
+    hud_text(el.mission_name, m ? m.title : `FREE FLIGHT / ${w.station}`);
+    hud_text(el.mission_phase, m
         ? m.ready
             ? `DOCK TO CLAIM ◆ ${m.reward}`
             : `${worlds[m.world].name} · ${format_progress(m.progress)}/${m.target}`
-        : 'R dock · J map and guide';
+        : 'R dock · J map and guide');
     el.sector_progress.style.width = m ? `${Math.min(100, (m.progress/m.target)*100)}%` : '0%';
     const b = document.getElementById('dock_button');
     const g = world_gates.find(v => distance(player, v) < gate_reach);
     // far from the station it sets the course there, so it is always pressable in flight
     b.disabled = state !== 'playing';
-    b.innerHTML = `${hud_dock_icon}<span>${g ? 'Jump' : 'Dock'}</span><span class="key">R</span>`;
+    hud_html(b, `${hud_dock_icon}<span>${g ? 'Jump' : 'Dock'}</span><span class="key">R</span>`);
     document.getElementById('nav_button').disabled = !['playing', 'paused', 'navigation'].includes(state);
     if ((state === 'playing') && (distance(player, station) < station_reach)) {
-        el.navigation_status.textContent += ' / R DOCK';
+        hud_text(el.navigation_status, `${hud_read(el.navigation_status)} / R DOCK`);
     }
     else if (g) {
-        el.navigation_status.textContent += ` / ${requirements(g.destination)}`;
+        hud_text(el.navigation_status, `${hud_read(el.navigation_status)} / ${requirements(g.destination)}`);
     }
 }
 

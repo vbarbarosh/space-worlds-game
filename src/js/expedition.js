@@ -533,7 +533,7 @@ function update_expedition_readout()
         const m = route_metrics();
         text += `\nROUTE ${m.jumps} PORTALS · ${(m.walk/1000).toFixed(1)} km · ~${format_time(m.seconds)}`;
     }
-    readout.textContent = text;
+    hud_text(readout, text);
     readout.style.whiteSpace = 'pre-line';
     readout.classList.toggle('danger', (!safe && (c.radiation > 0) && (radiation_protection() + 0.001 < c.required)) || ((player.radiation_dose || 0) > 75));
 }

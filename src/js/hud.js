@@ -177,26 +177,26 @@ function sync_arcade_card()
 {
     const id = campaign.world;
     const pips = Math.ceil(((id + 1)/worlds.length)*5);
-    document.getElementById('mc_where').innerHTML = `${ui_world_badge(id)}<span class="small">Arcade · world ${id + 1}/${worlds.length}</span><span class="threat" title="Threat ${id + 1} of ${worlds.length}">${[0, 1, 2, 3, 4].map(v => `<b class="${(v < pips) ? 'on' : ''}"></b>`).join('')}</span>`;
+    hud_html(document.getElementById('mc_where'), `${ui_world_badge(id)}<span class="small">Arcade · world ${id + 1}/${worlds.length}</span><span class="threat" title="Threat ${id + 1} of ${worlds.length}">${[0, 1, 2, 3, 4].map(v => `<b class="${(v < pips) ? 'on' : ''}"></b>`).join('')}</span>`);
     const wave = Math.max(1, arcade.wave);
     const left = spawn_left + enemies.filter(v => v.hp > 0).length;
     const threat = hud_threat();
     const flagship = enemies.some(v => (v.hp > 0) && (v.type === 'boss'));
     const at_depot = (distance(player, station) < station_reach) && !depot_shield_up();
     const kind_el = document.getElementById('mc_kind');
-    kind_el.textContent = (arcade.pause > 0) ? `Wave ${wave} of ${arcade_waves} · clear` : `Wave ${wave} of ${arcade_waves} · ${ui_sentence(arcade_wave_names[wave] || '')}`;
+    hud_text(kind_el, (arcade.pause > 0) ? `Wave ${wave} of ${arcade_waves} · clear` : `Wave ${wave} of ${arcade_waves} · ${ui_sentence(arcade_wave_names[wave] || '')}`);
     kind_el.className = `eyebrow ${threat ? 'eyebrow--red' : 'eyebrow--gold'}`;
-    document.getElementById('mc_title').textContent = (arcade.pause > 0)
+    hud_text(document.getElementById('mc_title'), (arcade.pause > 0)
         ? 'Wave clear: repair at the depot or wait for the next'
-        : flagship ? `Destroy the flagship of ${worlds[id].name}` : `Destroy ${left} raider${(left === 1) ? '' : 's'}`;
+        : flagship ? `Destroy the flagship of ${worlds[id].name}` : `Destroy ${left} raider${(left === 1) ? '' : 's'}`);
     const nearest = threat || enemies.filter(v => v.hp > 0).sort((a, b) => distance(a, player) - distance(b, player))[0];
     const dist = document.getElementById('mc_dist');
     set_hidden(dist, !nearest);
     dist.classList.toggle('is-danger', !!threat);
     if (nearest) {
         const [value, unit] = hud_distance(distance(player, nearest));
-        document.getElementById('mc_distance').innerHTML = `${value}<small>${unit}</small>`;
-        document.getElementById('mc_eta').innerHTML = `${left} left<br>auto fire on`;
+        hud_html(document.getElementById('mc_distance'), `${value}<small>${unit}</small>`);
+        hud_html(document.getElementById('mc_eta'), `${left} left<br>auto fire on`);
         const a = Math.atan2(nearest.y - player.y, nearest.x - player.x);
         document.getElementById('mc_arrow').style.transform = `rotate(${a + Math.PI/4}rad)`;
     }
@@ -217,7 +217,7 @@ function sync_arcade_card()
         }
     }
     const done = (wave - 1) + ((arcade.pause > 0) ? 1 : 0);
-    document.getElementById('mc_tracks').innerHTML = `<div class="track-row"><div class="head">${ui_badge('Run', 'gold')}<b>${worlds[id].name}</b><span class="eyebrow eyebrow--gold">${done} / ${arcade_waves}</span></div>${ui_progress_html(arcade_waves, done, '')}</div>`;
+    hud_html(document.getElementById('mc_tracks'), `<div class="track-row"><div class="head">${ui_badge('Run', 'gold')}<b>${worlds[id].name}</b><span class="eyebrow eyebrow--gold">${done} / ${arcade_waves}</span></div>${ui_progress_html(arcade_waves, done, '')}</div>`);
 }
 
 function sync_mission_card()
@@ -228,7 +228,7 @@ function sync_mission_card()
     const threat = hud_threat();
     const id = campaign.world;
     const pips = Math.ceil(((id + 1)/worlds.length)*5);
-    document.getElementById('mc_where').innerHTML = `${ui_world_badge(id)}<span class="threat" title="Threat ${id + 1} of ${worlds.length}">${[0, 1, 2, 3, 4].map(v => `<b class="${(v < pips) ? 'on' : ''}"></b>`).join('')}</span>`;
+    hud_html(document.getElementById('mc_where'), `${ui_world_badge(id)}<span class="threat" title="Threat ${id + 1} of ${worlds.length}">${[0, 1, 2, 3, 4].map(v => `<b class="${(v < pips) ? 'on' : ''}"></b>`).join('')}</span>`);
     const step = (g && (g.index >= 0)) ? g.steps[g.index] : null;
     const goal_leads = step && !m;
     let kind = 'Next';
@@ -254,9 +254,9 @@ function sync_mission_card()
         kind = m.stages ? `Next · Contract stage ${m.stage_index + 1} of ${m.stages.length}` : 'Next · Contract';
     }
     const kind_el = document.getElementById('mc_kind');
-    kind_el.textContent = kind;
+    hud_text(kind_el, kind);
     kind_el.className = `eyebrow ${threat ? 'eyebrow--red' : 'eyebrow--gold'}`;
-    document.getElementById('mc_title').textContent = title;
+    hud_text(document.getElementById('mc_title'), title);
     // the distance: to the raiders in a fight, else to the marker
     const target = threat || (c.goal && waypoint ? waypoint_live() : c.goal);
     const dist = document.getElementById('mc_dist');
@@ -264,16 +264,16 @@ function sync_mission_card()
     dist.classList.toggle('is-danger', !!threat);
     if (target) {
         const [value, unit] = hud_distance(distance(player, target));
-        document.getElementById('mc_distance').innerHTML = `${value}<small>${unit}</small>`;
+        hud_html(document.getElementById('mc_distance'), `${value}<small>${unit}</small>`);
         // beside the distance, the place it is to (the details keep the time and the portals)
         const run = ((m?.type === 'escort') && escort?.active) ? escort.stops[escort.leg] : null;
-        document.getElementById('mc_eta').textContent = threat
+        hud_text(document.getElementById('mc_eta'), threat
             ? `${enemies.filter(v => (v.hp > 0) && (distance(v, player) < 1200)).length} hostiles · auto fire`
             : (m?.type === 'lure')
                 ? lure_text(m)
                 : run
                     ? `${run.label} in ${hud_distance(distance(escort, run)).join(' ')} · ~${Math.ceil(distance(escort, run)/escort_speed)} s`
-                    : ui_sentence_names(c.goal?.label || target.label || worlds[c.target]?.station || '');
+                    : ui_sentence_names(c.goal?.label || target.label || worlds[c.target]?.station || ''));
         const a = Math.atan2(target.y - player.y, target.x - player.x);
         document.getElementById('mc_arrow').style.transform = `rotate(${a + Math.PI/4}rad)`;
     }
@@ -326,15 +326,74 @@ function sync_mission_tracks(m, g, threat)
         const then = (m || threat) ? `<p class="small">Then: ${step.title.toLowerCase()}</p>` : '';
         rows.push(`<div class="track-row"><div class="head">${ui_badge('Goal', 'gold')}<b>${g.kind.title}</b><span class="eyebrow eyebrow--gold">${g.index} / ${g.steps.length}</span></div>${(m || threat) ? '' : `<div class="prog"><div class="track">${bars}</div></div>`}${then}</div>`);
     }
-    document.getElementById('mc_tracks').innerHTML = rows.join('');
+    hud_html(document.getElementById('mc_tracks'), rows.join(''));
+}
+
+// HUD text reaches the page only when it changed: a write of the same text still rebuilds the element and costs a
+// style and layout pass. Inside update_hud the writes wait for its end, so a value a later layer overwrites never lands.
+const hud_markup = new WeakMap();
+let hud_pending = null;
+
+function hud_text(element, text)
+{
+    hud_write(element, 'text', String(text));
+}
+
+function hud_html(element, html)
+{
+    hud_write(element, 'html', html);
+}
+
+// The text an element will show: the one waiting for the end of update_hud, or the page's
+function hud_read(element)
+{
+    const v = hud_pending?.get(element);
+    return (v?.kind === 'text') ? v.value : element.textContent;
+}
+
+function hud_write(element, kind, value)
+{
+    if (hud_pending) {
+        hud_pending.set(element, {kind, value});
+        return;
+    }
+    hud_apply(element, kind, value);
+}
+
+function hud_flush()
+{
+    const pending = hud_pending;
+    hud_pending = null;
+    for (const [element, v] of pending) {
+        hud_apply(element, v.kind, v.value);
+    }
+}
+
+// Text is compared with the page's (a lone text node); markup with what was written last, while the element still
+// holds the nodes that write made
+function hud_apply(element, kind, value)
+{
+    if (kind === 'text') {
+        const plain = !element.firstChild || ((element.childNodes.length === 1) && (element.firstChild.nodeType === Node.TEXT_NODE));
+        if (!plain || (element.textContent !== value)) {
+            element.textContent = value;
+        }
+        return;
+    }
+    const last = hud_markup.get(element);
+    if (last && (last.html === value) && (last.first === element.firstChild)) {
+        return;
+    }
+    element.innerHTML = value;
+    hud_markup.set(element, {html: value, first: element.firstChild});
 }
 
 // The bottom status: the ship and its guns, magnet, shield and radiation; hull turns red when low
 function sync_ship_status()
 {
-    document.getElementById('ship_name').textContent = current_ship().name;
-    document.getElementById('ship_guns').textContent = guns_text();
-    document.getElementById('rad_readout').textContent = `Rad ${Math.round(radiation_protection()*100)}%`;
+    hud_text(document.getElementById('ship_name'), current_ship().name);
+    hud_text(document.getElementById('ship_guns'), guns_text());
+    hud_text(document.getElementById('rad_readout'), `Rad ${Math.round(radiation_protection()*100)}%`);
     document.getElementById('hull_gauge').classList.toggle('is-low', player.hp < hull_max()*0.3);
     document.getElementById('turbo_gauge').classList.toggle('is-ready', !player.turbo_active && (player.dash_cd <= 0));
     document.getElementById('combo_box').classList.toggle('is-hot', combo > 1);
@@ -352,7 +411,7 @@ function sync_ship_status()
         }
         const count = enemies.filter(v => (v.hp > 0) && (distance(v, player) < 1200)).length;
         const [value, unit] = hud_distance(distance(player, threat));
-        hud_alert.innerHTML = `<span class="dot"></span>Raiders ×${count} · ${value} ${unit} · ${hud_bearing(threat)}`;
+        hud_html(hud_alert, `<span class="dot"></span>Raiders ×${count} · ${value} ${unit} · ${hud_bearing(threat)}`);
     }
 }
 

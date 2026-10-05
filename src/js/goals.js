@@ -183,10 +183,10 @@ function sync_goal_strip(g)
     }
     const step = g.steps[g.index];
     const progress = step.progress ? ` · ◆ ${step.progress[0]}/${step.progress[1]}` : '';
-    document.getElementById('goal_text').textContent = `${g.kind.title.toUpperCase()} · ${g.index + 1}/${g.steps.length} · ${step.title}${progress}`;
+    hud_text(document.getElementById('goal_text'), `${g.kind.title.toUpperCase()} · ${g.index + 1}/${g.steps.length} · ${step.title}${progress}`);
     const b = document.getElementById('goal_button');
     const here = step.build && step.target && player && (distance(player, step.target.point) < 450);
-    b.innerHTML = here ? '<span>K</span> BUILD' : 'FOLLOW GOAL';
+    hud_html(b, here ? '<span>K</span> BUILD' : 'FOLLOW GOAL');
     b.disabled = !here && !step.target;
 }
 

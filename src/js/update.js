@@ -1,66 +1,66 @@
 function base_update_hud()
 {
-    el.score.textContent = String(score).padStart(6, '0');
-    el.sector.innerHTML = `${String(wave).padStart(2, '0')} <small>/ 15</small>`;
-    el.combo.textContent = `×${combo}`;
+    hud_text(el.score, String(score).padStart(6, '0'));
+    hud_html(el.sector, `${String(wave).padStart(2, '0')} <small>/ 15</small>`);
+    hud_text(el.combo, `×${combo}`);
     el.combo.style.color = (combo > 3) ? gold : '#eef4ff';
-    el.salvage.textContent = salvage;
+    hud_text(el.salvage, salvage);
     if (!player) {
         return;
     }
-    el.health_text.innerHTML = `${Math.ceil(player.hp)} <small>/ ${hull_max()}</small>`;
+    hud_html(el.health_text, `${Math.ceil(player.hp)} <small>/ ${hull_max()}</small>`);
     el.health_fill.style.width = `${(player.hp/hull_max())*100}%`;
-    el.pulse_text.textContent = (player.energy >= 100) ? 'Ready' : `${Math.floor(player.energy)}%`;
+    hud_text(el.pulse_text, (player.energy >= 100) ? 'Ready' : `${Math.floor(player.energy)}%`);
     el.pulse_fill.style.width = `${player.energy}%`;
     // short values only, so the gauge keeps one line: while thrusting the seconds left, lit
     el.dash_text.classList.toggle('t-cyan', !!player.turbo_active);
-    el.dash_text.textContent = player.turbo_active
+    hud_text(el.dash_text, player.turbo_active
         ? `${turbo_fuel().toFixed(1)}s`
         : (player.dash_cd > 0)
             ? 'Cooling'
             : (turbo_fuel() >= turbo_duration() - 0.05)
                 ? 'Ready'
-                : `${turbo_fuel().toFixed(1)}s`;
+                : `${turbo_fuel().toFixed(1)}s`);
     el.dash_fill.style.width = `${(turbo_fuel()/turbo_duration())*100}%`;
     document.getElementById('touch_pulse').disabled = player.energy < 100;
     document.getElementById('touch_dash').disabled = !player.turbo_active && ((player.dash_cd > 0) || (turbo_fuel() < 0.25));
-    document.getElementById('touch_dash').textContent = 'HOLD TURBO';
+    hud_text(document.getElementById('touch_dash'), 'HOLD TURBO');
     document.getElementById('touch_dash').setAttribute('aria-pressed', String(!!player.turbo_active));
     const boss = enemies.find(v => v.type === 'boss');
     if (boss) {
         el.boss_fill.style.width = `${clamp((boss.hp/boss.max_hp)*100, 0, 100)}%`;
     }
-    el.act_label.textContent = `ACT ${['I', 'II', 'III'][Math.floor((wave - 1)/5)]} / ${current_sector().act}`;
-    el.mission_name.textContent = current_sector().name;
+    hud_text(el.act_label, `ACT ${['I', 'II', 'III'][Math.floor((wave - 1)/5)]} / ${current_sector().act}`);
+    hud_text(el.mission_name, current_sector().name);
     const phase = (spawn_left > 0) ? `WAVE ${phase_index} / 3` : `CLEAR ${enemies.length} SIGNALS`;
-    el.mission_phase.textContent = `${phase}${(stasis_time > 0) ? ` · STASIS ${Math.ceil(stasis_time)}s` : ''}`;
-    el.run_time.textContent = format_time(run_time);
+    hud_text(el.mission_phase, `${phase}${(stasis_time > 0) ? ` · STASIS ${Math.ceil(stasis_time)}s` : ''}`);
+    hud_text(el.run_time, format_time(run_time));
     el.sector_progress.style.width = `${clamp(((phase_index - 1 + Math.min(1, phase_timer/current_sector().duration))/3)*100, 0, 100)}%`;
     for (const key of ['medkit', 'emp', 'stasis']) {
         const b = document.getElementById(`quick_${key}`);
-        b.querySelector('b').textContent = supplies[key];
+        hud_text(b.querySelector('b'), supplies[key]);
         b.disabled = (state !== 'playing') || !supplies[key] || ((key === 'medkit') && (player.hp >= hull_max())) || ((key === 'stasis') && (stasis_time > 0));
     }
     set_hidden(document.getElementById('quick_build'), arcade.active);
     set_hidden(document.getElementById('quick_route'), arcade.active);
     const convoy = document.getElementById('quick_convoy');
     set_hidden(convoy, !formation_candidates().some(v => distance(v, player) < 1500));
-    convoy.querySelector('b').textContent = formation.leader ? 'Break off' : 'Formation';
+    hud_text(convoy.querySelector('b'), formation.leader ? 'Break off' : 'Formation');
     convoy.classList.toggle('on', !!formation.leader);
     const drone_button = document.getElementById('quick_drones');
     set_hidden(drone_button, arcade.active);
-    drone_button.querySelector('b').textContent = drones_out ? `${drones.length}/${drones_owned()}` : drones_owned();
+    hud_text(drone_button.querySelector('b'), drones_out ? `${drones.length}/${drones_owned()}` : drones_owned());
     drone_button.classList.toggle('on', drones_out);
     drone_button.disabled = (state !== 'playing') || (!drones_out && !drones_owned());
-    document.getElementById('quick_magnet').querySelector('b').textContent = `Magnet ${upgrades.magnet}/7`;
+    hud_text(document.getElementById('quick_magnet').querySelector('b'), `Magnet ${upgrades.magnet}/7`);
     document.getElementById('quick_magnet').title = `Magnet level ${upgrades.magnet} of 7: ${format_reading(magnetic_radius())} px reach. Always on; upgrade it at a station.`;
-    el.map_coordinates.textContent = `X ${Math.round(player.x)} / Y ${Math.round(player.y)} · ${world.w} × ${world.h}`;
+    hud_text(el.map_coordinates, `X ${Math.round(player.x)} / Y ${Math.round(player.y)} · ${world.w} × ${world.h}`);
     const danger = black_holes.some(v => distance(v, player) < gravity_reach(v));
     const steering = formation.leader ? 'IN FORMATION · G TO BREAK OFF' : `FOLLOW ${mouse_drive.following ? 'ON · DOUBLE CLICK TO STOP' : 'OFF · DOUBLE CLICK TO START'}`;
     const warning = danger ? ' / GRAVITY WELL · CORE FATAL' : (player.portal_cd > 0) ? ` / GATE COOLDOWN ${player.portal_cd.toFixed(1)}s` : '';
-    el.navigation_status.textContent = `${steering}${warning}`;
+    hud_text(el.navigation_status, `${steering}${warning}`);
     el.navigation_status.classList.toggle('danger', danger);
-    el.shield_readout.textContent = `Shield ${Math.ceil(player.shield)}/${shield_max()}`;
+    hud_text(el.shield_readout, `Shield ${Math.ceil(player.shield)}/${shield_max()}`);
 }
 
 function update_effects(dt)

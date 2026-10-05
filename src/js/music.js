@@ -259,6 +259,6 @@ function expedition_base_update_hud()
     const out = document.getElementById('gravity_warning');
     out.classList.toggle('hidden', !v);
     if (v) {
-        out.textContent = `${(v.d < v.h.radius) ? 'STRONG GRAVITY' : 'OUTER GRAVITY FIELD'} · ${Math.ceil(v.pull)} m/s PULL · STEER AWAY / SHIFT TURBO`;
+        hud_text(out, `${(v.d < v.h.radius) ? 'STRONG GRAVITY' : 'OUTER GRAVITY FIELD'} · ${Math.ceil(v.pull)} m/s PULL · STEER AWAY / SHIFT TURBO`);
     }
 }

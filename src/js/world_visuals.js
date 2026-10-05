@@ -344,6 +344,6 @@ function physics_base_update_hud()
 {
     visual_base_update_hud();
     if (player) {
-        el.act_label.textContent = `${worlds[campaign.world].name.toUpperCase()} / ${world_looks[campaign.world].biome} / THREAT ${campaign.world + 1}`;
+        hud_text(el.act_label, `${worlds[campaign.world].name.toUpperCase()} / ${world_looks[campaign.world].biome} / THREAT ${campaign.world + 1}`);
     }
 }

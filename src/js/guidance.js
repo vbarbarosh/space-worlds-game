@@ -266,20 +266,19 @@ function visual_base_update_hud()
     const c = refresh_guidance();
     const m = c.mission;
     document.getElementById('nav_button').disabled = !['playing', 'paused', 'upgrade', 'navigation'].includes(state);
-    el.mission_name.textContent = c.title;
-    document.getElementById('mission_instruction').textContent = c.instruction;
-    document.getElementById('mission_route').textContent =
-        (c.route.length > 1)
-            ? `ROUTE ${c.route.map(v => worlds[v].name).join(' → ')}`
-            : c.goal
-                ? `${c.goal.label} · ${Math.round(distance(player, c.goal))} m`
-                : '';
+    hud_text(el.mission_name, c.title);
+    hud_text(document.getElementById('mission_instruction'), c.instruction);
+    hud_text(document.getElementById('mission_route'), (c.route.length > 1)
+        ? `ROUTE ${c.route.map(v => worlds[v].name).join(' → ')}`
+        : c.goal
+            ? `${c.goal.label} · ${Math.round(distance(player, c.goal))} m`
+            : '');
     const b = document.getElementById('guide_action');
-    b.textContent = guide_action_label(c);
+    hud_text(b, guide_action_label(c));
     b.disabled = !['playing', 'upgrade'].includes(state);
     document.getElementById('guide_plan').disabled = !['playing', 'paused', 'upgrade', 'navigation'].includes(state);
     if ((m?.type === 'courier') && !m.ready) {
-        el.mission_phase.textContent = `CORE ABOARD · DELIVERY ${format_progress(m.progress)}/${m.target}`;
+        hud_text(el.mission_phase, `CORE ABOARD · DELIVERY ${format_progress(m.progress)}/${m.target}`);
     }
 }
 

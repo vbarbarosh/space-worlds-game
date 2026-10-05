@@ -259,8 +259,8 @@ function physics_audio_base_update_hud()
         return;
     }
     const r = current_world_rules();
-    document.getElementById('world_rule_name').textContent = r.name.toUpperCase();
-    document.getElementById('world_rule_status').textContent = physics_status || r.summary;
+    hud_text(document.getElementById('world_rule_name'), r.name.toUpperCase());
+    hud_text(document.getElementById('world_rule_status'), physics_status || r.summary);
     document.getElementById('brake_button').disabled = state !== 'playing';
 }
 document.getElementById('world_rules_button').addEventListener('click', open_world_rules);

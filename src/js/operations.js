@@ -951,6 +951,22 @@ function reset_run(resume = false)
 
 function update_hud()
 {
+    // the outermost call writes the HUD's text once, at its end (hud_flush)
+    if (hud_pending) {
+        update_hud_layers();
+        return;
+    }
+    hud_pending = new Map();
+    try {
+        update_hud_layers();
+    }
+    finally {
+        hud_flush();
+    }
+}
+
+function update_hud_layers()
+{
     sync_minimap_button();
     expedition_base_update_hud();
     if (!player) {
@@ -958,9 +974,9 @@ function update_hud()
     }
     const m = focused_contract();
     if (m?.stages) {
-        el.mission_phase.textContent = m.ready
+        hud_text(el.mission_phase, m.ready
             ? `DOCK TO CLAIM ◆ ${m.reward}`
-            : `STAGE ${m.stage_index + 1}/${m.stages.length} · ${Math.floor(m.progress)}/${m.target}`;
+            : `STAGE ${m.stage_index + 1}/${m.stages.length} · ${Math.floor(m.progress)}/${m.target}`);
         el.sector_progress.style.width = `${((m.stage_index + Math.min(1, m.progress/m.target))/m.stages.length)*100}%`;
     }
     update_expedition_readout();

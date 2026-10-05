@@ -850,9 +850,9 @@ function arcade_kill_shake(enemy)
 
 function arcade_update_hud()
 {
-    el.act_label.textContent = `ARCADE · WORLD ${campaign.world + 1} / ${worlds.length} · ${world_looks[campaign.world].biome}`;
-    el.mission_name.textContent = worlds[campaign.world].name.toUpperCase();
-    el.mission_phase.textContent = (arcade.pause > 0) ? `WAVE ${arcade.wave} CLEAR` : `WAVE ${Math.max(1, arcade.wave)} / ${arcade_waves}`;
+    hud_text(el.act_label, `ARCADE · WORLD ${campaign.world + 1} / ${worlds.length} · ${world_looks[campaign.world].biome}`);
+    hud_text(el.mission_name, worlds[campaign.world].name.toUpperCase());
+    hud_text(el.mission_phase, (arcade.pause > 0) ? `WAVE ${arcade.wave} CLEAR` : `WAVE ${Math.max(1, arcade.wave)} / ${arcade_waves}`);
     const total = arcade_wave_size(arcade.wave);
     const left = spawn_left + enemies.filter(v => v.hp > 0).length;
     el.sector_progress.style.width = `${clamp((((arcade.wave - 1) + (1 - Math.min(1, left/Math.max(1, total))))/arcade_waves)*100, 0, 100)}%`;
