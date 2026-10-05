@@ -1,0 +1,556 @@
+#!/usr/bin/env node
+
+const cli = require('@vbarbarosh/node-helpers/src/cli');
+const fs = require('node:fs');
+const path = require('node:path');
+const {chromium} = require('playwright');
+
+const data_dir = path.join(__dirname, '..', 'data', 'perf');
+// Every world in calm flight and in a heavy fight, and the arcade's last worlds in their third wave, at both zooms
+const scenes = [];
+for (const zoom of [1, 0.5]) {
+    for (let world = 0; world < 8; ++world) {
+        scenes.push({value: `calm-w${world}-z${zoom*100}`, kind: 'calm', world, zoom});
+        scenes.push({value: `fight-w${world}-z${zoom*100}`, kind: 'fight', world, zoom});
+    }
+    for (const world of [5, 6, 7]) {
+        scenes.push({value: `arcade-w${world}-z${zoom*100}`, kind: 'arcade', world, zoom});
+    }
+}
+// The passes of render() timed one by one; in layers mode the canvas is flushed around each, so its raster counts too
+const layer_names = [
+    'draw_background', 'render_map', 'render_gravity_fields', 'base_render_navigation_objects', 'render_world_fields',
+    'render_drifting_debris', 'render_engine_plumes', 'render_world_station', 'render_drones', 'render_ore_scanner',
+    'render_projectiles', 'render_structures', 'render_transport', 'render_waypoints', 'render_survey_robot',
+    'render_hostile_marks', 'render_enemies', 'render_explosions', 'render_pulse', 'render_pickups', 'render_equipment',
+    'render_hazards', 'render_teleport', 'render_screen_controls', 'render_minimap', 'render_target_brackets',
+    'render_world_labels', 'render_radiation_edge',
+];
+const modes = ['frames', 'split', 'layers', 'profile', 'shots'];
+const usage = `usage: bin/perf [--dpr=2] [--mode=frames] [--label=name] [--frames=300] [--page=build/index.html] [--gpu] [--wrap=name,...] [scene...]
+       bin/perf --compare=label,label
+
+    Plays scenes of build/index.html (a copy with a measuring hook, in data/perf/) in Chromium at 1920 × 1080,
+    on a virtual clock of 60 frames a second and a seeded Math.random, so a scene is the same on every run.
+    Each scene is fast-forwarded 240 frames and drawn 60 more, then measured. Results go to data/perf/<label>/report.json.
+
+    modes:
+        frames   the main thread's time per frame (update, render, HUD), long frames, GC and allocations
+        split    the same, with the time of each render pass
+        layers   each render pass with the canvas flushed around it, so its raster counts (software canvas)
+        profile  a CPU and an allocation profile of each scene: the top functions
+        shots    a screenshot of each scene after 240 frames and 60 drawn (--frames), the page and the canvas alone,
+                 for comparing the look before and after a change
+
+    --wrap times more of the game's functions in split and layers modes.
+    --gpu draws the canvas on Chromium's GPU path, SwiftShader standing in for a graphics card (slow).
+    --page measures another copy of the page, e.g. a build kept from before a change.
+    --compare=a,b compares the canvases of two shots runs (labels under data/perf/) pixel by pixel.
+
+    scenes: ${scenes.map(v => v.value).join(', ')}`;
+
+cli(main);
+
+async function main()
+{
+    const options = Object.fromEntries(process.argv.slice(2).filter(v => v.startsWith('--')).map(v => v.slice(2).split('=')));
+    const names = process.argv.slice(2).filter(v => !v.startsWith('--'));
+    const mode = options.mode || 'frames';
+    const dpr = Number(options.dpr || 2);
+    const measured = Number(options.frames || 300);
+    if (Object.keys(options).some(v => !['dpr', 'mode', 'label', 'frames', 'page', 'gpu', 'wrap', 'compare'].includes(v))) {
+        console.log(usage);
+        process.exit(2);
+    }
+    if (options.compare) {
+        await shots_compare(...options.compare.split(','));
+        return;
+    }
+    if (!modes.includes(mode) || names.some(v => !scenes.some(vv => vv.value === v))) {
+        console.log(usage);
+        process.exit(2);
+    }
+    const chosen = names.length ? scenes.filter(v => names.includes(v.value)) : scenes;
+    const out_dir = path.join(data_dir, options.label || `${mode}-dpr${dpr}`);
+    fs.mkdirSync(out_dir, {recursive: true});
+    const html = fs.readFileSync(options.page || path.join(__dirname, '..', 'build', 'index.html'), 'utf8');
+    const at = html.lastIndexOf('})();');
+    const hooked = path.join(data_dir, `index-hooked-${process.pid}.html`);
+    fs.writeFileSync(hooked, `${html.slice(0, at)}window.__t = function (code) { return eval(code); };\n${html.slice(at)}`);
+    // --gpu: the canvas on the GPU path, SwiftShader standing in for a graphics card
+    const gpu = ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist', '--enable-gpu-rasterization'];
+    const browser = await chromium.launch({args: ('gpu' in options) ? gpu : []});
+    const context = await browser.newContext({viewport: {width: 1920, height: 1080}, deviceScaleFactor: dpr});
+    const results = [];
+    try {
+        for (const scene of chosen) {
+            const page = await context.newPage();
+            page.on('pageerror', v => console.error(`${scene.value}: ${v.message}`));
+            await page.addInitScript(page_clock);
+            await page.goto(`file://${hooked}`);
+            await page.waitForTimeout(400);
+            const names = [...layer_names, ...(options.wrap ? options.wrap.split(',') : [])];
+            await page.evaluate(v => window.__t(v), `(${page_install})(${JSON.stringify({mode, layer_names: names})})`);
+            await page.waitForFunction(() => window.__perf.ready, null, {polling: 50});
+            await page.evaluate(v => window.__t(v), `(${page_scene})(${JSON.stringify(scene)})`);
+            const result = await scene_measure(page, scene, mode, ((mode === 'shots') && !options.frames) ? 60 : measured, out_dir);
+            results.push(result);
+            console.log(scene_line(result));
+            await page.close();
+        }
+    }
+    finally {
+        await browser.close();
+        fs.rmSync(hooked);
+    }
+    fs.writeFileSync(path.join(out_dir, 'report.json'), JSON.stringify(results, null, 1));
+    console.log(out_dir);
+}
+
+async function scene_measure(page, scene, mode, measured, out_dir)
+{
+    await page.evaluate(() => window.__perf.forward(240));
+    await page.waitForFunction(() => window.__perf.ff === 0, null, {timeout: 120000, polling: 100});
+    if (mode === 'shots') {
+        // rendered frames let the sprites load before the frame that is kept
+        await page.evaluate(v => window.__perf.run(v), measured);
+        await page.waitForFunction(() => window.__perf.left === 0, null, {timeout: 120000, polling: 100});
+        // the page as seen, and the canvas alone to compare: the HUD's CSS animations run on the real clock
+        const shot = path.join(out_dir, `${scene.value}.png`);
+        await page.screenshot({path: shot});
+        const png = await page.evaluate(() => document.getElementById('arena').toDataURL('image/png').split(',')[1]);
+        fs.writeFileSync(path.join(out_dir, `${scene.value}-canvas.png`), Buffer.from(png, 'base64'));
+        return {scene: scene.value, shot};
+    }
+    // 60 drawn frames first: the first one after the fast-forward rasters every sprite in view
+    await page.evaluate(v => window.__perf.run(v), 60);
+    await page.waitForFunction(() => window.__perf.left === 0, null, {timeout: 120000, polling: 100});
+    const cdp = await page.context().newCDPSession(page);
+    const events = [];
+    cdp.on('Tracing.dataCollected', v => events.push(...v.value));
+    await cdp.send('Performance.enable');
+    if (mode === 'frames') {
+        await cdp.send('Tracing.start', {categories: 'devtools.timeline,v8', transferMode: 'ReportEvents'});
+    }
+    if (mode === 'profile') {
+        await cdp.send('Profiler.enable');
+        await cdp.send('Profiler.setSamplingInterval', {interval: 100});
+        await cdp.send('HeapProfiler.enable');
+        await cdp.send('HeapProfiler.startSampling', {samplingInterval: 4096, includeObjectsCollectedByMajorGC: true, includeObjectsCollectedByMinorGC: true});
+        await cdp.send('Profiler.start');
+    }
+    const before = metrics_read(await cdp.send('Performance.getMetrics'));
+    await page.evaluate(v => window.__perf.run(v), measured);
+    await page.waitForFunction(() => window.__perf.left === 0, null, {timeout: 600000, polling: 200});
+    const after = metrics_read(await cdp.send('Performance.getMetrics'));
+    const data = await page.evaluate(() => window.__t('[window.__perf.frames, window.__perf.acc, window.__perf.calls, [canvas.width, canvas.height]]'));
+    const [frames, acc, calls, canvas_size] = data;
+    const out = {scene: scene.value, mode, canvas: canvas_size, frames: frames.length};
+    if (mode === 'frames') {
+        const done = new Promise(v => cdp.once('Tracing.tracingComplete', v));
+        await cdp.send('Tracing.end');
+        await done;
+        Object.assign(out, frames_summary(frames, events, before, after));
+    }
+    if (mode === 'profile') {
+        const cpu = (await cdp.send('Profiler.stop')).profile;
+        const heap = (await cdp.send('HeapProfiler.stopSampling')).profile;
+        out.cpu = cpu_top(cpu, 30);
+        out.alloc = alloc_top(heap, 30);
+    }
+    if ((mode === 'split') || (mode === 'layers')) {
+        out.total = frames.reduce((a, b) => a + b.js, 0)/frames.length;
+        out.layers = Object.fromEntries(Object.entries(acc).sort((a, b) => b[1] - a[1]).map(v => [v[0], v[1]/frames.length]));
+        out.calls = Object.fromEntries(Object.entries(calls).map(v => [v[0], v[1]/frames.length]));
+    }
+    await cdp.detach();
+    return out;
+}
+
+function frames_summary(frames, events, before, after)
+{
+    const js = frames.map(v => v.js);
+    const gc = events.filter(v => (v.ph === 'X') && ['MinorGC', 'MajorGC'].includes(v.name));
+    let freed = 0;
+    for (const v of gc) {
+        const data = v.args?.data || v.args || {};
+        freed += Math.max(0, (data.usedHeapSizeBefore || 0) - (data.usedHeapSizeAfter || 0));
+    }
+    const n = frames.length;
+    return {
+        frame: {mean: mean(js), p50: percentile(js, 0.5), p95: percentile(js, 0.95), p99: percentile(js, 0.99), max: Math.max(...js)},
+        long: {over17: js.filter(v => v > 1000/60).length, over33: js.filter(v => v > 1000/30).length},
+        update: mean(frames.map(v => v.update)),
+        render: mean(frames.map(v => v.render)),
+        hud: mean(frames.map(v => v.hud)),
+        // the renderer's main thread per frame with the canvas raster (software in headless Chromium)
+        task: ((after.TaskDuration - before.TaskDuration)*1000)/n,
+        style_layout: ((after.RecalcStyleDuration - before.RecalcStyleDuration + after.LayoutDuration - before.LayoutDuration)*1000)/n,
+        gc: {count: gc.length, ms: gc.reduce((a, b) => a + b.dur/1000, 0), max: Math.max(0, ...gc.map(v => v.dur/1000)), major: gc.filter(v => v.name === 'MajorGC').length},
+        alloc_kb: (freed + after.JSHeapUsedSize - before.JSHeapUsedSize)/1024/n,
+        each: js.map(v => Math.round(v*100)/100),
+        counts: Object.fromEntries(Object.keys(frames[0].n).map(v => [v, Math.max(...frames.map(vv => vv.n[v]))])),
+    };
+}
+
+function scene_line(result)
+{
+    if (result.shot) {
+        return `${result.scene.padEnd(16)} ${result.shot}`;
+    }
+    if (result.frame) {
+        return `${result.scene.padEnd(16)} frame p50 ${result.frame.p50.toFixed(1).padStart(5)} p95 ${result.frame.p95.toFixed(1).padStart(5)} p99 ${result.frame.p99.toFixed(1).padStart(5)} max ${result.frame.max.toFixed(1).padStart(5)} ms · >16.7 ${String(result.long.over17).padStart(3)} >33 ${String(result.long.over33).padStart(3)} · update ${result.update.toFixed(1)} render ${result.render.toFixed(1)} hud ${result.hud.toFixed(2)} · gc ${result.gc.count} ${result.gc.ms.toFixed(0)} ms · ${result.alloc_kb.toFixed(0)} KB/frame · raster+all ${result.task.toFixed(0)} ms`;
+    }
+    if (result.layers) {
+        return `${result.scene.padEnd(16)} ${result.total.toFixed(1)} ms: ${Object.entries(result.layers).filter(v => !v[0].startsWith('all:')).slice(0, 10).map(v => `${v[0]} ${v[1].toFixed(2)}`).join(' · ')}`;
+    }
+    return `${result.scene.padEnd(16)} cpu: ${result.cpu.slice(0, 8).map(v => `${v.name} ${v.ms.toFixed(0)}`).join(' · ')}\n${''.padEnd(16)} alloc: ${result.alloc.slice(0, 8).map(v => `${v.name} ${v.kb.toFixed(0)}`).join(' · ')}`;
+}
+
+// The canvases of two shots runs, pixel by pixel: how many differ and by how much; the differences, 16 times brighter,
+// go to data/perf/<a>-vs-<b>/
+async function shots_compare(a, b)
+{
+    const out_dir = path.join(data_dir, `${a}-vs-${b}`);
+    fs.mkdirSync(out_dir, {recursive: true});
+    const browser = await chromium.launch();
+    const page = await browser.newPage();
+    try {
+        for (const name of fs.readdirSync(path.join(data_dir, a)).filter(v => v.endsWith('-canvas.png')).sort()) {
+            if (!fs.existsSync(path.join(data_dir, b, name))) {
+                continue;
+            }
+            const pair = [a, b].map(v => fs.readFileSync(path.join(data_dir, v, name)).toString('base64'));
+            const diff = await page.evaluate(page_diff, pair);
+            if (diff.png) {
+                fs.writeFileSync(path.join(out_dir, name), Buffer.from(diff.png, 'base64'));
+            }
+            console.log(`${name.replace('-canvas.png', '').padEnd(16)} ${String(diff.count).padStart(8)} px differ (${((diff.count/diff.total)*100).toFixed(3)}%), ${String(diff.over8).padStart(7)} by more than 8 of 255, at most ${diff.max}`);
+        }
+    }
+    finally {
+        await browser.close();
+    }
+}
+
+// Runs in the page: two PNGs (base64) compared, and the difference as a PNG when there is one
+async function page_diff(pair)
+{
+    async function pixels(src) {
+        const image = new Image();
+        image.src = `data:image/png;base64,${src}`;
+        await image.decode();
+        const canvas = document.createElement('canvas');
+        canvas.width = image.width;
+        canvas.height = image.height;
+        const draw = canvas.getContext('2d');
+        draw.drawImage(image, 0, 0);
+        return draw.getImageData(0, 0, image.width, image.height);
+    }
+    const one = await pixels(pair[0]);
+    const two = await pixels(pair[1]);
+    const out = new ImageData(one.width, one.height);
+    let count = 0;
+    let over8 = 0;
+    let max = 0;
+    for (let i = 0; i < one.data.length; i += 4) {
+        const d = Math.max(Math.abs(one.data[i] - two.data[i]), Math.abs(one.data[i + 1] - two.data[i + 1]), Math.abs(one.data[i + 2] - two.data[i + 2]));
+        count += d ? 1 : 0;
+        over8 += (d > 8) ? 1 : 0;
+        max = Math.max(max, d);
+        out.data.fill(Math.min(255, d*16), i, i + 3);
+        out.data[i + 3] = 255;
+    }
+    const canvas = document.createElement('canvas');
+    canvas.width = one.width;
+    canvas.height = one.height;
+    canvas.getContext('2d').putImageData(out, 0, 0);
+    return {count, over8, max, total: one.width*one.height, png: count ? canvas.toDataURL('image/png').split(',')[1] : null};
+}
+
+function cpu_top(profile, limit)
+{
+    const nodes = new Map(profile.nodes.map(v => [v.id, v]));
+    const self = new Map();
+    for (let i = 0; i < profile.samples.length; ++i) {
+        const f = nodes.get(profile.samples[i]).callFrame;
+        const name = `${f.functionName || '(anonymous)'}:${f.lineNumber}`;
+        self.set(name, (self.get(name) || 0) + (profile.timeDeltas[i] || 0)/1000);
+    }
+    return [...self].sort((a, b) => b[1] - a[1]).slice(0, limit).map(v => ({name: v[0], ms: v[1]}));
+}
+
+function alloc_top(profile, limit)
+{
+    const sizes = new Map();
+    const stack = [profile.head];
+    while (stack.length) {
+        const node = stack.pop();
+        const name = `${node.callFrame.functionName || '(anonymous)'}:${node.callFrame.lineNumber}`;
+        sizes.set(name, (sizes.get(name) || 0) + node.selfSize);
+        stack.push(...node.children);
+    }
+    return [...sizes].sort((a, b) => b[1] - a[1]).slice(0, limit).map(v => ({name: v[0], kb: v[1]/1024}));
+}
+
+function metrics_read(response)
+{
+    return Object.fromEntries(response.metrics.map(v => [v.name, v.value]));
+}
+
+function mean(list)
+{
+    return list.reduce((a, b) => a + b, 0)/Math.max(1, list.length);
+}
+
+function percentile(list, p)
+{
+    const sorted = [...list].sort((a, b) => a - b);
+    return sorted[Math.min(sorted.length - 1, Math.floor(sorted.length*p))] || 0;
+}
+
+// Runs in the page before its scripts: a seeded Math.random (window.__seed starts it again), and a clock that only
+// the measuring hook moves, 1/60 s a frame
+function page_clock()
+{
+    let seed = 12345;
+    window.__seed = function (v) {
+        seed = v;
+    };
+    Math.random = function () {
+        seed = (seed + 0x6d2b79f5) | 0;
+        let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+        t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+        return ((t ^ (t >>> 14)) >>> 0)/4294967296;
+    };
+    localStorage.clear();
+    const request = window.requestAnimationFrame.bind(window);
+    window.__vt = 0;
+    window.requestAnimationFrame = function (callback) {
+        return request(() => callback(window.__vt));
+    };
+}
+
+// Runs inside the game's scope: times frame(), update(), render() and update_hud(), and the render passes in split
+// and layers modes; the game holds still until forward(n) plays n frames without drawing or run(n) plays and measures
+// n frames
+function page_install(options)
+{
+    const P = {acc: {}, calls: {}, frames: [], stack: [], ff: 0, left: 0, drive: null, ready: false};
+    window.__perf = P;
+    const flush = options.mode === 'layers';
+    const names = ['update', 'render', 'update_hud', ...((options.mode === 'split') || flush ? options.layer_names : [])];
+    function wrap(name, f) {
+        return function (...args) {
+            if (P.left <= 0) {
+                return f.apply(this, args);
+            }
+            if (flush) {
+                ctx.getImageData(0, 0, 1, 1);
+            }
+            const entry = {child: 0};
+            P.stack.push(entry);
+            const t0 = performance.now();
+            try {
+                return f.apply(this, args);
+            }
+            finally {
+                if (flush) {
+                    ctx.getImageData(0, 0, 1, 1);
+                }
+                const elapsed = performance.now() - t0;
+                P.stack.pop();
+                if (P.stack.length) {
+                    P.stack[P.stack.length - 1].child += elapsed;
+                }
+                P.acc[name] = (P.acc[name] || 0) + elapsed - entry.child;
+                P.acc[`all:${name}`] = (P.acc[`all:${name}`] || 0) + elapsed;
+                P.calls[name] = (P.calls[name] || 0) + 1;
+            }
+        };
+    }
+    for (const name of names) {
+        if (eval(`typeof ${name}`) === 'function') {
+            eval(`${name} = wrap(name, ${name})`);
+        }
+    }
+    const base_frame = frame;
+    const base_render = render;
+    frame = function () {
+        if (P.ff > 0) {
+            // several frames a tick, with no drawing and no extra frame requests
+            const request = window.requestAnimationFrame;
+            window.requestAnimationFrame = function () {
+                return 0;
+            };
+            render = function () {
+            };
+            for (let i = 0; (i < 8) && (P.ff > 0); ++i, --P.ff) {
+                window.__vt += 1000/60;
+                P.drive?.();
+                base_frame(window.__vt);
+            }
+            render = base_render;
+            window.requestAnimationFrame = request;
+            window.requestAnimationFrame(frame);
+            return;
+        }
+        if (P.left === 0) {
+            window.requestAnimationFrame(frame);
+            return;
+        }
+        window.__vt += 1000/60;
+        const t0 = performance.now();
+        const update0 = P.acc['all:update'] || 0;
+        const render0 = P.acc['all:render'] || 0;
+        const hud0 = P.acc['all:update_hud'] || 0;
+        P.drive?.();
+        base_frame(window.__vt);
+        if (flush) {
+            ctx.getImageData(0, 0, 1, 1);
+        }
+        P.frames.push({
+            js: performance.now() - t0,
+            update: (P.acc['all:update'] || 0) - update0,
+            render: (P.acc['all:render'] || 0) - render0,
+            hud: (P.acc['all:update_hud'] || 0) - hud0,
+            n: {enemies: enemies.length, hostile: hostile.length, bullets: bullets.length, particles: particles.length, explosions: explosions.length, pulse_waves: pulse_waves.length},
+        });
+        P.left--;
+    };
+    // the frame the game asked for before this hook is still to come, unheld: ready once it is past
+    window.requestAnimationFrame(function () {
+        P.ready = true;
+    });
+    P.forward = function (n) {
+        P.ff = n;
+    };
+    P.run = function (n) {
+        P.frames = [];
+        P.acc = {};
+        P.calls = {};
+        P.left = n;
+    };
+}
+
+// Runs inside the game's scope: starts the scene and sets what it does each frame. Calm: a slow circle by the keys.
+// A fight: 36 raiders of three times the hull kept in view, the pulse every 2 s and the EMP every 3 s, two missile
+// launchers, a rail gun and drones. The arcade: its third wave with the flagship, the pulse and the EMP as in a fight.
+// The ship never dies.
+function page_scene(scene)
+{
+    // the menu ran for as long as the page took to load: its clocks and seeds start again
+    window.__seed(12345);
+    clock = 0;
+    time = 0;
+    ui_timer = 0;
+    explosion_seed = 1;
+    difficulty = 'normal';
+    if (scene.kind === 'arcade') {
+        arcade_start(scene.world);
+    }
+    else {
+        const extent = world_extents[scene.world];
+        const fight = scene.kind === 'fight';
+        const weapon = fight ? 'missile' : 'plasma';
+        const weapon_levels = {};
+        for (const v of weapon_catalog) {
+            weapon_levels[v.id] = fight ? 3 : 1;
+        }
+        arcade_stop();
+        checkpoint = {
+            version: 4,
+            wave: worlds[scene.world].wave,
+            score: 0,
+            kills: 0,
+            salvage: 99999,
+            artifacts_count: 0,
+            run_time: 0,
+            upgrades: {...initial_upgrades(), ...(fight ? {drone: 2, magnet: 1} : {})},
+            supplies: {medkit: 8, emp: 8, stasis: 8},
+            difficulty,
+            hp: 9999,
+            energy: 100,
+            position: {x: extent[0]/2, y: extent[1]/2 + 700, size: {w: extent[0], h: extent[1]}},
+            campaign: {
+                world: scene.world,
+                story: 0,
+                contracts: [],
+                completed: 0,
+                visited: [scene.world],
+                cargo: {ore: 0, cells: 0, relics: 0},
+                maps: {},
+                serial: 0,
+                board: 0,
+                xp: 99999,
+                fleet: {
+                    ship_id: fight ? 'gunship' : 'scout',
+                    ships: ship_catalog.map(v => v.id),
+                    weapon_id: weapon,
+                    weapons: weapon_catalog.map(v => v.id),
+                    weapon_levels,
+                    loadouts: fight ? {gunship: ['missile', 'missile', 'rail']} : {},
+                },
+            },
+        };
+        reset_run(true);
+    }
+    zoom = scene.zoom;
+    zoom_target = null;
+    sync_zoom_controls();
+    update_camera(0, true);
+    const types = ['chaser', 'shooter', 'tank', 'splitter', 'lancer'];
+    let t = 0;
+    let pulse_t = 1;
+    let emp_t = 2;
+    let spawned = 0;
+    window.__perf.drive = function () {
+        t += 1/60;
+        player.hp = hull_max();
+        player.radiation_dose = 0;
+        player.energy = 100;
+        if (scene.kind !== 'arcade') {
+            patrol_timer = 60;
+        }
+        const a = t*0.35;
+        keys.clear();
+        if (Math.cos(a) > 0.38) {
+            keys.add('KeyD');
+        }
+        if (Math.cos(a) < -0.38) {
+            keys.add('KeyA');
+        }
+        if (Math.sin(a) > 0.38) {
+            keys.add('KeyS');
+        }
+        if (Math.sin(a) < -0.38) {
+            keys.add('KeyW');
+        }
+        if (scene.kind === 'calm') {
+            return;
+        }
+        if (scene.kind === 'fight') {
+            let alive = enemies.filter(v => v.hp > 0).length;
+            for (; alive < 36; ++alive) {
+                const v = spawn_enemy(types[spawned++ % types.length]);
+                v.x = clamp(player.x + rand(-0.42, 0.42)*W/zoom, 40, world.w - 40);
+                v.y = clamp(player.y + rand(-0.42, 0.42)*H/zoom, 40, world.h - 40);
+                v.hp *= 3;
+                v.max_hp *= 3;
+            }
+        }
+        if ((scene.kind === 'arcade') && (arcade.world === campaign.world) && (arcade.wave < 3)) {
+            arcade_wave_start(3);
+        }
+        pulse_t -= 1/60;
+        emp_t -= 1/60;
+        if (pulse_t <= 0) {
+            pulse_fire(player.x, player.y);
+            pulse_t = 2;
+        }
+        if (emp_t <= 0) {
+            emp_fire(player.x, player.y);
+            emp_t = 3;
+        }
+    };
+}

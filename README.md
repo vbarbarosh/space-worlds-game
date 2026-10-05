@@ -35,6 +35,9 @@ published as a website at https://vbarbarosh.github.io/space-worlds-game/
     bin/build-docs   docs/ as a website in build/docs, with the game from
                      bin/build in play/; published to GitHub Pages on every
                      push to main (.github/workflows/docs.yml)
+    bin/perf         frame times, garbage and drawing costs over 38 scenes
+                     (every world calm and in a fight, zoom 100% and 50%);
+                     see docs/performance-2026-10-05.md
     bin/map-check    every world's map, campaign and arcade, against
                      docs/placement.md: no two things R acts on within reach
                      of each other, gates and portals where the rules put
