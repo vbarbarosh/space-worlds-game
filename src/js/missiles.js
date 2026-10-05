@@ -169,7 +169,7 @@ function missile_fly(b, target, dt)
     const k = current_world_rules().projectile;
     const burning = b.age < b.fuel;
     let heading = Math.atan2(b.vy, b.vx);
-    let speed = Math.hypot(b.vx, b.vy);
+    let speed = Math.sqrt(b.vx*b.vx + b.vy*b.vy);
     if (burning && (b.age >= b.kick)) {
         if (target) {
             heading = turn_toward(heading, Math.atan2(target.y - b.y, target.x - b.x), b.turn*dt);

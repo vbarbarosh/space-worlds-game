@@ -162,7 +162,7 @@ function sprite_draw_box(name, color, size, x, y, angle, alpha = 1, spin = 0, dr
         return false;
     }
     const t = draw.getTransform();
-    const px = Math.min(v.box*2, 1024, Math.max(32, 2**Math.ceil(Math.log2(size*Math.hypot(t.a, t.b)*1.5))));
+    const px = Math.min(v.box*2, 1024, Math.max(32, 2**Math.ceil(Math.log2(size*Math.sqrt(t.a*t.a + t.b*t.b)*1.5))));
     const raster = sprite_raster(name, color, px);
     const ring = v.spin ? sprite_raster(name, color, px, 'spin') : null;
     if (!raster || (v.spin && !ring)) {

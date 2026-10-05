@@ -72,9 +72,12 @@ function clamp(v, a, b)
     return Math.max(a, Math.min(b, v));
 }
 
+// Math.hypot is a slow builtin that boxes its numbers; the hot paths take the square root of the sum
 function distance(a, b)
 {
-    return Math.hypot(a.x - b.x, a.y - b.y);
+    const dx = a.x - b.x;
+    const dy = a.y - b.y;
+    return Math.sqrt(dx*dx + dy*dy);
 }
 
 function set_hidden(v, hidden)

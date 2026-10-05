@@ -138,7 +138,9 @@ function segment_distance(v, a, b)
     const dy = b.y - a.y;
     const l = dx*dx + dy*dy;
     const t = l ? clamp(((v.x - a.x)*dx + (v.y - a.y)*dy)/l, 0, 1) : 0;
-    return Math.hypot(v.x - a.x - dx*t, v.y - a.y - dy*t);
+    const ex = v.x - a.x - dx*t;
+    const ey = v.y - a.y - dy*t;
+    return Math.sqrt(ex*ex + ey*ey);
 }
 
 function fatal_gravity(h)

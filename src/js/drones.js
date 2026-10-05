@@ -122,7 +122,7 @@ function drone_fly(drone, to, dt, speed = drone_tier().speed)
 {
     const dx = to.x - drone.x;
     const dy = to.y - drone.y;
-    const d = Math.hypot(dx, dy);
+    const d = Math.sqrt(dx*dx + dy*dy);
     drone.angle = Math.atan2(dy, dx);
     const step = Math.min(d, speed*dt);
     if (d > 0) {
