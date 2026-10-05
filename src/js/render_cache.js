@@ -10,18 +10,19 @@ addEventListener('resize', function () {
 });
 function render_nebula_layer(id, sky)
 {
-    const key = `${id}:${W}:${H}`;
+    const key = `${id}:${W}:${H}:${world.w}:${world.h}`;
     const look = world_looks[id];
     let v = nebula_layers.get(key);
     if (!v) {
         const pad = Math.max(360, Math.ceil(Math.max(world.w, world.h)*0.025));
         const ratio = 0.5;
+        const box = nebula_box(sky, pad);
         const layer = document.createElement('canvas');
-        layer.width = Math.ceil((W + pad*2)*ratio);
-        layer.height = Math.ceil((H + pad*2)*ratio);
+        layer.width = Math.ceil((box.right - box.left)*ratio);
+        layer.height = Math.ceil((box.bottom - box.top)*ratio);
         const draw = layer.getContext('2d');
         draw.scale(ratio, ratio);
-        draw.translate(pad, pad);
+        draw.translate(-box.left, -box.top);
         draw.fillStyle = look.base;
         draw.fillRect(-pad, -pad, W + pad*2, H + pad*2);
         const gradient = draw.createRadialGradient(W*0.44, H*0.45, 10, W*0.44, H*0.45, Math.max(W, H));
@@ -43,11 +44,43 @@ function render_nebula_layer(id, sky)
             draw.fillRect(x - r, y - r, r*2, r*2);
         } // Keep just the current sky to avoid retaining high-resolution buffers for every world.
         nebula_layers.clear();
-        v = {layer, pad, w: layer.width/ratio, h: layer.height/ratio};
+        v = {layer, left: box.left, top: box.top, w: layer.width/ratio, h: layer.height/ratio};
         nebula_layers.set(key, v);
     }
     const drift = full_fx ? Math.sin(clock*0.025)*18 : 0;
-    ctx.drawImage(v.layer, -v.pad - camera.x*0.018 + drift, -v.pad - camera.y*0.012, v.w, v.h);
+    const x = v.left - camera.x*0.018 + drift;
+    const y = v.top - camera.y*0.012;
+    // past the layer the sky is the glow's last colour
+    if ((x > 0) || (y > 0) || (x + v.w < W) || (y + v.h < H)) {
+        ctx.fillStyle = '#02040a';
+        ctx.fillRect(0, 0, W, H);
+    }
+    ctx.drawImage(v.layer, x, y, v.w, v.h);
+}
+
+// The sky layer's box: what the parallax can bring into view and the glow and clouds colour, on the old pixel grid.
+// Padding by the map's size alone made Eclipse's layer 7000 × 6500 px.
+function nebula_box(sky, pad)
+{
+    const size = Math.max(W, H);
+    let left = W*0.44 - size;
+    let right = W*0.44 + size;
+    let top = H*0.45 - size;
+    let bottom = H*0.45 + size;
+    for (const cloud of sky.clouds) {
+        const x = cloud.x*W + Math.sin(cloud.phase)*35;
+        const y = cloud.y*H;
+        const r = cloud.r*size;
+        left = Math.min(left, x - r);
+        right = Math.max(right, x + r);
+        top = Math.min(top, y - r);
+        bottom = Math.max(bottom, y + r);
+    }
+    left = Math.max(-pad, left - 16, -40);
+    right = Math.min(W + pad, right + 16, W + world.w*0.018 + 40);
+    top = Math.max(-pad, top - 16, -40);
+    bottom = Math.min(H + pad, bottom + 16, H + world.h*0.012 + 40);
+    return {left: -pad + Math.floor((left + pad)/16)*16, top: -pad + Math.floor((top + pad)/16)*16, right, bottom};
 }
 
 function render_projectiles()
