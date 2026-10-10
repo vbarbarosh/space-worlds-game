@@ -1,8 +1,31 @@
+<p>
+<a href="https://github.com/vbarbarosh/space-worlds-game"><img src="https://img.shields.io/github/stars/vbarbarosh/space-worlds-game?style=flat"></a>
+<a href="LICENSE"><img src="https://img.shields.io/github/license/vbarbarosh/space-worlds-game"></a>
+<a href="https://github.com/vbarbarosh/space-worlds-game/actions/workflows/docs.yml"><img src="https://github.com/vbarbarosh/space-worlds-game/actions/workflows/docs.yml/badge.svg"></a>
+</p>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="img/cover-dark.png">
+  <img alt="World Explorer" src="img/cover.png">
+</picture>
+
 # World Explorer
 
-A space flight, trade and exploration game: eight worlds,
-six ship classes, story chapters and frontier expeditions. It runs offline,
-with no server.
+A space flight, trade and exploration game: eight worlds, six ship classes, story chapters and frontier expeditions, offline, with no server.
+
+[Website](https://vbarbarosh.github.io/space-worlds-game/)
+
+## Quick start
+
+    bin/configure
+    bin/run
+
+## Documentation
+
+[The full documentation](https://vbarbarosh.github.io/space-worlds-game/),
+built from [docs/](docs/README.md) (Settings → Pages → Source: GitHub Actions
+turns it on). The rules the game keeps everywhere (what is solid, and the
+like) are in [docs/principles.md](docs/principles.md).
 
 Two modes:
 
@@ -17,13 +40,7 @@ Two modes:
 - **Campaign**: the stations, contracts, trading and story chapters; see
   [docs/scenario/](docs/scenario/README.md).
 
-The rules the game keeps everywhere (what is solid, and the like) are in
-[docs/principles.md](docs/principles.md).
-All the documentation is indexed in [docs/README.md](docs/README.md), and
-published as a website at https://vbarbarosh.github.io/space-worlds-game/
-(Settings → Pages → Source: GitHub Actions turns it on).
-
-## Start
+## Commands
 
     bin/configure    install dependencies and build
     bin/run          build and open build/index.html in the browser
@@ -38,6 +55,8 @@ published as a website at https://vbarbarosh.github.io/space-worlds-game/
     bin/perf         frame times, garbage and drawing costs over 38 scenes
                      (every world calm and in a fight, zoom 100% and 50%);
                      see docs/performance-2026-10-05.md
+    bin/lint         the rulebook's linter over src/, docs/assets/ and bin/;
+                     see AGENTS.md
     bin/map-check    every world's map, campaign and arcade, against
                      docs/placement.md: no two things R acts on within reach
                      of each other, gates and portals where the rules put
@@ -96,3 +115,7 @@ for the dev page.
     src/js/agent/    the captain hook: the game state as JSON and the news
 
 Code: [vbarbarosh/rules](https://github.com/vbarbarosh/rules).
+
+## License
+
+[MIT](LICENSE)

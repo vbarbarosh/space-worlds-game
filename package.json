@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "description": "World Explorer: a space flight, trade and exploration game",
+  "homepage": "https://vbarbarosh.github.io/space-worlds-game/",
   "license": "MIT",
   "scripts": {
     "build": "bin/build",
