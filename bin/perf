@@ -252,7 +252,7 @@ async function page_diff(pair)
     }
     const one = await pixels(pair[0]);
     const two = await pixels(pair[1]);
-    const out = new ImageData(one.width, one.height);
+    const difference = new ImageData(one.width, one.height);
     let count = 0;
     let over8 = 0;
     let max = 0;
@@ -261,13 +261,13 @@ async function page_diff(pair)
         count += d ? 1 : 0;
         over8 += (d > 8) ? 1 : 0;
         max = Math.max(max, d);
-        out.data.fill(Math.min(255, d*16), i, i + 3);
-        out.data[i + 3] = 255;
+        difference.data.fill(Math.min(255, d*16), i, i + 3);
+        difference.data[i + 3] = 255;
     }
     const canvas = document.createElement('canvas');
     canvas.width = one.width;
     canvas.height = one.height;
-    canvas.getContext('2d').putImageData(out, 0, 0);
+    canvas.getContext('2d').putImageData(difference, 0, 0);
     return {count, over8, max, total: one.width*one.height, png: count ? canvas.toDataURL('image/png').split(',')[1] : null};
 }
 
@@ -386,8 +386,7 @@ function page_install(options)
             window.requestAnimationFrame = function () {
                 return 0;
             };
-            render = function () {
-            };
+            render = function () {};
             for (let i = 0; (i < 8) && (P.ff > 0); ++i, --P.ff) {
                 window.__vt += 1000/60;
                 P.drive?.();

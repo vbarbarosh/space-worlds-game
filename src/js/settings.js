@@ -50,11 +50,9 @@ function sync_settings_rows()
 function toggle_fullscreen()
 {
     if (document.fullscreenElement) {
-        document.exitFullscreen().catch(function () {
-        });
+        document.exitFullscreen().catch(function () {});
     }
     else if (document.documentElement.requestFullscreen) {
-        document.documentElement.requestFullscreen().catch(function () {
-        });
+        document.documentElement.requestFullscreen().catch(function () {});
     }
 }

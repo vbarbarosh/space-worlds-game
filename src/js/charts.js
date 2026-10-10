@@ -26,7 +26,7 @@ function render_galaxy_chart(parent, c)
         route_edges.add([c.route[i - 1], c.route[i]].sort((a, b) => a - b).join(':'));
     }
     // A lane is known once you have stood at either end; it reads as open when both worlds are open to you
-    let out =
+    let svg =
         '<svg viewBox="0 0 960 340" role="img" aria-label="Connected worlds. Gold lines mark your route."><defs><radialGradient id="chart_glow"><stop stop-color="#16294a"/><stop offset="1" stop-color="#070d1a"/></radialGradient></defs><rect width="960" height="340" rx="14" fill="url(#chart_glow)"/>';
     for (let i = 0, ii = worlds.length; i < ii; ++i) {
         const world = worlds[i];
@@ -37,7 +37,7 @@ function render_galaxy_chart(parent, c)
             const known = campaign.visited.includes(i) || campaign.visited.includes(id);
             const open = allowed_world(i) && allowed_world(id);
             const stroke = active ? gold : open ? '#6f8fb8' : '#b0457a';
-            out +=
+            svg +=
                 `<path d="M ${a[0]} ${a[1]} L ${b[0]} ${b[1]}" stroke="${stroke}" stroke-width="${active ? 4 : 2}"${(active || !open) ? ' stroke-dasharray="7 7"' : ''} opacity="${(active || known) ? 1 : 0.45}"/>`;
         }
     }
@@ -54,29 +54,29 @@ function render_galaxy_chart(parent, c)
         const status_color = current ? cyan : locked ? pink : reached ? '#9dff9b' : '#c9d6e6';
         const ring = current ? cyan : target ? gold : reached ? '#9dff9b' : locked ? '#b0457a' : '#c9d6e6';
         const art = sprite_svgs.worlds?.[world_slug(i)]?.[`planet-${world_slug(i)}`];
-        out += `<g data-chart-world="${i}" role="button" tabindex="0" aria-label="Set route to ${world.name}" class="chart-node" opacity="${opacity}">`;
-        out += `<circle cx="${p[0]}" cy="${p[1]}" r="31" fill="${world.color}"/>`;
+        svg += `<g data-chart-world="${i}" role="button" tabindex="0" aria-label="Set route to ${world.name}" class="chart-node" opacity="${opacity}">`;
+        svg += `<circle cx="${p[0]}" cy="${p[1]}" r="31" fill="${world.color}"/>`;
         if (art) {
-            out += `<image href="data:image/svg+xml;charset=utf-8,${encodeURIComponent(art)}" x="${p[0] - 31}" y="${p[1] - 31}" width="62" height="62"${locked ? ' opacity="0.5"' : ''}/>`;
+            svg += `<image href="data:image/svg+xml;charset=utf-8,${encodeURIComponent(art)}" x="${p[0] - 31}" y="${p[1] - 31}" width="62" height="62"${locked ? ' opacity="0.5"' : ''}/>`;
         }
-        out += `<circle cx="${p[0]}" cy="${p[1]}" r="33" fill="none" stroke="${ring}" stroke-width="3"${(!reached && !current && !locked) ? ' stroke-dasharray="5 5"' : ''}/>`;
+        svg += `<circle cx="${p[0]}" cy="${p[1]}" r="33" fill="none" stroke="${ring}" stroke-width="3"${(!reached && !current && !locked) ? ' stroke-dasharray="5 5"' : ''}/>`;
         if (current) {
-            out += `<circle cx="${p[0]}" cy="${p[1]}" r="40" stroke="${cyan}" fill="none" opacity=".45"/>`;
+            svg += `<circle cx="${p[0]}" cy="${p[1]}" r="40" stroke="${cyan}" fill="none" opacity=".45"/>`;
         }
         if (locked) {
             // a padlock
-            out += `<rect x="${p[0] - 10}" y="${p[1] - 3}" width="20" height="15" rx="3" fill="${pink}"/><path d="M ${p[0] - 6} ${p[1] - 3} v -5 a 6 6 0 0 1 12 0 v 5" stroke="${pink}" stroke-width="3" fill="none"/>`;
+            svg += `<rect x="${p[0] - 10}" y="${p[1] - 3}" width="20" height="15" rx="3" fill="${pink}"/><path d="M ${p[0] - 6} ${p[1] - 3} v -5 a 6 6 0 0 1 12 0 v 5" stroke="${pink}" stroke-width="3" fill="none"/>`;
         }
         if (reached && !current) {
-            out += `<circle cx="${p[0] + 24}" cy="${p[1] - 24}" r="8" fill="#0b1a14" stroke="#9dff9b" stroke-width="2"/><path d="M ${p[0] + 20} ${p[1] - 24} l 3 3 l 5 -6" stroke="#9dff9b" stroke-width="2" fill="none"/>`;
+            svg += `<circle cx="${p[0] + 24}" cy="${p[1] - 24}" r="8" fill="#0b1a14" stroke="#9dff9b" stroke-width="2"/><path d="M ${p[0] + 20} ${p[1] - 24} l 3 3 l 5 -6" stroke="#9dff9b" stroke-width="2" fill="none"/>`;
         }
-        out +=
+        svg +=
             `<text x="${p[0]}" y="${p[1] + 53}" text-anchor="middle" fill="#e9f6ff" font-size="15" font-weight="bold">${world.name}</text><text x="${p[0]}" y="${p[1] + 70}" text-anchor="middle" fill="${status_color}" font-size="10">${status}</text></g>`;
     }
-    out += '</svg>';
+    svg += '</svg>';
     const div = document.createElement('div');
     div.className = 'galaxy-chart';
-    div.innerHTML = out;
+    div.innerHTML = svg;
     parent.append(div);
     for (const v of div.querySelectorAll('[data-chart-world]')) {
         function choose() {

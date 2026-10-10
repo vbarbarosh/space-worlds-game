@@ -433,13 +433,13 @@ function guide_base_render_station()
     }
     sync_station_tab_counts();
     document.getElementById('station_cargo').innerHTML = `${cargo_count()}<small>/${cargo_capacity()}</small>`;
-    const out = station_tab === 'outfit';
-    set_hidden(el.shop_grid, !out);
-    set_hidden(document.getElementById('outfit_heading'), !out);
+    const is_outfit = station_tab === 'outfit';
+    set_hidden(el.shop_grid, !is_outfit);
+    set_hidden(document.getElementById('outfit_heading'), !is_outfit);
     const content = document.getElementById('station_content');
     content.replaceChildren();
     content.classList.remove('contracts', 'arsenal', 'goals');
-    if (out) {
+    if (is_outfit) {
         render_shop();
         dock_message =
             'Weapon rating: damage + rate + 3×prism + 2×drones + guided plasma. Defense: armor + shield levels. Use J in flight to check world requirements.';

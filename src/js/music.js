@@ -256,9 +256,9 @@ function expedition_base_update_hud()
         return;
     }
     const v = nearest_gravity();
-    const out = document.getElementById('gravity_warning');
-    out.classList.toggle('hidden', !v);
+    const warning = document.getElementById('gravity_warning');
+    warning.classList.toggle('hidden', !v);
     if (v) {
-        hud_text(out, `${(v.d < v.h.radius) ? 'STRONG GRAVITY' : 'OUTER GRAVITY FIELD'} · ${Math.ceil(v.pull)} m/s PULL · STEER AWAY / SHIFT TURBO`);
+        hud_text(warning, `${(v.d < v.h.radius) ? 'STRONG GRAVITY' : 'OUTER GRAVITY FIELD'} · ${Math.ceil(v.pull)} m/s PULL · STEER AWAY / SHIFT TURBO`);
     }
 }

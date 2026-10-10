@@ -95,8 +95,7 @@ function start_audio()
             sound.timer = setInterval(schedule_music, 60);
         }
         if (sound.ctx.state === 'suspended') {
-            sound.ctx.resume().catch(function () {
-            });
+            sound.ctx.resume().catch(function () {});
         }
     }
     catch {

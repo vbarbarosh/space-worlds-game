@@ -23,17 +23,17 @@ const bodies_numbers = {
 // Once a frame: the solid things that do not fly (asteroids, structures, the freighter as three circles along its hull)
 function bodies_frame()
 {
-    const out = [];
+    const bodies = [];
     for (const v of ore_nodes) {
         if (v.hp > 0) {
-            out.push(v);
+            bodies.push(v);
         }
     }
-    bodies_static_ore = {list: ore_nodes, count: out.length};
+    bodies_static_ore = {list: ore_nodes, count: bodies.length};
     if (!arcade.active) {
         for (const v of structures_here()) {
             if (v.hp > 0) {
-                out.push({x: v.x, y: v.y, r: structure_kinds[v.kind].size*0.42});
+                bodies.push({x: v.x, y: v.y, r: structure_kinds[v.kind].size*0.42});
             }
         }
     }
@@ -41,10 +41,10 @@ function bodies_frame()
         const a = Math.atan2((escort.destination?.y ?? escort.y) - escort.y, (escort.destination?.x ?? escort.x + 1) - escort.x);
         const step = sprite_sizes.freighter*0.3;
         for (const k of [-1, 0, 1]) {
-            out.push({x: escort.x + Math.cos(a)*step*k, y: escort.y + Math.sin(a)*step*k, r: sprite_sizes.freighter*0.17});
+            bodies.push({x: escort.x + Math.cos(a)*step*k, y: escort.y + Math.sin(a)*step*k, r: sprite_sizes.freighter*0.17});
         }
     }
-    bodies_static = out;
+    bodies_static = bodies;
 }
 
 // A raider's heading bent away from the asteroids and structures ahead of it

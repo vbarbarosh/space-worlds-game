@@ -49,7 +49,7 @@ function gravity_move(v, dt)
 function place_gravity_wells(protected_objects)
 {
     const holes = black_holes.length ? black_holes : [{x: 0, y: 0, radius: 1080, core: 58, strength: 920 + wave*12, phase: campaign.world*0.8}];
-    const out = [];
+    const black_holes_placed = [];
     const spots = [
         [0.07, 0.07],
         [0.93, 0.93],
@@ -64,12 +64,12 @@ function place_gravity_wells(protected_objects)
         return (
             protected_objects.every(v => distance(h, v) > gravity_reach(h) + 250) &&
             portals.every(v => distance(h, v) > h.radius + 250) &&
-            out.every(v => distance(h, v) > (separate ? gravity_reach(h) + gravity_reach(v) + 100 : h.radius + v.radius + 600))
+            black_holes_placed.every(v => distance(h, v) > (separate ? gravity_reach(h) + gravity_reach(v) + 100 : h.radius + v.radius + 600))
         );
     }
     next_hole: for (const hole of holes) {
         if (safe(hole, true)) {
-            out.push(hole);
+            black_holes_placed.push(hole);
             continue;
         }
         for (let pass = 0; pass < 2; ++pass) {
@@ -77,13 +77,13 @@ function place_gravity_wells(protected_objects)
                 const v = spots[(i + campaign.world) % end];
                 const candidate = {...hole, x: clamp(world.w*v[0], 650, world.w - 650), y: clamp(world.h*v[1], 650, world.h - 650)};
                 if (safe(candidate, pass === 0)) {
-                    out.push(candidate);
+                    black_holes_placed.push(candidate);
                     continue next_hole;
                 }
             }
         }
     }
-    black_holes = out;
+    black_holes = black_holes_placed;
     gravity_warning_cd = 0;
     gravity_was_active = false;
     // Relocated cores must leave every local gate and its exit clear.

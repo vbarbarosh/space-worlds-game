@@ -230,10 +230,10 @@ function render_hop(p)
     }
     ctx.globalCompositeOperation = 'source-over';
     // and leaves the exit gate the way it was flying
-    const out = clamp((p - 0.75)/0.25, 0, 1);
-    if (out > 0) {
-        const at = mix_point(jump.exit, jump.exit_point, ease_out(out));
-        teleport_ship(at.x, at.y, jump.angle, 3 - 2*out, Math.sqrt(out));
+    const leaving = clamp((p - 0.75)/0.25, 0, 1);
+    if (leaving > 0) {
+        const at = mix_point(jump.exit, jump.exit_point, ease_out(leaving));
+        teleport_ship(at.x, at.y, jump.angle, 3 - 2*leaving, Math.sqrt(leaving));
     }
 }
 

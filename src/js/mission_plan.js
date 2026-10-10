@@ -64,9 +64,10 @@ function mission_plan_steps()
     for (const v of out) {
         v.distance = (v.point && player) ? distance(player, v.point) : null;
     }
-    return out.sort(function (a, b) {
+    out.sort(function (a, b) {
         return ((a.distance === null) - (b.distance === null)) || ((a.distance ?? a.world) - (b.distance ?? b.world));
     });
+    return out;
 }
 
 function mission_plan_row(v, i)
