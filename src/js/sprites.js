@@ -22,13 +22,14 @@ const sprite_span = 228;
 // Ships, turrets, the missile and drones point their nose up and are turned to +x; the rest keep their orientation.
 function sprite(name)
 {
-    const key = name.includes('/') ? name : `3d:${name}`;
-    if (sprite_cache.has(key)) {
-        return sprite_cache.get(key);
+    // a plain name has no slash and a path has one, so the name is the key as it is: no string built per call
+    const cached = sprite_cache.get(name);
+    if (cached !== undefined) {
+        return cached;
     }
     const text = name.includes('/') ? name.split('/').reduce((v, k) => v?.[k], sprite_svgs) : sprite_svgs['3d'][name];
     if (typeof text !== 'string') {
-        sprite_cache.set(key, null);
+        sprite_cache.set(name, null);
         return null;
     }
     const svg = new DOMParser().parseFromString(text, 'image/svg+xml').documentElement;
@@ -63,7 +64,7 @@ function sprite(name)
     }
     anchors?.remove();
     const out = {svg, box, turned, flames, points, spin: !!svg.querySelector('#spin'), rasters: new Map()};
-    sprite_cache.set(key, out);
+    sprite_cache.set(name, out);
     return out;
 }
 
@@ -99,9 +100,20 @@ function sprite_raster(name, color, px, part = 'body')
     if (!v) {
         return null;
     }
-    const key = `${color || ''}:${px}:${part}`;
-    if (v.rasters.has(key)) {
-        return v.rasters.get(key).ready ? v.rasters.get(key).canvas : null;
+    // colour, then part, then size: maps looked up without building a key string each frame
+    let rasters_by_part = v.rasters.get(color || '');
+    if (!rasters_by_part) {
+        rasters_by_part = new Map();
+        v.rasters.set(color || '', rasters_by_part);
+    }
+    let raster_by_px = rasters_by_part.get(part);
+    if (!raster_by_px) {
+        raster_by_px = new Map();
+        rasters_by_part.set(part, raster_by_px);
+    }
+    const found = raster_by_px.get(px);
+    if (found) {
+        return found.ready ? found.canvas : null;
     }
     const svg = v.svg.cloneNode(true);
     for (const id of (part === 'spin') ? ['base', 'hull', 'accent'] : ['spin']) {
@@ -121,7 +133,7 @@ function sprite_raster(name, color, px, part = 'body')
     const raster = {ready: false, canvas: document.createElement('canvas')};
     raster.canvas.width = px;
     raster.canvas.height = px;
-    v.rasters.set(key, raster);
+    raster_by_px.set(px, raster);
     const image = new Image();
     image.onload = function () {
         const draw = raster.canvas.getContext('2d');
