@@ -185,6 +185,9 @@ function visual_base_generate_map()
     }
 }
 
+// Gunners spawned so far: from Verdant on, every other one carries missiles, whatever its world's gun
+let gunners_spawned = 0;
+
 function spawn_enemy(type)
 {
     base_spawn_enemy(type);
@@ -196,6 +199,12 @@ function spawn_enemy(type)
     enemy.shield = enemy.max_shield;
     enemy.since_hit = 0;
     enemy.weapon = w.weapon;
+    if (type === 'shooter') {
+        gunners_spawned += 1;
+        if ((campaign.world >= 1) && (gunners_spawned % 2 === 0)) {
+            enemy.weapon = 'missile';
+        }
+    }
     enemy.gun_cd = rand(1, 3);
     if (type === 'boss') {
         enemy.hp = enemy.max_hp = (campaign.world === 7) ? 19000 : 10500;
