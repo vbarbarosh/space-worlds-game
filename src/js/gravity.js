@@ -23,12 +23,17 @@ function gravity_pull(h, d)
     );
 }
 
+// The position is read once and written back only when a hole moved it: objects of every kind pass here each frame,
+// and each read of a field on so many shapes boxes a number
 function gravity_move(v, dt)
 {
+    let x = v.x;
+    let y = v.y;
+    let moved = false;
     for (let i = 0, end = black_holes.length; i < end; ++i) {
         const h = black_holes[i];
-        const dx = h.x - v.x;
-        const dy = h.y - v.y;
+        const dx = h.x - x;
+        const dy = h.y - y;
         const reach = gravity_reach(h);
         const squared = dx*dx + dy*dy;
         if ((squared >= reach*reach) || (squared < 0.01)) {
@@ -37,12 +42,17 @@ function gravity_move(v, dt)
         const d = Math.sqrt(squared);
         const pull = gravity_pull(h, d);
         const step = Math.min(d, pull*dt);
-        v.x += (dx/d)*step;
-        v.y += (dy/d)*step;
+        x += (dx/d)*step;
+        y += (dy/d)*step;
+        moved = true;
         if ((v !== player) && (typeof v.vx === 'number')) {
             v.vx += (dx/d)*pull*dt*2;
             v.vy += (dy/d)*pull*dt*2;
         }
+    }
+    if (moved) {
+        v.x = x;
+        v.y = y;
     }
 }
 

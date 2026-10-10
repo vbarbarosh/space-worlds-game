@@ -144,10 +144,12 @@ function render_projectiles()
 
 function in_gravity_core(v, padding = 0)
 {
+    const x = v.x;
+    const y = v.y;
     for (let i = 0, end = black_holes.length; i < end; ++i) {
         const h = black_holes[i];
-        const dx = v.x - h.x;
-        const dy = v.y - h.y;
+        const dx = x - h.x;
+        const dy = y - h.y;
         const r = h.core + padding;
         if ((Math.abs(dx) < r) && (Math.abs(dy) < r) && (dx*dx + dy*dy < r*r)) {
             return true;
