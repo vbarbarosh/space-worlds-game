@@ -18,15 +18,16 @@ tempdir=`mktemp -d -t tmp.XXXXXXXXXX`
 trap 'rm -rf $tempdir; echo -e "$EXIT_MESSAGE"' EXIT
 cd $scriptdir/..
 
-# The rulebook's linter (https://github.com/vbarbarosh/rules) over src/ and
-# the node scripts of bin/. It skips a file without an extension, so each
-# node script is linted as a .cjs copy and reported under its own name.
+# The rulebook's linter (https://github.com/vbarbarosh/rules) over src/,
+# docs/assets/ and the node scripts of bin/. It skips a file without an
+# extension, so each node script is linted as a .cjs copy and reported under
+# its own name.
 mkdir $tempdir/bin
 for file in bin/*; do
     if head -1 "$file" | grep -q '^#!/usr/bin/env node'; then
         cp "$file" "$tempdir/$file.cjs"
     fi
 done
-npx --yes vbarbarosh/rules src/ $tempdir/bin/ 2>&1 | sed "s|$tempdir/\(bin/[^ ]*\)\.cjs|$PWD/\1|"
+npx --yes vbarbarosh/rules src/ docs/assets/ $tempdir/bin/ 2>&1 | sed "s|$tempdir/\(bin/[^ ]*\)\.cjs|$PWD/\1|"
 
 EXIT_MESSAGE="${GREEN}bin/lint succeeded${RESET}"

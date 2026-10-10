@@ -15,6 +15,16 @@ game, not for one that changes it.
 - `build/dev.html` opens any world, ship, weapon or screen from its URL, for
   trying a change; the list is in the README.
 
+The author's decisions where the project differs from the rulebook:
+
+- The README's one heading is the game's name, World Explorer, not the
+  repository's (PROJ-23).
+- The README's badges stand on one line, not a row per kind (PROJ-21).
+- The light/dark switch (UI-01..05) is for the docs website only; the game
+  screen stays dark.
+- `notes/audit-*.md` stays committed (DOC-10 leaves an audit note
+  untracked).
+
 <!-- rules: begin https://github.com/vbarbarosh/rules 42ed865a7b8ff15fc4de6bb6fc94d6fc4daf233b 2026-10-10 -->
 
 ## The rulebook
@@ -230,22 +240,21 @@ Apply:
 - **CSS**: CSS-03, 11, 12 and 13. Not CSS-01, 02, 04..10: the game does
   not use smcss utilities, and its CSS is plain, with no Sass mixins.
 - **UI**: the docs website (`bin/build-docs`) is a project page and follows
-  UI-01..08. Whether the game screen takes a light theme (UI-01..05) waits
-  on the author; it stays dark meanwhile.
+  UI-01..08. The game screen stays dark: the author's decision, above.
 - **UIM**: all but UIM-04..06 (nothing takes files), UIM-10 (no backend)
   and UIM-11 (no primary search).
 - **LINT**: LINT-01..04, 06, 07. Not LINT-08..12 (Vue and smcss only).
 
 Do not apply: **REL** (a private package, not released), **LOG** (no
 service writing logs), **SQL** (no database), **VUE** (no Vue), **DOC**
-(the rulebook's own documents; whether `notes/audit-*` follows DOC-06..10
-waits on the author).
+(the rulebook's own documents; `notes/audit-*` follows DOC-06..09 and stays
+committed, the author's decision, above).
 
 ## Lint
 
     bin/lint
 
-It runs `npx vbarbarosh/rules` over `src/` and the node scripts of `bin/`,
-and exits 1 on a violation (`npm run lint` runs the same).
+It runs `npx vbarbarosh/rules` over `src/`, `docs/assets/` and the node
+scripts of `bin/`, and exits 1 on a violation (`npm run lint` runs the same).
 
 <!-- rules: end -->
