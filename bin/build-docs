@@ -9,6 +9,7 @@ const {Marked} = require('marked');
 const blob_url = 'https://github.com/vbarbarosh/space-worlds-game/blob/main/';
 const docs_dir = path.join(__dirname, '..', 'docs');
 const game_file = path.join(__dirname, '..', 'build', 'index.html');
+const dev_file = path.join(__dirname, '..', 'build', 'dev.html');
 const out_dir = path.join(__dirname, '..', 'build', 'docs');
 const template_name = 'page.template.html';
 
@@ -16,7 +17,7 @@ cli(main);
 
 // Every page of docs/ as HTML in build/docs: README.md becomes index.html, links between pages point at their HTML,
 // links to the rest of the repository go to GitHub, other files of docs/ are copied as they are (not tools/, the
-// designer's icon script), and the game built by bin/build goes in play/
+// designer's icon script), and the game built by bin/build goes in play/, its dev page beside it (dev.html?render=3d)
 function main()
 {
     const template = fs.readFileSync(path.join(docs_dir, template_name), 'utf8');
@@ -34,6 +35,9 @@ function main()
     if (fs.existsSync(game_file)) {
         fs.mkdirSync(path.join(out_dir, 'play'), {recursive: true});
         fs.copyFileSync(game_file, path.join(out_dir, 'play', 'index.html'));
+    }
+    if (fs.existsSync(dev_file)) {
+        fs.copyFileSync(dev_file, path.join(out_dir, 'play', 'dev.html'));
     }
     console.log(`${pages.length} pages · ${out_dir}`);
 }
