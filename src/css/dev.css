@@ -28,12 +28,7 @@ body {
     right: var(--dev-panel-width);
 }
 
-.ui-screen {
-    right: var(--dev-panel-width);
-}
-
-body.dev-collapsed,
-body.dev-collapsed .ui-screen {
+body.dev-collapsed {
     right: 0;
 }
 
