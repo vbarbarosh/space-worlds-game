@@ -234,3 +234,25 @@ body.dev-collapsed .dev-panel {
     font: 11px ui-monospace, monospace;
     letter-spacing: 0.1em;
 }
+
+/* the frame rate on the game's left edge, halfway down, or just above the HUD's bottom row once js/dev/fps.js places
+   it; never in the way of a click */
+.dev-fps {
+    position: fixed;
+    top: 50%;
+    left: 8px;
+    transform: translateY(-50%);
+    z-index: 1000;
+    padding: 1px 6px;
+    border-radius: 4px;
+    background: #050a14b3;
+    color: #6cf8ec;
+    font: 600 11px/16px ui-monospace, monospace;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    pointer-events: none;
+}
+
+.dev-fps.placed {
+    transform: none;
+}

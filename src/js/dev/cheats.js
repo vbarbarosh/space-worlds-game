@@ -25,6 +25,7 @@ function dev_after_frame(now)
     if (now - dev_readout_time > 250) {
         dev_readout_time = now;
         dev_panel_refresh_readout();
+        dev_fps_refresh();
         dev_enemies_refresh_meter(now);
     }
 }

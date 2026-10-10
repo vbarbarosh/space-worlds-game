@@ -35,7 +35,7 @@ const sizes = [
 // Blocks that must not overlap each other; the panels and menus that must stay inside the window; controls that must
 // not cut their own text; boxes whose text must not stick out
 const selectors = {
-    blocks: ['.hud-top .readouts', '.hud-top .toolbar', '.hud-top .brand', '.ui.hud .mission', '.ui.hud .minimap',
+    blocks: ['.dev-fps', '.hud-top .readouts', '.hud-top .toolbar', '.hud-top .brand', '.ui.hud .mission', '.ui.hud .minimap',
         '.hud-toasts > *', '.ui.hud .banners > *', '.hud-bottom .qbar', '.hud-bottom .shipstat', '.hud-bottom .hud-end', '.menu-left', '.menu-foot',
         '.depot-title', '.depot-stats', '.depot-wallet', '.depot-filters .seg', '.depot-search', '.depot-ship', '.depot-next',
         '.finale-title', '.finale-res'],
