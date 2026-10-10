@@ -376,19 +376,24 @@ function update_expedition_environment(dt)
     }
 }
 
-// The station, portal or world gate a drifting piece has strayed into, looked up in that order; null when it is clear
+// The station, portal or world gate a drifting piece has strayed into, looked up in that order; null when it is clear.
+// Every piece asks every frame: the distances are distance()'s own sum, worked here on a position read once, so no
+// number is boxed on the way back from a call
 function debris_sanctuary(piece)
 {
-    if (distance(piece, station) < station_size/2 + 60 + piece.r) {
+    const x = piece.x;
+    const y = piece.y;
+    const r = piece.r;
+    if (Math.sqrt((x - station.x)*(x - station.x) + (y - station.y)*(y - station.y)) < station_size/2 + 60 + r) {
         return station;
     }
     for (const v of portals) {
-        if (distance(piece, v) < 180 + piece.r) {
+        if (Math.sqrt((x - v.x)*(x - v.x) + (y - v.y)*(y - v.y)) < 180 + r) {
             return v;
         }
     }
     for (const v of world_gates) {
-        if (distance(piece, v) < 180 + piece.r) {
+        if (Math.sqrt((x - v.x)*(x - v.x) + (y - v.y)*(y - v.y)) < 180 + r) {
             return v;
         }
     }
