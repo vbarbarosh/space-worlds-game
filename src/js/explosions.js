@@ -384,14 +384,28 @@ function explosion_circle(x, y, r)
     ctx.arc(x, y, Math.max(0.5, r), 0, Math.PI*2);
 }
 
+// A colour's 'rgba(r, g, b, ' parsed once, null for one that passes through; bounded, since some colours are computed
+const rgba_prefix_by_color = new Map();
+
 // '#ff5baf' and alpha 0.5 -> 'rgba(255, 91, 175, 0.5)'; other colors pass through as they are
 function color_with_alpha(color, alpha)
 {
-    if (!/^#[0-9a-f]{6}/i.test(color)) {
+    let prefix = rgba_prefix_by_color.get(color);
+    if (prefix === undefined) {
+        prefix = null;
+        if (/^#[0-9a-f]{6}/i.test(color)) {
+            const r = parseInt(color.slice(1, 3), 16);
+            const g = parseInt(color.slice(3, 5), 16);
+            const b = parseInt(color.slice(5, 7), 16);
+            prefix = `rgba(${r}, ${g}, ${b}, `;
+        }
+        if (rgba_prefix_by_color.size >= 512) {
+            rgba_prefix_by_color.clear();
+        }
+        rgba_prefix_by_color.set(color, prefix);
+    }
+    if (prefix === null) {
         return color;
     }
-    const r = parseInt(color.slice(1, 3), 16);
-    const g = parseInt(color.slice(3, 5), 16);
-    const b = parseInt(color.slice(5, 7), 16);
-    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    return `${prefix}${alpha})`;
 }
