@@ -104,7 +104,7 @@ a { color: var(--link); }
 .skip:focus { top: 8px; }
 
 /* icons: masks, so they take the text colour; --i picks the shape */
-.brand-mark, .bar-link::before, .theme button::before, .picker summary::before, .picker summary::after,
+.brand-mark, .bar-link::before, .picker summary::before, .picker summary::after,
 .pages a::before, .picker-list a::before, .foot-link::before, .content a[href^="http"]::after {
     content: ""; flex: none; display: inline-block; width: 18px; height: 18px; background: currentColor;
     -webkit-mask: var(--i) center / contain no-repeat; mask: var(--i) center / contain no-repeat;
@@ -162,20 +162,21 @@ li:has(> a:first-child[href$="elements.html"]) { --card-i: url("data:image/svg+x
 }
 .bar-link:hover { color: var(--text-1); background: var(--panel-2); }
 .bar-link.repo { --i: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M12 2.3a9.7 9.7 0 0 0-3.07 18.9c.49.09.66-.21.66-.47v-1.66c-2.7.59-3.27-1.3-3.27-1.3-.44-1.12-1.08-1.42-1.08-1.42-.88-.6.07-.59.07-.59.97.07 1.48 1 1.48 1 .87 1.48 2.28 1.05 2.83.8.09-.62.34-1.05.62-1.29-2.15-.25-4.42-1.08-4.42-4.8 0-1.06.38-1.93 1-2.6-.1-.25-.43-1.24.1-2.58 0 0 .81-.26 2.66 1a9.2 9.2 0 0 1 4.84 0c1.85-1.26 2.66-1 2.66-1 .53 1.34.2 2.33.1 2.58.62.67 1 1.54 1 2.6 0 3.73-2.27 4.55-4.43 4.79.35.3.66.9.66 1.8v2.67c0 .26.17.57.67.47A9.7 9.7 0 0 0 12 2.3z'/%3E%3C/svg%3E"); }
+.bar-link.repo { justify-content: center; width: 34px; padding: 0; }
+.bar-link.repo::before { width: 20px; height: 20px; }
+.bar-link.repo > span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
 .bar-link.play { --i: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M8 4.8v14.4a.8.8 0 0 0 1.2.7l11.5-7.2a.8.8 0 0 0 0-1.4L9.2 4.1A.8.8 0 0 0 8 4.8z'/%3E%3C/svg%3E"); color: var(--text-1); border: 1px solid var(--line-2); }
 .bar-link.play::before { color: var(--accent); width: 14px; height: 14px; }
 .bar-link.play:hover { box-shadow: var(--glow); background: transparent; }
-.theme { display: inline-flex; padding: 3px; gap: 2px; border: 1px solid var(--line-2); border-radius: 9px; background: var(--bg); }
-.theme button {
-    display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px; border: 0; border-radius: 6px;
-    background: transparent; color: var(--text-3); font: 550 13px var(--font); cursor: pointer;
+/* the theme switch: one icon showing the theme now, as bare as the GitHub icon beside it */
+.theme {
+    display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; padding: 0; border: 0; border-radius: var(--r-sm);
+    background: transparent; color: var(--text); cursor: pointer;
 }
-.theme button::before { width: 15px; height: 15px; }
-.theme [data-value="light"] { --i: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle fill='none' stroke='%23000' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round' cx='12' cy='12' r='4'/%3E%3Cpath fill='none' stroke='%23000' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round' d='M12 2.5v2.2M12 19.3v2.2M4.6 4.6l1.6 1.6M17.8 17.8l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.6 19.4l1.6-1.6M17.8 6.2l1.6-1.6'/%3E%3C/svg%3E"); }
-.theme [data-value="dark"] { --i: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='%23000' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round' d='M19.5 14.5A8 8 0 0 1 9.5 4.5a8 8 0 1 0 10 10z'/%3E%3C/svg%3E"); }
-.theme button:hover { color: var(--text-1); }
-:root[data-theme="light"] .theme [data-value="light"],
-:root[data-theme="dark"] .theme [data-value="dark"] { background: var(--link); color: var(--on-accent); }
+.theme:hover { color: var(--text-1); background: var(--panel-2); }
+.theme svg { width: 20px; height: 20px; }
+:root[data-theme="dark"] .theme-sun,
+:root:not([data-theme="dark"]) .theme-moon { display: none; }
 
 /* the page picker: the page list for narrow windows, a <details>, so no script */
 .picker { display: none; position: static; min-width: 0; }
@@ -517,11 +518,10 @@ body:has(.content > h1#world-explorer-documentation) .hero {
     .bar-in { gap: 6px; padding: 0 10px 0 12px; }
     .brand-tag { display: none; }
     .picker { flex: 1 1 auto; }
-    .bar-link > span, .theme button > span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+    .bar-link > span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
     .bar-link { padding: 0 8px; }
     .bar-link.play { border: 0; }
     .bar-link.play::before { width: 16px; height: 16px; }
-    .theme button { padding: 0 7px; }
     main { padding: 26px var(--gutter) 64px; }
     .content h2 { margin-top: 42px; }
     .content ul, .content ol { padding-left: 22px; }
