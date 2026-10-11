@@ -104,6 +104,7 @@ function update_explosions(dt)
         player.shield_flash = Math.max(0, player.shield_flash - dt);
     }
     update_hull_damage(dt);
+    update_enemy_wounds(dt);
 }
 
 // Below a third of its hull your ship trails smoke and throws sparks.
@@ -123,6 +124,33 @@ function update_hull_damage(dt)
     explode(x, y, 9 + explosion_random()*5, '#5b5550', 0, 'smoke');
     if (explosion_random() < 0.3) {
         explode(x, y, 6, '#ffb347', 0, 'spark');
+    }
+}
+
+// Below a third of its hull a raider in view trails smoke and throws sparks, as yours does: the next shots read as
+// the last. Blasts come first: the wounds wait while the explosions are past 60% of their limit.
+function update_enemy_wounds(dt)
+{
+    if (state !== 'playing') {
+        return;
+    }
+    for (const enemy of enemies) {
+        if ((enemy.hp <= 0) || !enemy.max_hp || (enemy.hp >= enemy.max_hp/3) || !in_view(enemy, 120)) {
+            continue;
+        }
+        enemy.wound_timer = (enemy.wound_timer || 0) - dt;
+        if ((enemy.wound_timer > 0) || (explosions.length > explosion_limit*0.6)) {
+            continue;
+        }
+        const r = enemy.r || 18;
+        enemy.wound_timer = 0.12 + explosion_random()*0.1;
+        const x = enemy.x + (explosion_random() - 0.5)*r;
+        const y = enemy.y + (explosion_random() - 0.5)*r;
+        // lighter than your own ship's smoke: a raider burns against dark space, not against your hull
+        explode(x, y, r*0.75 + explosion_random()*6, '#a39d96', 0, 'smoke');
+        if (explosion_random() < 0.5) {
+            explode(x, y, 10, '#ffb347', 0, 'spark');
+        }
     }
 }
 
