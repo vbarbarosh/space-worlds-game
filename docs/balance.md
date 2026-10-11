@@ -341,6 +341,17 @@ before rocks and the Relic processor.
   - the rest come in a **line** across their heading, 640 m away, or, from
     four raiders on and 35% of the time, in a **pincer**: the line split to
     both sides of you.
+- Wave 2 of each world draws an **event** from the world's pool
+  (`arcade_event_pools` in `src/js/arcade_events.js`), with a toast and a
+  mark on the map; it ends with the wave:
+
+  | Event | What it does | Worlds |
+  |---|---|---|
+  | Ion storm | your shield stays at 0 | Ion Reach, Obsidian, Cryosphere |
+  | Convoy | an unarmed freighter (a tank's hull ×4) on a 2 km run past you, about 30 s; 6 artifacts of 8 + 2 × world index if caught | Haven, Verdant, Dustfall, Cryosphere |
+  | Fleeing ace | an elite, 30% faster, jumps away after 20 s; 4 artifacts of 10 + 2 × world index if caught | Haven, Ion Reach, Nova Forge, Eclipse |
+  | Dust blind | the minimap shows only haze | Verdant, Dustfall, Obsidian |
+  | Heat surge | every 6 s a line of 8 vents, 1400 m long, across your way; each warns for 1.4 s, then bursts for 22 within 80 m | Nova Forge, Eclipse |
 - A ship that explodes hurts everything within 1.8 × its blast size, less
   with distance: a chaser 10, a tank 26, a flagship 50, an elite ×1.5
   (`arcade_blast_from_kill`).

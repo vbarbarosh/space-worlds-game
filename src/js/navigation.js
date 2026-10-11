@@ -290,8 +290,8 @@ function guide_base_update_frontier(dt)
             enemy.shield = Math.min(enemy.max_shield || 0, (enemy.shield || 0) + dt*10);
         }
         // Every raider fires its world's gun, Haven's plasma included; the CHILL arcade keeps plasma raiders unarmed,
-        // as the arcade was before its modes; shards are pieces and only ram
-        const armed = (enemy.weapon !== 'plasma') || !arcade.active || arcade_mode().armed;
+        // as the arcade was before its modes; shards are pieces and only ram, a convoy's freighter carries no gun
+        const armed = !enemy.unarmed && ((enemy.weapon !== 'plasma') || !arcade.active || arcade_mode().armed);
         if ((enemy.type !== 'shooter') && (enemy.type !== 'boss') && (enemy.type !== 'shard') && armed) {
             enemy.gun_cd -= dt;
             // a raider sent for the survey robot shoots at it

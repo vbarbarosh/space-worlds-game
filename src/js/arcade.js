@@ -1,5 +1,5 @@
 // Arcade: one run through the eight worlds, three waves each, the world's flagship in the third; no stations, contracts or saves.
-const arcade = {active: false, world: -1, wave: 0, pause: 0, squad_timer: 0, squads: 0, phase: 0, slowmo: 0, depot_hint: false, blasts: [], between_worlds: null, world_start: null, campaign_checkpoint: null};
+const arcade = {active: false, world: -1, wave: 0, pause: 0, squad_timer: 0, squads: 0, phase: 0, slowmo: 0, depot_hint: false, blasts: [], event: null, between_worlds: null, world_start: null, campaign_checkpoint: null};
 const arcade_extent = [7200, 5600];
 const arcade_waves = 3;
 const arcade_radiation = 0.35;
@@ -183,6 +183,7 @@ function arcade_stop()
 {
     arcade.active = false;
     arcade.between_worlds = null;
+    arcade_event_end();
     document.body.classList.remove('arcade');
     set_hidden(document.getElementById('arcade_depot'), true);
     document.getElementById('restart_button').innerHTML = '<span>New expedition</span>';
@@ -217,6 +218,7 @@ function arcade_update(dt)
         return;
     }
     arcade_blasts_update(dt);
+    arcade_event_update(dt);
     arcade_squads_update(dt);
     arcade_flagship_update();
     if (!arcade.depot_hint && (salvage > 0)) {
@@ -245,6 +247,12 @@ function arcade_wave_start(n)
     show_toast(`WAVE ${n} / ${arcade_waves} · ${arcade_wave_names[n]}`, `${worlds[campaign.world].name.toUpperCase()} · ${current_world_rules().name.toUpperCase()}`, 2);
     if (n === arcade_waves) {
         arcade_flagship_spawn();
+    }
+    if (n === 2) {
+        arcade_event_start();
+    }
+    else {
+        arcade_event_end();
     }
 }
 
@@ -393,6 +401,9 @@ function arcade_squad_warp(type, x, y, i)
 // until you come within 420 m, it is hit or 25 s pass. Turns the raider (angle) and returns how fast it moves.
 function arcade_role_steer(v, move, d)
 {
+    if (v.event_goal) {
+        return arcade_event_steer(v);
+    }
     if (v.lurk) {
         if ((d > 420) && (v.hp >= v.max_hp) && ((v.shield || 0) >= (v.max_shield || 0)) && (v.age < 25)) {
             // a lancer charges at the end of its count: hold the count while it waits

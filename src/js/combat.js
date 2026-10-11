@@ -297,6 +297,7 @@ function base_damage_enemy(enemy, damage)
     }
     if (arcade.active) {
         arcade_blast_from_kill(enemy);
+        arcade_event_kill(enemy);
     }
     if (enemy.type === 'boss') {
         boss_defeated = true;

@@ -304,6 +304,7 @@ function map_things(every_layer = false)
             add('danger', v, 'raiders', null, '', {small: true});
         }
     }
+    arcade_event_marks(add);
     return out;
 }
 
@@ -567,6 +568,18 @@ function render_minimap()
     ctx.rect(0, 0, w, mh);
     ctx.clip();
     ctx.drawImage(minimap_ground.canvas, 0, 0, w, mh);
+    // dust blinds it: the ground under a haze and the event's name, nothing on it
+    if (arcade_event_blind()) {
+        ctx.fillStyle = '#3a2f22e6';
+        ctx.fillRect(0, 0, w, mh);
+        ctx.font = 'bold 9px ui-monospace,monospace';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = '#ffb36e';
+        ctx.fillText('DUST BLIND', w/2, mh/2 + 3);
+        ctx.restore();
+        ctx.restore();
+        return;
+    }
     function point(v) {
         return {x: v.x*sx, y: v.y*sy};
     }

@@ -373,8 +373,9 @@ function update(dt)
                 move = 0;
             }
         }
-        // an escort keeps its place in its squadron, a lurker waits in the rocks (arcade_role_steer)
-        if (v.guard || v.lurk) {
+        // an escort keeps its place in its squadron, a lurker waits in the rocks, a freighter keeps to its way
+        // (arcade_role_steer)
+        if (v.guard || v.lurk || v.event_goal) {
             move = arcade_role_steer(v, move, d);
             heading = v.angle;
         }
