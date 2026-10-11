@@ -83,7 +83,7 @@ function turret_muzzles(ship, weapon)
     return Object.keys(points).filter(v => v.startsWith('muzzle-')).sort().map(v => points[v]);
 }
 
-// The arcade's gun on both turret marks; in the campaign each mount's own gun, drawn at its mount's size
+// Each mount's own gun, drawn at its mount's size; an empty arcade mount shows none
 function render_ship_turrets(alpha = 1)
 {
     const angle = player.turret_angle ?? player.angle;
@@ -91,25 +91,16 @@ function render_ship_turrets(alpha = 1)
     ctx.translate(player.x, player.y);
     ctx.rotate(player.angle);
     ctx.globalAlpha = alpha;
-    if (arcade.active) {
-        for (const mount of turret_mounts()) {
-            ctx.save();
-            ctx.translate(mount[0], mount[1]);
-            ctx.rotate(angle - player.angle);
-            turret_draw(ctx, current_weapon(), turret_box(current_ship()), (player.shoot_cd > 0.08) ? 1.5 : 0);
-            ctx.restore();
-        }
-    }
-    else {
-        const guns = mounted_weapons();
-        const points = mount_points();
-        for (let i = 0; i < points.length; ++i) {
-            ctx.save();
-            ctx.translate(points[i].x, points[i].y);
-            ctx.rotate(angle - player.angle);
+    const guns = mounted_weapons();
+    const points = mount_points();
+    for (let i = 0; i < points.length; ++i) {
+        ctx.save();
+        ctx.translate(points[i].x, points[i].y);
+        ctx.rotate(angle - player.angle);
+        if (guns[i]) {
             turret_draw(ctx, guns[i], gun_boxes[points[i].size], ((player.gun_cd?.[i] || 0) > 0.08) ? 1.5 : 0);
-            ctx.restore();
         }
+        ctx.restore();
     }
     ctx.restore();
 }

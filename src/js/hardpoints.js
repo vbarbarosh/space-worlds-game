@@ -21,6 +21,9 @@ function ship_mounts(ship = current_ship())
 // fits
 function ship_loadout(ship = current_ship())
 {
+    if (arcade.active) {
+        return arcade_loadout(ship);
+    }
     const f = ensure_career();
     f.loadouts = f.loadouts || {};
     const saved = f.loadouts[ship.id] || [];
@@ -32,6 +35,48 @@ function ship_loadout(ship = current_ship())
     return out;
 }
 
+// The arcade's loadout: a mount fires only a gun bought for it, so each gun you own goes on one mount; the one you put
+// there while it fits, then the best of the rest that fit, and a mount with none left stays empty (null)
+function arcade_loadout(ship = current_ship())
+{
+    const f = ensure_career();
+    f.loadouts = f.loadouts || {};
+    const left = {...arcade_guns_owned()};
+    const saved = f.loadouts[ship.id] || [];
+    const mounts = ship_mounts(ship);
+    const out = mounts.map(function (size, i) {
+        const v = weapon_by_id(saved[i]);
+        if (v && (left[v.id] > 0) && gun_fits(v, size)) {
+            left[v.id] -= 1;
+            return v.id;
+        }
+        return null;
+    });
+    for (let i = 0; i < out.length; ++i) {
+        if (out[i] === null) {
+            const fit = weapon_catalog.filter(v => (left[v.id] > 0) && gun_fits(v, mounts[i]));
+            fit.sort((a, b) => (gun_sizes.indexOf(b.size) - gun_sizes.indexOf(a.size)) || (b.rating - a.rating));
+            if (fit.length) {
+                out[i] = fit[0].id;
+                left[fit[0].id] -= 1;
+            }
+        }
+    }
+    f.loadouts[ship.id] = out;
+    return out;
+}
+
+// How many of each gun the arcade's run has bought: one each, unless bought again for another mount; the cannon is
+// the start gun
+function arcade_guns_owned()
+{
+    const f = ensure_career();
+    if (!f.gun_count) {
+        f.gun_count = Object.fromEntries(f.weapons.map(v => [v, 1]));
+    }
+    return f.gun_count;
+}
+
 // The best gun you own for a mount: the biggest that fits, then the strongest
 function best_gun_for(size)
 {
@@ -41,12 +86,9 @@ function best_gun_for(size)
     return (owned[0] || weapon_catalog[0]).id;
 }
 
-// The guns of the current ship, mount by mount; the arcade's one gun
+// The guns of the current ship, mount by mount, in the campaign and the arcade alike; an empty arcade mount is null
 function mounted_weapons()
 {
-    if (arcade.active) {
-        return [weapon_catalog.find(v => v.id === ensure_career().weapon_id) || weapon_catalog[0]];
-    }
     return ship_loadout().map(weapon_by_id);
 }
 
@@ -82,12 +124,27 @@ function mount_new_gun(id)
     return false;
 }
 
+// The arcade's new gun on a mount it fits that does not carry it: an empty one first, else the weakest gun there,
+// which stays yours for another mount or ship
+function mount_gun_anywhere(id)
+{
+    const loadout = ship_loadout();
+    const mounts = ship_mounts();
+    const free = mounts.map((size, i) => i).filter(v => gun_fits(weapon_by_id(id), mounts[v]) && (loadout[v] !== id));
+    free.sort((a, b) => (weapon_by_id(loadout[a])?.rating ?? -1) - (weapon_by_id(loadout[b])?.rating ?? -1));
+    if (!free.length) {
+        return false;
+    }
+    loadout[free[0]] = id;
+    return true;
+}
+
 // The weapon rating the gates check: your best gun's rating and tier, and two more for each gun past the first. (A
 // sum of all the guns let two flux beams clear every gate.)
 function guns_rating()
 {
     const f = ensure_career();
-    const guns = mounted_weapons();
+    const guns = mounted_weapons().filter(Boolean);
     return Math.max(...guns.map(v => v.rating + (f.weapon_levels[v.id] || 1) - 1)) + (guns.length - 1)*2;
 }
 
@@ -192,16 +249,10 @@ function mount_muzzle(index, barrel, angle, weapon)
 // Each mount's gun fires when it is ready and the target is within its reach
 function guns_fire(target_distance)
 {
-    if (arcade.active) {
-        if ((player.shoot_cd <= 0) && (target_distance < gun_reach())) {
-            fire();
-        }
-        return;
-    }
     const guns = mounted_weapons();
     player.gun_cd = player.gun_cd || [];
     for (let i = 0; i < guns.length; ++i) {
-        if (((player.gun_cd[i] || 0) <= 0) && (target_distance < weapon_reach(guns[i]))) {
+        if (guns[i] && ((player.gun_cd[i] || 0) <= 0) && (target_distance < weapon_reach(guns[i]))) {
             fire(i);
         }
     }
@@ -362,7 +413,9 @@ function render_arsenal_ship(canvas)
         draw.save();
         draw.translate(points[i].x*k, points[i].y*k);
         draw.scale(k, k);
-        turret_draw(draw, guns[i], gun_boxes[points[i].size], 0);
+        if (guns[i]) {
+            turret_draw(draw, guns[i], gun_boxes[points[i].size], 0);
+        }
         draw.restore();
     }
     draw.restore();

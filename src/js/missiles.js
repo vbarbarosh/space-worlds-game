@@ -11,14 +11,15 @@ const missile_engines = [
     {name: 'Ion sustainer', top: 1040, accel: 1600, fuel: 1.7, flame: '#a8ecff', trail: '#6fd0ff', smoke: 0, span: 0.6},
     {name: 'Fusion torch', top: 1180, accel: 1900, fuel: 1.8, flame: '#eedcff', trail: '#b98cff', smoke: 0, span: 0.75},
 ];
-// Seeker head levels: turn rate (rad/s) and lock range
-const missile_seekers = [{turn: 2, lock: 900}, {turn: 2.7, lock: 1050}, {turn: 3.4, lock: 1200}, {turn: 4.1, lock: 1350}];
+// Seeker head levels: turn rate (rad/s) and lock range; at 3.5 the first motor turns in a circle of 220 m, inside the
+// 300 m a fight is held at, so a missile comes round onto a raider that dodged it
+const missile_seekers = [{turn: 3.5, lock: 900}, {turn: 4.2, lock: 1050}, {turn: 4.9, lock: 1200}, {turn: 5.6, lock: 1350}];
 // Shaped warhead levels: blast radius and the share of the hit the raiders in it take
 const missile_warheads = [{splash: 100, share: 0.6}, {splash: 125, share: 0.7}, {splash: 150, share: 0.8}, {splash: 175, share: 0.9}];
-// The seeker sees 100° either side of the nose; a missile leaves at 260, splayed 0.3 rad by its cell, and its motor
+// The seeker sees 100° either side of the nose; a missile leaves at 420, splayed 0.3 rad by its cell, and its motor
 // lights 0.12 s later; burnt out it flies on 0.9 s
 const missile_cone = 1.75;
-const missile_launch = 260;
+const missile_launch = 420;
 const missile_splay = 0.3;
 const missile_kick = 0.12;
 const missile_coast = 0.9;

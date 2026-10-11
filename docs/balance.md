@@ -82,11 +82,16 @@ That gives, in the campaign at NORMAL:
 - A tank carries 1.4 times the world's shield (`spawn_enemy` in
   `src/js/campaign.js`).
 - A shot is taken by the shield first; what passes is cut by the armour
-  share (`expedition_base_damage_enemy`). A raider's shield comes back at 10
+  twice (`armour_hull_damage` in `src/js/campaign.js`): its plating takes a
+  flat 50 × the armour share off every hit, never more than three quarters
+  of it, then the share takes the rest in proportion. Many small bolts lose
+  more to a heavy hull than one slug does: in Eclipse (52% in the arcade) a
+  hit loses 26 before the share. A raider's shield comes back at 10
   a second after 6 seconds unhit (`src/js/navigation.js`).
 - Raider guns (`world_audio_base_enemy_fire` in `src/js/campaign.js`): rail
   30, missile 14 to 40 by its kind (below), ion 17 (and it drains 8 pulse),
-  scatter 12 a pellet in a fan of three, plasma 10. From Nova Forge on, darts
+  scatter 12 a pellet in a fan of three, plasma 10; each 8% more a world past
+  Haven (`raider_hit_scale`), Eclipse's 1.56 times. From Nova Forge on, darts
   and seekers come in pairs. A raider fires every 3.6 s, a tank every 2.8 s
   (`src/js/navigation.js`).
 - A raider's missile goes off at its fuse, units from your shield's edge (or
@@ -148,26 +153,39 @@ That gives, in the campaign at NORMAL:
 
 | Gun | Size | Rank | Price | Damage | Interval | Arcade price | Special |
 |---|---|---|---|---|---|---|---|
-| Pulse cannon | light | 0 | 0 | 14 | 0.19 s | (start gun) | Prism and Guided plasma act on it |
-| Shard shotgun | light | 1 | 220 | 11 ×5 | 0.5 s | 210 | five pellets |
-| Ion disruptor | medium | 2 | 550 | 24 | 0.3 s | 300 | triple shield damage, slows to 55% for 3 s |
-| Lance railgun | heavy | 3 | 1100 | 75 | 0.65 s | 390 | ignores 75% of armour |
-| Seeker launcher | medium | 3 | 1400 | 60 | 1.05 s | 390 | homing missiles; fuse 18; a blast wave of 100 m (Shaped warhead up to 175) |
-| Flux beam | medium | 4 | 2600 | 19 | 0.105 s | 525 | ignores 40% of armour, 1.8 pulse a shot |
+| Pulse cannon | light | 0 | 0 | 14 | 0.19 s | (start gun) | Prism: two bolts more a level; Guided plasma |
+| Shard shotgun | light | 1 | 220 | 13 ×5 | 0.5 s | 210 | five pellets; Prism: two more a level |
+| Ion disruptor | medium | 2 | 550 | 24 | 0.3 s | 300 | triple shield damage, slows to 55% for 3 s; Prism: two bolts more a level |
+| Lance railgun | heavy | 3 | 1100 | 75 | 0.65 s | 390 | ignores 75% of armour; Prism: the slug goes through a raider more a level |
+| Seeker launcher | medium | 3 | 1400 | 60 | 0.9 s | 390 | homing missiles; fuse 18; a blast wave of 100 m (Shaped warhead up to 175); Prism: a missile more a salvo |
+| Flux beam | medium | 4 | 2600 | 19 | 0.105 s | 525 | ignores 40% of armour, 1.8 pulse a lance; Prism: a lance more a level |
 
 - Where: `weapon_catalog` in `src/js/fleet.js`; the specials in
   `hit_with_weapon` and `fire_equipped_weapon`.
-- A bolt deals (gun damage + 5 per Hotter plasma level) × (1 + 22% per tier
-  past the first) × the ship's damage. Prism adds two bolts per level to
-  plasma and ion, and two pellets to the shotgun. The interval is cut 12% per
-  Rapid resonance level, never below 0.065 s.
+- A shot deals gun damage × (1 + 36% per Hotter plasma level) × (1 + 22%
+  per tier past the first) × the ship's damage: Hotter plasma lifts a slug as
+  much as a bolt (`hotter_plasma_share`). Prism gives every gun more a shot
+  (`gun_shot_count`): two bolts or pellets more a level to the cannon, the ion
+  gun and the shotgun, a missile more to the Seeker's salvo, a lance more to
+  the beam, and the rail's slug goes through a raider more. The interval is
+  cut 12% per Rapid resonance level, never below 0.065 s.
+- Fully upgraded (tier 5, Hotter plasma 5, Rapid resonance 3, Prism 2), on a
+  hull with no armour: the cannon 2860 a second, the ion gun 3100, the
+  shotgun 1810, the beam 4200 while the pulse lasts, the rail 890 a raider
+  and up to three in a line, the Seeker 1550 and its blast.
 - Tiers run 1 to 5. In the campaign a tier costs (130 + 22% of the gun's
   price) × the tier you have (`upgrade_weapon`). In the arcade a cleared world
-  raises your gun a tier, and a new gun keeps the tier the old one had
+  raises every gun you own a tier, and a new gun takes the run's tier
   (`arcade_weapon_take`).
 - A gun fits a mount of its size or larger (`gun_fits` in
-  `src/js/hardpoints.js`). In the campaign every mount fires; the arcade
-  flies one gun.
+  `src/js/hardpoints.js`), and every mount fires its own gun, in the campaign
+  and the arcade alike. In the arcade a mount fires only a gun bought for it
+  (`arcade_loadout`, `arcade_guns_owned`): the cannon you start with is one
+  gun, and a second mount needs a second gun, the same or another. A gun
+  bought goes on a mount it fits, an empty one first, else the weakest gun
+  there making way, which stays yours, spare, and goes back on for free
+  (`mount_gun_anywhere`). A gun no mount of your ship fits names the ships
+  that take it; a mount with no gun left stays empty.
 - Arcade gun price: 120 + 45 × the gun's `rating`.
 
 ## Modules and supplies
@@ -190,8 +208,8 @@ A module level costs its base price × (1 + 0.48 per level you have)
 | Vector stabilizers | 3 | 60 | steering +15%, braking +40% |
 | Evasive thrusters | 3 | 70 | steers round obstacles |
 | Reactor cooling | 3 | 75 | dash cooldown −0.35 s; Cryosphere shield recharge |
-| Prism cannon | 2 | 75 | two more bolts a shot |
-| Hotter plasma | 5 | 38 | +5 damage a bolt |
+| Prism cannon | 2 | 75 | more a shot, by the gun (Weapons, above) |
+| Hotter plasma | 5 | 38 | +36% of the gun's damage a shot |
 | Rapid resonance | 3 | 45 | fire interval −12% |
 | Slipstream | 3 | 30 | cruise speed +15% |
 | Phase armor | 3 | 46 | −12% damage taken (−15% in Obsidian) |

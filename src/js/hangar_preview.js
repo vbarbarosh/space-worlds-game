@@ -86,9 +86,9 @@ function hangar_preview_draw(canvas, preview, dt)
     const k = (size*sprite_span)/(256*art.length);
     const cx = w/2;
     const cy = h/2;
-    // each mount with the gun the ship would carry, at its mount's size
+    // each mount with the gun the ship would carry, at its mount's size; an empty arcade mount neither fires nor shows
     const loadout = ship_loadout(preview.ship).map(weapon_by_id);
-    const weapon = loadout[0];
+    const weapon = loadout.find(Boolean) || weapon_catalog[0];
     const boost = preview.boost || (hangar_shift && !!preview.pointer);
     // Turrets turn toward the pointer, or back to the nose once it leaves
     const target = preview.pointer ? Math.atan2(preview.pointer.y - cy, preview.pointer.x - cx) : 0;
@@ -104,6 +104,9 @@ function hangar_preview_draw(canvas, preview, dt)
         const c = Math.cos(preview.aim);
         const s = Math.sin(preview.aim);
         for (let i = 0; i < mounts.length; ++i) {
+            if (!loadout[i]) {
+                continue;
+            }
             const muzzles = gun_muzzles(loadout[i], gun_boxes[mounts[i].size]) || [{x: 13, y: 0, r: 0}];
             const m = muzzles[preview.volley % muzzles.length];
             preview.shots.push({x: cx + (mounts[i].x + m.x*c - m.y*s)*k, y: cy + (mounts[i].y + m.x*s + m.y*c)*k, vx: c*520, vy: s*520, life: 0.9, width: Math.max(1.4, m.r)*k, color: loadout[i].color});
@@ -137,7 +140,9 @@ function hangar_preview_draw(canvas, preview, dt)
         draw.save();
         draw.translate(mounts[i].x, mounts[i].y);
         draw.rotate(preview.aim);
-        turret_draw(draw, loadout[i], gun_boxes[mounts[i].size], preview.recoil);
+        if (loadout[i]) {
+            turret_draw(draw, loadout[i], gun_boxes[mounts[i].size], preview.recoil);
+        }
         draw.restore();
     }
     draw.restore();

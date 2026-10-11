@@ -227,7 +227,7 @@ function world_audio_base_enemy_fire(enemy, angle, speed = 210, pattern = false)
     for (const offset of spread) {
         const a = angle + offset;
         const s = ((w === 'rail') ? 520 : kind ? 190*missile_kinds[kind].speed : (w === 'ion') ? 275 : speed)*fast;
-        hostile.push({
+        const shot = {
             x: enemy.x + Math.cos(a)*enemy.r,
             y: enemy.y + Math.sin(a)*enemy.r,
             vx: Math.cos(a)*s,
@@ -239,9 +239,28 @@ function world_audio_base_enemy_fire(enemy, angle, speed = 210, pattern = false)
             damage: (w === 'rail') ? 30 : (w === 'missile') ? 23 : (w === 'scatter') ? 12 : (w === 'ion') ? 17 : 10,
             color: enemy.color,
             ...(kind ? missile_raider(kind, s) : {}),
-        });
+        };
+        shot.damage *= raider_hit_scale();
+        hostile.push(shot);
     }
     explode(enemy.x + Math.cos(angle)*enemy.r, enemy.y + Math.sin(angle)*enemy.r, 11, enemy.color || pink, 0, 'muzzle');
+}
+
+// Raiders' guns hit harder the farther the world: 8% more a world past Haven, Eclipse's half as much again
+function raider_hit_scale()
+{
+    return 1 + campaign.world*0.08;
+}
+
+// Armour cuts a hit twice: its plating takes a flat part of every hit, 50 at full armour and never more than three
+// quarters of it, then its share takes the rest in proportion. So many small bolts lose much more to a heavy hull than
+// one big slug does, and a far world asks for a heavier gun.
+const armour_plating = 50;
+
+function armour_hull_damage(enemy, through)
+{
+    const armor = enemy.armor || 0;
+    return Math.max(through*0.25, through - armor*armour_plating)*(1 - armor);
 }
 
 function expedition_base_damage_enemy(enemy, damage)
@@ -254,7 +273,7 @@ function expedition_base_damage_enemy(enemy, damage)
     const absorbed = Math.min(enemy.shield || 0, damage);
     enemy.shield = Math.max(0, (enemy.shield || 0) - absorbed);
     shield_hit_show(enemy, shield_before);
-    const hull = (damage - absorbed)*(1 - (enemy.armor || 0));
+    const hull = armour_hull_damage(enemy, damage - absorbed);
     if (hull <= 0) {
         enemy.flash = 0.08;
         return;

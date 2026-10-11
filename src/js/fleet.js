@@ -28,7 +28,7 @@ const weapon_catalog = [
         rank: 1,
         price: 220,
         rating: 2,
-        damage: 11,
+        damage: 13,
         interval: 0.5,
         speed: 950,
         life: 0.51,
@@ -74,7 +74,7 @@ const weapon_catalog = [
         price: 1400,
         rating: 6,
         damage: 60,
-        interval: 1.05,
+        interval: 0.9,
         speed: 760,
         life: 2.4,
         missile: true,
@@ -145,7 +145,7 @@ function current_ship()
 // How far the guns reach, the farthest of them
 function gun_reach()
 {
-    return Math.max(...mounted_weapons().map(weapon_reach));
+    return Math.max(0, ...mounted_weapons().filter(Boolean).map(weapon_reach));
 }
 
 // A gun's range: how far its shot flies; a missile's, how far its seeker locks
@@ -174,7 +174,7 @@ function current_weapon()
 function guns_text()
 {
     const counts = new Map();
-    for (const v of mounted_weapons()) {
+    for (const v of mounted_weapons().filter(Boolean)) {
         counts.set(v.name, (counts.get(v.name) || 0) + 1);
     }
     const parts = [];
@@ -270,8 +270,8 @@ function fire_equipped_weapon(mount = null)
     }
     const f = ensure_career();
     const tier = f.weapon_levels[v.id] || 1;
-    const damage = (v.damage + upgrades.damage*5)*(1 + (tier - 1)*0.22)*current_ship().damage;
-    const count = (v.id === 'scatter') ? 5 + upgrades.spread*2 : ['plasma', 'ion'].includes(v.id) ? 1 + upgrades.spread*2 : 1;
+    const damage = v.damage*(1 + upgrades.damage*hotter_plasma_share)*(1 + (tier - 1)*0.22)*current_ship().damage;
+    const count = gun_shot_count(v);
     player.barrels = player.barrels || [];
     const slot = mount ?? 0;
     player.barrels[slot] = (player.barrels[slot] || 0) + 1;
@@ -293,11 +293,12 @@ function fire_equipped_weapon(mount = null)
             color: v.color,
             homing: ['plasma', 'ion'].includes(v.id) && (upgrades.homing > 0),
             width: muzzle.bore,
+            pierce: (v.id === 'rail') ? upgrades.spread : 0,
         });
         explode(muzzle.x, muzzle.y, muzzle.bore ? Math.max(3, muzzle.bore*3) : 9, v.color, 0, 'muzzle');
     }
     if (v.id === 'beam') {
-        player.energy = Math.max(0, player.energy - 1.8);
+        player.energy = Math.max(0, player.energy - 1.8*count);
     }
     player.shoot_cd = Math.max(0.065, v.interval*(1 - upgrades.rate*0.12));
     if (mount !== null) {
@@ -305,6 +306,26 @@ function fire_equipped_weapon(mount = null)
         player.gun_cd[mount] = player.shoot_cd;
     }
     sfx((v.id === 'plasma') ? 'shot' : v.missile ? 'missile' : `enemy_${v.id}`);
+}
+
+// Hotter plasma: each level adds this share of the gun's own damage to every shot, so it lifts a slug as much as a
+// bolt (14 + 36% is the old +5 on the cannon)
+const hotter_plasma_share = 0.36;
+
+// Prism gives each gun more per shot: two more bolts to the cannon and the ion gun, two more pellets to the shotgun,
+// a missile more to the Seeker's salvo, a lance more to the beam; the rail's slug pierces a raider more instead
+function gun_shot_count(v)
+{
+    if (v.id === 'scatter') {
+        return 5 + upgrades.spread*2;
+    }
+    if (['plasma', 'ion'].includes(v.id)) {
+        return 1 + upgrades.spread*2;
+    }
+    if (['missile', 'beam'].includes(v.id)) {
+        return 1 + upgrades.spread;
+    }
+    return 1;
 }
 
 function hit_with_weapon(enemy, b)

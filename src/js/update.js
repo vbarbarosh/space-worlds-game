@@ -435,10 +435,18 @@ function update(dt)
             const t = l ? clamp(((v.x - px)*vx + (v.y - py)*vy)/l, 0, 1) : 0;
             const ex = v.x - (px + vx*t);
             const ey = v.y - (py + vy*t);
-            if (ex*ex + ey*ey < (v.r + b.r)*(v.r + b.r)) {
+            // a slug that pierces goes on through the raiders it has hit, each once
+            if ((ex*ex + ey*ey < (v.r + b.r)*(v.r + b.r)) && !(b.passed && b.passed.includes(v))) {
                 const shielded = (v.shield || 0) > 0;
                 hit_with_weapon(v, b);
-                b.life = 0;
+                if (b.pierce > 0) {
+                    b.pierce -= 1;
+                    b.passed = b.passed || [];
+                    b.passed.push(v);
+                }
+                else {
+                    b.life = 0;
+                }
                 burst(b.x, b.y, b.color || cyan, 3, 70);
                 // a hull hit throws sparks and chips back the way the shot came; a shield shows its own impact
                 if (shielded) {
@@ -447,7 +455,9 @@ function update(dt)
                 else {
                     explode_impact(b.x, b.y, Math.atan2(b.vy, b.vx), 9 + Math.min(9, b.damage*0.35), b.color || cyan, '#aab4bf');
                 }
-                break;
+                if (b.life <= 0) {
+                    break;
+                }
             }
         }
         if (b.life > 0) {

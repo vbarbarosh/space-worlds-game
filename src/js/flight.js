@@ -299,7 +299,7 @@ function fire(mount = null)
     }
     if (campaign.world === 6) {
         // the reactor heats by the volley, however many guns share it
-        player.heat = Math.min(100, (player.heat || 0) + 3/((mount === null) ? 1 : mounted_weapons().length));
+        player.heat = Math.min(100, (player.heat || 0) + 3/((mount === null) ? 1 : mounted_weapons().filter(Boolean).length));
         if (player.heat >= 100) {
             player.overheated = true;
         }

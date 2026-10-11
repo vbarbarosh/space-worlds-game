@@ -239,7 +239,7 @@ function pulse_lethal(target, kind, damage)
     if (target.leviathan && !target.core_kill) {
         return false;
     }
-    return (damage - Math.min(target.shield || 0, damage))*(1 - (target.armor || 0)) >= target.hp;
+    return armour_hull_damage(target, damage - Math.min(target.shield || 0, damage)) >= target.hp;
 }
 
 // 0.05-0.14 s after the front, later down the chain; from the target's place, not from dice: it decides the chain's timing

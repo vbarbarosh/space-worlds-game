@@ -499,7 +499,12 @@ function arcade_world_clear()
     }
     const bonus = arcade_clear_bonus();
     salvage += bonus;
-    ensure_career().weapon_levels[current_weapon().id] = Math.min(5, weapon_level() + 1);
+    // every gun you own grows a tier: the run's tier is one for all of them
+    const fleet = ensure_career();
+    const tier = Math.min(5, weapon_level() + 1);
+    for (const id of fleet.weapons) {
+        fleet.weapon_levels[id] = tier;
+    }
     set_hidden(el.bossbar, true);
     arcade.between_worlds = {world: campaign.world, bonus};
     toasts_clear();
@@ -556,15 +561,23 @@ function arcade_blasts_update(dt)
 }
 
 // A new weapon keeps the tier the old one had reached.
+// A gun at the depot: one you have spare goes on a mount again; else you buy one more of it. It goes on a mount it
+// fits, an empty one first, else the weakest gun there making way, and takes the run's tier.
 function arcade_weapon_take(weapon)
 {
     const fleet = ensure_career();
     const tier = weapon_level();
+    const owned = arcade_guns_owned();
+    if ((owned[weapon.id] || 0) <= mounts_carrying(weapon)) {
+        owned[weapon.id] = (owned[weapon.id] || 0) + 1;
+    }
     if (!fleet.weapons.includes(weapon.id)) {
         fleet.weapons.push(weapon.id);
     }
     fleet.weapon_id = weapon.id;
     fleet.weapon_levels[weapon.id] = tier;
+    mount_gun_anywhere(weapon.id);
+    player.gun_cd = [];
 }
 
 // R at the station opens the depot, unless raiders are close: the depot is a shop, not a hiding place. From afar, R
@@ -664,18 +677,25 @@ function arcade_depot_items()
             },
         });
     }
-    // the guns in the catalog's order, so a card stays under the pointer as you switch, their stats against yours; a
-    // gun bought is yours for the run, and equipping it again is free
+    // the guns in the catalog's order, so a card stays under the pointer as you switch, their stats against yours. Each
+    // mount of your ship fires a gun bought for it: a gun bought goes on a mount it fits, an empty one first, else the
+    // weakest gun there making way, which stays yours, spare, and goes on again for free. A gun no mount of your ship
+    // fits says which ships take it.
     const mine = current_weapon();
-    const owned = ensure_career().weapons;
+    const owned = arcade_guns_owned();
+    const mounts = ship_mounts();
     for (const weapon of weapon_catalog) {
-        const equipped = weapon.id === mine.id;
-        const have = owned.includes(weapon.id);
+        const carried = mounts_carrying(weapon);
+        const fits = gun_fits_ship(weapon);
+        const room = carried < mounts.filter(v => gun_fits(weapon, v)).length;
+        const spare = (owned[weapon.id] || 0) > carried;
+        const where = (mounts.length > 1) ? `On ${carried} of your ${mounts.length} mounts.` : 'On your one mount.';
+        const line = !fits ? `Needs a ${weapon.size} mount: ${ship_catalog.filter(v => gun_fits_ship(weapon, v)).map(v => v.name).join(', ')}.` : carried ? (room ? `${where} Buy another for one more mount.` : `${where} Every gun grows a tier with every world you clear.`) : spare ? `Yours, spare. ${weapon.line}` : weapon.line;
         out.push({
-            kind: 'weapon', id: weapon.id, section: 'weapons', title: equipped ? `${weapon.name} T${weapon_level()}` : weapon.name,
-            line: equipped ? 'Your gun. It grows a tier with every world you clear.' : have ? `Yours. ${weapon.line}` : weapon.line,
+            kind: 'weapon', id: weapon.id, section: 'weapons', title: carried ? `${weapon.name} T${weapon_level()}${(carried > 1) ? ` ×${carried}` : ''}` : weapon.name,
+            line,
             tags: `weapon gun оружие пушка ${weapon.tags || ''}`, icon: ship_parts_clean_url(`weapons/turret-${weapon.id}`), chips: arcade_weapon_chips(weapon, mine),
-            price: equipped ? null : have ? 0 : 120 + weapon.rating*45, done: equipped ? 'Equipped' : '', owned: equipped, label: have ? 'Equip' : 'Buy',
+            price: (!fits || !room) ? null : spare ? 0 : 120 + weapon.rating*45, done: !fits ? 'No mount fits' : !room ? 'Equipped' : '', owned: carried > 0, label: spare ? 'Equip' : carried ? 'Buy another' : 'Buy',
             buy: function () {
                 arcade_weapon_take(weapon);
             },
@@ -718,7 +738,7 @@ function arcade_depot_render_list()
     const found = arcade_depot_items().filter(v => words.every(vv => `${v.title} ${v.line} ${v.tags}`.toLowerCase().includes(vv)));
     const sections = [
         {value: 'repairs', label: 'Repairs and supplies', note: 'kept for the next world'},
-        {value: 'weapons', label: 'Weapons', note: 'guns you buy stay yours · equip any for free'},
+        {value: 'weapons', label: 'Weapons', note: 'each mount fires a gun bought for it · a spare one goes back on for free'},
         {value: 'ships', label: 'Ships', note: 'your modules and gun move with you'},
         ...module_shelves,
     ];
