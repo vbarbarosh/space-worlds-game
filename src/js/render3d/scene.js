@@ -1,6 +1,8 @@
-// The 3D view, a prototype on the dev page behind `?render=3d` (`&shadows=0` without shadows): your ship, the raiders,
-// the rocks and the station as low-poly models under soft light, drawn by Three.js and put into the game's canvas
-// right after the background. Everything else stays 2D and is drawn over them as before: shots, effects, labels, bars.
+// The 3D view, switched on by View 2D · 3D on the main menu and in Settings, remembered in this browser, or by
+// `?render=3d` in the URL (`&shadows=0` without shadows): your ship, the raiders, the rocks and the station as low-poly
+// models under soft light, drawn by Three.js and put into the game's canvas right after the background. Everything
+// else stays 2D and is drawn over them as before: shots, effects, labels, bars. Three.js starts on the first switch to
+// 3D, not before.
 //
 // The camera looks down at 45° without changing the plane of flight: a point of the plane is where the 2D view puts
 // it, and a point above the plane shows that much higher on the screen (an oblique projection). So the 2D layer lines
@@ -9,7 +11,12 @@
 // does: the game itself does not change.
 
 const render3d = {
-    on: new URLSearchParams(location.search).get('render') === '3d',
+    // drawn in 3D now: asked for, and this browser draws it
+    on: false,
+    // asked for: by the URL, else by the switch
+    wanted: false,
+    // why this browser cannot draw it ('no WebGL 2', 'the WebGL context was lost'), or empty
+    broken: '',
     shadows: new URLSearchParams(location.search).get('shadows') !== '0',
     three: null,
     renderer: null,
@@ -27,8 +34,7 @@ const render3d = {
     width: 0,
     height: 0,
 };
-// asked for in the URL, even when this browser could not draw it
-const render3d_requested = render3d.on;
+const render3d_view_key = 'world_explorer_view';
 // How much higher on the screen a point is drawn for each unit of height: 1 is a view from 45°
 const render3d_tilt = 1;
 // The plane the shadows fall on, below the plane of flight
@@ -47,6 +53,7 @@ function render3d_start()
     }
     catch (error) {
         console.warn(`render=3d: no 3D view (${error.message}); drawing in 2D`);
+        render3d.broken = error.message;
         render3d.on = false;
         return;
     }
@@ -58,7 +65,10 @@ function render3d_start()
     renderer.domElement.addEventListener('webglcontextlost', function (event) {
         event.preventDefault();
         console.warn('render=3d: the WebGL context was lost; drawing in 2D');
+        render3d.broken = 'the WebGL context was lost';
         render3d.on = false;
+        render3d_hooks_set(false);
+        sync_settings_rows();
     });
     render3d.scene = new THREE.Scene();
     render3d.camera = new THREE.OrthographicCamera();
@@ -255,10 +265,10 @@ const render3d_base_render_surface_ship = render_surface_ship;
 const render3d_base_render_ship_turrets = render_ship_turrets;
 const render3d_base_render_world_ore = render_world_ore;
 const render3d_base_render_world_station = render_world_station;
-const render3d_base_dev_scenario_save = dev_scenario_save;
 
 // The background, then the background things (scenery is never drawn over a ship), then the 3D scene
-draw_background = function () {
+function render3d_draw_background()
+{
     render3d_base_draw_background();
     if (!render3d_active()) {
         return;
@@ -269,26 +279,34 @@ draw_background = function () {
     render3d_base_render_map();
     ctx.restore();
     render3d_draw();
-};
-render_map = function () {
+}
+
+function render3d_render_map()
+{
     if (!render3d_active()) {
         render3d_base_render_map();
     }
-};
+}
+
 // Your ship and the raiders are models now; their trails, freighters and escorts stay 2D
-render_surface_ship = function (x, y, angle, alpha = 1, ghost = false, definition = null) {
+function render3d_render_surface_ship(x, y, angle, alpha = 1, ghost = false, definition = null)
+{
     if (render3d_active() && !ghost && (definition ? definition.enemy : is_player_vessel(x, y))) {
         return;
     }
     render3d_base_render_surface_ship(x, y, angle, alpha, ghost, definition);
-};
-render_ship_turrets = function (alpha = 1) {
+}
+
+function render3d_render_ship_turrets(alpha = 1)
+{
     if (!render3d_active()) {
         render3d_base_render_ship_turrets(alpha);
     }
-};
+}
+
 // A rock is a model; its hull bar stays
-render_world_ore = function (v) {
+function render3d_render_world_ore(v)
+{
     if (!render3d_active()) {
         render3d_base_render_world_ore(v);
         return;
@@ -296,9 +314,11 @@ render_world_ore = function (v) {
     if (in_view(v, v.r + 8)) {
         ore_hp_bar(v);
     }
-};
+}
+
 // The station is a model; its shelter ring, its shield and its name stay
-render_world_station = function () {
+function render3d_render_world_station()
+{
     if (!render3d_active()) {
         render3d_base_render_world_station();
         return;
@@ -317,20 +337,66 @@ render_world_station = function () {
     depot_shield_draw();
     world_label(station.x, station.y + station_size/2 + 70, arcade.active ? 'DEPOT' : w.station.toUpperCase(), arcade.active ? (depot_shield_up() ? 'Shielded · clear the raiders' : 'R repairs and weapons') : 'Station · R dock', w.accent);
     ctx.restore();
-};
-// The dev page writes its scenario into the URL: the flags of the 3D view stay in it, so a reload keeps them
-dev_scenario_save = function () {
-    render3d_base_dev_scenario_save();
-    const params = new URLSearchParams(location.search);
-    if (render3d_requested && (params.get('render') !== '3d')) {
-        params.set('render', '3d');
-        if (!render3d.shadows) {
-            params.set('shadows', '0');
-        }
-        history.replaceState(null, '', `${location.pathname}?${params.toString()}`);
-    }
-};
+}
 
-if (render3d.on) {
+// The 3D drawing takes the place of the game's own functions only while 3D is on: in 2D the game draws with its
+// own, as if this file were not there
+function render3d_hooks_set(on)
+{
+    draw_background = on ? render3d_draw_background : render3d_base_draw_background;
+    render_map = on ? render3d_render_map : render3d_base_render_map;
+    render_surface_ship = on ? render3d_render_surface_ship : render3d_base_render_surface_ship;
+    render_ship_turrets = on ? render3d_render_ship_turrets : render3d_base_render_ship_turrets;
+    render_world_ore = on ? render3d_render_world_ore : render3d_base_render_world_ore;
+    render_world_station = on ? render3d_render_world_station : render3d_base_render_world_station;
+}
+
+// The view now, as the switch shows it: '3d' while asked for and drawn, else '2d'
+function render3d_view()
+{
+    return render3d.on ? '3d' : '2d';
+}
+
+// The switch: '3d' starts Three.js the first time and draws the next frame in 3D; '2d' draws it in 2D again. The
+// choice is kept for the next visit, unless this browser cannot draw 3D.
+function render3d_view_set(view)
+{
+    render3d.wanted = (view === '3d');
+    if (render3d.wanted && !render3d.renderer && !render3d.broken) {
+        render3d_start();
+    }
+    render3d.on = render3d.wanted && !!render3d.renderer && !render3d.broken;
+    render3d_hooks_set(render3d.on);
+    // drawn again at once, under the pause or the settings too
+    performance_render_dirty = true;
+    if (render3d.wanted && !render3d.on) {
+        show_toast('3D view unavailable', `This browser cannot draw it: ${render3d.broken}`, 2.5);
+    }
+    try {
+        localStorage.setItem(render3d_view_key, render3d.on ? '3d' : '2d');
+    }
+    catch {
+    }
+}
+
+// The URL first (the dev page's ?render=3d), then the switch's last choice in this browser
+function render3d_view_saved()
+{
+    const param = new URLSearchParams(location.search).get('render');
+    if (param) {
+        return param;
+    }
+    try {
+        return localStorage.getItem(render3d_view_key) || '2d';
+    }
+    catch {
+        return '2d';
+    }
+}
+
+render3d.wanted = (render3d_view_saved() === '3d');
+if (render3d.wanted) {
     render3d_start();
+    render3d.on = !!render3d.renderer && !render3d.broken;
+    render3d_hooks_set(render3d.on);
 }

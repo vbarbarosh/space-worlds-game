@@ -21,7 +21,7 @@ function dev_fps_refresh()
     dev_fps.ms = 0;
     dev_fps.frames = 0;
     // 3D asked for: "no WebGL" only when it failed to start; a menu or a screen without a ship draws nothing in 3D, and says so
-    const renderer = !render3d_requested ? '2D' : !render3d.on ? '2D · no WebGL' : render3d_active() ? '3D' : '3D · in flight';
+    const renderer = !render3d.wanted ? '2D' : !render3d.on ? '2D · no WebGL' : render3d_active() ? '3D' : '3D · in flight';
     el_dev_fps.textContent = `${dev_time.fps} fps · ${ms.toFixed(1)} ms · ${renderer}`;
     // the bottom row moves with the window's size: the gap above it is free at every size (bin/layout-check)
     const bottom = el_dev_hud_bottom.getBoundingClientRect();

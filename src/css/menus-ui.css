@@ -158,6 +158,7 @@ body:not(.in-game) .ui.hud .hud-top .toolbar {
 .ui .sub-row .mode .ico { width: 30px; height: 30px; border-radius: 8px; }
 .ui .sub-row .mode .ico svg { width: 17px; height: 17px; }
 .ui .sub-row .mode b { font-size: 14px; }
+.ui .mm-view { display: flex; align-items: center; gap: 12px; }
 
 /* the stage */
 .ui .mm-stage { grid-column: 2; grid-row: 1 / -1; position: relative; min-width: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 1; }
