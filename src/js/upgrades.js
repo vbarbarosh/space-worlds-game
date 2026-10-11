@@ -230,7 +230,7 @@ function drop_pickup(x, y, type, value = 0)
 
 function collect_pickup(v, quiet = false)
 {
-    explode(v.x, v.y, 14, pickup_color(v), 0, 'spark');
+    explode_collect(pickup_color(v));
     if (v.type === 'cargo') {
         cargo_collect(v, quiet);
     }

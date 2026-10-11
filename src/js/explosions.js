@@ -5,7 +5,7 @@ let explosion_seed = 1;
 let hull_smoke_timer = 0;
 const explosion_limit = 140;
 // Lighter effects than a blast: how long each lasts, in seconds
-const explosion_durations = {spark: 0.25, muzzle: 0.07, shield: 0.45, warp: 0.4, smoke: 0.9, impact: 0.38};
+const explosion_durations = {spark: 0.25, muzzle: 0.07, shield: 0.45, warp: 0.4, smoke: 0.9, impact: 0.38, collect: 0.34};
 
 // size is the fireball's radius in world units: about 40 for a raider, 70 for a tank, 220 for a flagship;
 // kind 'blast' is the full explosion, the others are the small effects listed in explosion_durations
@@ -64,6 +64,23 @@ function explode_impact(x, y, angle, size, color, hull_color)
         debris.push({angle: angle + Math.PI + (explosion_random() - 0.5)*2.6, speed: size*(4 + explosion_random()*5), spin: (explosion_random() - 0.5)*18, size: 2 + explosion_random()*2.5, sides: 3});
     }
     explosions.push({x, y, size, color, hull_color, angle, kind: 'impact', t: 0, duration: explosion_durations.impact, sparks, debris, puffs: []});
+    if (explosions.length > explosion_limit) {
+        explosions.splice(0, explosions.length - explosion_limit);
+    }
+}
+
+// A pickup taken: a ring in its color closing on your ship and sparks drawn into the hull, so what you took shows
+// where you are looking; drawn where the ship is, as it flies on
+function explode_collect(color)
+{
+    if (!player) {
+        return;
+    }
+    const sparks = [];
+    for (let i = 0; i < 6; ++i) {
+        sparks.push({angle: explosion_random()*Math.PI*2, speed: 0, length: 5 + explosion_random()*7});
+    }
+    explosions.push({x: player.x, y: player.y, size: 24, color, kind: 'collect', t: 0, duration: explosion_durations.collect, sparks, debris: [], puffs: []});
     if (explosions.length > explosion_limit) {
         explosions.splice(0, explosions.length - explosion_limit);
     }
@@ -370,6 +387,10 @@ function explosion_light_draw(explosion, x, y, scale)
         explosion_impact_draw(explosion, x, y, scale);
         return;
     }
+    if (explosion.kind === 'collect') {
+        explosion_collect_draw(explosion, scale);
+        return;
+    }
     const p = explosion.t/explosion.duration;
     const size = explosion.size*scale;
     ctx.save();
@@ -463,6 +484,41 @@ function explosion_impact_draw(explosion, x, y, scale)
         ctx.lineTo(px + Math.cos(a + 2.4)*r*0.7, py + Math.sin(a + 2.4)*r*0.7);
         ctx.lineTo(px + Math.cos(a + 4.2)*r*0.8, py + Math.sin(a + 4.2)*r*0.8);
         ctx.closePath();
+        ctx.fill();
+    }
+    ctx.restore();
+}
+
+function explosion_collect_draw(explosion, scale)
+{
+    const p = explosion.t/explosion.duration;
+    const size = explosion.size*scale;
+    const x = player ? player.x : explosion.x;
+    const y = player ? player.y : explosion.y;
+    const radius = size*(1.7 - p*1.25);
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.lineCap = 'round';
+    ctx.globalAlpha = (1 - p)*0.9;
+    ctx.strokeStyle = explosion.color;
+    ctx.lineWidth = Math.max(1, 2.6*scale*(1 - p*0.5));
+    explosion_circle(x, y, radius);
+    ctx.stroke();
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = Math.max(1, 1.4*scale);
+    ctx.beginPath();
+    for (const spark of explosion.sparks) {
+        const cos = Math.cos(spark.angle);
+        const sin = Math.sin(spark.angle);
+        const outer = radius + spark.length*scale*(1 - p);
+        ctx.moveTo(x + cos*outer, y + sin*outer);
+        ctx.lineTo(x + cos*radius, y + sin*radius);
+    }
+    ctx.stroke();
+    if (p > 0.6) {
+        ctx.globalAlpha = (1 - p)/0.4;
+        ctx.fillStyle = explosion.color;
+        explosion_circle(x, y, size*0.55*(p - 0.4));
         ctx.fill();
     }
     ctx.restore();
