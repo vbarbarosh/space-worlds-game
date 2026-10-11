@@ -328,8 +328,19 @@ before rocks and the Relic processor.
   3 + min(3, world index / 2) + (wave − 1) + the mode's extra, and the next
   comes after max(2.6, 5.5 − 0.3 × world index) seconds × the mode's gap,
   but not while more than 14 raiders are alive (`arcade_squads_update`).
-- Wave 1 is chasers (70%) and shooters; later waves follow the world's mix,
-  one type to a squadron (`arcade_squad_spawn`).
+- Wave 1 is chasers (70%) and shooters; later waves follow the world's mix.
+  The type drawn sets how the squadron comes (`arcade_squad_pattern`):
+  - a tank (three raiders or more) leads a **wall**, shooters in a row 80 m
+    behind it carrying the world's gun, not missiles, or a **convoy**,
+    chasers in a ring round it, half and half; two tanks from seven raiders
+    on. The escorts keep their places at the tank's pace until it dies or
+    you come within 300 m (`arcade_role_steer`);
+  - lancers lie in **ambush** (70%, when there are rocks 450 to 1000 m from
+    you): still beside the rocks, with no warp flash, until you come within
+    420 m, hit one, or 25 s pass;
+  - the rest come in a **line** across their heading, 640 m away, or, from
+    four raiders on and 35% of the time, in a **pincer**: the line split to
+    both sides of you.
 - A ship that explodes hurts everything within 1.8 × its blast size, less
   with distance: a chaser 10, a tank 26, a flagship 50, an elite ×1.5
   (`arcade_blast_from_kill`).

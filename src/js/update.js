@@ -373,6 +373,11 @@ function update(dt)
                 move = 0;
             }
         }
+        // an escort keeps its place in its squadron, a lurker waits in the rocks (arcade_role_steer)
+        if (v.guard || v.lurk) {
+            move = arcade_role_steer(v, move, d);
+            heading = v.angle;
+        }
         // raiders steer round the asteroids and structures ahead, as the rule for everything solid asks
         if (move > 0) {
             heading = raider_avoid(v, heading);

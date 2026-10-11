@@ -267,27 +267,154 @@ function arcade_squads_update(dt)
     arcade.squad_timer = Math.max(2.6, 5.5 - campaign.world*0.3)*arcade_mode().gap;
 }
 
-// One type per squadron, in a line across its heading; from the mode's first elite world on, every second one has an
-// elite leader.
+// How a squadron comes, by the type the world's mix draws for it: a line of one type, as it always did; a pincer, the
+// line split to both sides of you; a wall, a tank in front with shooters behind it; a convoy, chasers round a slow
+// tank; an ambush, lancers waiting still among the rocks. From the mode's first elite world on, every second
+// squadron from wave 2 has an elite leader.
 function arcade_squad_spawn(size)
 {
     const type = (arcade.wave === 1) ? ((Math.random() < 0.7) ? 'chaser' : 'shooter') : enemy_type();
+    const pattern = arcade_squad_pattern(type, size);
     const angle = Math.random()*Math.PI*2;
-    const cx = player.x + Math.cos(angle)*640;
-    const cy = player.y + Math.sin(angle)*640;
     const elite = (campaign.world >= arcade_mode().elite_world) && (arcade.wave >= 2) && (arcade.squads % 2 === 1);
     arcade.squads++;
+    if (pattern === 'ambush') {
+        arcade_squad_ambush(size, elite);
+        return;
+    }
+    if ((pattern === 'wall') || (pattern === 'convoy')) {
+        arcade_squad_escorted(pattern, size, angle, elite);
+        return;
+    }
+    const sides = (pattern === 'pincer') ? [angle, angle + Math.PI] : [angle];
+    for (let i = 0; i < sides.length; ++i) {
+        const count = (sides.length === 1) ? size : (i === 0) ? Math.ceil(size/2) : Math.floor(size/2);
+        arcade_squad_line(type, count, sides[i], elite && (i === 0));
+    }
+}
+
+// The pattern for a squadron of this type: tanks lead walls and convoys, lancers lie in ambush where there are rocks
+// to hide in, the rest come in a line or a pincer; a squadron too small for its pattern comes in a line.
+function arcade_squad_pattern(type, size)
+{
+    const n = Math.random();
+    if ((type === 'tank') && (size >= 3)) {
+        return (n < 0.5) ? 'wall' : 'convoy';
+    }
+    if ((type === 'lancer') && (n < 0.7) && arcade_ambush_rocks().length) {
+        return 'ambush';
+    }
+    return ((size >= 4) && (n < 0.35)) ? 'pincer' : 'line';
+}
+
+// One type in a line across its heading, 640 m away on the given side, warping in
+function arcade_squad_line(type, size, angle, elite)
+{
+    const cx = player.x + Math.cos(angle)*640;
+    const cy = player.y + Math.sin(angle)*640;
     for (let i = 0; i < size; ++i) {
-        const enemy = spawn_enemy(type);
         const offset = (i - (size - 1)/2)*55;
-        enemy.x = clamp(cx - Math.sin(angle)*offset, 40, world.w - 40);
-        enemy.y = clamp(cy + Math.cos(angle)*offset, 40, world.h - 40);
-        ring(enemy.x, enemy.y, enemy.color || pink, 40, 0.4);
-        explode(enemy.x, enemy.y, 26, '#a8e4ff', i*0.05, 'warp');
+        const enemy = arcade_squad_warp(type, cx - Math.sin(angle)*offset, cy + Math.cos(angle)*offset, i);
         if (elite && (i === 0)) {
             arcade_elite_make(enemy);
         }
     }
+}
+
+// A tank, two in a squadron of seven or more, leading the rest: a wall puts shooters in a row behind it, a convoy
+// puts chasers round it. They keep their places while their leader lives and you keep away (arcade_role_steer).
+function arcade_squad_escorted(pattern, size, angle, elite)
+{
+    const cx = player.x + Math.cos(angle)*640;
+    const cy = player.y + Math.sin(angle)*640;
+    const heading = angle + Math.PI;
+    const leaders = (size >= 7) ? 2 : 1;
+    const escorts = size - leaders;
+    const lead = [];
+    for (let i = 0; i < leaders; ++i) {
+        const side = (leaders === 1) ? 0 : (i - 0.5)*90;
+        const enemy = arcade_squad_warp('tank', cx - Math.sin(heading)*side, cy + Math.cos(heading)*side, i);
+        enemy.angle = heading;
+        if (elite && (i === 0)) {
+            arcade_elite_make(enemy);
+        }
+        lead.push(enemy);
+    }
+    for (let i = 0; i < escorts; ++i) {
+        const leader = lead[i % leaders];
+        // a wall: a row 80 m behind, 60 m apart; a convoy: a ring 80 m round, its gap to the front
+        const k = (escorts === 1) ? 0 : i/(escorts - 1) - 0.5;
+        const offset = (pattern === 'wall') ? [-80, k*60*escorts] : [80*Math.cos(Math.PI*(0.35 + 1.3*(i/Math.max(1, escorts - 1)))), 80*Math.sin(Math.PI*(0.35 + 1.3*(i/Math.max(1, escorts - 1))))];
+        const x = leader.x + Math.cos(heading)*offset[0] - Math.sin(heading)*offset[1];
+        const y = leader.y + Math.sin(heading)*offset[0] + Math.cos(heading)*offset[1];
+        const enemy = arcade_squad_warp((pattern === 'wall') ? 'shooter' : 'chaser', x, y, leaders + i);
+        enemy.angle = heading;
+        enemy.guard = leader;
+        enemy.guard_offset = offset;
+    }
+}
+
+// Lancers in the rocks between 450 and 1000 m from you, still and dark until you come near or hit one; no warp flash
+// gives them away, only the radar
+function arcade_squad_ambush(size, elite)
+{
+    const rocks = arcade_ambush_rocks();
+    for (let i = 0; i < size; ++i) {
+        const rock = rocks[i % rocks.length];
+        const a = Math.random()*Math.PI*2;
+        const enemy = spawn_enemy('lancer');
+        enemy.x = clamp(rock.x + Math.cos(a)*(rock.r + 30), 40, world.w - 40);
+        enemy.y = clamp(rock.y + Math.sin(a)*(rock.r + 30), 40, world.h - 40);
+        enemy.lurk = true;
+        if (elite && (i === 0)) {
+            arcade_elite_make(enemy);
+        }
+    }
+}
+
+// The rocks a lancer can hide by: 450 to 1000 m from you, the nearest first
+function arcade_ambush_rocks()
+{
+    return ore_nodes.filter(v => (distance(v, player) > 450) && (distance(v, player) < 1000)).sort((a, b) => distance(a, player) - distance(b, player));
+}
+
+function arcade_squad_warp(type, x, y, i)
+{
+    const enemy = spawn_enemy(type);
+    enemy.x = clamp(x, 40, world.w - 40);
+    enemy.y = clamp(y, 40, world.h - 40);
+    ring(enemy.x, enemy.y, enemy.color || pink, 40, 0.4);
+    explode(enemy.x, enemy.y, 26, '#a8e4ff', i*0.05, 'warp');
+    return enemy;
+}
+
+// A raider's way by its place in a squadron, after its type has chosen one (update): an escort keeps its place by its
+// leader, at the leader's pace, until the leader dies or you come within 300 m; a lurker waits still, turned to you,
+// until you come within 420 m, it is hit or 25 s pass. Turns the raider (angle) and returns how fast it moves.
+function arcade_role_steer(v, move, d)
+{
+    if (v.lurk) {
+        if ((d > 420) && (v.hp >= v.max_hp) && ((v.shield || 0) >= (v.max_shield || 0)) && (v.age < 25)) {
+            // a lancer charges at the end of its count: hold the count while it waits
+            v.charge_cd = Math.max(v.charge_cd, 1.5);
+            return 0;
+        }
+        v.lurk = false;
+        ring(v.x, v.y, gold, 50, 0.3);
+        return move;
+    }
+    const lead = v.guard;
+    if ((lead.hp <= 0) || (d < 300)) {
+        v.guard = null;
+        return move;
+    }
+    const tx = lead.x + Math.cos(lead.angle)*v.guard_offset[0] - Math.sin(lead.angle)*v.guard_offset[1];
+    const ty = lead.y + Math.sin(lead.angle)*v.guard_offset[0] + Math.cos(lead.angle)*v.guard_offset[1];
+    // the leader's way plus a pull to the place, twice the gap a second
+    const vx = Math.cos(lead.angle)*lead.speed + (tx - v.x)*2;
+    const vy = Math.sin(lead.angle)*lead.speed + (ty - v.y)*2;
+    v.angle = Math.atan2(vy, vx);
+    return Math.min(1.5, Math.sqrt(vx*vx + vy*vy)/v.speed);
 }
 
 function arcade_elite_make(enemy)
