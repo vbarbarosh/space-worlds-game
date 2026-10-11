@@ -4,6 +4,10 @@ let explosions = [];
 let explosion_seed = 1;
 let hull_smoke_timer = 0;
 const explosion_limit = 140;
+// A big kill holds the game still for a moment, the frame drawn and nothing moving (js/boot.js): at most once in
+// 0.4 s, and never when the system asks for reduced motion
+let hit_stop = 0;
+let hit_stop_last = -1;
 // Lighter effects than a blast: how long each lasts, in seconds
 const explosion_durations = {spark: 0.25, muzzle: 0.07, shield: 0.45, warp: 0.4, smoke: 0.9, impact: 0.38, collect: 0.34};
 
@@ -84,6 +88,15 @@ function explode_collect(color)
     if (explosions.length > explosion_limit) {
         explosions.splice(0, explosions.length - explosion_limit);
     }
+}
+
+function hit_stop_start(seconds)
+{
+    if (!full_fx || (clock - hit_stop_last < 0.4)) {
+        return;
+    }
+    hit_stop = Math.max(hit_stop, seconds);
+    hit_stop_last = clock;
 }
 
 function explosion_light_add(x, y, size, color, delay, kind)

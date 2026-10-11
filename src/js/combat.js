@@ -279,6 +279,9 @@ function base_damage_enemy(enemy, damage)
     ring(enemy.x, enemy.y, (enemy.type === 'shooter') ? gold : pink, enemy.r*3, 0.35);
     label(enemy.x, enemy.y - 10, `+${points}`, (chain > 1) ? gold : cyan);
     shake = Math.max(shake, arcade.active ? arcade_kill_shake(enemy) : ((enemy.type === 'boss') ? 22 : 4));
+    if ((enemy.type === 'boss') || (enemy.type === 'tank') || enemy.elite) {
+        hit_stop_start((enemy.type === 'boss') ? 0.12 : 0.05);
+    }
     if (arcade.active && (enemy.type === 'boss')) {
         arcade.slowmo = 1.4;
     }

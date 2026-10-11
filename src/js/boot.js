@@ -18,6 +18,10 @@ function frame(timestamp)
     if ((state === 'transit') && !settings_open) {
         update_jump(game_dt);
     }
+    else if (!modal && (hit_stop > 0)) {
+        // a big kill holds the game still for a moment (js/explosions.js)
+        hit_stop -= dt;
+    }
     else if (!modal) {
         update(game_dt);
     }
