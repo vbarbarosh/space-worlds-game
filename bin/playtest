@@ -7,7 +7,7 @@ const {chromium} = require('playwright');
 
 const data_dir = path.join(__dirname, '..', 'data', 'playtest');
 const modes = ['chill', 'normal', 'overload'];
-const usage = `usage: bin/playtest [--mode=normal] [--seeds=1,2,3] [--label=name] [--page=build/index.html] [--minutes=20]
+const usage = `usage: bin/playtest [--mode=normal] [--seeds=1,2,3] [--label=name] [--page=build/index.html] [--minutes=20] [--gun=id]
 
     A bot plays arcade runs of build/index.html (a copy with a hook, in data/playtest/) in Chromium, on a virtual
     clock and a seeded Math.random, as fast as the machine allows, and counts per world and wave what a run costs.
@@ -23,14 +23,17 @@ const usage = `usage: bin/playtest [--mode=normal] [--seeds=1,2,3] [--label=name
     A death starts the world again from its first wave, as loading an arcade save does; three deaths in one world
     end the run. Results go to data/playtest/<label>/<mode>-<seed>.json, and a table per run is printed.
 
-    --minutes stops a run that takes longer than that on the wall clock, and says so.`;
+    --minutes stops a run that takes longer than that on the wall clock, and says so.
+    --gun buys that gun (plasma, scatter, ion, rail, missile, beam) at the first depot that can pay for it after a
+    repair, before any module, with the cheapest ship that has a mount for it when yours has none; a sturdier ship
+    later is one that still carries it.`;
 
 cli(main);
 
 async function main()
 {
     const options = Object.fromEntries(process.argv.slice(2).map(v => v.replace(/^--/, '').split('=')));
-    if (Object.keys(options).some(v => !['mode', 'seeds', 'label', 'page', 'minutes'].includes(v))) {
+    if (Object.keys(options).some(v => !['mode', 'seeds', 'label', 'page', 'minutes', 'gun'].includes(v))) {
         console.log(usage);
         process.exit(2);
     }
@@ -57,7 +60,7 @@ async function main()
             await page.addInitScript(page_clock);
             await page.goto(`file://${hooked}`);
             await page.waitForTimeout(400);
-            await page.evaluate(v => window.__t(v), `(${page_bot})(${JSON.stringify({mode, seed})})`);
+            await page.evaluate(v => window.__t(v), `(${page_bot})(${JSON.stringify({mode, seed, gun: options.gun || null})})`);
             const time0 = Date.now();
             while (!await page.evaluate(() => window.__bot.done) && (Date.now() - time0 < minutes*60000)) {
                 await page.waitForTimeout(1000);
@@ -82,12 +85,12 @@ async function main()
 function run_table(run)
 {
     const lines = [`${run.mode} seed ${run.seed}: ${run.won ? 'won' : run.cut ? 'cut (time)' : 'lost'} · ${run.deaths} deaths · ${Math.round(run.run_time)} s · score ${run.score} · salvage left ${run.salvage_left} · ${run.wall_seconds} s on the clock`];
-    lines.push('world        hull lost (w1/w2/w3)   all dmg  kills  off-screen  salvage at depot  deaths  time  most from');
+    lines.push('world        hull lost (w1/w2/w3)   all dmg  kills  off-screen  salvage at depot  deaths  time  ship and guns  most from');
     for (const world of run.worlds) {
         const hull = world.waves.map(v => Math.round(v.hull)).join(' / ');
         const all = Math.round(world.waves.reduce((sum, v) => sum + v.hull + v.shield, 0));
         const sources = Object.entries(world.sources).sort((a, b) => b[1] - a[1]).slice(0, 2).map(v => `${v[0]} ${Math.round(v[1])}`).join(', ');
-        lines.push(`${world.name.padEnd(12)} ${hull.padEnd(22)} ${String(all).padStart(7)}  ${String(world.kills).padStart(5)}  ${String(world.off_screen).padStart(10)}  ${String(world.salvage_at_depot ?? '-').padStart(16)}  ${String(world.deaths).padStart(6)}  ${Math.round(world.time)} s  ${sources}`);
+        lines.push(`${world.name.padEnd(12)} ${hull.padEnd(22)} ${String(all).padStart(7)}  ${String(world.kills).padStart(5)}  ${String(world.off_screen).padStart(10)}  ${String(world.salvage_at_depot ?? '-').padStart(16)}  ${String(world.deaths).padStart(6)}  ${Math.round(world.time)} s  ${world.ship}: ${world.guns.join('+')}  ${sources}`);
     }
     return lines.join('\n');
 }
@@ -131,7 +134,7 @@ function page_bot(options)
         if (current && (current.world === campaign.world)) {
             return current;
         }
-        const out = {world: campaign.world, name: worlds[campaign.world].name, waves: [], sources: {}, kills: 0, off_screen: 0, deaths: 0, time: 0, salvage_at_depot: null};
+        const out = {world: campaign.world, name: worlds[campaign.world].name, ship: current_ship().id, guns: mounted_weapons().map(v => (v ? v.id : 'empty')), waves: [], sources: {}, kills: 0, off_screen: 0, deaths: 0, time: 0, salvage_at_depot: null};
         B.worlds.push(out);
         return out;
     }
@@ -271,13 +274,25 @@ function page_bot(options)
         if (player.hp < hull_max()*0.75) {
             buy('supply', 'repair');
         }
+        if (options.gun && !ensure_career().weapons.includes(options.gun)) {
+            // a gun no mount fits comes with the cheapest ship that takes it
+            const gun = weapon_by_id(options.gun);
+            if (!gun_fits_ship(gun)) {
+                const ships = arcade_depot_items().filter(v => (v.kind === 'ship') && (v.price !== null) && gun_fits_ship(gun, ship_catalog.find(vv => vv.id === v.id)));
+                ships.sort((a, b) => a.price - b.price);
+                if (ships[0] && (salvage >= ships[0].price + arcade_depot_items().find(v => (v.kind === 'weapon') && (v.id === gun.id)).price)) {
+                    buy('ship', ships[0].id);
+                }
+            }
+            buy('weapon', options.gun);
+        }
         while ((supplies.medkit < 2) && buy('supply', 'medkit')) {
             continue;
         }
         buy_in_order(priorities);
         const left = arcade_depot_items().filter(v => (v.kind === 'module') && priorities.includes(v.id) && !v.done);
         if (!left.length) {
-            const sturdier = ship_catalog.filter(v => v.hull > current_ship().hull).sort((a, b) => a.hull - b.hull)[0];
+            const sturdier = ship_catalog.filter(v => (v.hull > current_ship().hull) && (!options.gun || gun_fits_ship(weapon_by_id(options.gun), v))).sort((a, b) => a.hull - b.hull)[0];
             if (sturdier) {
                 buy('ship', sturdier.id);
             }
@@ -324,7 +339,7 @@ function page_bot(options)
         }
     }
     B.report = function () {
-        return {mode: options.mode, seed: options.seed, done: B.done, won: B.won, deaths: B.deaths, run_time, score, salvage_left: salvage, worlds: B.worlds};
+        return {mode: options.mode, seed: options.seed, gun: options.gun, done: B.done, won: B.won, deaths: B.deaths, run_time, score, salvage_left: salvage, worlds: B.worlds};
     };
     const base_frame = frame;
     frame = function () {
