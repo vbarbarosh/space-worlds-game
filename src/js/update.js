@@ -430,10 +430,17 @@ function update(dt)
             const ex = v.x - (px + vx*t);
             const ey = v.y - (py + vy*t);
             if (ex*ex + ey*ey < (v.r + b.r)*(v.r + b.r)) {
+                const shielded = (v.shield || 0) > 0;
                 hit_with_weapon(v, b);
                 b.life = 0;
                 burst(b.x, b.y, b.color || cyan, 3, 70);
-                explode(b.x, b.y, 10, b.color || cyan, 0, 'spark');
+                // a hull hit throws sparks and chips back the way the shot came; a shield shows its own impact
+                if (shielded) {
+                    explode(b.x, b.y, 10, b.color || cyan, 0, 'spark');
+                }
+                else {
+                    explode_impact(b.x, b.y, Math.atan2(b.vy, b.vx), 9 + Math.min(9, b.damage*0.35), b.color || cyan, '#aab4bf');
+                }
                 break;
             }
         }

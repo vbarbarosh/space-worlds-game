@@ -5,7 +5,7 @@ let explosion_seed = 1;
 let hull_smoke_timer = 0;
 const explosion_limit = 140;
 // Lighter effects than a blast: how long each lasts, in seconds
-const explosion_durations = {spark: 0.25, muzzle: 0.07, shield: 0.45, warp: 0.4, smoke: 0.9};
+const explosion_durations = {spark: 0.25, muzzle: 0.07, shield: 0.45, warp: 0.4, smoke: 0.9, impact: 0.38};
 
 // size is the fireball's radius in world units: about 40 for a raider, 70 for a tank, 220 for a flagship;
 // kind 'blast' is the full explosion, the others are the small effects listed in explosion_durations
@@ -49,6 +49,24 @@ function explode_flagship(x, y, r, color)
         explode(x + Math.cos(angle)*d, y + Math.sin(angle)*d, 50 + explosion_random()*40, color, i*0.17);
     }
     explode(x, y, 220, color, 1.25);
+}
+
+// A shot that strikes a hull: a white star where it struck, sparks thrown back the way the shot came, and chips of
+// the hull in its own color; angle is the shot's heading
+function explode_impact(x, y, angle, size, color, hull_color)
+{
+    const sparks = [];
+    for (let i = 0; i < 7; ++i) {
+        sparks.push({angle: angle + Math.PI + (explosion_random() - 0.5)*2.2, speed: size*(7 + explosion_random()*9), length: 4 + explosion_random()*size*0.8});
+    }
+    const debris = [];
+    for (let i = 0; i < 3; ++i) {
+        debris.push({angle: angle + Math.PI + (explosion_random() - 0.5)*2.6, speed: size*(4 + explosion_random()*5), spin: (explosion_random() - 0.5)*18, size: 2 + explosion_random()*2.5, sides: 3});
+    }
+    explosions.push({x, y, size, color, hull_color, angle, kind: 'impact', t: 0, duration: explosion_durations.impact, sparks, debris, puffs: []});
+    if (explosions.length > explosion_limit) {
+        explosions.splice(0, explosions.length - explosion_limit);
+    }
 }
 
 function explosion_light_add(x, y, size, color, delay, kind)
@@ -320,6 +338,10 @@ function explosion_draw(explosion, x, y, scale)
 
 function explosion_light_draw(explosion, x, y, scale)
 {
+    if (explosion.kind === 'impact') {
+        explosion_impact_draw(explosion, x, y, scale);
+        return;
+    }
     const p = explosion.t/explosion.duration;
     const size = explosion.size*scale;
     ctx.save();
@@ -360,6 +382,61 @@ function explosion_light_draw(explosion, x, y, scale)
         ctx.lineTo(x + cos*d, y + sin*d);
     }
     ctx.stroke();
+    ctx.restore();
+}
+
+// The star is widest across the shot's line, so where a hit came from reads at a glance; the sparks and chips follow it.
+function explosion_impact_draw(explosion, x, y, scale)
+{
+    const p = explosion.t/explosion.duration;
+    const size = explosion.size*scale;
+    const fade = (1 - p)*(1 - p);
+    const across = explosion.angle + Math.PI/2;
+    const long = size*(2.4 - p*1.6);
+    const short = size*(1.1 - p*0.7);
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.lineCap = 'round';
+    ctx.globalAlpha = fade;
+    ctx.fillStyle = '#ffffff';
+    explosion_circle(x, y, size*0.42*(1 - p*0.6));
+    ctx.fill();
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = Math.max(1, 2.2*scale*(1 - p*0.5));
+    ctx.beginPath();
+    ctx.moveTo(x - Math.cos(across)*long, y - Math.sin(across)*long);
+    ctx.lineTo(x + Math.cos(across)*long, y + Math.sin(across)*long);
+    ctx.moveTo(x - Math.cos(explosion.angle)*short, y - Math.sin(explosion.angle)*short);
+    ctx.lineTo(x + Math.cos(explosion.angle)*short, y + Math.sin(explosion.angle)*short);
+    ctx.stroke();
+    ctx.globalAlpha = 1 - p;
+    ctx.strokeStyle = '#fff1c8';
+    ctx.lineWidth = Math.max(1, 1.4*scale);
+    ctx.beginPath();
+    for (const spark of explosion.sparks) {
+        const d = spark.speed*scale*explosion.t*(1 - p*0.45);
+        const cos = Math.cos(spark.angle);
+        const sin = Math.sin(spark.angle);
+        ctx.moveTo(x + cos*Math.max(0, d - spark.length*scale), y + sin*Math.max(0, d - spark.length*scale));
+        ctx.lineTo(x + cos*d, y + sin*d);
+    }
+    ctx.stroke();
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.globalAlpha = (1 - p)*0.95;
+    ctx.fillStyle = explosion.hull_color;
+    for (const piece of explosion.debris) {
+        const d = piece.speed*scale*explosion.t;
+        const px = x + Math.cos(piece.angle)*d;
+        const py = y + Math.sin(piece.angle)*d;
+        const a = piece.spin*explosion.t;
+        const r = piece.size*scale;
+        ctx.beginPath();
+        ctx.moveTo(px + Math.cos(a)*r, py + Math.sin(a)*r);
+        ctx.lineTo(px + Math.cos(a + 2.4)*r*0.7, py + Math.sin(a + 2.4)*r*0.7);
+        ctx.lineTo(px + Math.cos(a + 4.2)*r*0.8, py + Math.sin(a + 4.2)*r*0.8);
+        ctx.closePath();
+        ctx.fill();
+    }
     ctx.restore();
 }
 
