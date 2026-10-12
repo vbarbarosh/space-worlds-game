@@ -144,6 +144,8 @@ ships. "Modes" is arcade, campaign or both.
 - The world's faction: they attack you, your structures and your freighters.
   Five types (chaser, tank, shooter, splitter, lancer) plus a splitter's
   shards; numbers in [balance.md](balance.md).
+- In the arcade some are marksmen: they aim where you will be, and a dashed
+  red line from them shows that aim for the half second before they fire.
 - Solid, damageable, a bar once hit, a shield ring. Both modes.
 - Where: `src/js/combat.js`, `spawn_enemy` in `src/js/campaign.js`,
   `src/js/navigation.js`, `src/js/update.js`.

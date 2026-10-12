@@ -1,5 +1,5 @@
 // Arcade: one run through the eight worlds, three waves each, the world's flagship in the third; no stations, contracts or saves.
-const arcade = {active: false, world: -1, wave: 0, pause: 0, squad_timer: 0, squads: 0, phase: 0, slowmo: 0, depot_hint: false, blasts: [], event: null, between_worlds: null, world_start: null, campaign_checkpoint: null};
+const arcade = {active: false, world: -1, wave: 0, pause: 0, squad_timer: 0, squads: 0, phase: 0, slowmo: 0, depot_hint: false, marksman_hint: false, blasts: [], event: null, between_worlds: null, world_start: null, campaign_checkpoint: null};
 const arcade_extent = [7200, 5600];
 const arcade_waves = 3;
 const arcade_radiation = 0.35;
@@ -8,15 +8,26 @@ const arcade_wave_names = ['', 'SCOUTS', 'ASSAULT', 'FLAGSHIP'];
 const arcade_salvage_points = 10;
 // the depot sells ships at this share of the campaign's prices
 const arcade_ship_price = 0.5;
+// The share of raiders that are marksmen, Haven to Eclipse, before the mode's factor: a marksman aims where you will be
+// when its shot gets there, not where you are, and shows its aim for the last half second (arcade_aim_time).
+const arcade_marksmen = [0, 0.2, 0.3, 0.3, 0.15, 0.25, 0.2, 0.05];
+const arcade_aim_time = 0.5;
+// How wide a line squadron fans out round you (arcade_flank_steer), in radians from its first raider to its last,
+// Haven to Eclipse: not at all in Haven and Verdant, hard enough already, nor in the rail worlds, Obsidian and Eclipse,
+// where a slug crosses the screen in a quarter second
+const arcade_flank_arc = [0, 0, 2.8, 2.8, 0, 2.8, 2.8, 0];
+// a marksman's missile turns this much harder than another's
+const arcade_marksman_turn = 1.15;
 // What each difficulty changes in the arcade: extra raiders per squadron and per wave, the gap between squadrons, the
 // first world with elites, the share of repairs that still drop, the medkits a run starts with, whether every raider
 // fires its world's gun (Haven's plasma included), how often (a factor on the gun's cooldown), and how hard its shots
 // hit, the raiders' hull and how much it grows a world past Haven, the share of the world's armour and shield they
-// carry, the blast damage you take, raiders that grow with your weapon tier, and the flagship's overdrive.
+// carry, the blast damage you take, raiders that grow with your weapon tier, the flagship's overdrive, and a factor on
+// the share of marksmen.
 const arcade_modes = {
-    chill: {squad: 0, wave: 0, gap: 1, elite_world: 1, repairs: 1, medkits: 2, armed: false, gun_gap: 1, hits: 1, hull: 1, growth: 0.1, defense: 0.8, blast: 0.8, tier_hp: false, overdrive: false},
-    normal: {squad: 1, wave: 3, gap: 0.8, elite_world: 0, repairs: 0.35, medkits: 1, armed: true, gun_gap: 0.45, hits: 1.6, hull: 1.5, growth: 0.15, defense: 0.8, blast: 0.8, tier_hp: false, overdrive: false},
-    overload: {squad: 2, wave: 5, gap: 0.7, elite_world: 0, repairs: 0, medkits: 1, armed: true, gun_gap: 0.4, hits: 1.75, hull: 1.8, growth: 0, defense: 0.5, blast: 1.2, tier_hp: true, overdrive: true},
+    chill: {squad: 0, wave: 0, gap: 1, elite_world: 1, repairs: 1, medkits: 2, armed: false, gun_gap: 1, hits: 1, hull: 1, growth: 0.1, defense: 0.8, blast: 0.8, tier_hp: false, overdrive: false, marksmen: 0.5},
+    normal: {squad: 1, wave: 3, gap: 0.8, elite_world: 0, repairs: 0.35, medkits: 1, armed: true, gun_gap: 0.45, hits: 1.6, hull: 1.5, growth: 0.15, defense: 0.8, blast: 0.8, tier_hp: false, overdrive: false, marksmen: 1},
+    overload: {squad: 2, wave: 5, gap: 0.7, elite_world: 0, repairs: 0, medkits: 1, armed: true, gun_gap: 0.4, hits: 1.75, hull: 1.8, growth: 0, defense: 0.5, blast: 1.2, tier_hp: true, overdrive: true, marksmen: 1.3},
 };
 
 document.getElementById('arcade_depot_launch').addEventListener('click', arcade_depot_close);
@@ -91,6 +102,7 @@ function arcade_start(world = 0, from = null)
     arcade.wave = 0;
     arcade.pause = 0;
     arcade.depot_hint = false;
+    arcade.marksman_hint = false;
     arcade.blasts = [];
     arcade.between_worlds = null;
     arcade.world_start = null;
@@ -200,7 +212,13 @@ function arcade_update(dt)
             enemy.armor = (enemy.armor || 0)*arcade_mode().defense;
             enemy.shield = (enemy.shield || 0)*arcade_mode().defense;
             enemy.max_shield = (enemy.max_shield || 0)*arcade_mode().defense;
+            enemy.marksman = arcade_marksman(enemy);
             arcade_hull_scale(enemy);
+        }
+        // the run's first marksman says what its dashed line means
+        if (enemy.marksman && !arcade.marksman_hint) {
+            arcade.marksman_hint = true;
+            show_toast('MARKSMEN', 'A DASHED LINE IS WHERE THEY AIM · TURN OFF IT', 3.5, 'danger');
         }
     }
     if (arcade.world !== campaign.world) {
@@ -315,16 +333,21 @@ function arcade_squad_pattern(type, size)
     return ((size >= 4) && (n < 0.35)) ? 'pincer' : 'line';
 }
 
-// One type in a line across its heading, 640 m away on the given side, warping in
+// One type in a line across its heading, 640 m away on the given side, warping in. Chasers, shooters and splitters then
+// fan out round you, each to its own bearing, so their fire comes from a wide arc (arcade_flank_steer).
 function arcade_squad_line(type, size, angle, elite)
 {
     const cx = player.x + Math.cos(angle)*640;
     const cy = player.y + Math.sin(angle)*640;
+    const step = Math.min(0.55, arcade_flank_arc[campaign.world]/size);
     for (let i = 0; i < size; ++i) {
         const offset = (i - (size - 1)/2)*55;
         const enemy = arcade_squad_warp(type, cx - Math.sin(angle)*offset, cy + Math.cos(angle)*offset, i);
         if (elite && (i === 0)) {
             arcade_elite_make(enemy);
+        }
+        if (['chaser', 'shooter', 'splitter'].includes(type) && (size > 1) && step) {
+            enemy.flank_to = {bearing: angle + (i - (size - 1)/2)*step};
         }
     }
 }
@@ -398,11 +421,15 @@ function arcade_squad_warp(type, x, y, i)
 
 // A raider's way by its place in a squadron, after its type has chosen one (update): an escort keeps its place by its
 // leader, at the leader's pace, until the leader dies or you come within 300 m; a lurker waits still, turned to you,
-// until you come within 420 m, it is hit or 25 s pass. Turns the raider (angle) and returns how fast it moves.
+// until you come within 420 m, it is hit or 25 s pass; a flanker swings out to its side first (arcade_flank_steer).
+// Turns the raider (angle) and returns how fast it moves.
 function arcade_role_steer(v, move, d)
 {
     if (v.event_goal) {
         return arcade_event_steer(v);
+    }
+    if (v.flank_to) {
+        return arcade_flank_steer(v, move);
     }
     if (v.lurk) {
         if ((d > 420) && (v.hp >= v.max_hp) && ((v.shield || 0) >= (v.max_shield || 0)) && (v.age < 25)) {
@@ -428,6 +455,21 @@ function arcade_role_steer(v, move, d)
     return Math.min(1.5, Math.sqrt(vx*vx + vy*vy)/v.speed);
 }
 
+// A flanker swings out to its own side of you before it fights: to the point at its bearing from you, at its range; once
+// there, or 6 s after it came, it fights as its type does, from that side. Turns the raider and returns how fast it moves.
+function arcade_flank_steer(v, move)
+{
+    const range = (v.type === 'shooter') ? 290 : 340;
+    const tx = player.x + Math.cos(v.flank_to.bearing)*range;
+    const ty = player.y + Math.sin(v.flank_to.bearing)*range;
+    if ((Math.hypot(tx - v.x, ty - v.y) < 90) || (v.age > 6)) {
+        v.flank_to = null;
+        return move;
+    }
+    v.angle = Math.atan2(ty - v.y, tx - v.x);
+    return 1;
+}
+
 function arcade_elite_make(enemy)
 {
     enemy.arcade_scaled = true;
@@ -440,6 +482,52 @@ function arcade_elite_make(enemy)
     enemy.shield = enemy.max_shield;
     arcade_hull_scale(enemy);
     enemy.drop_on_death = repair_drop_allowed() ? 'medkit' : 'emp';
+    enemy.marksman = arcade_marksman(enemy);
+}
+
+// Whether a raider is a marksman: by the world's share and the mode's; an elite always is, from the first world with
+// marksmen on; a flagship and a shard never
+function arcade_marksman(enemy)
+{
+    const share = arcade_marksmen[campaign.world]*arcade_mode().marksmen;
+    if ((enemy.type === 'boss') || (enemy.type === 'shard') || enemy.unarmed || !share) {
+        return false;
+    }
+    return enemy.elite || (Math.random() < share);
+}
+
+// Where a raider fires at its target: straight at it, or, for a marksman in the arcade, where the target will be when
+// a shot of this speed gets there if it keeps its course; straight at it when the shot cannot catch it within 1.5 s
+function raider_aim(enemy, target, speed)
+{
+    const dx = target.x - enemy.x;
+    const dy = target.y - enemy.y;
+    if (!arcade.active || !enemy.marksman) {
+        return Math.atan2(dy, dx);
+    }
+    const t = intercept_time(dx, dy, target.vx || 0, target.vy || 0, raider_shot_speed(enemy, speed)*current_world_rules().projectile);
+    return Math.atan2(dy + (target.vy || 0)*t, dx + (target.vx || 0)*t);
+}
+
+// The time a shot of speed s from the origin takes to meet a target at (dx, dy) moving at (vx, vy): the root of
+// |d + v·t| = s·t; 0 when there is none within 1.5 s
+function intercept_time(dx, dy, vx, vy, s)
+{
+    const a = vx*vx + vy*vy - s*s;
+    const b = 2*(dx*vx + dy*vy);
+    const c = dx*dx + dy*dy;
+    const disc = b*b - 4*a*c;
+    if ((a >= 0) || (disc < 0)) {
+        return 0;
+    }
+    const t = (-b - Math.sqrt(disc))/(2*a);
+    return ((t > 0) && (t < 1.5)) ? t : 0;
+}
+
+// How long until a raider fires again: a shooter keeps its own count
+function raider_fire_left(enemy)
+{
+    return (enemy.type === 'shooter') ? enemy.fire_cd : enemy.gun_cd;
 }
 
 // The flagship turns at 66% (escorts) and at 33% (a last stand with more of them); on OVERLOAD, at 15% it goes into

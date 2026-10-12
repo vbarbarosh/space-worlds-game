@@ -328,7 +328,7 @@ function update(dt)
             move = (d < 220) ? -0.6 : (d < 320) ? 0.18 : 1;
             v.fire_cd -= enemy_dt;
             if ((v.fire_cd <= 0) && (v.age > 0.8)) {
-                enemy_fire(v, a, 180 + wave*4);
+                enemy_fire(v, (waypoint === player) ? raider_aim(v, player, 180 + wave*4) : a, 180 + wave*4);
                 v.fire_cd = Math.max(1.2, 2.1 - wave*0.04);
                 ring(v.x, v.y, gold, 30, 0.25);
             }
@@ -373,9 +373,9 @@ function update(dt)
                 move = 0;
             }
         }
-        // an escort keeps its place in its squadron, a lurker waits in the rocks, a freighter keeps to its way
-        // (arcade_role_steer)
-        if (v.guard || v.lurk || v.event_goal) {
+        // an escort keeps its place in its squadron, a lurker waits in the rocks, a flanker swings out to its side, a
+        // freighter keeps to its way (arcade_role_steer)
+        if (v.guard || v.lurk || v.flank_to || v.event_goal) {
             move = arcade_role_steer(v, move, d);
             heading = v.angle;
         }

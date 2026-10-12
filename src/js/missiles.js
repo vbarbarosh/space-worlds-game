@@ -172,8 +172,10 @@ function missile_fly(b, target, dt)
     let heading = Math.atan2(b.vy, b.vx);
     let speed = Math.sqrt(b.vx*b.vx + b.vy*b.vy);
     if (burning && (b.age >= b.kick)) {
+        // a marksman's missile (raider_aim) flies for where you will be when it gets there, not where you are
         if (target) {
-            heading = turn_toward(heading, Math.atan2(target.y - b.y, target.x - b.x), b.turn*dt);
+            const t = b.lead ? Math.min(1, distance(b, target)/Math.max(1, speed)) : 0;
+            heading = turn_toward(heading, Math.atan2(target.y + (target.vy || 0)*t - b.y, target.x + (target.vx || 0)*t - b.x), b.turn*dt);
         }
         if (speed < b.top*k) {
             speed = Math.min(b.top*k, speed + b.accel*k*dt);

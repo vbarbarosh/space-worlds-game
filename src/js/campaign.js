@@ -267,7 +267,7 @@ function world_audio_base_enemy_fire(enemy, angle, speed = 210, pattern = false)
     const spread = (w === 'scatter') ? [-0.23, 0, 0.23] : (kind && (kind !== 'torpedo') && (campaign.world >= 6)) ? [-0.2, 0.2] : [0];
     for (const offset of spread) {
         const a = angle + offset;
-        const s = ((w === 'rail') ? 520 : kind ? 190*missile_kinds[kind].speed : (w === 'ion') ? 275 : speed)*fast;
+        const s = kind ? 190*missile_kinds[kind].speed*fast : raider_shot_speed(enemy, speed, pattern);
         const shot = {
             x: enemy.x + Math.cos(a)*enemy.r,
             y: enemy.y + Math.sin(a)*enemy.r,
@@ -281,10 +281,23 @@ function world_audio_base_enemy_fire(enemy, angle, speed = 210, pattern = false)
             color: enemy.color,
             ...(kind ? missile_raider(kind, s) : {}),
         };
+        // a marksman's missile flies for where you will be and turns harder (arcade_marksman_turn)
+        if (kind && enemy.marksman && arcade.active) {
+            shot.lead = true;
+            shot.turn *= arcade_marksman_turn;
+        }
         shot.damage *= raider_hit_scale(enemy);
         hostile.push(shot);
     }
     explode(enemy.x + Math.cos(angle)*enemy.r, enemy.y + Math.sin(angle)*enemy.r, 11, enemy.color || pink, 0, 'muzzle');
+}
+
+// The speed a raider's shot leaves at, a gun's own (a rail's or an ion bolt's) or the one it is fired at, before the
+// world's projectile rule
+function raider_shot_speed(enemy, speed = 210, pattern = false)
+{
+    const w = enemy.weapon || 'plasma';
+    return ((w === 'rail') ? 520 : (w === 'ion') ? 275 : speed)*(pattern ? 1.4 : 2.4);
 }
 
 // Raiders' guns hit harder the farther the world: 8% more a world past Haven, Eclipse's half as much again; in the

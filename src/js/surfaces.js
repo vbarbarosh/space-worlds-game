@@ -235,7 +235,33 @@ function render_hostile_marks()
         }
         ctx.stroke();
     }
+    render_marksman_aims();
     ctx.restore();
+}
+
+// A marksman about to fire (arcade_aim_time) shows its aim: a dashed line through where you will be, brighter as the
+// shot comes; drawn from a marksman off the screen too, since the line reaches you
+function render_marksman_aims()
+{
+    if (!arcade.active || !player) {
+        return;
+    }
+    ctx.lineWidth = 1.2/zoom;
+    ctx.setLineDash([10/zoom, 8/zoom]);
+    for (const enemy of enemies) {
+        const left = (enemy.hp > 0) && enemy.marksman && !enemy.unarmed ? raider_fire_left(enemy) : 1;
+        const d = distance(enemy, player);
+        if ((left >= arcade_aim_time) || (d >= 900)) {
+            continue;
+        }
+        const angle = raider_aim(enemy, player, (enemy.type === 'shooter') ? 180 + wave*4 : 210);
+        ctx.globalAlpha = 0.25 + 0.6*(1 - Math.max(0, left)/arcade_aim_time);
+        ctx.beginPath();
+        ctx.moveTo(enemy.x + Math.cos(angle)*(enemy.r + 8), enemy.y + Math.sin(angle)*(enemy.r + 8));
+        ctx.lineTo(enemy.x + Math.cos(angle)*d*1.3, enemy.y + Math.sin(angle)*d*1.3);
+        ctx.stroke();
+    }
+    ctx.setLineDash([]);
 }
 
 function render_enemies()

@@ -356,6 +356,7 @@ before rocks and the Relic processor.
 | blast damage to you | ×0.8 | ×0.8 | ×1.2 |
 | raiders grow with your gun tier | no | no | +22% a tier |
 | flagship overdrive | no | no | yes |
+| marksmen (a factor on the world's share) | ×0.5 | ×1 | ×1.3 |
 
 - Where: `arcade_modes` in `src/js/arcade.js`; the menu's line for each mode
   is `sync_mode_note`.
@@ -394,7 +395,41 @@ before rocks and the Relic processor.
     420 m, hit one, or 25 s pass;
   - the rest come in a **line** across their heading, 640 m away, or, from
     four raiders on and 35% of the time, in a **pincer**: the line split to
-    both sides of you.
+    both sides of you. From Dustfall on, chasers, shooters and splitters of a
+    line then **fan out**: each swings to its own bearing round you,
+    min(0.55, arc / size) radians from the next, 290 m out for a shooter and
+    340 m for the rest, before it fights as its type does; it stops swinging
+    once there or 6 s after it came (`arcade_flank_steer`). Their fire comes
+    from a wide arc, not from one side, so circling one raider is flying
+    straight at or away from another. The arc (`arcade_flank_arc`) is 2.8
+    radians (160°) in Dustfall, Ion Reach, Cryosphere and Nova Forge; none in
+    Haven and Verdant, nor in the rail worlds, Obsidian and Eclipse, where a
+    slug crosses the screen in a quarter second.
+- **Marksmen** (`arcade_marksmen`, `raider_aim`): a share of the raiders
+  aims where you will be when the shot gets there if you keep your course,
+  not where you are, and shows that aim as a dashed line for the last half
+  second before it fires (`arcade_aim_time`, drawn in
+  `render_hostile_marks`). Its missiles steer for that point too, and turn
+  1.15 times as hard as others (`arcade_marksman_turn`). Holding one
+  course, a circle included, gets you hit; turning as the line brightens
+  breaks the aim. The share, before the mode's factor:
+
+  | Haven | Verdant | Dustfall | Ion Reach | Obsidian | Cryosphere | Nova Forge | Eclipse |
+  |---|---|---|---|---|---|---|---|
+  | 0 | 20% | 30% | 30% | 15% | 25% | 20% | 5% |
+
+  An elite is always a marksman where the share is above 0; a flagship and
+  a shard never are. The run's first marksman brings a toast that says what
+  the line means. The campaign's raiders do not lead their shots.
+- Measured (`bin/playtest`'s bot, NORMAL, seeds 1 to 3, with one more of its
+  gun bought for each empty mount; before and after the marksmen and the
+  fanning out): all six runs won with no deaths. All damage taken, hull and
+  shield: Ion Reach 83 to 149 instead of 10 to 51, Cryosphere 94 to 161
+  instead of 45 to 126, Obsidian 131 to 510 instead of 131 to 222, Eclipse
+  455 to 689 instead of 243 to 522; Dustfall and Nova Forge stay at 0 to 14,
+  as the bot dashes past every missile and a dash's quarter second of grace
+  covers it. Raider bolts that hit: Ion Reach 17% instead of 6%, Obsidian 18%
+  instead of 9%.
 - Wave 2 of each world draws an **event** from the world's pool
   (`arcade_event_pools` in `src/js/arcade_events.js`), with a toast and a
   mark on the map; it ends with the wave:

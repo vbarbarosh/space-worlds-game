@@ -31,7 +31,9 @@ Two modes:
 
 - **Arcade**: one run through the eight worlds, three waves each, the world's
   flagship in the third. Raiders come in squadrons; elites lead some of them,
-  from Haven on (from the second world on Chill); the flagship turns at 66% and 33%. A ship
+  from Haven on (from the second world on Chill); in the middle worlds a
+  squadron fans out round you, and marksmen aim where you will be, a dashed
+  line showing their aim; the flagship turns at 66% and 33%. A ship
   that explodes hurts what is close to it. The salvage you collect buys
   repairs, weapons, ships, supplies and modules at the station's depot (R). A cleared world pays a fixed bonus, the weapon
   grows a tier, a cleared screen shows the world's numbers, and the depot opens before the next world. Score, combo and a best score (salvage left at the end scores 10 points each); no
