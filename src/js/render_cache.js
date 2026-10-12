@@ -42,7 +42,9 @@ function render_nebula_layer(id, sky)
             g.addColorStop(1, `${look.cloud}00`);
             draw.fillStyle = g;
             draw.fillRect(x - r, y - r, r*2, r*2);
-        } // Keep just the current sky to avoid retaining high-resolution buffers for every world.
+        }
+        nebula_bake_detail(draw, id, box);
+        // Keep just the current sky to avoid retaining high-resolution buffers for every world.
         nebula_layers.clear();
         v = {layer, left: box.left, top: box.top, w: layer.width/ratio, h: layer.height/ratio};
         nebula_layers.set(key, v);

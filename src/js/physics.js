@@ -68,6 +68,13 @@ function render_celestial_body(body)
     if ((px + diam < 0) || (px - diam > W) || (py + diam < 0) || (py - diam > H)) {
         return;
     }
+    // Eclipse's crown, round the black disc (create_eclipse_corona)
+    const corona = body.primary && ensure_world_visuals(id).corona;
+    if (corona) {
+        ctx.globalAlpha = 0.8;
+        ctx.drawImage(corona, px - diam, py - diam, diam*2, diam*2);
+        ctx.globalAlpha = 1;
+    }
     // The designer's planet: its disc as wide as today's, a little see-through so it stays in the background
     const art = body.primary && world_art(`planet-${world_slug()}`);
     if (art && sprite_draw_box(art, null, diam*0.913, px, py, 0, 0.85)) {

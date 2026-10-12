@@ -20,8 +20,175 @@ function ensure_world_visuals(id)
         out.motes.push({x: random(), y: random(), size: 0.5 + random()*2.5, angle: random()*6.28, phase: random()*6.28, speed: 5 + random()*30});
     }
     out.texture = create_world_planet(id);
+    sky_create_layers(out, id);
     world_visual_cache[id] = out;
     return out;
+}
+
+// The sky's moving layers, on their own seed so the clouds and the planet stay as they were: two layers of stars
+// behind the play (the farthest are baked into the nebula), a few bright ones with a soft glow, the fine dust that
+// streams past at speed, and the weather of a world that has one
+function sky_create_layers(out, id)
+{
+    const random = visual_random_from_seed(2671 + id*7121);
+    const look = world_looks[id];
+    const dim = (id === 7) ? 0.45 : 1;
+    // A star's group: its layer, its colour and its twinkle, filled as one path
+    out.star_groups = [];
+    const layers = [
+        {count: 170, parallax: 0.03, size: 1.1, alpha: 0.5},
+        {count: 46, parallax: 0.075, size: 1.8, alpha: 0.7},
+    ];
+    for (const layer of layers) {
+        for (let i = 0; i < 6; ++i) {
+            out.star_groups.push({parallax: layer.parallax, alpha: layer.alpha*dim, color: (i % 3) ? look.star : worlds[id].accent, phase: i*1.9, items: []});
+        }
+        const groups = out.star_groups.slice(-6);
+        for (let i = 0, end = Math.round(layer.count*dim); i < end; ++i) {
+            groups[i % 6].items.push({x: random(), y: random(), size: layer.size*(0.7 + random()*0.6)});
+        }
+    }
+    out.bright = [];
+    for (let i = 0, end = (id === 7) ? 3 : 7; i < end; ++i) {
+        out.bright.push({x: random(), y: random(), r: 9 + random()*9, phase: random()*6.28});
+    }
+    out.dust = [];
+    for (let i = 0; i < 70; ++i) {
+        out.dust.push({x: random(), y: random(), depth: 0.7 + random()*0.6});
+    }
+    out.glints = [];
+    for (let i = 0; i < 12; ++i) {
+        out.glints.push({x: random(), y: random(), size: 4 + random()*6, phase: random()});
+    }
+    out.glow = sky_glow_sprite(look.star, true);
+    out.flash = (id === 3) ? sky_glow_sprite('#9fc4ff', false) : null;
+    out.corona = (id === 7) ? create_eclipse_corona() : null;
+}
+
+// A soft round glow on a 64 px canvas, white at the core; a star's has two faint spikes across it
+function sky_glow_sprite(color, spikes)
+{
+    const canvas = document.createElement('canvas');
+    canvas.width = 64;
+    canvas.height = 64;
+    const draw = canvas.getContext('2d');
+    const g = draw.createRadialGradient(32, 32, 0, 32, 32, 32);
+    g.addColorStop(0, color_with_alpha(color, spikes ? 0.55 : 0.6));
+    g.addColorStop(0.25, color_with_alpha(color, spikes ? 0.16 : 0.3));
+    g.addColorStop(1, color_with_alpha(color, 0));
+    draw.fillStyle = g;
+    draw.fillRect(0, 0, 64, 64);
+    if (spikes) {
+        for (const [dx, dy] of [[1, 0], [0, 1]]) {
+            const line = draw.createLinearGradient(32 - dx*32, 32 - dy*32, 32 + dx*32, 32 + dy*32);
+            line.addColorStop(0, color_with_alpha(color, 0));
+            line.addColorStop(0.5, color_with_alpha(color, 0.5));
+            line.addColorStop(1, color_with_alpha(color, 0));
+            draw.fillStyle = line;
+            draw.fillRect(dx ? 0 : 31.5, dy ? 0 : 31.5, dx ? 64 : 1, dy ? 64 : 1);
+        }
+        draw.fillStyle = '#ffffff';
+        draw.fillRect(31, 31, 2, 2);
+    }
+    return canvas;
+}
+
+// Eclipse's crown: the light of the hidden sun round the black disc, pink near it and violet farther out, with thin
+// streamers; drawn twice the planet's size, the disc covering its middle
+function create_eclipse_corona()
+{
+    const canvas = document.createElement('canvas');
+    canvas.width = 512;
+    canvas.height = 512;
+    const draw = canvas.getContext('2d');
+    const r = 112;
+    const random = visual_random_from_seed(9091);
+    const g = draw.createRadialGradient(256, 256, r - 6, 256, 256, 256);
+    g.addColorStop(0, '#ffb8e055');
+    g.addColorStop(0.1, '#ff7cc226');
+    g.addColorStop(0.35, '#c04fd00e');
+    g.addColorStop(0.7, '#5b2fa004');
+    g.addColorStop(1, '#5b2fa000');
+    draw.fillStyle = g;
+    draw.fillRect(0, 0, 512, 512);
+    // the streamers blurred once here, soft at no cost later
+    draw.filter = 'blur(5px)';
+    draw.globalCompositeOperation = 'lighter';
+    const rays = draw.createRadialGradient(256, 256, r, 256, 256, 240);
+    rays.addColorStop(0, '#ffb3dd22');
+    rays.addColorStop(0.45, '#d86cff0a');
+    rays.addColorStop(1, '#d86cff00');
+    draw.fillStyle = rays;
+    for (let i = 0; i < 60; ++i) {
+        const a = random()*Math.PI*2;
+        const spread = 0.02 + random()*0.05;
+        const length = r*(1.2 + random()*0.9);
+        draw.beginPath();
+        draw.moveTo(256 + Math.cos(a - spread)*r, 256 + Math.sin(a - spread)*r);
+        draw.lineTo(256 + Math.cos(a)*length, 256 + Math.sin(a)*length);
+        draw.lineTo(256 + Math.cos(a + spread)*r, 256 + Math.sin(a + spread)*r);
+        draw.closePath();
+        draw.fill();
+    }
+    return canvas;
+}
+
+// Baked into the sky layer under the clouds' glow: filaments of gas in the world's colours, dark lanes of dust across
+// them and the faint far stars, so the sky has depth at no cost per frame
+function nebula_bake_detail(draw, id, box)
+{
+    const look = world_looks[id];
+    const random = visual_random_from_seed(5519 + id*7457);
+    const size = Math.max(W, H);
+    const w = box.right - box.left;
+    const h = box.bottom - box.top;
+    const colors = [look.cloud, look.second, worlds[id].accent];
+    const strength = (id === 7) ? '0c' : (id === 6) ? '1e' : '16';
+    // Dustfall's banks lie along its wind; the others' filaments curl any way
+    const banked = (id === 2);
+    for (let i = 0, end = banked ? 7 : 5; i < end; ++i) {
+        const dark = (i % 3 === 2);
+        let x = box.left + random()*w;
+        let y = box.top + random()*h;
+        let angle = banked ? 0.12 + random()*0.2 : random()*6.28;
+        const color = dark ? look.base : colors[i % 3];
+        for (let j = 0; j < 16; ++j) {
+            const r = size*(banked ? 0.07 + random()*0.08 : 0.035 + random()*0.075)*(dark ? 0.8 : 1);
+            const g = draw.createRadialGradient(x, y, 0, x, y, r);
+            g.addColorStop(0, `${color}${dark ? (banked ? '38' : '30') : strength}`);
+            g.addColorStop(1, `${color}00`);
+            draw.fillStyle = g;
+            if (banked) {
+                draw.save();
+                draw.translate(x, y);
+                draw.scale(1.8, 0.6);
+                draw.translate(-x, -y);
+                draw.fillRect(x - r, y - r, r*2, r*2);
+                draw.restore();
+            }
+            else {
+                draw.fillRect(x - r, y - r, r*2, r*2);
+            }
+            angle += random()*0.9 - 0.45;
+            x += Math.cos(angle)*r*(banked ? 1.2 : 0.75);
+            y += Math.sin(angle)*r*(banked ? 0.4 : 0.75);
+        }
+    }
+    // Nova Forge: the heat of its sun from below
+    if (id === 6) {
+        const g = draw.createRadialGradient(W*0.5, H*1.25, 0, W*0.5, H*1.25, size*0.9);
+        g.addColorStop(0, '#ff6a2a30');
+        g.addColorStop(0.5, '#c2301818');
+        g.addColorStop(1, '#c2301800');
+        draw.fillStyle = g;
+        draw.fillRect(box.left, box.top, w, h);
+    }
+    draw.fillStyle = look.star;
+    for (let i = 0, end = Math.round(w*h/((id === 7) ? 9000 : 4200)); i < end; ++i) {
+        draw.globalAlpha = 0.12 + random()*random()*0.5;
+        draw.fillRect(box.left + random()*w, box.top + random()*h, 2, 2);
+    }
+    draw.globalAlpha = 1;
 }
 
 function create_world_planet(id)
@@ -240,17 +407,19 @@ function draw_background()
         return;
     }
     const id = campaign.world;
-    const look = world_looks[id];
     const sky = ensure_world_visuals(id);
     ctx.save();
     render_nebula_layer(id, sky);
+    if (id === 3) {
+        draw_ion_discharges(sky);
+    }
+    draw_sky_stars(sky);
     for (const world_body of world_bodies) {
         render_celestial_body(world_body);
     }
     if (id === 5) {
         for (let i = 0; i < 3; ++i) {
             ctx.strokeStyle = (i % 2) ? '#61ffd921' : '#7badff20';
-            ctx.lineWidth = 18 - i*4;
             ctx.beginPath();
             for (let j = 0; j <= 18; ++j) {
                 const x = (j/18)*W;
@@ -262,75 +431,260 @@ function draw_background()
                     ctx.lineTo(x, y);
                 }
             }
+            // the curtain's soft edge, then its bright core
+            ctx.globalAlpha = 0.45;
+            ctx.lineWidth = 44 - i*8;
             ctx.stroke();
-        }
-    }
-    if ((id === 3) && full_fx) {
-        for (let i = 0; i < 3; ++i) {
-            const phase = (clock*0.15 + i*0.31) % 1;
-            if (phase > 0.11) {
-                continue;
-            }
-            ctx.globalAlpha = (1 - phase/0.11)*0.22;
-            ctx.strokeStyle = '#acddff';
-            ctx.lineWidth = 1.5;
-            ctx.beginPath();
-            let x = W*(0.12 + i*0.37);
-            let y = 0;
-            ctx.moveTo(x, y);
-            for (let j = 0; j < 12; ++j) {
-                x += Math.sin(j*9 + i*7)*45;
-                y += H/13;
-                ctx.lineTo(x, y);
-            }
+            ctx.globalAlpha = 0.85;
+            ctx.lineWidth = 10 - i*2;
             ctx.stroke();
         }
         ctx.globalAlpha = 1;
+        draw_ice_glints(sky);
     }
-    for (let i = 0, end = stars.length; i < end; ++i) {
-        const star = stars[i];
-        if ((id === 7) && (i % 3)) {
-            continue;
+    draw_sky_motes(id, sky);
+    draw_speed_dust(sky);
+    ctx.restore();
+}
+
+// The stars in their two layers, a path a group, the near layer sliding faster; then the bright few with their glow
+function draw_sky_stars(sky)
+{
+    for (const group of sky.star_groups) {
+        const px = camera.x*group.parallax;
+        const py = camera.y*group.parallax*0.8;
+        ctx.globalAlpha = group.alpha*(0.82 + Math.sin(clock*0.5 + group.phase)*0.18);
+        ctx.fillStyle = group.color;
+        ctx.beginPath();
+        for (let i = 0, end = group.items.length; i < end; ++i) {
+            const star = group.items[i];
+            const bent = pulse_star_bend((((star.x*W - px) % W) + W) % W, (((star.y*H - py) % H) + H) % H);
+            ctx.rect(bent.x, bent.y, star.size, star.size);
         }
-        ctx.globalAlpha = (0.4 + Math.sin(clock*0.5 + star.phase)*0.12)*star.z;
-        ctx.fillStyle = (i % 5) ? look.star : worlds[id].accent;
-        const x = (((star.x - camera.x*star.z*0.055) % W) + W) % W;
-        const y = (((star.y - camera.y*star.z*0.045) % H) + H) % H;
-        const bent = pulse_star_bend(x, y);
-        ctx.fillRect(bent.x, bent.y, star.z*((id === 5) ? 2 : 1.5), star.z*1.5);
+        ctx.fill();
+    }
+    for (let i = 0, end = sky.bright.length; i < end; ++i) {
+        const star = sky.bright[i];
+        const r = star.r*(0.9 + Math.sin(clock*0.7 + star.phase)*0.1);
+        const bent = pulse_star_bend((((star.x*W - camera.x*0.05) % W) + W) % W, (((star.y*H - camera.y*0.04) % H) + H) % H);
+        ctx.globalAlpha = 0.75 + Math.sin(clock*1.3 + star.phase)*0.2;
+        ctx.drawImage(sky.glow, bent.x - r, bent.y - r, r*2, r*2);
     }
     ctx.globalAlpha = 1;
+}
+
+// The world's drifting motes in one path: Verdant's spores, Dustfall's blown grit, Cryosphere's falling ice, Nova
+// Forge's embers rising with their tails
+function draw_sky_motes(id, sky)
+{
+    const look = world_looks[id];
+    ctx.globalAlpha = (id === 7) ? 0.12 : (id === 2) ? 0.17 : 0.22;
+    ctx.fillStyle = look.star;
+    if (id === 6) {
+        draw_embers(sky);
+        return;
+    }
+    ctx.beginPath();
     for (let i = 0, end = sky.motes.length; i < end; ++i) {
         const mote = sky.motes[i];
         if (!full_fx && (i % 3)) {
             continue;
         }
-        const x = (((mote.x*W - camera.x*0.035 + clock*((id === 2) ? -mote.speed : (id === 6) ? mote.speed*0.4 : 2)) % W) + W) % W;
-        const y = (((mote.y*H - camera.y*0.03 + clock*((id === 5) ? mote.speed*0.7 : (id === 6) ? -mote.speed*0.5 : 1)) % H) + H) % H;
-        ctx.globalAlpha = (id === 7) ? 0.12 : (id === 2) ? 0.17 : 0.22;
-        ctx.fillStyle = look.star;
+        const x = (((mote.x*W - camera.x*0.035 + clock*((id === 2) ? -mote.speed : 2)) % W) + W) % W;
+        const y = (((mote.y*H - camera.y*0.03 + clock*((id === 5) ? mote.speed*0.7 : 1)) % H) + H) % H;
         if (id === 1) {
-            ctx.beginPath();
+            ctx.moveTo(x + mote.size*1.3, y);
             ctx.arc(x, y, mote.size*1.3, 0, Math.PI*2);
-            ctx.fill();
         }
         else if (id === 5) {
-            ctx.fillRect(x, y, mote.size, mote.size*2);
+            ctx.rect(x, y, mote.size, mote.size*2);
         }
-        else if (id === 6) {
-            ctx.strokeStyle = '#ffb579';
-            ctx.lineWidth = mote.size*0.5;
-            ctx.beginPath();
-            ctx.moveTo(x, y);
-            ctx.lineTo(x - 10, y + 8);
-            ctx.stroke();
+        else if (id === 2) {
+            // grit streaks along the wind
+            ctx.rect(x, y, mote.size*(1 + mote.speed/15), mote.size*0.6);
         }
         else {
-            ctx.fillRect(x, y, mote.size, (id === 2) ? mote.size*0.6 : mote.size);
+            ctx.rect(x, y, mote.size, mote.size);
         }
     }
+    ctx.fill();
     ctx.globalAlpha = 1;
-    ctx.restore();
+}
+
+// Nova Forge's embers: three heats, each flickering on its own, a faint tail behind each and a hot core
+function draw_embers(sky)
+{
+    const colors = ['#ffb579', '#ff7a3d', '#ffd27a'];
+    ctx.lineWidth = 1;
+    for (let k = 0; k < 3; ++k) {
+        ctx.strokeStyle = colors[k];
+        ctx.fillStyle = colors[k];
+        ctx.beginPath();
+        for (let i = k, end = sky.motes.length; i < end; i += 3) {
+            if (!full_fx && (i % 9 >= 3)) {
+                continue;
+            }
+            const mote = sky.motes[i];
+            const x = (((mote.x*W - camera.x*0.035 + clock*mote.speed*0.4) % W) + W) % W;
+            const y = (((mote.y*H - camera.y*0.03 - clock*mote.speed*0.5) % H) + H) % H;
+            const tail = 4 + mote.speed*0.35;
+            ctx.moveTo(x, y);
+            ctx.lineTo(x - tail*0.62, y + tail*0.78);
+        }
+        ctx.globalAlpha = 0.22;
+        ctx.stroke();
+        ctx.beginPath();
+        for (let i = k, end = sky.motes.length; i < end; i += 3) {
+            if (!full_fx && (i % 9 >= 3)) {
+                continue;
+            }
+            const mote = sky.motes[i];
+            const x = (((mote.x*W - camera.x*0.035 + clock*mote.speed*0.4) % W) + W) % W;
+            const y = (((mote.y*H - camera.y*0.03 - clock*mote.speed*0.5) % H) + H) % H;
+            const s = 1 + mote.size*0.6;
+            ctx.rect(x - s/2, y - s/2, s, s);
+        }
+        ctx.globalAlpha = 0.42 + Math.sin(clock*(3 + k) + k*2.1)*0.14;
+        ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+}
+
+// Ion Reach: now and then a discharge lights a storm cloud from inside, a glow and a short forked arc that flicker
+// out in a third of a second. Behind the full effects only: it is a flash.
+function draw_ion_discharges(sky)
+{
+    if (!full_fx) {
+        return;
+    }
+    const drift = Math.sin(clock*0.025)*18;
+    for (let i = 0; i < 3; ++i) {
+        const t = clock*0.15 + i*0.37;
+        const phase = t % 1;
+        if (phase > 0.05) {
+            continue;
+        }
+        const random = visual_random_from_seed(Math.floor(t)*7919 + i*104729);
+        const cloud = sky.clouds[Math.floor(random()*sky.clouds.length)];
+        const r = cloud.r*Math.max(W, H);
+        const x = cloud.x*W + Math.sin(cloud.phase)*35 - camera.x*0.018 + drift + (random() - 0.5)*r*0.6;
+        const y = cloud.y*H - camera.y*0.012 + (random() - 0.5)*r*0.6;
+        if ((x < -200) || (x > W + 200) || (y < -200) || (y > H + 200)) {
+            continue;
+        }
+        // two strokes of light, the second weaker
+        const k = (1 - phase/0.05)*((phase < 0.018) || (phase > 0.03) ? 1 : 0.3);
+        const glow = 140 + random()*120;
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.globalAlpha = k*0.55;
+        ctx.drawImage(sky.flash, x - glow, y - glow, glow*2, glow*2);
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.strokeStyle = '#c9e4ff';
+        // a jagged channel both ways from the flash, a short fork off it every few steps
+        ctx.beginPath();
+        for (let j = 0; j < 2; ++j) {
+            let px = x;
+            let py = y;
+            let angle = random()*Math.PI*2 + j*Math.PI;
+            ctx.moveTo(px, py);
+            for (let n = 0, steps = 5 + Math.floor(random()*4); n < steps; ++n) {
+                angle += random()*1.6 - 0.8;
+                const step = 10 + random()*18;
+                px += Math.cos(angle)*step;
+                py += Math.sin(angle)*step;
+                ctx.lineTo(px, py);
+                if (n % 3 === 1) {
+                    let fx = px;
+                    let fy = py;
+                    let fork = angle + ((random() < 0.5) ? -0.9 : 0.9);
+                    for (let m = 0; m < 3; ++m) {
+                        fork += random()*1.2 - 0.6;
+                        fx += Math.cos(fork)*(7 + random()*10);
+                        fy += Math.sin(fork)*(7 + random()*10);
+                        ctx.lineTo(fx, fy);
+                    }
+                    ctx.moveTo(px, py);
+                }
+            }
+        }
+        ctx.globalAlpha = k*0.12;
+        ctx.lineWidth = 5;
+        ctx.stroke();
+        ctx.globalAlpha = k*0.45;
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+}
+
+// Cryosphere: ice crystals far off catch the light, one or two at a time, a small four-point glint that comes and goes;
+// behind the full effects only
+function draw_ice_glints(sky)
+{
+    if (!full_fx) {
+        return;
+    }
+    ctx.strokeStyle = '#e8fdff';
+    ctx.lineWidth = 1;
+    for (let i = 0, end = sky.glints.length; i < end; ++i) {
+        const glint = sky.glints[i];
+        const phase = (clock*0.18 + glint.phase) % 1;
+        if (phase > 0.1) {
+            continue;
+        }
+        const k = Math.sin((phase/0.1)*Math.PI);
+        const x = (((glint.x*W - camera.x*0.045) % W) + W) % W;
+        const y = (((glint.y*H - camera.y*0.036) % H) + H) % H;
+        const s = glint.size*(0.5 + k*0.5);
+        ctx.globalAlpha = k*0.5;
+        ctx.drawImage(sky.glow, x - s*1.2, y - s*1.2, s*2.4, s*2.4);
+        ctx.globalAlpha = k*0.4;
+        ctx.beginPath();
+        ctx.moveTo(x - s, y);
+        ctx.lineTo(x + s, y);
+        ctx.moveTo(x, y - s*0.7);
+        ctx.lineTo(x, y + s*0.7);
+        ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+}
+
+// Fine dust in the plane of the fight streaks past the ship at speed, longer and brighter in turbo; still, none
+function draw_speed_dust(sky)
+{
+    if (!player || ((state !== 'playing') && (state !== 'paused'))) {
+        return;
+    }
+    const speed = Math.hypot(player.vx, player.vy);
+    const cruise = cruise_speed();
+    const k = clamp((speed - cruise*0.45)/(cruise*1.6), 0, 1);
+    if (k <= 0) {
+        return;
+    }
+    const margin = 160;
+    const w = W + margin*2;
+    const h = H + margin*2;
+    const blur = player.turbo_active ? 0.07 : 0.045;
+    ctx.strokeStyle = world_looks[campaign.world].star;
+    for (const near of [false, true]) {
+        ctx.beginPath();
+        for (let i = 0, end = sky.dust.length; i < end; ++i) {
+            const mote = sky.dust[i];
+            if ((mote.depth > 1) !== near) {
+                continue;
+            }
+            const x = (((mote.x*w - camera.x*zoom*mote.depth) % w) + w) % w - margin;
+            const y = (((mote.y*h - camera.y*zoom*mote.depth) % h) + h) % h - margin;
+            const dx = clamp(player.vx*zoom*mote.depth*blur, -margin, margin);
+            const dy = clamp(player.vy*zoom*mote.depth*blur, -margin, margin);
+            ctx.moveTo(x, y);
+            ctx.lineTo(x - dx, y - dy);
+        }
+        ctx.globalAlpha = k*(near ? 0.3 : 0.18);
+        ctx.lineWidth = near ? 1.4 : 1;
+        ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
 }
 
 function physics_base_generate_map()
