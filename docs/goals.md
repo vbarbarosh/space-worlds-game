@@ -16,18 +16,22 @@ more **stages** done in order. A stage has a kind, a world and an amount
 |---|---|
 | scan | you guard the survey robot at a beacon for the amount in seconds |
 | mining | your drones drill the amount in units |
-| courier | you dock at the stage's world station |
+| courier | you dock at the stage's world station; carried from another world, a wing of raiders intercepts it once in each world you enter |
 | hunt | you destroy the amount of raiders in that world |
 | defend | you hold within 450 m of the relay for the amount in seconds; leaving loses progress slowly |
 | recover | you clear the ambush, then hold within 150 m for the amount in seconds |
 | elite | you destroy the marked commander |
 | boss | you destroy the world's flagship at the combat zone |
 | escort | the freighter finishes its cargo run (load at a mining field, unload at the station) |
-| trade | you sell the amount of a good at that world's station |
+| trade | you sell the amount of a good at that world's station, from your own hold (what you bought at that station does not count); intercepted like a courier when carried from another world |
 | lure | the Leviathan falls into a black hole's core |
 | survey | you fly within 120 m of three beacons (a one-stage contract) |
 
-- Progress counts only in the stage's world (`mission_event`). A finished
+- Progress counts only in the stage's world (`mission_event`). A delivery
+  (courier or trade) starts where the stage before it ended, or where the
+  contract was taken; in every other world it enters, its own included,
+  `update_intercepts` sends 2 + level (at most 4) of that world's raiders
+  once, four seconds after arrival, between you and the station. A finished
   stage starts the next; the last one makes the contract ready, and you
   collect the reward by docking at any station and pressing Collect reward.
 - You carry at most three contracts, and one story chapter at a time
@@ -55,37 +59,72 @@ contracts go on.
   1450, 1700, 1850, 2150, 2350, 2700, 3400. Their raiders count as level 2,
   and every world fights seven tiers past its own by then (the story's
   front, in [balance.md](balance.md)).
+- A chapter ends where the next one starts, or on the way to it. A delivery to
+  another world is kept only where the story moves you that way, and it is
+  intercepted on the way; no chapter sends you back where you came from.
 - The titles, stages and story text are in
   [scenario/chapters.md](scenario/chapters.md).
 
 ## Side contracts at a station
 
-What a station offers depends on its world (`offered_jobs` in
-`src/js/operations.js`). `id` is the world's index (Haven 0 to Eclipse 7) and
-`level` is 1 + one for every 8 contracts completed, at most 12.
+What a station offers depends on its world (`offered_jobs` and
+`world_contracts` in `src/js/operations.js`). `id` is the world's index
+(Haven 0 to Eclipse 7), `level` is 1 + one for every 8 contracts completed,
+at most 12, and n = level − 1.
 
-| Contract | Stages | Reward | Open from |
-|---|---|---|---|
-| Clear the patrol lanes | scan, hunt 8 + 2·id + 2·level, recover 10, courier home | (125 + 55·(id+1)) × 2 | always |
-| Survey-grade extraction | mining 8 + 2·level, scan 15, courier to a linked world | (95 + 40·(id+1)) × 2 | always |
-| Sealed dispatch | courier to a linked world, defend 50 + 5·level, courier home | (160 + 45·(id+1)) × 2 | always |
-| Convoy: relief route | escort, courier to a linked world | 450 + 80·id + 50·level | always |
-| Commander bounty | scan, hunt, elite, recover, courier home | 650 + 110·id + 80·level | rank Pathfinder |
-| Frontier expedition n | scan, defend, elite, recover, courier home | 1100 + 150·id + 140·level | rank Ace |
-| Side missions | from their file | from their file | in their world, until done |
+| Contract | Stages | Open from |
+|---|---|---|
+| Two of the world's own | in the table below | always |
+| Sealed dispatch to a neighbour | courier to it (intercepted), defend 40 + 5n there | always |
+| Supply run: a good to a neighbour | trade: sell 5 + level (at most 12) of this world's cheapest good at the neighbour that pays most for it (intercepted); offered when that pays at least 8 more | always |
+| Commander bounty | scan 16 + n, hunt 6 + n, elite | rank Pathfinder |
+| Frontier expedition n | scan 22 + n here; defend 70 + 6n, elite, recover 20 in a neighbour | rank Ace |
+| Side missions | from their file | in their world, until done |
 
-- The linked world is the next of the world's gate links each time a contract
-  is taken (`campaign.board`).
+Each world's own two, in its terms (its raiders, its resource, its rules):
+
+| World | Contract | Stages |
+|---|---|---|
+| Haven | Clear the patrol lanes | scan 12 + n, hunt 6 + n, recover 10 |
+| Haven | Haven iron for the Anchorage | mining 8 + 2n, escort |
+| Verdant | Prune the thorn nest | scan 14 + n, hunt 8 + n, elite |
+| Verdant | Spore resin harvest | mining 8 + 2n, defend 40 + 5n |
+| Dustfall | Refinery quota | mining 10 + 2n, trade titanium sand 6 + n at Dustfall |
+| Dustfall | Marauder launch site | scan 14 + n, recover 12, elite |
+| Ion Reach | Storm cartography | scan 14 + n, defend 45 + 5n, recover 12 |
+| Ion Reach | Silence the Volt jammers | hunt 8 + n, elite |
+| Obsidian | Break the Dominion picket | hunt 6 + n, elite, recover 12 |
+| Obsidian | Heavy metals for the Bastion | mining 10 + 2n, defend 50 + 5n |
+| Cryosphere | Lost on the ice | scan 14 + n, recover 12, escort |
+| Cryosphere | Helium-3 harvest | mining 10 + 2n, defend 50 + 5n |
+| Nova Forge | Quench the furnace raiders | scan 14 + n, hunt 8 + n, elite |
+| Nova Forge | Plasma for the Foundry | mining 10 + 2n, escort |
+| Eclipse | Signals from the dark | scan 16 + n, defend 50 + 5n, recover 15 |
+| Eclipse | Void matter | mining 10 + 2n, elite |
+
+- A neighbour is a linked world you have reached, the next of them each time
+  a contract is taken (`campaign.board`); a link you have not reached is used
+  only when none is. So no contract sends you where your ship cannot go yet.
+- A contract pays for the minutes its stages take (`stage_minutes`, timed by
+  playing them, plus 0.6 a jump and 0.5 for the interception of a delivery to
+  another world): minutes × 105 × (1 + 0.2·id) × (1 + 0.1·n), × 1.4 for a
+  bounty and × 1.7 for an expedition, to the nearest 10
+  (`contract_reward`).
 - A completed expedition opens the next one (`campaign.expedition`).
 - Side missions are `src/missions/side-<name>.md`; today there is one, Lure
-  the Leviathan in Haven (900).
-- `expedition_base_offered_jobs` in `src/js/station.js` also writes Map the
-  frontier, Escort a freighter and Market supply, but only its first three
-  are offered.
+  the Leviathan in Verdant (900). It needs a black hole, and Haven has none.
 - A higher level makes contract raiders tougher (+12% hull a level past the
   first, up to ten levels), sends more raiders to a recover ambush
-  (3 + level, at most 6) and to each defend wave (2 + level, at most 4, every
-  12 s).
+  (3 + level, at most 6), to each defend wave (2 + level, at most 4, every
+  12 s) and to an interception (2 + level, at most 4).
+- What you guard grows with the raiders' hits (+8% a world past Haven, +12%
+  a level past the first): the survey robot (80 hull in Haven) and the
+  convoy's freighter (300). A robot scans at half speed with a raider close;
+  a lost one sets the scan back a third.
+- Halfway through a recover hold the ambush calls 2 to 4 reinforcements; the
+  hold waits until they are cleared.
+- A mining stage whose drones are all lost sends the guide to the station to
+  buy new ones (MODULES).
 
 ## What a contract pays
 

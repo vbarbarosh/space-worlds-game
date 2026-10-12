@@ -487,8 +487,8 @@ function physics_base_render_navigation_objects()
         // its hull as a bar over it, as every hull that can be destroyed has
         ctx.fillStyle = '#0b1222';
         ctx.fillRect(escort.x - 36, escort.y - sprite_sizes.freighter*0.6 - 12, 72, 4);
-        ctx.fillStyle = (escort.hp < escort_hull*0.35) ? pink : gold;
-        ctx.fillRect(escort.x - 36, escort.y - sprite_sizes.freighter*0.6 - 12, (72*Math.max(0, escort.hp))/escort_hull, 4);
+        ctx.fillStyle = (escort.hp < (escort.max_hp || escort_hull)*0.35) ? pink : gold;
+        ctx.fillRect(escort.x - 36, escort.y - sprite_sizes.freighter*0.6 - 12, (72*Math.max(0, escort.hp))/(escort.max_hp || escort_hull), 4);
     }
     if (waypoint) {
         const p = waypoint_live();

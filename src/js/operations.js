@@ -2,86 +2,89 @@ function stage(type, world, target, title, extra = {})
 {
     return {type, world, target, title, ...extra};
 }
+// Act I after chapter 1. A chapter ends where the next one starts, or on the way to it: a delivery to another world
+// is a run under pursuit (courier_update), never an empty trip back
 const expanded_story_stages = [
     [
         stage('scan', 1, 18, 'Locate the swarm nest', {beacon: 1}),
-        stage('hunt', 1, 14, 'Break the swarm patrol'),
+        stage('hunt', 1, 12, 'Break the swarm patrol'),
         stage('recover', 1, 12, 'Retrieve the nest telemetry'),
-        stage('courier', 0, 1, 'Bring telemetry back to Haven'),
+        stage('courier', 0, 1, 'Run the telemetry home to Haven'),
     ],
     [
-        stage('courier', 2, 1, 'Deliver the sealed navigation core'),
+        stage('courier', 2, 1, 'Run the navigation core to Dustfall'),
         stage('defend', 2, 65, 'Hold the refinery relay'),
-        stage('courier', 0, 1, 'Return the refinery response'),
+        stage('elite', 2, 1, 'Drive off the Marauder captain'),
     ],
     [
         stage('scan', 3, 20, 'Align beacon alpha', {beacon: 0}),
-        stage('scan', 3, 20, 'Align beacon beta', {beacon: 1}),
+        stage('defend', 3, 60, 'Hold beacon beta through the storm', {beacon: 1}),
         stage('scan', 3, 20, 'Align beacon gamma', {beacon: 2}),
         stage('recover', 3, 15, 'Extract the storm log'),
-        stage('courier', 1, 1, 'Deliver the survey log'),
     ],
     [
         stage('scan', 4, 22, 'Identify the blockade command ship', {beacon: 1}),
-        stage('hunt', 4, 20, 'Thin the blockade'),
+        stage('hunt', 4, 14, 'Thin the blockade'),
         stage('elite', 4, 1, 'Disable the Iron commander'),
-        stage('courier', 3, 1, 'Transmit the liberated route'),
     ],
     [
         stage('mining', 5, 18, 'Gather frozen relic ore'),
-        stage('defend', 5, 85, 'Protect the extraction relay'),
+        stage('defend', 5, 75, 'Protect the extraction relay'),
         stage('escort', 5, 1, 'Escort the sample freighter'),
-        stage('courier', 4, 1, 'Deliver the cold-storage manifest'),
+        stage('courier', 4, 1, 'Run the manifest to Bastion Dock'),
     ],
     [
         stage('scan', 6, 25, 'Locate the flagship reactor', {beacon: 2}),
-        stage('hunt', 6, 16, 'Destroy reactor pickets'),
+        stage('hunt', 6, 12, 'Destroy reactor pickets'),
         stage('boss', 6, 1, 'Destroy the Ember flagship'),
         stage('recover', 6, 18, 'Recover the reactor core'),
-        stage('courier', 4, 1, 'Deliver the reactor core'),
     ],
     [
         stage('scan', 7, 28, 'Reveal the Void signature', {beacon: 0}),
-        stage('defend', 7, 100, 'Keep the last-light relay active'),
+        stage('defend', 7, 90, 'Keep the last-light relay active'),
         stage('boss', 7, 1, 'Destroy the Void Dreadnought'),
         stage('recover', 7, 20, 'Recover the frontier archive'),
-        stage('courier', 0, 1, 'Bring the archive home'),
+        stage('courier', 0, 1, 'Bring the archive home to Haven'),
     ],
 ];
 for (let i = 0, end = story.length; i < end; ++i) {
     const m = story[i];
     m.stages = expanded_story_stages[i];
     m.reward = Math.round(m.reward*1.8);
-    m.description += ` A multi-stage operation: ${m.stages.map(v => v.title).join(' → ')}.`;
+    m.description += ` ${m.stages.map(v => v.title).join(' → ')}.`;
 }
+// Act II: [title, world, briefing, stages, reward]
 const second_act = [
     [
         'Routes worth defending',
         0,
+        'Haven signs the Charter first, if its relief convoy gets through Dustfall and the raiders who stole the last one are broken.',
         [
-            stage('scan', 0, 20, 'Trace a stolen convoy', {beacon: 2}),
+            stage('scan', 0, 20, 'Trace the stolen convoy', {beacon: 2}),
             stage('escort', 2, 1, 'Protect the relief convoy'),
             stage('elite', 2, 1, 'Break the pursuit'),
-            stage('courier', 0, 1, 'Report the safe route'),
+            stage('courier', 0, 1, 'Report the safe route to Haven'),
         ],
         1200,
     ],
     [
         'The living archive',
         1,
+        'Verdant asks you to save its seed archive, the memory of a living world, and carry it to the cold vault in Haven.',
         [
             stage('recover', 1, 20, 'Retrieve the seed archive'),
-            stage('defend', 1, 100, 'Keep the archive relay online'),
-            stage('courier', 5, 1, 'Deliver to cryogenic storage'),
+            stage('defend', 1, 90, 'Keep the archive relay online'),
+            stage('courier', 0, 1, 'Carry the seeds to the Haven vault'),
         ],
         1450,
     ],
     [
         'A profitable detour',
         2,
+        'Dustfall signs when trade with Obsidian runs again: mine titanium sand here, sell it to the Iron foundry yourself, and see its carrier out.',
         [
-            stage('mining', 2, 24, 'Extract refinery ore'),
-            stage('trade', 4, 16, 'Supply the Iron foundry', {commodity: 'ore'}),
+            stage('mining', 2, 24, 'Mine titanium sand'),
+            stage('trade', 4, 12, 'Sell the titanium to the Iron foundry', {commodity: 'titanium'}),
             stage('escort', 4, 1, 'Protect the outbound carrier'),
         ],
         1700,
@@ -89,57 +92,58 @@ const second_act = [
     [
         'Stormbreaker network',
         3,
+        'The Volt Collective jams every signal of the Arc Spire. Align the relay, take out their marshal and hold the relay while the network key resets.',
         [
             stage('scan', 3, 25, 'Align the storm relay', {beacon: 1}),
             stage('elite', 3, 1, 'Eliminate the Volt marshal'),
-            stage('defend', 5, 115, 'Hold the cold relay'),
-            stage('courier', 0, 1, 'Return the network key'),
+            stage('defend', 3, 90, 'Hold the relay while the key resets', {beacon: 0}),
         ],
         1850,
     ],
     [
         'The shattered armistice',
         4,
+        'Obsidian\'s old armistice is the model for the Charter\'s peace clause. Break the occupation, recover the treaty and carry it to Cryosphere, its old co-signer.',
         [
-            stage('hunt', 4, 26, 'Break the occupation fleet'),
+            stage('hunt', 4, 16, 'Break the occupation fleet'),
             stage('elite', 4, 1, 'Defeat the Dominion admiral'),
             stage('recover', 4, 22, 'Recover the treaty'),
-            stage('courier', 1, 1, 'Deliver the treaty'),
+            stage('courier', 5, 1, 'Carry the treaty to Glacier Relay'),
         ],
         2150,
     ],
     [
         'Pilgrims of the ice',
         5,
+        'The Glacier Relay signs when its pilgrims come home: find them, bring their freighter in, and keep the resupply relay alive.',
         [
             stage('scan', 5, 28, 'Find the lost pilgrims', {beacon: 2}),
             stage('escort', 5, 1, 'Protect the pilgrim freighter'),
-            stage('defend', 3, 120, 'Defend the resupply relay'),
-            stage('courier', 0, 1, 'Return the pilgrim manifest'),
+            stage('defend', 5, 100, 'Defend the resupply relay', {beacon: 0}),
         ],
         2350,
     ],
     [
         'A second sunrise',
         6,
+        'With a second reactor the forge can power the guild\'s own gates. Its material is here; its warden and the Helios warship stand in the way.',
         [
-            stage('mining', 6, 26, 'Collect reactor material'),
+            stage('mining', 6, 20, 'Collect reactor material'),
             stage('elite', 6, 1, 'Defeat the Forge warden'),
             stage('boss', 6, 1, 'Silence the Helios warship'),
-            stage('courier', 3, 1, 'Deliver the reactor blueprint'),
         ],
         2700,
     ],
     [
         'Beyond the last light',
         7,
+        'The last signature is Eclipse\'s own, and the Void Armada will not give it. Win it, recover the Charter where it was lost, and found the guild at the Last Light Citadel.',
         [
             stage('scan', 7, 30, 'Chart the outer darkness', {beacon: 2}),
             stage('elite', 7, 1, 'Break the Void honor guard'),
-            stage('defend', 7, 140, 'Stabilize the frontier beacon'),
+            stage('defend', 7, 110, 'Stabilize the frontier beacon'),
             stage('boss', 7, 1, 'Defeat the reborn dreadnought'),
             stage('recover', 7, 25, 'Recover the expedition charter'),
-            stage('courier', 0, 1, 'Found the expedition guild'),
         ],
         3400,
     ],
@@ -147,12 +151,12 @@ const second_act = [
 for (const v of second_act) {
     story.push({
         title: v[0],
-        type: v[2][0].type,
+        type: v[3][0].type,
         world: v[1],
-        target: v[2][0].target,
-        reward: v[3],
-        stages: v[2],
-        description: `Chapter II operation: ${v[2].map(v => v.title).join(' → ')}.`,
+        target: v[3][0].target,
+        reward: v[4],
+        stages: v[3],
+        description: `${v[2]} ${v[3].map(v => v.title).join(' → ')}.`,
         level: 2,
     });
 }
@@ -175,6 +179,12 @@ function sync_stage(m)
     m.ambush = false;
     m.spawn_clock = 0;
     m.escort_state = null;
+    // a delivery starts where the stage before it ended (or where the contract was taken): raiders intercept it in
+    // each other world it enters (update_intercepts)
+    m.run_from = m.stage_index ? m.stages[m.stage_index - 1].world : (m.issuer ?? campaign.world);
+    m.intercepted = [];
+    m.intercept_at = null;
+    m.reinforced = false;
     guide_path_key = '';
     escort = null;
 }
@@ -255,8 +265,40 @@ function spawn_operation_enemy(m, type, point, elite = false)
     return enemy;
 }
 
+// A delivery under pursuit: a courier or trade stage carried from another world. In each world it enters, its
+// destination included, a wing of that world's raiders comes for it once, a few seconds after you arrive, between you
+// and the station. Fight them off or outfly them to the berth.
+const intercept_delay = 4;
+
+function update_intercepts(dt)
+{
+    for (const m of campaign.contracts.filter(v => !v.ready && ['courier', 'trade'].includes(v.type))) {
+        if ((m.run_from === undefined) || (m.run_from === campaign.world) || (m.intercepted || []).includes(campaign.world)) {
+            continue;
+        }
+        if (m.intercept_at !== campaign.world) {
+            m.intercept_at = campaign.world;
+            m.intercept_clock = 0;
+        }
+        m.intercept_clock += dt;
+        if ((m.intercept_clock < intercept_delay) || (distance(player, station) < station_shelter) || (enemies.length > 20)) {
+            continue;
+        }
+        m.intercepted = [...(m.intercepted || []), campaign.world];
+        const a = Math.atan2(station.y - player.y, station.x - player.x);
+        const ahead = Math.min(1400, distance(player, station)*0.5);
+        const point = {x: player.x + Math.cos(a)*ahead, y: player.y + Math.sin(a)*ahead};
+        const count = 2 + Math.min(2, m.level || 1);
+        for (let i = 0; i < count; ++i) {
+            spawn_operation_enemy(m, (i % 2) ? 'shooter' : 'chaser', point).interceptor = true;
+        }
+        show_toast('INTERCEPTED', `${worlds[campaign.world].faction.toUpperCase()} WANT WHAT YOU CARRY · ${count} INBOUND`, 3);
+    }
+}
+
 function update_operations(dt)
 {
+    update_intercepts(dt);
     for (const m of campaign.contracts.filter(v => !v.ready && (v.world === campaign.world))) {
         if (m.type === 'lure') {
             lure_update(m);
@@ -308,6 +350,15 @@ function update_operations(dt)
         }
         if ((m.type === 'recover') && !raiders && (d < 150)) {
             mission_event('recover', dt, {contract_id: m.id});
+            // halfway through the hold the ambush calls its reinforcements: the hold stops until they are cleared
+            if (!m.reinforced && (m.stage_index === stage_index) && (m.progress >= m.target*0.5)) {
+                m.reinforced = true;
+                const count = 2 + Math.min(2, Math.floor((m.level || 1)/2));
+                for (let i = 0; i < count; ++i) {
+                    spawn_operation_enemy(m, (i % 2) ? 'shooter' : 'chaser', point);
+                }
+                show_toast('REINFORCEMENTS', `${count} INBOUND / THE HOLD WAITS UNTIL THEY ARE CLEARED`, 3);
+            }
         }
         if (m.type === 'defend') {
             m.spawn_clock -= dt;
@@ -354,7 +405,7 @@ function damage_enemy(enemy, damage)
     }
 }
 
-// The convoy freighter's hull
+// The convoy freighter's hull in Haven at level 1; farther out and higher it grows as the raiders' hits do
 const escort_hull = 300;
 const escort_speed = 70;
 // the freighter keeps moving while you are within this; farther, it waits for you
@@ -414,7 +465,9 @@ function update_escort(dt)
     }
     if (!escort) {
         const route = escort_route();
-        escort = {x: route.start.x, y: route.start.y, start: route.start, hp: escort_hull, active: false, stops: route.stops, leg: 0, stop_timer: -1, waves: [], destination: route.stops[0]};
+        // as sturdy against the world's raiders as it is in Haven: they hit harder farther out and at higher levels
+        const hull = Math.round(escort_hull*raider_hit_scale()*(1 + Math.min(10, (m.level || 1) - 1)*0.12));
+        escort = {x: route.start.x, y: route.start.y, start: route.start, hp: hull, max_hp: hull, active: false, stops: route.stops, leg: 0, stop_timer: -1, waves: [], destination: route.stops[0]};
     }
     if (!escort.active && (distance(player, escort) < 450)) {
         escort.active = true;
@@ -437,7 +490,7 @@ function update_escort(dt)
                 mission_event('escort', 1, {contract_id: m.id});
                 return;
             }
-            escort.hp = Math.min(escort_hull, escort.hp + 65);
+            escort.hp = Math.min(escort.max_hp || escort_hull, escort.hp + 65);
             show_toast(`CONVOY ${(stop.job === 'load') ? 'LOADED' : 'UNLOADED'}`, `FIELD REPAIR +65 / NEXT: ${escort.stops[escort.leg].label.toUpperCase()}`, 3);
         }
     }
@@ -476,94 +529,268 @@ function update_escort(dt)
     m.escort_state = clone(escort);
 }
 
+// Each world's own two contracts, in its own terms: its raiders, its resource, its rules. level is the board's level
+function world_contracts(id, level)
+{
+    const n = level - 1;
+    const beacon = (campaign.board || 0) % 3;
+    return [
+        [
+            {
+                title: 'Clear the patrol lanes',
+                description: 'Rim Corsairs sit on the Anchorage lanes and pick off the ore tenders. Find their route, break them, and pull the flight recorder of the last tender they took.',
+                stages: [
+                    stage('scan', 0, 12 + n, 'Find the Corsair route', {beacon}),
+                    stage('hunt', 0, 6 + n, 'Clear the Corsairs off the route'),
+                    stage('recover', 0, 10, 'Retrieve the flight recorder'),
+                ],
+            },
+            {
+                title: 'Haven iron for the Anchorage',
+                description: 'The Anchorage builds its berths from Haven iron. Cut a load with your drones, then see the ore tender through its run.',
+                stages: [stage('mining', 0, 8 + 2*n, 'Cut Haven iron'), stage('escort', 0, 1, 'Escort the ore tender')],
+            },
+        ],
+        [
+            {
+                title: 'Prune the thorn nest',
+                description: 'A Thorn Swarm nest has rooted beside the Canopy Exchange. Find it, cut its swarm back, and kill the nest mother before it buds again.',
+                stages: [
+                    stage('scan', 1, 14 + n, 'Find the nest', {beacon: 1}),
+                    stage('hunt', 1, 8 + n, 'Cut the swarm back'),
+                    stage('elite', 1, 1, 'Kill the nest mother'),
+                ],
+            },
+            {
+                title: 'Spore resin harvest',
+                description: 'The Exchange pays for spore resin, and the swarm swarms to its smell. Tap the rocks, then guard the taps while the resin drains.',
+                stages: [stage('mining', 1, 8 + 2*n, 'Tap spore resin'), stage('defend', 1, 40 + 5*n, 'Guard the taps from the swarm', {beacon: 2})],
+            },
+        ],
+        [
+            {
+                title: 'Refinery quota',
+                description: 'Dustfall Refinery runs on titanium sand from its own rich rocks. Mine a load with your drones and sell the refinery its quota.',
+                stages: [stage('mining', 2, 10 + 2*n, 'Mine titanium sand'), stage('trade', 2, 6 + n, 'Sell the refinery its quota', {commodity: 'titanium'})],
+            },
+            {
+                title: 'Marauder launch site',
+                description: 'Dune Marauders fire their missiles from a hidden launch site. Find it, strip its launchers under fire, and ground their captain.',
+                stages: [
+                    stage('scan', 2, 14 + n, 'Locate the launch site', {beacon: 2}),
+                    stage('recover', 2, 12, 'Strip the launchers'),
+                    stage('elite', 2, 1, 'Ground the Marauder captain'),
+                ],
+            },
+        ],
+        [
+            {
+                title: 'Storm cartography',
+                description: 'The Arc Spire charts the storms that move its lanes. Chart the front, hold the lightning-rod array while it discharges, and recover the storm probe.',
+                stages: [
+                    stage('scan', 3, 14 + n, 'Chart the storm front', {beacon: 0}),
+                    stage('defend', 3, 45 + 5*n, 'Hold the lightning-rod array', {beacon: 2}),
+                    stage('recover', 3, 12, 'Recover the storm probe'),
+                ],
+            },
+            {
+                title: 'Silence the Volt jammers',
+                description: 'The Volt Collective jams the Spire with relay ships. Hunt the relay wing, then take out the jammer chief.',
+                stages: [stage('hunt', 3, 8 + n, 'Hunt the relay wing'), stage('elite', 3, 1, 'Take out the jammer chief')],
+            },
+        ],
+        [
+            {
+                title: 'Break the Dominion picket',
+                description: 'An Iron Dominion picket squeezes the Bastion lanes. Thin it, disable its commander, and salvage its command log. Railguns go through their plating.',
+                stages: [
+                    stage('hunt', 4, 6 + n, 'Thin the picket'),
+                    stage('elite', 4, 1, 'Disable the picket commander'),
+                    stage('recover', 4, 12, 'Salvage the command log'),
+                ],
+            },
+            {
+                title: 'Heavy metals for the Bastion',
+                description: 'Bastion Dock casts its armour from heavy metals. Mine a load in the heavy gravity, then guard the ore lift that carries it up.',
+                stages: [stage('mining', 4, 10 + 2*n, 'Mine heavy metals'), stage('defend', 4, 50 + 5*n, 'Guard the ore lift', {beacon: 1})],
+            },
+        ],
+        [
+            {
+                title: 'Lost on the ice',
+                description: 'A pilgrim shuttle went quiet on the ice. Find its beacon, pull the crew pod out under Frost Sentinel fire, and bring their freighter home.',
+                stages: [
+                    stage('scan', 5, 14 + n, 'Find the shuttle beacon', {beacon: 2}),
+                    stage('recover', 5, 12, 'Pull the crew pod out'),
+                    stage('escort', 5, 1, 'Bring the pilgrim freighter home'),
+                ],
+            },
+            {
+                title: 'Helium-3 harvest',
+                description: 'Glacier Relay burns helium-3 to stay warm. Mine the ice, then keep the cryo relay running while it stores the harvest.',
+                stages: [stage('mining', 5, 10 + 2*n, 'Mine helium-3 ice'), stage('defend', 5, 50 + 5*n, 'Keep the cryo relay running', {beacon: 0})],
+            },
+        ],
+        [
+            {
+                title: 'Quench the furnace raiders',
+                description: 'Ember Legion raiders strike the Foundry from the furnace belt. Find their staging point, break their wing, and down their foreman. Mind your guns\' heat.',
+                stages: [
+                    stage('scan', 6, 14 + n, 'Find the staging point', {beacon: 1}),
+                    stage('hunt', 6, 8 + n, 'Break the furnace wing'),
+                    stage('elite', 6, 1, 'Down the Ember foreman'),
+                ],
+            },
+            {
+                title: 'Plasma for the Foundry',
+                description: 'Helios Foundry needs plasma ore under the flares. Mine it, then escort the tanker through its run.',
+                stages: [stage('mining', 6, 10 + 2*n, 'Mine plasma ore'), stage('escort', 6, 1, 'Escort the plasma tanker')],
+            },
+        ],
+        [
+            {
+                title: 'Signals from the dark',
+                description: 'An old guild beacon calls from the Void. Find it, keep the relay lit while the Armada comes for it, and recover the beacon.',
+                stages: [
+                    stage('scan', 7, 16 + n, 'Trace the guild signal', {beacon: 0}),
+                    stage('defend', 7, 50 + 5*n, 'Keep the relay lit', {beacon: 1}),
+                    stage('recover', 7, 15, 'Recover the guild beacon'),
+                ],
+            },
+            {
+                title: 'Void matter',
+                description: 'The Citadel pays for void matter, and a Void hunter guards the field. Mine a load, then drive the hunter off.',
+                stages: [stage('mining', 7, 10 + 2*n, 'Mine void matter'), stage('elite', 7, 1, 'Drive off the Void hunter')],
+            },
+        ],
+    ][id];
+}
+
+// What a station offers: its world's two own contracts, a sealed dispatch and a supply run to a neighbour, and with
+// rank a commander bounty and a frontier expedition. A neighbour is a linked world you have reached, so a contract
+// never sends you where your ship cannot go yet; a delivery to it is a run under pursuit (update_intercepts)
 function offered_jobs()
 {
     ensure_career();
     const id = campaign.world;
+    const w = worlds[id];
     const rank = pilot_rank();
     const level = Math.min(12, 1 + Math.floor(campaign.completed/8));
-    const other = worlds[id].links[(campaign.board || 0) % worlds[id].links.length];
-    const home = campaign.world;
-    const out = expedition_base_offered_jobs().slice(0, 3);
-    out[0].stages = [
-        stage('scan', id, 12 + level*2, 'Locate the raider route', {beacon: (campaign.board || 0) % 3}),
-        stage('hunt', id, 8 + id*2 + level*2, 'Clear the raiders'),
-        stage('recover', id, 10, 'Retrieve the flight recorder'),
-        stage('courier', home, 1, 'Return the flight recorder'),
-    ];
-    out[0].reward *= 2;
-    out[1].stages = [
-        stage('mining', id, 8 + level*2, 'Collect survey samples'),
-        stage('scan', id, 15, 'Validate the mineral readings', {beacon: 2}),
-        stage('courier', other, 1, 'Deliver the samples'),
-    ];
-    out[1].reward *= 2;
-    out[2].stages = [
-        stage('courier', other, 1, 'Deliver the dispatch'),
-        stage('defend', other, 50 + level*5, 'Protect the receiving relay'),
-        stage('courier', home, 1, 'Return the confirmation'),
-    ];
-    out[2].reward *= 2;
+    const n = level - 1;
+    const reached = w.links.filter(v => campaign.visited.includes(v));
+    const links = reached.length ? reached : w.links;
+    const other = links[(campaign.board || 0) % links.length];
+    const out = world_contracts(id, level);
     out.push({
-        title: `Convoy: ${worlds[id].name} relief route`,
-        description: `Escort the freighter's cargo run (load at a mining field, unload at the station, ${escort_route_text(escort_route())}), then deliver its manifest to another world.`,
-        reward: 450 + id*80 + level*50,
-        stages: [stage('escort', id, 1, 'Protect the relief convoy'), stage('courier', other, 1, 'Deliver the convoy manifest')],
-        type: 'escort',
-        world: id,
-        target: 1,
-        level,
+        title: `Sealed dispatch to ${worlds[other].name}`,
+        description: `A sealed dispatch for ${worlds[other].station}. Raiders know a guild package when they see one: expect a wing on the way in, then hold the relay that receives it.`,
+        stages: [
+            stage('courier', other, 1, `Run the dispatch to ${worlds[other].station}`),
+            stage('defend', other, 40 + 5*n, 'Protect the receiving relay'),
+        ],
     });
+    const supply = supply_run(id, links, level);
+    if (supply) {
+        out.push(supply);
+    }
     if (rank >= 2) {
         out.push({
-            title: `Commander bounty / ${worlds[id].faction}`,
-            description: 'Track a named commander, destroy its escorts, defeat the armored target, recover proof, then report.',
-            reward: 650 + id*110 + level*80,
-            type: 'scan',
-            world: id,
-            target: 18,
-            level,
+            title: `Commander bounty / ${w.faction}`,
+            description: `A named ${w.faction} commander has a price on its head. Track it, break its honor guard, and destroy it.`,
+            premium: 1.4,
             stages: [
-                stage('scan', id, 18, 'Locate the commander', {beacon: 1}),
-                stage('hunt', id, 8 + level*2, 'Break the honor guard'),
+                stage('scan', id, 16 + n, 'Locate the commander', {beacon: 1}),
+                stage('hunt', id, 6 + n, 'Break the honor guard'),
                 stage('elite', id, 1, 'Defeat the commander'),
-                stage('recover', id, 15, 'Recover proof'),
-                stage('courier', home, 1, 'Report the bounty'),
             ],
         });
     }
     if (rank >= 4) {
         out.push({
-            title: `Frontier expedition ${campaign.expedition} / ${worlds[id].name}`,
-            description:
-                'An escalating expedition: survey, defend, defeat an elite, recover an archive, and bring it home. Each completed expedition unlocks the next.',
-            reward: 1100 + id*150 + level*140,
-            type: 'scan',
-            world: id,
-            target: 25,
-            level,
+            title: `Frontier expedition ${campaign.expedition} / ${w.name}`,
+            description: `An escalating expedition into ${worlds[other].name}: survey the route here, then hold a relay there, defeat its guardian and extract the archive. Each completed expedition opens the next.`,
+            premium: 1.7,
             expedition: true,
             stages: [
-                stage('scan', id, 25, 'Survey the expedition route', {beacon: 2}),
-                stage('defend', other, 80 + level*6, 'Hold the frontier relay'),
+                stage('scan', id, 22 + n, 'Survey the expedition route', {beacon: 2}),
+                stage('defend', other, 70 + 6*n, 'Hold the frontier relay'),
                 stage('elite', other, 1, 'Defeat the expedition guardian'),
                 stage('recover', other, 20, 'Extract the archive'),
-                stage('courier', home, 1, 'Return the expedition archive'),
             ],
         });
     }
     for (const m of out) {
-        m.reward = Math.round(m.reward);
-        m.level = m.level || level;
-        if (m.stages) {
-            m.description += ` ${m.stages.map(v => v.title).join(' → ')}.`;
-        }
+        m.type = m.stages[0].type;
+        m.world = m.stages[0].world;
+        m.target = m.stages[0].target;
+        m.level = level;
+        m.reward = contract_reward(m.stages, id, level, m.premium || 1);
+        m.description += ` ${m.stages.map(v => v.title).join(' → ')}.`;
     }
     // side missions written as files, in their world, until done
     for (const v of side_missions.filter(v => (v.world === id) && !(campaign.sides_done || []).includes(v.file))) {
         out.unshift({...clone(v), level, side: v.file});
     }
     return out;
+}
+
+// A trade run from this world's cheapest good to the neighbour that pays most for it; none when no neighbour pays
+// enough more to be worth the trip
+function supply_run(id, links, level)
+{
+    const prices = worlds[id].prices;
+    const index = prices.indexOf(Math.min(...prices));
+    const target = links.slice().sort((a, b) => worlds[b].prices[index] - worlds[a].prices[index])[0];
+    if (worlds[target].prices[index] < prices[index] + 8) {
+        return null;
+    }
+    const amount = Math.min(12, 5 + level);
+    const good = commodities[index];
+    return {
+        title: `Supply run: ${good.name} to ${worlds[target].name}`,
+        description: `${worlds[target].station} is short of ${good.name.toLowerCase()}, and ${worlds[id].station} sells them cheap. Buy ${amount} here, carry them through, and sell them there: the margin is yours as well. Goods bought at ${worlds[target].station} itself do not count.`,
+        stages: [stage('trade', target, amount, `Sell ${amount} ${good.name.toLowerCase()} at ${worlds[target].station}`, {commodity: good.key})],
+    };
+}
+
+// Minutes a stage takes at level 1, timed by playing them; a delivery to another world adds its jumps and the
+// interception on the way
+function stage_minutes(v, from)
+{
+    const jumps = Math.max(0, route_from_world_to_world(from, v.world).length - 1);
+    const travel = jumps ? 0.6*jumps + 0.5 : 0;
+    const minutes = {
+        scan: 0.5 + v.target*0.045,
+        hunt: 0.3 + v.target*0.08,
+        recover: 0.5 + v.target*0.04,
+        defend: 0.3 + v.target/60,
+        elite: 1.2,
+        boss: 2.5,
+        escort: 2.5,
+        mining: 0.3 + v.target*0.04,
+        courier: 0.3,
+        trade: 0.5,
+        lure: 3,
+    }[v.type] ?? 1;
+    // a convoy's run here is as long as its route: a minute in Haven, three in the far worlds
+    if ((v.type === 'escort') && (v.world === campaign.world)) {
+        const route = escort_route();
+        const length = distance(route.start, route.stops[0]) + distance(route.stops[0], route.stops[1]);
+        return 0.3 + (length/escort_speed + escort_stop_times.load + escort_stop_times.unload)/60;
+    }
+    return minutes + travel;
+}
+
+// A contract pays for its minutes: more in the farther worlds and at higher levels, more again for rank-gated work
+function contract_reward(stages, id, level, premium = 1)
+{
+    let minutes = 0;
+    let from = id;
+    for (const v of stages) {
+        minutes += stage_minutes(v, from);
+        from = v.world;
+    }
+    return Math.round((minutes*105*(1 + 0.2*id)*(1 + 0.1*(level - 1))*premium)/10)*10;
 }
 
 function guide_base_claim_contract(id)
@@ -626,9 +853,18 @@ function build_guide_context()
         out.action = 'Fly to objective';
         out.instruction = stage_description(m.stages?.[m.stage_index] || m, m, m.stage_index);
     }
+    // a mining stage with every drone lost cannot go on: the guide sends you to the station to replace them
+    if ((m.type === 'mining') && (m.world === campaign.world) && !drones_owned() && !drones.length) {
+        out.goal = {...station, label: worlds[campaign.world].station};
+        // docked, the guide's button opens MODULES, where the drones are sold
+        out.kind = (state === 'upgrade') ? 'prepare' : 'station';
+        out.purchases = [];
+        out.action = (state === 'upgrade') ? 'Open modules' : 'Fly to station';
+        out.instruction = `Your mining drones are all lost. Dock at ${worlds[campaign.world].station} and buy new ones in MODULES, then come back to the field.`;
+    }
     if ((m.type === 'escort') && (m.world === campaign.world) && escort) {
         out.instruction =
-            `Cargo run, stop ${escort.leg + 1}/${escort.stops.length}: ${escort.stops[escort.leg].label} · hull ${Math.ceil(escort.hp)}/${escort_hull}. Stay within ${escort_leash} m so it keeps moving; raiders strike at the stops.`;
+            `Cargo run, stop ${escort.leg + 1}/${escort.stops.length}: ${escort.stops[escort.leg].label} · hull ${Math.ceil(escort.hp)}/${escort.max_hp || escort_hull}. Stay within ${escort_leash} m so it keeps moving; raiders strike at the stops.`;
     }
     return out;
 }
@@ -638,28 +874,37 @@ function stage_description(v, m, index)
     const current = index === m.stage_index;
     const left = Math.max(0, v.target - (current ? m.progress : 0));
     if (v.type === 'scan') {
-        return `Within ${survey_launch_range} m of beacon ${(v.beacon || 0) + 1} you launch a survey robot. Guard it while it scans: ${Math.ceil(left)} seconds of scanning left. Raiders go for it, and it scans only while you are within ${survey_cover_range} m. Progress is saved.`;
+        return `Within ${survey_launch_range} m of beacon ${(v.beacon || 0) + 1} you launch a survey robot. Guard it while it scans: ${Math.ceil(left)} seconds of scanning left. Raiders go for it: with one close it scans at half speed, and a lost robot sets the scan back a third. It scans only while you are within ${survey_cover_range} m. Progress is saved.`;
     }
     if (v.type === 'defend') {
         return `Defend the relay for ${Math.ceil(left)} seconds within 450 m. Raider waves arrive every 12 seconds. Leaving the ring slowly loses defense progress.`;
     }
     if (v.type === 'recover') {
-        return `Clear the marked ambush, then hold within 150 m of the recovery signal for ${Math.ceil(left)} seconds. The sealed recovery item uses no cargo space.`;
+        return `Clear the marked ambush, then hold within 150 m of the recovery signal for ${Math.ceil(left)} seconds; halfway through, reinforcements come and the hold waits until they are cleared. The sealed recovery item uses no cargo space.`;
     }
     if (v.type === 'elite') {
         return 'Approach the combat zone and destroy its marked elite commander. Ion strips shields; railguns bypass thick armor.';
     }
     if (v.type === 'escort') {
-        return `Meet the freighter beside the station and escort its cargo run: it loads at a mining field, then unloads at the station, ${(v.world === campaign.world) ? escort_route_text(escort || escort_route()) : 'about 2-3 min'}. Stay within ${escort_leash} m so it keeps moving; raiders strike at the stops.`;
+        return `Meet the freighter beside the station and escort its cargo run: it loads at a mining field, then unloads at the station, ${(v.world === campaign.world) ? escort_route_text(escort || escort_route()) : 'about 2-3 min'}. Stay within ${escort_leash} m so it keeps moving; raiders strike at the stops. G flies you in formation behind it.`;
     }
+    // a delivery from another world is intercepted on the way (update_intercepts)
+    const from = index ? m.stages[index - 1].world : (m.issuer ?? campaign.world);
+    const pursuit = (from !== v.world) ? ' Raiders know what you carry: a wing comes for it once in each world you enter, this one included. Fight them off or outfly them to the berth.' : '';
     if (v.type === 'courier') {
-        return `Mission cargo is already aboard. Dock at ${worlds[v.world].station} with R; delivery advances this stage automatically.`;
+        return `The sealed cargo is already aboard and takes no space. Dock at ${worlds[v.world].station} with R to deliver it.${pursuit}`;
     }
     if (v.type === 'trade') {
-        return `Sell ${Math.ceil(left)} ${v.commodity || m.commodity} at ${worlds[v.world].station}. This uses your real cargo.`;
+        const key = v.commodity || m.commodity;
+        const good = commodities.find(v => v.key === key);
+        // a world's own resource is only mined, in its rich rocks; a common good can be bought, but not where it is sold
+        const source = resource_of(key)
+            ? `the drones cut it from the rich rocks of ${worlds[resource_of(key).world].name}`
+            : `mine or buy it elsewhere, since what you buy at ${worlds[v.world].station} itself does not count`;
+        return `Sell ${Math.ceil(left)} ${good.name.toLowerCase()} at ${worlds[v.world].station}, from your own hold: ${source}.${pursuit}`;
     }
     if (v.type === 'mining') {
-        return `Mine ${Math.ceil(left)} units from the deposits: launch your drones (H) at a mining field, and each chunk they drill counts. FLY TO OBJECTIVE leads to the nearest field. A Prospector extracts ore 2.5× faster. You keep the salvage and cargo.`;
+        return `Mine ${Math.ceil(left)} units from the deposits: launch your drones (H) at a mining field, and each chunk they drill counts. FLY TO OBJECTIVE leads to the nearest field. Raiders hunt the drones: replace lost ones in a station's MODULES. A Prospector extracts ore 2.5× faster. You keep the salvage and cargo.`;
     }
     if (v.type === 'boss') {
         return 'Approach the marked flagship zone and destroy the warship. Prepare your ship and weapon tier before jumping.';
@@ -667,7 +912,7 @@ function stage_description(v, m, index)
     if (v.type === 'lure') {
         return 'Fly to the marked black hole and the Leviathan comes for you. Guns cannot hurt it. Keep ahead of it and lead it across the pull: your ship climbs out, its thrust cannot, and the core takes it. Keep clear of the core yourself.';
     }
-    return `Destroy ${Math.ceil(left)} hostile ships in this world, then continue to the next stage.`;
+    return `Destroy ${Math.ceil(left)} raiders in ${worlds[v.world].name}: any raider you destroy there counts, wherever you meet it.`;
 }
 
 function render_contracts(parent, board = false)

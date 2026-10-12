@@ -22,28 +22,32 @@ A file:
     |---|---|---|---|---|
     | Calibrate the mining scanner | scan | Haven | 12 | beacon 1 |
     | Extract trial ore | mining | Haven | 10 | |
-    | Return the analysis to Haven | courier | Haven | 1 | |
 
 - **World** is where the contract is offered; **Reward** is salvage, paid when
   you collect it at a station.
 - Each table row is a stage, done in order. **Stage** is what the guide shows.
   **World** is a world's name: Haven, Verdant, Dustfall, Ion Reach, Obsidian,
   Cryosphere, Nova Forge, Eclipse.
-- **Where** is empty, `beacon <n>` (1–3) for a scan, or `commodity <key>`
-  (ore, cells, relics) for a trade.
+- **Where** is empty, `beacon <n>` (1–3) for a scan or a defend (a defend
+  holds beacon 2 when empty), or `commodity <key>` (ore, cells, relics) for a
+  trade.
+- No stage needs to bring you back to the station: collecting the reward is
+  docking there. A courier to the world you are already in is only a dock;
+  send the player to another world only when the story goes that way, and
+  the delivery is intercepted there (see docs/goals.md).
 
 | Kind | Amount means |
 |---|---|
 | scan | seconds of scanning at the beacon, guarding the survey robot |
 | mining | units your drones drill at a mining field |
-| courier | 1: dock at the stage's world station to deliver |
+| courier | 1: dock at the stage's world station to deliver; from another world, raiders intercept it in each world it enters |
 | hunt | raiders destroyed in that world |
 | defend | seconds holding the relay |
 | recover | seconds holding at the recovery signal after the ambush |
 | elite | 1: the marked commander destroyed |
 | boss | 1: the world's flagship destroyed |
 | escort | 1: the convoy brought through its legs |
-| trade | units of the commodity sold at that world's station |
+| trade | units of the commodity sold at that world's station from your own hold; what you bought there does not count |
 | lure | 1: the Leviathan, which guns cannot hurt, led into a black hole's core |
 
 `bin/build` stops with the file and line when a file does not read.

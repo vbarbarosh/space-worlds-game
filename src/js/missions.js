@@ -16,7 +16,7 @@ function mission_chapter(file)
         world: file.world,
         target: stages[0].target,
         reward: file.reward,
-        description: `${file.description} A multi-stage operation: ${stages.map(v => v.title).join(' → ')}.`,
+        description: `${file.description} ${stages.map(v => v.title).join(' → ')}.`,
         story: file.story,
         file: file.file,
         stages,

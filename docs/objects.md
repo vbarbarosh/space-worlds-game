@@ -110,8 +110,9 @@ ships. "Modes" is arcade, campaign or both.
 
 - A danger to steer round, and a tool: they pull ships in, and the core kills
   a ship at once, shields or not. The lure mission uses one to destroy the
-  Leviathan. Four per world, six from Ion Reach, eight from Nova Forge;
-  Eclipse pulls at 210%.
+  Leviathan. Four per world, six from Ion Reach, eight from Nova Forge, but
+  none in Haven: its small map leaves no place clear of the station and the
+  gates (`gravity.js` drops a hole it cannot place). Eclipse pulls at 210%.
 - Not solid; not damageable. Both modes. Where: `base_generate_map` and
   `fatal_gravity` in `src/js/map.js`; `src/js/gravity.js`; `src/js/lure.js`.
 
@@ -158,13 +159,16 @@ ships. "Modes" is arcade, campaign or both.
 ### The Leviathan
 
 - The lure mission's beast: guns cannot hurt it; lead it into a black hole.
-- Solid, not damageable by shots. Campaign, Haven. Where: `src/js/lure.js`.
+- Solid, not damageable by shots. Campaign, Verdant (Haven has no black
+  hole). Where: `src/js/lure.js`.
 
 ### The convoy's freighter
 
 - What escort stages protect: it loads at a mining field and unloads at the
   station; raiders strike at the stops. G flies you in formation behind it.
-- Solid; raiders damage it (300 hull, shown as a label). Campaign.
+- Solid; raiders damage it (300 hull in Haven at level 1, growing as the
+  raiders' hits do farther out and at higher levels; shown as a label).
+  Campaign.
 - Where: `update_escort` in `src/js/operations.js`; `src/js/formation.js`.
 
 ### The transport line's ship
@@ -179,7 +183,8 @@ ships. "Modes" is arcade, campaign or both.
 - Mining drones (H) drill rocks and carry the load home; two in the bay, four
   on the Mule Prospector. Orbit drones (a module) circle you and shoot. The
   builder drone builds what you place with K. The survey robot scans at a
-  beacon while you guard it (80 hull, a bar).
+  beacon while you guard it (80 hull in Haven, more where raiders hit harder;
+  a bar).
 - Mining drones, the builder and the robot: campaign. Orbit drones: both.
 - Where: `src/js/drones.js`, `src/js/structures.js`, `src/js/survey.js`,
   `src/js/render.js` (orbit drones).

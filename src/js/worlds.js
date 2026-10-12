@@ -33,14 +33,21 @@ const commodities = [
 ];
 // The story chapters still written here; the ones in src/missions/ take their places by number (js/missions.js)
 const story = [
-    {title: 'Thorns in the canopy', type: 'hunt', world: 1, target: 10, reward: 290, description: 'Eliminate ten Thorn Swarm ships in Verdant.'},
+    {
+        title: 'Thorns in the canopy',
+        type: 'hunt',
+        world: 1,
+        target: 10,
+        reward: 290,
+        description: 'The Thorn Swarm has grown round the Canopy Exchange, and its nest telemetry repeats an old guild frequency. Find the nest, break its patrol, and run the telemetry home to Haven.',
+    },
     {
         title: 'The refinery run',
         type: 'courier',
         world: 2,
         target: 1,
         reward: 300,
-        description: 'Deliver a sealed navigation core to Dustfall Refinery. It uses no cargo space.',
+        description: 'Dustfall Refinery will read the guild navigation core you carry, if you get it past the Dune Marauders and keep them off its relay while it reads.',
     },
     {
         title: 'Cartographers of the storm',
@@ -48,7 +55,7 @@ const story = [
         world: 3,
         target: 3,
         reward: 430,
-        description: 'Visit three marked beacons in Ion Reach. Fly within 120 units to scan.',
+        description: 'The storm log of the Arc Spire holds the last guild chart. Align the beacons of Ion Reach, holding the middle one through the storm, then pull the log out.',
     },
     {
         title: 'Break the iron blockade',
@@ -56,7 +63,7 @@ const story = [
         world: 4,
         target: 16,
         reward: 650,
-        description: 'Destroy sixteen Iron Dominion ships in Obsidian. Prepare for railguns and thick plating.',
+        description: 'The Iron Dominion holds the route to the outer worlds shut. Find its command ship, thin the blockade and disable its commander. Expect railguns and thick plating.',
     },
     {
         title: 'Under frozen skies',
@@ -64,7 +71,7 @@ const story = [
         world: 5,
         target: 14,
         reward: 650,
-        description: 'Mine fourteen rocks in Cryosphere while Frost Sentinels patrol.',
+        description: 'Relic ore from the Cryosphere ice still carries guild markings. Mine it, keep the extraction relay alive, see the sample freighter in, and run its manifest to Bastion Dock.',
     },
     {
         title: 'Heart of the forge',
@@ -72,7 +79,7 @@ const story = [
         world: 6,
         target: 1,
         reward: 1000,
-        description: 'Find the Ember flagship at the marked combat zone and destroy it.',
+        description: 'Only a guild reactor core can light the Eclipse gate, and the Ember Legion built its flagship round one. Find it, break its pickets, destroy it and take the core.',
     },
     {
         title: 'A light beyond Eclipse',
@@ -80,7 +87,7 @@ const story = [
         world: 7,
         target: 1,
         reward: 1600,
-        description: 'Defeat the Void Dreadnought in Eclipse. The frontier stays open after the story ends.',
+        description: 'The frontier archive waits beyond the Void Armada. Keep the last-light relay burning, destroy the Dreadnought, and bring the archive home to Haven: every world on the way will try to take it.',
     },
 ];
 let campaign = {world: 0, story: 0, contracts: [], completed: 0, visited: [0], cargo: {ore: 0, cells: 0, relics: 0}, maps: {}, serial: 0, board: 0};

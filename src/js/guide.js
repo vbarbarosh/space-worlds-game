@@ -261,7 +261,7 @@ function expedition_base_guide_context()
         if (m.type === 'mining') {
             goal = mining_objective() || station;
             description =
-                `Fly to the marked live ore deposit and press H: your drones cut the rocks and bring the ore aboard, and raiders hunt them. FLY TO OBJECTIVE launches them on arrival and continues to the next deposit. Extract ${format_progress(m.target - m.progress)} more rocks; you keep the ore and artifacts.`;
+                `Fly to the marked live ore deposit and press H: your drones cut the rocks and bring the ore aboard, and raiders hunt them. FLY TO OBJECTIVE launches them on arrival and continues to the next deposit. Extract ${format_progress(m.target - m.progress)} more units; you keep the ore and artifacts.`;
         }
         if (m.type === 'survey') {
             const remaining = beacons.map((b, i) => ({...b, index: i})).filter(v => !m.scans.includes(v.index));

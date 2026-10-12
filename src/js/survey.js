@@ -37,7 +37,7 @@ function survey_update(m, point, d, dt)
     if ((robot.state === 'scanning') && robot.covered) {
         robot.angle += dt*0.8;
         const pressed = enemies.some(v => (v.hp > 0) && (distance(v, robot) < 240));
-        mission_event('scan', dt*(pressed ? 0.3 : 1), {contract_id: m.id});
+        mission_event('scan', dt*(pressed ? 0.5 : 1), {contract_id: m.id});
         // the scan charts the area round the beacon
         chart_reveal(point, chart_home());
     }
@@ -60,7 +60,9 @@ function survey_update(m, point, d, dt)
 
 function survey_launch(m, point)
 {
-    survey_robot = {contract_id: m.id, stage: m.stage_index, x: player.x, y: player.y, angle: Math.atan2(point.y - player.y, point.x - player.x), hp: 80, max_hp: 80, state: 'flying', covered: true};
+    // as sturdy against the world's raiders as it is in Haven: they hit harder farther out and at higher levels
+    const hp = Math.round(80*raider_hit_scale()*(1 + Math.min(10, (m.level || 1) - 1)*0.12));
+    survey_robot = {contract_id: m.id, stage: m.stage_index, x: player.x, y: player.y, angle: Math.atan2(point.y - player.y, point.x - player.x), hp, max_hp: hp, state: 'flying', covered: true};
     show_toast('SURVEY ROBOT LAUNCHED', `GUARD IT WHILE IT SCANS · STAY WITHIN ${survey_cover_range} m`, 3);
     survey_raiders(m, 2);
     m.wave_clock = 12;

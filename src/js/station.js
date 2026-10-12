@@ -7,66 +7,6 @@ function contract_copy(template, main = false)
     return out;
 }
 
-function expedition_base_offered_jobs()
-{
-    const id = campaign.world;
-    const t = worlds[id];
-    const other = t.links[(campaign.board || 0) % t.links.length];
-    const scale = id + 1;
-    return [
-        {
-            title: 'Clear the patrol lanes',
-            type: 'hunt',
-            world: id,
-            target: 8 + id*2,
-            reward: 125 + scale*55,
-            description: `Destroy ${8 + id*2} hostile ships in ${t.name}.`,
-        },
-        {
-            title: 'Survey-grade extraction',
-            type: 'mining',
-            world: id,
-            target: 6 + id,
-            reward: 95 + scale*40,
-            description: `Mine ${6 + id} ore rocks in ${t.name}. Ore remains yours to trade.`,
-        },
-        {
-            title: `Sealed dispatch to ${worlds[other].name}`,
-            type: 'courier',
-            world: other,
-            target: 1,
-            reward: 160 + scale*45,
-            description: `Dock at ${worlds[other].station} with the sealed package. Check destination requirements first.`,
-        },
-        {
-            title: 'Map the frontier',
-            type: 'survey',
-            world: id,
-            target: 3,
-            reward: 160 + scale*40,
-            description: `Scan three marked beacons in ${t.name}.`,
-        },
-        {
-            title: 'Escort a freighter',
-            type: 'escort',
-            world: id,
-            target: 1,
-            reward: 210 + scale*55,
-            description:
-                `Escort the freighter's cargo run: it loads at a mining field, then unloads at the station, ${escort_route_text(escort_route())}. Raiders strike at the stops. G, or a double click on it, flies you in formation behind it.`,
-        },
-        {
-            title: `Market supply: ${commodities[id % 3].name}`,
-            type: 'trade',
-            world: id,
-            commodity: commodities[id % 3].key,
-            target: 8,
-            reward: 130 + scale*35,
-            description: `Sell eight units of ${commodities[id % 3].name} at this station after accepting. Mining or importing cargo both count.`,
-        },
-    ];
-}
-
 function guide_base_accept_contract(template, main = false)
 {
     if ((state !== 'upgrade') || (campaign.contracts.length >= 3)) {
@@ -78,8 +18,11 @@ function guide_base_accept_contract(template, main = false)
     if (!main && campaign.contracts.some(v => v.title === template.title)) {
         return;
     }
-    campaign.contracts.push(contract_copy(template, main));
+    const m = contract_copy(template, main);
+    campaign.contracts.push(m);
     campaign.board++;
+    // a delivery to the station it is taken at is delivered there and then, not after an undock and a dock
+    mission_event('courier', 1, {contract_id: m.id});
     save_checkpoint();
     render_station();
 }
@@ -194,7 +137,7 @@ function render_station_contracts(parent)
     for (const m of offers) {
         const dupe = campaign.contracts.some(v => v.title === m.title);
         offered.append(ui_card({
-            tags: `${ui_world_badge(m.world)}<span class="eyebrow eyebrow--muted" style="margin-left:auto">${m.main ? 'Story' : m.type}</span>`,
+            tags: `${ui_world_badge(m.world)}<span class="eyebrow eyebrow--muted" style="margin-left:auto">${m.main ? 'Story' : m.stages ? `${m.stages.length} stage${(m.stages.length === 1) ? '' : 's'}` : m.type}</span>`,
             title: m.label,
             text: m.description,
             note: `<span class="money">${ui_number(m.reward)}</span>`,
@@ -533,9 +476,23 @@ function trade_cargo(key, side, requested)
     }
     campaign.cargo[key] += (side === 'buy') ? amount : -amount;
     salvage += (side === 'buy') ? -amount*price : trade_total(campaign.world, key, side, amount);
+    // what was bought at a station and sold back there is no delivery: it does not count for a trade stage
+    const bought = campaign.bought || (campaign.bought = {});
+    const here = bought[campaign.world] || (bought[campaign.world] = {});
+    let delivered = amount;
+    if (side === 'buy') {
+        here[key] = (here[key] || 0) + amount;
+    }
+    else {
+        delivered = amount - Math.min(amount, here[key] || 0);
+        here[key] = Math.max(0, (here[key] || 0) - amount);
+    }
+    for (const v of Object.values(bought)) {
+        v[key] = Math.min(v[key] || 0, campaign.cargo[key]);
+    }
     if (side === 'sell') {
         ensure_markets()[campaign.world].demand[key] = Math.max(0, ensure_markets()[campaign.world].demand[key] - amount);
-        mission_event('trade', amount, {commodity: key});
+        mission_event('trade', delivered, {commodity: key});
     }
     advance_trade_plan(key, side, amount);
     save_checkpoint();

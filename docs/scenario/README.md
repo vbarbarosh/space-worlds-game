@@ -27,9 +27,10 @@ measures:
 After the founding, frontier expeditions stay open with no end, as they do
 today.
 
-*Exists:* chapter 16 already ends with "Found the expedition guild", and the
-career tab already says "earn reputation in all eight worlds". *New:* the
-Charter as the thread through all chapters, and signatures as the measure.
+*Exists:* chapter 16 ends with the guild founded at the Last Light Citadel,
+and the career tab already says "earn reputation in all eight worlds".
+*New:* the Charter as the thread through all chapters, and signatures as the
+measure.
 
 ## How the story is built
 
@@ -160,11 +161,10 @@ const chapter_a_pilot_earns_their_wings = {
     title: 'A pilot earns their wings',
     world: 'haven',
     requires: {chapter: null, rank: 0},
-    briefing: 'Haven Anchorage needs ore it can trust. Calibrate the scanner, bring back a trial load, and the dock master will put your name on the board.',
+    briefing: 'Haven Anchorage needs ore it can trust. Calibrate the scanner, drill a trial load, and the dock master will put your name on the board.',
     stages: [
         {type: 'scan', target: 12, title: 'Calibrate the mining scanner', beacon: 0},
         {type: 'mining', target: 10, title: 'Extract trial ore'},
-        {type: 'courier', target: 1, title: 'Return the analysis to Haven'},
     ],
     rewards: {salvage: 306, reputation: 2, unlocks: ['side contracts in Haven']},
     epilogue: 'The analysis is good. The dock master signs your licence: you are a pilot of Haven now, and the board is yours to choose from.',
