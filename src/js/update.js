@@ -122,6 +122,7 @@ function update(dt)
         player.hp = Math.min(hull_max(), player.hp + dt*upgrades.nanites*0.35);
     }
     player.invincible = Math.max(0, player.invincible - dt);
+    player.dash_grace = Math.max(0, player.dash_grace - dt);
     recharge_turbo(dt);
     player.shoot_cd -= dt;
     guns_cool(dt);
@@ -329,7 +330,7 @@ function update(dt)
             v.fire_cd -= enemy_dt;
             if ((v.fire_cd <= 0) && (v.age > 0.8)) {
                 enemy_fire(v, (waypoint === player) ? raider_aim(v, player, 180 + wave*4) : a, 180 + wave*4);
-                v.fire_cd = Math.max(1.2, 2.1 - wave*0.04);
+                v.fire_cd = Math.max(1.2, 2.1 - wave*0.04)*arcade_reload(v);
                 ring(v.x, v.y, gold, 30, 0.25);
             }
         }

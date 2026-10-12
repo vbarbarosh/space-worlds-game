@@ -3,11 +3,11 @@ const dev_base_damage_player = damage_player;
 const dev_base_fatal_gravity = fatal_gravity;
 let dev_readout_time = 0;
 
-damage_player = function (amount) {
+damage_player = function (amount, blast) {
     if (dev_scenario.god) {
         return;
     }
-    dev_base_damage_player(amount);
+    dev_base_damage_player(amount, blast);
 };
 fatal_gravity = function (h) {
     if (dev_scenario.god) {

@@ -269,14 +269,14 @@ function render()
     render_hazards();
     render_teleport();
     if (player && (state !== 'dead') && !teleport_active()) {
-        if (player.invincible > 0) {
+        if ((player.invincible > 0) || (player.dash_grace > 0)) {
             ctx.strokeStyle = '#6cf8ec55';
             ctx.lineWidth = 1;
             ctx.beginPath();
             ctx.arc(player.x, player.y, ship_halo() + Math.sin(clock*10)*2, 0, Math.PI*2);
             ctx.stroke();
         }
-        ship(player.x, player.y, player.angle, (player.invincible > 0) ? 0.65 + Math.sin(clock*25)*0.25 : 1);
+        ship(player.x, player.y, player.angle, ((player.invincible > 0) || (player.dash_grace > 0)) ? 0.65 + Math.sin(clock*25)*0.25 : 1);
         if (player.energy >= 100) {
             ctx.strokeStyle = '#ff5baf55';
             ctx.beginPath();

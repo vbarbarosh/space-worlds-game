@@ -330,7 +330,13 @@ function dash(held = false)
     player.dash_time = turbo_fuel();
     player.turbo_active = true;
     player.dash_cd = 0;
-    player.invincible = Math.max(player.invincible, 0.25);
+    // the arcade's dash slips through bolts, not through a blast: a missile is outrun, outturned or cleared by the EMP
+    if (arcade.active) {
+        player.dash_grace = 0.25;
+    }
+    else {
+        player.invincible = Math.max(player.invincible, 0.25);
+    }
     if (campaign.world === 7) {
         player.energy -= 12;
     }

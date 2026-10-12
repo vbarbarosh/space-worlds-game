@@ -1,5 +1,5 @@
 // Arcade: one run through the eight worlds, three waves each, the world's flagship in the third; no stations, contracts or saves.
-const arcade = {active: false, world: -1, wave: 0, pause: 0, squad_timer: 0, squads: 0, phase: 0, slowmo: 0, depot_hint: false, marksman_hint: false, blasts: [], event: null, between_worlds: null, world_start: null, campaign_checkpoint: null};
+const arcade = {active: false, world: -1, wave: 0, pause: 0, squad_timer: 0, squads: 0, phase: 0, slowmo: 0, depot_hint: false, marksman_hint: false, missile_hint: false, blasts: [], event: null, between_worlds: null, world_start: null, campaign_checkpoint: null};
 const arcade_extent = [7200, 5600];
 const arcade_waves = 3;
 const arcade_radiation = 0.35;
@@ -18,12 +18,15 @@ const arcade_aim_time = 0.5;
 const arcade_flank_arc = [0, 0, 2.8, 2.8, 0, 2.8, 2.8, 0];
 // a marksman's missile turns this much harder than another's
 const arcade_marksman_turn = 1.15;
+// how much slower a raider reloads by its gun (arcade_reload): a missile is a threat to read and answer, one at a time,
+// not a stream
+const arcade_reloads = {missile: 2};
 // What each difficulty changes in the arcade: extra raiders per squadron and per wave, the gap between squadrons, the
 // first world with elites, the share of repairs that still drop, the medkits a run starts with, whether every raider
 // fires its world's gun (Haven's plasma included), how often (a factor on the gun's cooldown), and how hard its shots
 // hit, the raiders' hull and how much it grows a world past Haven, the share of the world's armour and shield they
-// carry, the blast damage you take, raiders that grow with your weapon tier, the flagship's overdrive, and a factor on
-// the share of marksmen.
+// carry, the blast damage you take (a ship's explosion or a raider missile), raiders that grow with your weapon tier,
+// the flagship's overdrive, and a factor on the share of marksmen.
 const arcade_modes = {
     chill: {squad: 0, wave: 0, gap: 1, elite_world: 1, repairs: 1, medkits: 2, armed: false, gun_gap: 1, hits: 1, hull: 1, growth: 0.1, defense: 0.8, blast: 0.8, tier_hp: false, overdrive: false, marksmen: 0.5},
     normal: {squad: 1, wave: 3, gap: 0.8, elite_world: 0, repairs: 0.35, medkits: 1, armed: true, gun_gap: 0.45, hits: 1.6, hull: 1.5, growth: 0.15, defense: 0.8, blast: 0.8, tier_hp: false, overdrive: false, marksmen: 1},
@@ -103,6 +106,7 @@ function arcade_start(world = 0, from = null)
     arcade.pause = 0;
     arcade.depot_hint = false;
     arcade.marksman_hint = false;
+    arcade.missile_hint = false;
     arcade.blasts = [];
     arcade.between_worlds = null;
     arcade.world_start = null;
@@ -175,6 +179,12 @@ function arcade_mode()
     return arcade_modes[difficulty] || arcade_modes.normal;
 }
 
+// A factor on a raider's reload: slower in the arcade for a missile (arcade_reloads), as it is for others
+function arcade_reload(enemy)
+{
+    return arcade.active ? (arcade_reloads[enemy.weapon] || 1) : 1;
+}
+
 // Whether a repair may drop: always outside the arcade; in it, as often as the mode allows.
 function repair_drop_allowed()
 {
@@ -220,6 +230,11 @@ function arcade_update(dt)
             arcade.marksman_hint = true;
             show_toast('MARKSMEN', 'A DASHED LINE IS WHERE THEY AIM · TURN OFF IT', 3.5, 'danger');
         }
+    }
+    // the run's first raider missile close by says that a dash does not carry you through its blast
+    if (!arcade.missile_hint && hostile.some(v => v.missile && (distance(v, player) < 600))) {
+        arcade.missile_hint = true;
+        show_toast('MISSILES', 'A DASH IS NO SHIELD FROM THE BLAST · OUTRUN OR OUTTURN THEM', 3.5, 'danger');
     }
     if (arcade.world !== campaign.world) {
         arcade.world = campaign.world;
@@ -643,7 +658,7 @@ function arcade_blasts_update(dt)
         }
         const d = distance(player, blast);
         if (d < blast.radius + player.r) {
-            damage_player(blast.damage*arcade_mode().blast*(1 - Math.min(1, d/blast.radius)));
+            damage_player(blast.damage*arcade_mode().blast*(1 - Math.min(1, d/blast.radius)), true);
         }
     }
 }

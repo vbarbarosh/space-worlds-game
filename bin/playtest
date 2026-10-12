@@ -147,10 +147,10 @@ function page_bot(options)
         return entry.waves[n - 1];
     }
     const base_damage_player = damage_player;
-    damage_player = function (amount) {
+    damage_player = function (amount, blast) {
         const hp0 = player.hp;
         const shield0 = player.shield || 0;
-        base_damage_player(amount);
+        base_damage_player(amount, blast);
         if (arcade.active && player) {
             const entry = wave_entry();
             const lost = Math.max(0, hp0 - player.hp) + Math.max(0, shield0 - (player.shield || 0));

@@ -118,7 +118,8 @@ That gives, in the campaign at NORMAL:
   Haven (`raider_hit_scale`), Eclipse's 1.56 times, and in the campaign 8%
   more a tier of the story's front (above). From Nova Forge on, darts
   and seekers come in pairs. A raider fires every 3.6 s, a tank every 2.8 s
-  (`src/js/navigation.js`).
+  (`src/js/navigation.js`); in the arcade a missile raider reloads twice as
+  slowly as one with another gun (`arcade_reloads`, `arcade_reload`).
 - A raider's missile goes off at its fuse, units from your shield's edge (or
   your hull without one), and its blast is a wave: the full damage within
   the fuse, falling to half at the blast's rim; a wave sets off the missiles
@@ -127,6 +128,11 @@ That gives, in the campaign at NORMAL:
   (chaser, splitter, lancer) fire darts; shooters, elites (Haven's carry
   missiles) and flagships fire seekers; tanks fire seekers, torpedoes from
   Nova Forge on.
+- A dash (Shift) gives a quarter second of grace. In the campaign it covers
+  everything; in the arcade it covers bolts and slugs but not a blast, a
+  missile's wave or a ship's explosion (`dash_grace`, `damage_player`'s
+  `blast`): a missile is outrun, outturned or cleared by the EMP, not dashed
+  through. The run's first raider missile within 600 m says so in a toast.
 
 | Kind | Size | Speed | Turn | Flight | Fuse | Blast | Damage | Toughness | Trail |
 |---|---|---|---|---|---|---|---|---|---|
@@ -360,11 +366,11 @@ before rocks and the Relic processor.
 | repair kits at the start | 2 | 1 | 1 |
 | plasma raiders fire | no | yes | yes |
 | raider gun cooldown | ×1 | ×0.45 | ×0.4 |
-| raider shot damage | ×1 | ×1.6 | ×1.75 |
+| raider shot damage (a missile: the blast row) | ×1 | ×1.6 | ×1.75 |
 | raider hull | ×1 | ×1.5 | ×1.8 |
 | raider hull growth a world past Haven | +10% | +15% | none |
 | share of the world's armour and shield | 80% | 80% | 50% |
-| blast damage to you | ×0.8 | ×0.8 | ×1.2 |
+| blast damage to you (a ship's explosion, a raider missile) | ×0.8 | ×0.8 | ×1.2 |
 | raiders grow with your gun tier | no | no | +22% a tier |
 | flagship overdrive | no | no | yes |
 | marksmen (a factor on the world's share) | ×0.5 | ×1 | ×1.3 |
@@ -441,6 +447,27 @@ before rocks and the Relic processor.
   as the bot dashes past every missile and a dash's quarter second of grace
   covers it. Raider bolts that hit: Ion Reach 17% instead of 6%, Obsidian 18%
   instead of 9%.
+- Measured (the same bot, NORMAL, seeds 1 to 6, with one more of its gun
+  for each empty mount; before and after a dash stopped covering blasts,
+  missile raiders reloaded twice as slowly and a missile's blast took the
+  mode's blast factor instead of its shot factor): all damage, hull and
+  shield, Dustfall 79 to 130 instead of 0 to 19, Nova Forge 100 to 325
+  instead of 0 to 56; most of it lands on the shield (hull 0 to 29 in
+  Dustfall, 0 to 268 in Nova Forge). Missiles now cost something from Verdant
+  on: Ion Reach 36 to 155 (57 to 149 before), Cryosphere 76 to 269 (84 to
+  161). Seeds 1, 2, 3 and 6 are won with no deaths, seed 6 lost before;
+  Eclipse costs them 321 to 820 instead of 455 to 689. Seeds 4 and 5 die
+  three times in Eclipse, as they did before (2227 and 2241 then, 1961 and
+  1981 now, most of it rail slugs): a wall for this bot that seeds 1 to 3
+  had hidden. Tried and dropped: a dash that covered nothing for 1.5 s
+  after the last (the first round) made the rail worlds walls; the blast at
+  the shot factor (×1.6) with missiles at their old pace cost Nova Forge
+  three deaths in every seed; at ×1.2 with the slower reload it walled Nova
+  Forge for seeds 4 and 5, whose repairs had left them one gun. CHILL seed
+  1: still no deaths, Dustfall 52 and Nova Forge 51 instead of 9 and 0.
+  OVERLOAD was lost before on seeds 1 and 2 (three deaths in Eclipse); seed
+  2 still reaches Eclipse and dies there, seed 1 now dies three times in
+  Dustfall, after three deaths in Haven and Verdant.
 - Wave 2 of each world draws an **event** from the world's pool
   (`arcade_event_pools` in `src/js/arcade_events.js`), with a toast and a
   mark on the map; it ends with the wave:

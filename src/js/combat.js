@@ -71,6 +71,7 @@ function base_reset_run(resume = false)
         turbo_active: false,
         turret_angle: -Math.PI/2,
         invincible: 2.4,
+        dash_grace: 0,
         shoot_cd: 0,
         gun_cd: [],
         r: current_ship().radius,
@@ -335,9 +336,10 @@ function base_damage_enemy(enemy, damage)
     }
 }
 
-function damage_player(amount)
+// blast: a missile's wave or a ship's explosion, which a dash's grace (dash_grace, the arcade's) does not cover
+function damage_player(amount, blast = false)
 {
-    if ((player.invincible > 0) || (state !== 'playing')) {
+    if ((player.invincible > 0) || ((player.dash_grace > 0) && !blast) || (state !== 'playing')) {
         return;
     }
     const multiplier = (difficulty === 'chill') ? 0.65 : (difficulty === 'overload') ? 1.2 : 1;
