@@ -36,13 +36,13 @@ const expanded_story_stages = [
     [
         stage('scan', 6, 25, 'Locate the flagship reactor', {beacon: 2}),
         stage('hunt', 6, 12, 'Destroy reactor pickets'),
-        stage('boss', 6, 1, 'Destroy the Ember flagship'),
+        stage('boss', 6, 1, 'Destroy the Ember flagship', {boss: 'EMBER FLAGSHIP'}),
         stage('recover', 6, 18, 'Recover the reactor core'),
     ],
     [
         stage('scan', 7, 28, 'Reveal the Void signature', {beacon: 0}),
         stage('defend', 7, 90, 'Keep the last-light relay active'),
-        stage('boss', 7, 1, 'Destroy the Void Dreadnought'),
+        stage('boss', 7, 1, 'Destroy the Void Dreadnought', {boss: 'VOID DREADNOUGHT'}),
         stage('recover', 7, 20, 'Recover the frontier archive'),
         stage('courier', 0, 1, 'Bring the archive home to Haven'),
     ],
@@ -130,7 +130,7 @@ const second_act = [
         [
             stage('mining', 6, 20, 'Collect reactor material'),
             stage('elite', 6, 1, 'Defeat the Forge warden'),
-            stage('boss', 6, 1, 'Silence the Helios warship'),
+            stage('boss', 6, 1, 'Silence the Helios warship', {boss: 'HELIOS WARSHIP'}),
         ],
         2700,
     ],
@@ -142,7 +142,7 @@ const second_act = [
             stage('scan', 7, 30, 'Chart the outer darkness', {beacon: 2}),
             stage('elite', 7, 1, 'Break the Void honor guard'),
             stage('defend', 7, 110, 'Stabilize the frontier beacon'),
-            stage('boss', 7, 1, 'Defeat the reborn dreadnought'),
+            stage('boss', 7, 1, 'Defeat the reborn dreadnought', {boss: 'REBORN DREADNOUGHT'}),
             stage('recover', 7, 25, 'Recover the expedition charter'),
         ],
         3400,
@@ -178,6 +178,7 @@ function sync_stage(m)
     m.recovery_remaining = null;
     m.ambush = false;
     m.spawn_clock = 0;
+    m.boss_hp = null;
     m.escort_state = null;
     // a delivery starts where the stage before it ended (or where the contract was taken): raiders intercept it in
     // each other world it enters (update_intercepts)

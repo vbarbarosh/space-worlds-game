@@ -332,13 +332,23 @@ function guide_base_update_frontier(dt)
                 }
             }
         }
-        if ((m.type === 'boss') && !enemies.some(v => v.mission_boss === m.id) && (distance(player, combat_zone) < 900)) {
+        // the flagship keeps the damage you dealt it (boss_hp) when you are towed home or dock: it comes back as you
+        // left it, so a fight lost is not a fight to start over
+        const flagship = (m.type === 'boss') && enemies.find(v => (v.mission_boss === m.id) && (v.hp > 0));
+        if (flagship) {
+            m.boss_hp = flagship.hp;
+        }
+        if ((m.type === 'boss') && !flagship && (distance(player, combat_zone) < 900)) {
             const enemy = spawn_enemy('boss');
             enemy.x = combat_zone.x;
             enemy.y = combat_zone.y;
             enemy.mission_boss = m.id;
+            if (m.boss_hp > 0) {
+                enemy.hp = Math.min(enemy.max_hp, m.boss_hp);
+            }
             set_hidden(el.bossbar, false);
-            el.bossbar.querySelector('.meter-row').textContent = (campaign.world === 7) ? 'VOID DREADNOUGHT' : 'EMBER FLAGSHIP';
+            // the bar names the ship the stage sends you after (the Helios warship is not the Ember flagship)
+            el.bossbar.querySelector('.meter-row').textContent = m.stages?.[m.stage_index]?.boss || ((campaign.world === 7) ? 'VOID DREADNOUGHT' : 'EMBER FLAGSHIP');
         }
     }
     update_escort(dt);

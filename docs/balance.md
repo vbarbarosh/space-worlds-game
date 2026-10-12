@@ -336,6 +336,17 @@ before rocks and the Relic processor.
   `src/js/operations.js`; `spawn_enemy` in `src/js/campaign.js`.
 - Contract enemies grow with the contract's level: +12% hull a level past the
   first, up to ten levels (`spawn_operation_enemy`).
+- A chapter's flagship keeps the damage you dealt it: towed home or docked,
+  you find it as you left it (`boss_hp` on the contract, kept by
+  `src/js/navigation.js`, and carried past the autosave by the tow in
+  `src/js/checkpoint.js`). Before, it came back whole after each tow, or as
+  it was at the autosave up to 15 s before: in chapter 16 a story pilot
+  (the Aurora Cruiser, two Lance railguns at tier 5, every module) took the
+  reborn dreadnought (29 640 hull) to half in each life, died ten times in
+  13 minutes without killing it, and the bot gave the chapter up. After, the
+  same pilot kills it in its second life. Its bar names the ship the stage
+  sends you after (`boss` on the stage): the Helios warship of chapter 15
+  was shown as the Ember flagship.
 
 ## The arcade's difficulty rows
 
@@ -466,7 +477,8 @@ NORMAL in numbers:
   shelter and fewer than 12 are out (`src/js/navigation.js`).
 - A death (campaign): a tug brings the ship to the world's station, docked
   and repaired, for 10% of the salvage saved; the cargo aboard is lost, the
-  contracts keep their progress (`tow_to_station` in `src/js/checkpoint.js`).
+  contracts keep their progress, a flagship its damage (`tow_to_station` in
+  `src/js/checkpoint.js`).
   Before, the flight resumed at the last autosave with the hull and the
   radiation dose saved there, which could die again at once, over and over.
 - Ranks license ships and guns: XP from kills (table above) and from
@@ -501,6 +513,19 @@ NORMAL in numbers:
   hull and a death where it cost none, and chapter 11 took 10.9 minutes
   instead of 4.7 (the bot's runs ended at chapter 12, the machine being
   slow that night).
+- Measured again (2026-10-12, second round, the same bot). A full campaign
+  from chapter 1: chapters 1 to 7 in 31.5 minutes; the pilot owns every
+  module by minute 28, two Lance railguns at tier 5 by minute 31 and the
+  Aurora Cruiser after chapter 8. Chapter 8 took 15.1 minutes and 5 deaths,
+  all at the Void Dreadnought, which came back whole after each tow. Act
+  II from that kit (two railguns at tier 5, two shotguns, every module):
+  chapters 9 to 15 take 1.9 to 4.3 minutes each (chapter 14, with its
+  100-second relay, 11) with no hull lost and no death; 10 000 to 37 000
+  salvage pile up with nothing left to buy. Chapter 16 was a wall: the
+  reborn dreadnought, back whole after each death, killed the pilot ten
+  times in 13 minutes. After the flagship kept its damage, chapter 16
+  takes 14 minutes and 3 deaths (two at the dreadnought), and chapter 8
+  with the same kit 10.2 minutes and a death.
 
 ## Scoring
 

@@ -94,6 +94,15 @@ document.getElementById('retry_sector').addEventListener('click', function () {
         return;
     }
     const towed = (state === 'dead') && !arcade.active;
+    // the autosave is up to 15 s old: a flagship keeps the damage dealt it since (boss_hp, src/js/navigation.js)
+    if (towed) {
+        for (const saved of checkpoint.campaign.contracts) {
+            const live = campaign.contracts.find(v => v.id === saved.id);
+            if (live && (live.boss_hp > 0) && (live.stage_index === saved.stage_index)) {
+                saved.boss_hp = live.boss_hp;
+            }
+        }
+    }
     reset_run(true);
     if (towed) {
         tow_to_station();
