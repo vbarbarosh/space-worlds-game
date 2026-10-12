@@ -96,7 +96,7 @@ function render_projectiles()
             }
             const type = v.weapon || 'plasma';
             const color = v.color || (friendly ? cyan : pink);
-            const key = `${friendly ? 'f' : 'h'}${type}${color}`;
+            const key = `${friendly ? 'f' : 'h'}${type}${color}${v.tier || 1}`;
             let group = groups.get(key);
             if (!group) {
                 group = {type, color, friendly, items: []};
@@ -110,38 +110,273 @@ function render_projectiles()
     // Missiles fly with their trails and blast waves (missiles.js); every other shot is a bolt along its flight, a raider's too
     missile_wakes_draw();
     missile_waves_draw();
+    shot_traces_draw();
+    ctx.shadowBlur = 0;
     for (const group of groups.values()) {
+        ctx.lineCap = group.items[0].missile ? 'butt' : 'round';
         if (group.items[0].missile) {
             missile_group_draw(group);
-            continue;
         }
-        ctx.strokeStyle = group.color;
-        // A player's shot is as wide as the bore it left; a raider's by its gun
-        const bore = group.friendly && group.items[0].width;
-        ctx.lineWidth = bore ? Math.max(1.4, bore) : (group.type === 'rail') ? 4 : (group.type === 'beam') ? 5 : 3;
-        ctx.shadowBlur = 0;
-        ctx.beginPath();
-        const items = group.items;
-        const length = (group.type === 'beam') ? 0.042 : (group.type === 'rail') ? 0.03 : 0.018;
+        else if (group.friendly) {
+            shot_group_draw(group);
+        }
+        else {
+            hostile_group_draw(group);
+        }
+    }
+    ctx.globalAlpha = 1;
+    ctx.lineCap = 'butt';
+}
+
+// Each gun's bolt: its tail in seconds of its flight, its white core's share of the tail and of the width, its round
+// head and the glow round it in widths (no head: a streak). A plasma bolt is a hot round head with a tail, a pellet a
+// short spark, a slug a long white streak, a lance long and flickering.
+const shot_looks = {
+    plasma: {length: 0.018, core: 0.3, core_width: 0.75, head: 2.3, glow: 7},
+    ion: {length: 0.014, core: 0.3, core_width: 0.8, head: 2.6, glow: 8.5},
+    scatter: {length: 0.01, core: 0.4, core_width: 0.8, head: 1.9, glow: 5.5},
+    rail: {length: 0.032, core: 0.85, core_width: 0.55, head: 0, glow: 4.5},
+    // a lance as long as the way to the next one: while the gun fires, they join into a beam
+    beam: {length: 0.1, core: 0.9, core_width: 0.35, head: 0, glow: 3.5},
+};
+
+// Your shots, one group at a time (render_projectiles): a glow at each head, the bolt in its colour, a white core
+// along its front. A gun's higher tier burns hotter: a wider glow and a longer, wider core.
+function shot_group_draw(group)
+{
+    const items = group.items;
+    const look = shot_looks[group.type] || shot_looks.plasma;
+    // A player's shot is as wide as the bore it left; a drone's or a platform's by its gun
+    const bore = items[0].width;
+    const width = bore ? Math.max(1.4, bore) : (group.type === 'rail') ? 4 : (group.type === 'beam') ? 5 : 3;
+    const hot = 1 + ((items[0].tier || 1) - 1)*0.1;
+    // a lance's core flickers, all of a gun's lances together, as a beam would
+    const flicker = (full_fx && (group.type === 'beam')) ? 0.75 + Math.sin(clock*57)*0.25 + Math.sin(clock*23)*0.12 : 1;
+    if (full_fx) {
+        const glow = shot_glow(group.color);
+        const r = width*look.glow*hot;
+        ctx.globalAlpha = 0.75;
         for (let i = 0, end = items.length; i < end; ++i) {
-            const v = items[i];
-            ctx.moveTo(v.x, v.y);
-            ctx.lineTo(v.x - v.vx*length, v.y - v.vy*length);
+            ctx.drawImage(glow, items[i].x - r, items[i].y - r, r*2, r*2);
         }
-        const stroke_width = ctx.lineWidth;
-        if (full_fx) {
-            ctx.globalAlpha = 0.1;
-            ctx.lineWidth = bore ? stroke_width*2.2 : stroke_width + 9;
-            ctx.stroke();
+        // the bolt's colour, wide and faint, round its body; a lance's afterimage is its glow (shot_traces_draw)
+        if (group.type !== 'beam') {
             ctx.globalAlpha = 0.22;
-            ctx.lineWidth = bore ? stroke_width*1.6 : stroke_width + 4;
+            ctx.strokeStyle = group.color;
+            ctx.lineWidth = width*2.6;
+            shot_path(items, 0, look.length);
             ctx.stroke();
-            ctx.globalAlpha = 1;
-            ctx.lineWidth = stroke_width;
         }
+    }
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = group.color;
+    ctx.lineWidth = width;
+    shot_path(items, 0, look.length);
+    ctx.stroke();
+    if (look.head) {
+        // a dash with round caps, barely longer than wide: the bolt's round head
+        ctx.lineWidth = width*look.head*hot;
+        shot_path(items, 0, 0.002);
         ctx.stroke();
     }
-    ctx.shadowBlur = 0;
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = width*look.core_width*hot*flicker;
+    shot_path(items, 0, look.length*Math.min(1, look.core*hot));
+    ctx.stroke();
+    if (full_fx && (group.type === 'ion')) {
+        // an ion bolt crackles: a thin ring round its head that swells and shrinks
+        const r = width*(2.2 + Math.sin(clock*41)*0.5);
+        ctx.globalAlpha = 0.55;
+        ctx.strokeStyle = group.color;
+        ctx.lineWidth = Math.max(0.8, width*0.35);
+        ctx.beginPath();
+        for (let i = 0, end = items.length; i < end; ++i) {
+            ctx.moveTo(items[i].x + r, items[i].y);
+            ctx.arc(items[i].x, items[i].y, r, 0, Math.PI*2);
+        }
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+    }
+}
+
+// A raider's shot reads as hostile whatever the world's colour: red and pink with a little of the raider's own. A
+// bolt is a lozenge, its nose ahead of the point it hits with and its tail drawn out behind; a slug a long thin streak.
+function hostile_group_draw(group)
+{
+    const items = group.items;
+    const color = hostile_shot_color(group.color);
+    const rail = group.type === 'rail';
+    const width = rail ? 2.2 : (group.type === 'scatter') ? 4 : (group.type === 'ion') ? 5.4 : 5;
+    if (rail) {
+        ctx.strokeStyle = color;
+        if (full_fx) {
+            ctx.globalAlpha = 0.3;
+            ctx.lineWidth = width*3;
+            shot_path(items, 0, 0.05);
+            ctx.stroke();
+        }
+        ctx.globalAlpha = 1;
+        ctx.lineWidth = width;
+        shot_path(items, 0, 0.05);
+        ctx.stroke();
+        ctx.strokeStyle = '#ffe1ea';
+        ctx.lineWidth = width*0.5;
+        shot_path(items, 0, 0.03);
+        ctx.stroke();
+        return;
+    }
+    ctx.fillStyle = color;
+    hostile_lozenge_path(items, width, 1);
+    // the glow: the lozenges' own outline, wide and faint, in one stroke for all of them, as dozens of raiders
+    // fire at once
+    if (full_fx) {
+        ctx.strokeStyle = color;
+        ctx.lineJoin = 'round';
+        ctx.globalAlpha = 0.16;
+        ctx.lineWidth = width*3.2;
+        ctx.stroke();
+        ctx.globalAlpha = 0.3;
+        ctx.lineWidth = width*1.4;
+        ctx.stroke();
+        ctx.lineJoin = 'miter';
+    }
+    ctx.globalAlpha = 1;
+    ctx.fill();
+    ctx.fillStyle = '#ffe1ea';
+    hostile_lozenge_path(items, width, 0.45);
+    ctx.fill();
+}
+
+// Each shot's line from its head back `to` seconds of its flight (from `from`), never back past the muzzle it left
+function shot_path(items, from, to)
+{
+    ctx.beginPath();
+    for (let i = 0, end = items.length; i < end; ++i) {
+        const v = items[i];
+        const k = shot_tail(v, to);
+        ctx.moveTo(v.x - v.vx*from, v.y - v.vy*from);
+        ctx.lineTo(v.x - v.vx*k, v.y - v.vy*k);
+    }
+}
+
+// A shot's tail in seconds of its flight, cut to the way it has flown from its muzzle (ox, oy) when it has one
+function shot_tail(v, seconds)
+{
+    if (v.ox === undefined) {
+        return seconds;
+    }
+    const dx = v.x - v.ox;
+    const dy = v.y - v.oy;
+    const flown = dx*dx + dy*dy;
+    const tail = (v.vx*v.vx + v.vy*v.vy)*seconds*seconds;
+    return (flown < tail) ? seconds*Math.sqrt(flown/tail) : seconds;
+}
+
+// The lozenges of raider bolts, `scale` of their full size: the nose a width ahead, the shoulders across the point
+// they hit with, the tail three widths behind
+function hostile_lozenge_path(items, width, scale)
+{
+    ctx.beginPath();
+    for (let i = 0, end = items.length; i < end; ++i) {
+        const v = items[i];
+        const speed = Math.sqrt(v.vx*v.vx + v.vy*v.vy) || 1;
+        const fx = v.vx/speed*width*scale;
+        const fy = v.vy/speed*width*scale;
+        ctx.moveTo(v.x + fx*1.3, v.y + fy*1.3);
+        ctx.lineTo(v.x - fy, v.y + fx);
+        ctx.lineTo(v.x - fx*3.2, v.y - fy*3.2);
+        ctx.lineTo(v.x + fy, v.y - fx);
+        ctx.closePath();
+    }
+}
+
+// The red a raider's shot is drawn in, by the raider's colour
+const hostile_shot_colors = new Map();
+
+function hostile_shot_color(color)
+{
+    let v = hostile_shot_colors.get(color);
+    if (!v) {
+        v = /^#[0-9a-f]{6}$/i.test(color) ? color_mix('#ff3f6e', color, 0.22) : '#ff3f6e';
+        hostile_shot_colors.set(color, v);
+    }
+    return v;
+}
+
+// A soft round glow in one colour, drawn once and stamped under every shot, flash and hit of that colour
+const shot_glows = new Map();
+
+function shot_glow(color)
+{
+    let v = shot_glows.get(color);
+    if (!v) {
+        v = document.createElement('canvas');
+        v.width = v.height = 64;
+        const draw = v.getContext('2d');
+        const g = draw.createRadialGradient(32, 32, 0, 32, 32, 32);
+        g.addColorStop(0, color_with_alpha(color, 0.85));
+        g.addColorStop(0.2, color_with_alpha(color, 0.45));
+        g.addColorStop(0.5, color_with_alpha(color, 0.14));
+        g.addColorStop(1, color_with_alpha(color, 0));
+        draw.fillStyle = g;
+        draw.fillRect(0, 0, 64, 64);
+        // some colours are computed: the cache is kept small
+        if (shot_glows.size >= 64) {
+            shot_glows.clear();
+        }
+        shot_glows.set(color, v);
+    }
+    return v;
+}
+
+// The afterimage of a rail slug or a beam's lance: a line along the way it flew, brightest behind the shot, kept
+// `fade` seconds after it is gone; a lance's fills the gap to the next one, so the beam holds from muzzle to target.
+// Drawn in plain strokes, brighter in steps toward the shot: a new gradient a line a frame cost 0.6 ms each.
+const shot_traces = [];
+const shot_trace_limit = 40;
+const shot_trace_steps = [[0.35, 0.75, 0.1], [0.75, 1, 0.3]];
+
+function shot_trace_add(b, fade)
+{
+    if (!full_fx) {
+        return;
+    }
+    shot_traces.push({b, x0: b.x, y0: b.y, x1: b.x, y1: b.y, color: b.color, width: Math.max(1.4, b.width || 2), start: clock, end: -1, fade});
+    if (shot_traces.length > shot_trace_limit) {
+        shot_traces.splice(0, shot_traces.length - shot_trace_limit);
+    }
+}
+
+function shot_traces_draw()
+{
+    for (let i = shot_traces.length - 1; i >= 0; --i) {
+        const v = shot_traces[i];
+        if (v.end < 0) {
+            v.x1 = v.b.x;
+            v.y1 = v.b.y;
+            // a slug dropped with the bullets (a new run, a jump) ends its trace by age
+            if ((v.b.life <= 0) || (clock - v.start > 1)) {
+                v.end = clock;
+            }
+        }
+        const fade = (v.end < 0) ? 1 : 1 - (clock - v.end)/v.fade;
+        if (fade <= 0) {
+            shot_traces.splice(i, 1);
+            continue;
+        }
+        const dx = v.x1 - v.x0;
+        const dy = v.y1 - v.y0;
+        ctx.strokeStyle = v.color;
+        ctx.lineWidth = v.width*(1.2 + (1 - fade)*1.5);
+        for (const [from, to, alpha] of shot_trace_steps) {
+            ctx.globalAlpha = alpha*fade;
+            ctx.beginPath();
+            ctx.moveTo(v.x0 + dx*from, v.y0 + dy*from);
+            ctx.lineTo(v.x0 + dx*to, v.y0 + dy*to);
+            ctx.stroke();
+        }
+    }
+    ctx.globalAlpha = 1;
 }
 
 function in_gravity_core(v, padding = 0)

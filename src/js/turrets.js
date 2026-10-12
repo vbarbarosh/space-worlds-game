@@ -98,11 +98,18 @@ function render_ship_turrets(alpha = 1)
         ctx.translate(points[i].x, points[i].y);
         ctx.rotate(angle - player.angle);
         if (guns[i]) {
-            turret_draw(ctx, guns[i], gun_boxes[points[i].size], ((player.gun_cd?.[i] || 0) > 0.08) ? 1.5 : 0);
+            turret_draw(ctx, guns[i], gun_boxes[points[i].size], turret_recoil(i));
         }
         ctx.restore();
     }
     ctx.restore();
+}
+
+// A turret kicks back as it fires and eases forward over 0.16 s: 3 at the shot, 0 when settled
+function turret_recoil(mount)
+{
+    const t = clock - (player.gun_fired?.[mount] ?? -1);
+    return (t < 0.16) ? 3*(1 - t/0.16)*(1 - t/0.16) : 0;
 }
 
 // One turret at the origin of `draw`, barrel along +x, pulled back by `recoil` after a shot: the weapon's drawing,

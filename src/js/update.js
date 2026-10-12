@@ -448,13 +448,20 @@ function update(dt)
                 else {
                     b.life = 0;
                 }
-                burst(b.x, b.y, b.color || cyan, 3, 70);
+                // the hit shows where the shot's path met the hull, not where the frame's step left it: a slug flies
+                // 40 units a frame, past the raider's middle
+                const back = l ? Math.sqrt(Math.max(0, v.r*v.r - ex*ex - ey*ey)/l) : 0;
+                const at = Math.max(0, t - back);
+                const hx = px + vx*at;
+                const hy = py + vy*at;
+                burst(hx, hy, b.color || cyan, 3, 70);
                 // a hull hit throws sparks and chips back the way the shot came; a shield shows its own impact
                 if (shielded) {
-                    explode(b.x, b.y, 10, b.color || cyan, 0, 'spark');
+                    explode(hx, hy, 10, b.color || cyan, 0, 'spark');
                 }
                 else {
-                    explode_impact(b.x, b.y, Math.atan2(b.vy, b.vx), 9 + Math.min(9, b.damage*0.35), b.color || cyan, '#aab4bf');
+                    // a beam's lances land ten a second a gun: smaller hits, that run together into its glowing contact point
+                    explode_impact(hx, hy, Math.atan2(b.vy, b.vx), (9 + Math.min(9, b.damage*0.35))*((b.weapon === 'beam') ? 0.65 : 1), b.color || cyan, '#aab4bf');
                 }
                 if (b.life <= 0) {
                     break;
@@ -534,6 +541,10 @@ function update(dt)
             damage_player((b.damage || 13)*(arcade.active ? arcade_mode().hits : 1)*share);
             if (shielded) {
                 shield_impact(player, b, ship_halo() + 3);
+            }
+            else {
+                // a hit on your hull splashes in the raider's red where it struck
+                explode_impact(b.x, b.y, Math.atan2(b.vy, b.vx), 10, hostile_shot_color(b.color || pink), '#aab4bf');
             }
             if (b.weapon === 'ion') {
                 player.energy = Math.max(0, player.energy - 8);

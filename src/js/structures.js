@@ -343,9 +343,9 @@ function platform_update(site, dt)
         for (const side of [-1, 1]) {
             const x = site.x + Math.cos(site.aim)*16 - Math.sin(site.aim)*side*4;
             const y = site.y + Math.sin(site.aim)*16 + Math.cos(site.aim)*side*4;
-            bullets.push({x, y, vx: Math.cos(site.aim)*1300, vy: Math.sin(site.aim)*1300, life: platform_range/1300, damage: 14, r: 3, weapon: 'plasma', color: gold, width: 2.5});
+            bullets.push({x, y, vx: Math.cos(site.aim)*1300, vy: Math.sin(site.aim)*1300, life: platform_range/1300, damage: 14, r: 3, weapon: 'plasma', color: gold, width: 2.5, ox: x, oy: y});
         }
-        explode(site.x + Math.cos(site.aim)*16, site.y + Math.sin(site.aim)*16, 5, gold, 0, 'muzzle');
+        explode_muzzle(site.x + Math.cos(site.aim)*16, site.y + Math.sin(site.aim)*16, site.aim, 5, gold);
     }
 }
 

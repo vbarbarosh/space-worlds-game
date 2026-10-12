@@ -9,7 +9,7 @@ const explosion_limit = 140;
 let hit_stop = 0;
 let hit_stop_last = -1;
 // Lighter effects than a blast: how long each lasts, in seconds
-const explosion_durations = {spark: 0.25, muzzle: 0.07, shield: 0.45, warp: 0.4, smoke: 0.9, impact: 0.38, collect: 0.34};
+const explosion_durations = {spark: 0.25, muzzle: 0.07, flash: 0.09, shield: 0.45, warp: 0.4, smoke: 0.9, impact: 0.38, collect: 0.34};
 
 // size is the fireball's radius in world units: about 40 for a raider, 70 for a tank, 220 for a flagship;
 // kind 'blast' is the full explosion, the others are the small effects listed in explosion_durations
@@ -67,7 +67,19 @@ function explode_impact(x, y, angle, size, color, hull_color)
     for (let i = 0; i < 3; ++i) {
         debris.push({angle: angle + Math.PI + (explosion_random() - 0.5)*2.6, speed: size*(4 + explosion_random()*5), spin: (explosion_random() - 0.5)*18, size: 2 + explosion_random()*2.5, sides: 3});
     }
-    explosions.push({x, y, size, color, hull_color, angle, kind: 'impact', t: 0, duration: explosion_durations.impact, sparks, debris, puffs: []});
+    // the sparks in the shot's colour, whitened: a cyan bolt splashes cyan, a raider's red
+    const spark_color = /^#[0-9a-f]{6}$/i.test(color) ? color_mix(color, '#ffffff', 0.55) : '#fff1c8';
+    explosions.push({x, y, size, color, hull_color, spark_color, angle, kind: 'impact', t: 0, duration: explosion_durations.impact, sparks, debris, puffs: []});
+    if (explosions.length > explosion_limit) {
+        explosions.splice(0, explosions.length - explosion_limit);
+    }
+}
+
+// A gun's flash at its muzzle: a glow in the shot's colour, a flare thrown along the shot and a white heart; size
+// by the gun (muzzle_flash_sizes), angle the shot's heading
+function explode_muzzle(x, y, angle, size, color)
+{
+    explosions.push({x, y, size, color, angle, kind: 'flash', t: 0, duration: explosion_durations.flash, sparks: [], debris: [], puffs: []});
     if (explosions.length > explosion_limit) {
         explosions.splice(0, explosions.length - explosion_limit);
     }
@@ -404,6 +416,10 @@ function explosion_light_draw(explosion, x, y, scale)
         explosion_collect_draw(explosion, scale);
         return;
     }
+    if (explosion.kind === 'flash') {
+        explosion_flash_draw(explosion, x, y, scale);
+        return;
+    }
     const p = explosion.t/explosion.duration;
     const size = explosion.size*scale;
     ctx.save();
@@ -459,6 +475,20 @@ function explosion_impact_draw(explosion, x, y, scale)
     ctx.save();
     ctx.globalCompositeOperation = 'lighter';
     ctx.lineCap = 'round';
+    // a glow in the shot's colour for the first 60% of the hit, and a ring of it splashing out; the glow is kept
+    // small, as a beam lands thirty hits a second
+    if (full_fx) {
+        if (p < 0.6) {
+            const r = size*(1.3 + p);
+            ctx.globalAlpha = (1 - p/0.6)*0.75;
+            ctx.drawImage(shot_glow(explosion.color), x - r, y - r, r*2, r*2);
+        }
+        ctx.globalAlpha = fade*0.7;
+        ctx.strokeStyle = explosion.color;
+        ctx.lineWidth = Math.max(1, 2*scale*(1 - p));
+        explosion_circle(x, y, size*(0.5 + Math.sqrt(p)*1.5));
+        ctx.stroke();
+    }
     ctx.globalAlpha = fade;
     ctx.fillStyle = '#ffffff';
     explosion_circle(x, y, size*0.42*(1 - p*0.6));
@@ -472,7 +502,7 @@ function explosion_impact_draw(explosion, x, y, scale)
     ctx.lineTo(x + Math.cos(explosion.angle)*short, y + Math.sin(explosion.angle)*short);
     ctx.stroke();
     ctx.globalAlpha = 1 - p;
-    ctx.strokeStyle = '#fff1c8';
+    ctx.strokeStyle = explosion.spark_color;
     ctx.lineWidth = Math.max(1, 1.4*scale);
     ctx.beginPath();
     for (const spark of explosion.sparks) {
@@ -499,6 +529,46 @@ function explosion_impact_draw(explosion, x, y, scale)
         ctx.closePath();
         ctx.fill();
     }
+    ctx.restore();
+}
+
+// The flare is a spike along the shot, two short ones across it at the start, over a glow; all gone in 0.09 s
+function explosion_flash_draw(explosion, x, y, scale)
+{
+    const p = explosion.t/explosion.duration;
+    const size = explosion.size*scale;
+    const cos = Math.cos(explosion.angle);
+    const sin = Math.sin(explosion.angle);
+    const long = size*(2.8 - p*1.4);
+    const wide = size*0.5*(1 - p*0.5);
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    if (full_fx) {
+        const r = size*(1.8 - p*0.8);
+        ctx.globalAlpha = (1 - p)*0.85;
+        ctx.drawImage(shot_glow(explosion.color), x - r, y - r, r*2, r*2);
+    }
+    ctx.globalAlpha = 1 - p;
+    ctx.fillStyle = explosion.color;
+    ctx.beginPath();
+    ctx.moveTo(x + cos*long, y + sin*long);
+    ctx.lineTo(x - sin*wide, y + cos*wide);
+    ctx.lineTo(x - cos*size*0.4, y - sin*size*0.4);
+    ctx.lineTo(x + sin*wide, y - cos*wide);
+    ctx.closePath();
+    ctx.fill();
+    if (p < 0.5) {
+        const across = size*1.2*(1 - p*2);
+        ctx.strokeStyle = explosion.color;
+        ctx.lineWidth = Math.max(1, size*0.18);
+        ctx.beginPath();
+        ctx.moveTo(x - sin*across, y + cos*across);
+        ctx.lineTo(x + sin*across, y - cos*across);
+        ctx.stroke();
+    }
+    ctx.fillStyle = '#ffffff';
+    explosion_circle(x, y, size*0.42*(1 - p*0.5));
+    ctx.fill();
     ctx.restore();
 }
 

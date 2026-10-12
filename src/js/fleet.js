@@ -292,9 +292,12 @@ function fire_equipped_weapon(mount = null)
         // The ship's speed along the shot, when it flies that way, rides on top: a shot always outruns a chasing ship,
         // and still flies straight
         const carry = Math.max(0, player.vx*Math.cos(a) + player.vy*Math.sin(a));
-        bullets.push(v.missile ? missile_new(muzzle, a, player.barrels[slot] + i, damage, v, carry) : {
+        const shot = v.missile ? missile_new(muzzle, a, player.barrels[slot] + i, damage, v, carry) : {
             x: muzzle.x,
             y: muzzle.y,
+            // where it left, so its tail is never drawn back into the turret
+            ox: muzzle.x,
+            oy: muzzle.y,
             vx: Math.cos(a)*(v.speed + carry),
             vy: Math.sin(a)*(v.speed + carry),
             life: v.life,
@@ -305,8 +308,16 @@ function fire_equipped_weapon(mount = null)
             homing: ['plasma', 'ion'].includes(v.id) && (upgrades.homing > 0),
             width: muzzle.bore,
             pierce: (v.id === 'rail') ? upgrades.spread : 0,
-        });
-        explode(muzzle.x, muzzle.y, muzzle.bore ? Math.max(3, muzzle.bore*3) : 9, v.color, 0, 'muzzle');
+            tier,
+        };
+        bullets.push(shot);
+        if ((v.id === 'rail') || (v.id === 'beam')) {
+            shot_trace_add(shot, (v.id === 'rail') ? 0.3 : 0.14);
+        }
+        // one flash a muzzle a volley: a shotgun's five pellets leave two turrets
+        if (i < 2) {
+            explode_muzzle(muzzle.x, muzzle.y, a, (muzzle.bore ? Math.max(3, muzzle.bore*3) : 9)*(muzzle_flash_sizes[v.id] || 1), v.color);
+        }
     }
     if (v.id === 'beam') {
         player.energy = Math.max(0, player.energy - 1.8*count);
@@ -315,9 +326,15 @@ function fire_equipped_weapon(mount = null)
     if (mount !== null) {
         player.gun_cd = player.gun_cd || [];
         player.gun_cd[mount] = player.shoot_cd;
+        // when it fired, for the turret's kick back (render_ship_turrets)
+        player.gun_fired = player.gun_fired || [];
+        player.gun_fired[mount] = clock;
     }
     sfx((v.id === 'plasma') ? 'shot' : v.missile ? 'missile' : `enemy_${v.id}`);
 }
+
+// A gun's muzzle flash against the cannon's: the slug's the largest, a lance's the smallest, fired ten times a second
+const muzzle_flash_sizes = {scatter: 1.3, ion: 1.1, rail: 1.8, missile: 1.2, beam: 0.75};
 
 // Hotter plasma: each level adds this share of the gun's own damage to every shot, so it lifts a slug as much as a
 // bolt (14 + 36% is the old +5 on the cannon)

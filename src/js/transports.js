@@ -248,9 +248,9 @@ function transport_guns(ship, dt)
         for (const side of [-1, 1]) {
             const x = m.x + Math.cos(ship.aim[i])*16 - Math.sin(ship.aim[i])*side*4;
             const y = m.y + Math.sin(ship.aim[i])*16 + Math.cos(ship.aim[i])*side*4;
-            bullets.push({x, y, vx: Math.cos(ship.aim[i])*1300, vy: Math.sin(ship.aim[i])*1300, life: transport_range/1300, damage: 12, r: 3, weapon: 'plasma', color: gold, width: 2.5});
+            bullets.push({x, y, vx: Math.cos(ship.aim[i])*1300, vy: Math.sin(ship.aim[i])*1300, life: transport_range/1300, damage: 12, r: 3, weapon: 'plasma', color: gold, width: 2.5, ox: x, oy: y});
         }
-        explode(m.x + Math.cos(ship.aim[i])*16, m.y + Math.sin(ship.aim[i])*16, 5, gold, 0, 'muzzle');
+        explode_muzzle(m.x + Math.cos(ship.aim[i])*16, m.y + Math.sin(ship.aim[i])*16, ship.aim[i], 5, gold);
     }
 }
 

@@ -289,7 +289,7 @@ function world_audio_base_enemy_fire(enemy, angle, speed = 210, pattern = false)
         shot.damage *= raider_hit_scale(enemy);
         hostile.push(shot);
     }
-    explode(enemy.x + Math.cos(angle)*enemy.r, enemy.y + Math.sin(angle)*enemy.r, 11, enemy.color || pink, 0, 'muzzle');
+    explode_muzzle(enemy.x + Math.cos(angle)*enemy.r, enemy.y + Math.sin(angle)*enemy.r, angle, (w === 'rail') ? 9 : 7, hostile_shot_color(enemy.color || pink));
 }
 
 // The speed a raider's shot leaves at, a gun's own (a rail's or an ion bolt's) or the one it is fired at, before the
