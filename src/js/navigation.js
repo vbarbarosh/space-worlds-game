@@ -411,8 +411,9 @@ function expedition_base_render_inventory()
 function finish(won)
 {
     if (!won && player) {
-        explode(player.x, player.y, 100, cyan);
+        explode_ship_death(player.x, player.y, player.r || 18);
     }
+    el.result_overlay.classList.toggle('after-blast', !won && !!player && full_fx);
     if (arcade.active) {
         arcade_finish(won);
         return;

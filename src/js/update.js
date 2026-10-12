@@ -458,6 +458,7 @@ function update(dt)
                 // a hull hit throws sparks and chips back the way the shot came; a shield shows its own impact
                 if (shielded) {
                     explode(hx, hy, 10, b.color || cyan, 0, 'spark');
+                    shield_impact(v, b, v.r + 8);
                 }
                 else {
                     // a beam's lances land ten a second a gun: smaller hits, that run together into its glowing contact point

@@ -4,16 +4,30 @@ let explosions = [];
 let explosion_seed = 1;
 let hull_smoke_timer = 0;
 const explosion_limit = 140;
+// What a blast leaves: smoke and a few hull fragments cooling from orange to dark as they drift, for a few seconds;
+// bounded apart from the blasts, the oldest going first
+let wrecks = [];
+const wreck_limit = 10;
+// The light of a blast covers a wide square: the newest few in a frame light the space, the rest go without
+const explosion_light_limit = 2;
+// the smallest blast of a ship (a shard's is 26, a raider's 40): smaller ones are shots' and leave no wreck or light
+const explosion_ship_size = 36;
 // A big kill holds the game still for a moment, the frame drawn and nothing moving (js/boot.js): at most once in
 // 0.4 s, and never when the system asks for reduced motion
 let hit_stop = 0;
 let hit_stop_last = -1;
+// The screen's own answer to a blast and to a hit on your hull, in seconds left: a white flash and a red edge
+// (render_blast_screen), both only with full effects
+let blast_flash = 0;
+let hurt = 0;
+const hurt_duration = 0.45;
 // Lighter effects than a blast: how long each lasts, in seconds
 const explosion_durations = {spark: 0.25, muzzle: 0.07, flash: 0.09, shield: 0.45, warp: 0.4, smoke: 0.9, impact: 0.38, collect: 0.34};
 
 // size is the fireball's radius in world units: about 40 for a raider, 70 for a tank, 220 for a flagship;
-// kind 'blast' is the full explosion, the others are the small effects listed in explosion_durations
-function explode(x, y, size, color, delay = 0, kind = 'blast')
+// kind 'blast' is the full explosion, the others are the small effects listed in explosion_durations;
+// shake and flash, for a blast, are what the screen does the moment it goes off (a delayed one included)
+function explode(x, y, size, color, delay = 0, kind = 'blast', shake = 0, flash = 0)
 {
     if (kind !== 'blast') {
         explosion_light_add(x, y, size, color, delay, kind);
@@ -38,21 +52,75 @@ function explode(x, y, size, color, delay = 0, kind = 'blast')
         const angle = explosion_random()*Math.PI*2;
         puffs.push({x: Math.cos(angle)*size*0.45, y: Math.sin(angle)*size*0.45, size: size*(0.35 + explosion_random()*0.3), delay: explosion_random()*0.12});
     }
-    explosions.push({x, y, size, color, kind, t: -delay, duration: 0.7 + size/180, sparks, debris, puffs});
+    const duration = 0.7 + size/180;
+    // the debris is the hull, burnt dark; a color given another way burns plain dark
+    const hull = /^#[0-9a-f]{6}$/i.test(color) ? color_mix(color, '#1a171c', 0.55) : '#2a2528';
+    explosions.push({x, y, size, color, hull, kind, t: -delay, duration, sparks, debris, puffs, shake, flash, lit: false});
     if (explosions.length > explosion_limit) {
         explosions.splice(0, explosions.length - explosion_limit);
     }
+    // a ship leaves a wreck; a missile's blast and smaller go without
+    if (full_fx && (size >= explosion_ship_size)) {
+        wreck_add(x, y, size, hull, delay + duration*0.3, Math.round(1 + size/30));
+    }
 }
 
-// A flagship goes down in a chain of blasts across its hull, then one large one.
+// A flagship goes down in a chain of blasts across its hull, each one felt, then one large one that whitens the
+// screen and leaves its hull in burning pieces.
 function explode_flagship(x, y, r, color)
 {
     for (let i = 0; i < 7; ++i) {
         const angle = explosion_random()*Math.PI*2;
         const d = r*(0.3 + explosion_random()*0.9);
-        explode(x + Math.cos(angle)*d, y + Math.sin(angle)*d, 50 + explosion_random()*40, color, i*0.17);
+        explode(x + Math.cos(angle)*d, y + Math.sin(angle)*d, 50 + explosion_random()*40, color, i*0.17, 'blast', 7);
     }
-    explode(x, y, 220, color, 1.25);
+    explode(x, y, 220, color, 1.25, 'blast', 26, 0.55);
+    if (full_fx) {
+        wreck_add(x, y, r*1.6, explosions[explosions.length - 1].hull, 1.25, 9);
+    }
+}
+
+// Your own ship: three blasts break the hull, then one large one, with a shake, a white flash and the pieces
+function explode_ship_death(x, y, r)
+{
+    for (let i = 0; i < 3; ++i) {
+        const angle = explosion_random()*Math.PI*2;
+        explode(x + Math.cos(angle)*r*0.6, y + Math.sin(angle)*r*0.6, 28 + explosion_random()*12, '#e8743b', i*0.09, 'blast', 6);
+    }
+    explode(x, y, 120, cyan, 0.3, 'blast', 24, 0.45);
+    if (full_fx) {
+        wreck_add(x, y, Math.max(40, r*2), '#4a3a34', 0.3, 7);
+    }
+    hurt = hurt_duration*2;
+}
+
+// smoke and `count` hull fragments of the color `hull` where a blast of `size` went off, `delay` seconds from now
+function wreck_add(x, y, size, hull, delay, count)
+{
+    const puffs = [];
+    for (let i = 0, end = 2 + Math.floor(explosion_random()*3); i < end; ++i) {
+        const angle = explosion_random()*Math.PI*2;
+        const speed = size*(0.12 + explosion_random()*0.25);
+        puffs.push({x: Math.cos(angle)*size*0.3, y: Math.sin(angle)*size*0.3, vx: Math.cos(angle)*speed, vy: Math.sin(angle)*speed, size: size*(0.25 + explosion_random()*0.25)});
+    }
+    const shards = [];
+    for (let i = 0; i < count; ++i) {
+        const angle = explosion_random()*Math.PI*2;
+        const speed = size*(0.3 + explosion_random()*0.8);
+        shards.push({
+            x: Math.cos(angle)*size*0.2,
+            y: Math.sin(angle)*size*0.2,
+            vx: Math.cos(angle)*speed,
+            vy: Math.sin(angle)*speed,
+            angle: explosion_random()*Math.PI*2,
+            spin: (explosion_random() - 0.5)*3,
+            size: Math.min(26, 3.5 + size*(0.05 + explosion_random()*0.07)),
+        });
+    }
+    wrecks.push({x, y, size, hull, t: -delay, duration: 2.4 + Math.min(2.2, size/100), puffs, shards, seen: false, p: 0, fade: 0, travel: 0, heat: 0});
+    if (wrecks.length > wreck_limit) {
+        wrecks.splice(0, wrecks.length - wreck_limit);
+    }
 }
 
 // A shot that strikes a hull: a white star where it struck, sparks thrown back the way the shot came, and chips of
@@ -134,9 +202,20 @@ function explosion_random()
 function update_explosions(dt)
 {
     for (const explosion of explosions) {
+        // the moment a blast goes off, delayed or not, the screen answers it
+        if ((explosion.t <= 0) && (explosion.t + dt > 0) && (explosion.shake || explosion.flash)) {
+            shake = Math.max(shake, explosion.shake);
+            blast_flash = Math.max(blast_flash, explosion.flash);
+        }
         explosion.t += dt;
     }
     explosions = explosions.filter(v => v.t < v.duration);
+    for (const wreck of wrecks) {
+        wreck.t += dt;
+    }
+    wrecks = wrecks.filter(v => v.t < v.duration);
+    blast_flash = Math.max(0, blast_flash - dt);
+    hurt = Math.max(0, hurt - dt);
     for (const enemy of enemies) {
         if (enemy.shield_flash) {
             enemy.shield_flash = Math.max(0, enemy.shield_flash - dt);
@@ -273,13 +352,17 @@ function shield_shimmer(target, radius)
     ctx.restore();
 }
 
-// A shot the shield took: a bright arc on the shield where it struck, fading over 0.4 s, and a few sparks
+// A shot the shield took: a bright arc on the shield where it struck, fading over 0.4 s, a ripple running round the
+// bubble both ways from there, and a few sparks; the newest 48 are kept
 const shield_impacts = [];
 
 function shield_impact(target, shot, radius)
 {
     const angle = Math.atan2(shot.y - target.y, shot.x - target.x);
     shield_impacts.push({target, angle, radius, time: clock});
+    if (shield_impacts.length > 48) {
+        shield_impacts.splice(0, shield_impacts.length - 48);
+    }
     explode(target.x + Math.cos(angle)*radius, target.y + Math.sin(angle)*radius, 7, '#bfe4ff', 0, 'muzzle');
 }
 
@@ -295,16 +378,29 @@ function render_shield_impacts()
             shield_impacts.splice(i, 1);
             continue;
         }
+        const x = v.target.x;
+        const y = v.target.y;
         const spread = 0.35 + age*0.5;
+        const radius = v.radius + age*3;
         ctx.globalAlpha = 1 - age;
         ctx.strokeStyle = '#d6efff';
         ctx.lineWidth = 3.5 - age*2;
         ctx.beginPath();
-        ctx.arc(v.target.x, v.target.y, v.radius + age*3, v.angle - spread, v.angle + spread);
+        ctx.arc(x, y, radius, v.angle - spread, v.angle + spread);
         ctx.stroke();
         ctx.strokeStyle = '#8d9cff';
         ctx.lineWidth = 8;
         ctx.globalAlpha = (1 - age)*0.25;
+        ctx.stroke();
+        // the ripple: two short arcs running away from the point round the bubble, thinning as they go
+        const run = 0.5 + age*2.2;
+        ctx.globalAlpha = (1 - age)*(1 - age)*0.85;
+        ctx.strokeStyle = '#bfe4ff';
+        ctx.lineWidth = Math.max(0.8, 2.2*(1 - age));
+        ctx.beginPath();
+        ctx.arc(x, y, radius, v.angle + run - 0.22, v.angle + run + 0.22);
+        ctx.moveTo(x + Math.cos(v.angle - run - 0.22)*radius, y + Math.sin(v.angle - run - 0.22)*radius);
+        ctx.arc(x, y, radius, v.angle - run - 0.22, v.angle - run + 0.22);
         ctx.stroke();
     }
     ctx.restore();
@@ -316,14 +412,23 @@ function shield_hit_show(target, before)
     if ((before > 0) && ((target.shield || 0) < before)) {
         target.shield_flash = 0.18;
         if ((target.shield || 0) <= 0) {
-            explode(target.x, target.y, (target.r || 18)*1.7, '#8fd0ff', 0, 'shield');
+            // sized so its ring starts on the bubble that broke (render_equipment, render_enemies)
+            const bubble = (target === player) ? ship_halo() + 3 : (target.r || 18) + 8;
+            explode(target.x, target.y, bubble/0.8, '#8fd0ff', 0, 'shield');
         }
     }
 }
 
-// Drawn in world units.
+// Drawn in world units: the wrecks under the blasts, so a fresh fireball burns over the smoke of an old one.
 function render_explosions()
 {
+    let lights = explosion_light_limit;
+    for (let i = explosions.length - 1; i >= 0; --i) {
+        const v = explosions[i];
+        v.lit = (lights > 0) && (v.kind === 'blast') && (v.size >= explosion_ship_size) && (v.t >= 0) && (v.t < v.duration*0.3) && in_view(v, v.size*3);
+        lights -= v.lit ? 1 : 0;
+    }
+    render_wrecks();
     for (const explosion of explosions) {
         if ((explosion.t >= 0) && in_view(explosion, explosion.size*3)) {
             explosion_draw(explosion, explosion.x, explosion.y, 1);
@@ -342,6 +447,14 @@ function explosion_draw(explosion, x, y, scale)
     const size = explosion.size*scale;
     ctx.save();
     ctx.globalCompositeOperation = 'lighter';
+    // the first moments of a ship's blast light the space around: a warm glow wider than the fireball, gone in under
+    // a third of the blast (a scaled image costs by its area: kept small, two at a time)
+    if (full_fx && explosion.lit && (p < 0.3)) {
+        const light = 1 - p/0.3;
+        ctx.globalAlpha = light*light*0.6;
+        const r = size*(1.4 + p*2);
+        ctx.drawImage(explosion_light_sprite(), x - r, y - r, r*2, r*2);
+    }
     if (p < 0.16) {
         ctx.globalAlpha = 1 - p/0.16;
         ctx.fillStyle = '#ffffff';
@@ -355,31 +468,41 @@ function explosion_draw(explosion, x, y, scale)
             explosion_fireball(x + puff.x*scale*(0.4 + q), y + puff.y*scale*(0.4 + q), puff.size*scale*(0.4 + q*0.8), q, explosion.color);
         }
     }
-    ctx.globalAlpha = (1 - p)*0.8;
+    // the shockwave: a crisp white-hot front and the blast's color in a wider band behind it, racing out and thinning
+    const wave = size*(0.4 + Math.pow(Math.min(1, p*1.6), 0.5)*2.2);
+    ctx.globalAlpha = (1 - p)*(1 - p)*0.5;
     ctx.strokeStyle = explosion.color;
-    ctx.lineWidth = Math.max(1, size*0.07*(1 - p));
-    explosion_circle(x, y, size*(0.4 + ease*2.2));
+    ctx.lineWidth = Math.max(1, size*0.16*(1 - p));
+    explosion_circle(x, y, wave - size*0.05*(1 - p));
     ctx.stroke();
-    ctx.globalAlpha = 1 - p;
-    ctx.strokeStyle = '#ffe9b0';
+    ctx.globalAlpha = Math.max(0, 1 - p*1.4)*0.9;
+    ctx.strokeStyle = '#fff4e0';
+    ctx.lineWidth = Math.max(1, size*0.035*(1 - p));
+    explosion_circle(x, y, wave);
+    ctx.stroke();
+    // embers fly out and cool: white, gold, orange, then a dark red as they slow
+    ctx.globalAlpha = Math.min(1, (1 - p)*1.6);
+    ctx.strokeStyle = explosion_ember_color(p);
     ctx.lineWidth = Math.max(1, 1.6*scale);
     ctx.beginPath();
     for (const spark of explosion.sparks) {
         const d = spark.speed*scale*explosion.t*(1 - p*0.5);
         const cos = Math.cos(spark.angle);
         const sin = Math.sin(spark.angle);
-        ctx.moveTo(x + cos*Math.max(0, d - spark.length*scale), y + sin*Math.max(0, d - spark.length*scale));
+        const length = spark.length*scale*(1 - p*0.7);
+        ctx.moveTo(x + cos*Math.max(0, d - length), y + sin*Math.max(0, d - length));
         ctx.lineTo(x + cos*d, y + sin*d);
     }
     ctx.stroke();
+    // debris: pieces of the burnt hull, their edges glowing hot as they fly, in one path
     ctx.globalCompositeOperation = 'source-over';
-    ctx.fillStyle = explosion.color;
+    ctx.globalAlpha = (1 - p)*0.9;
+    ctx.fillStyle = explosion.hull;
+    ctx.beginPath();
     for (const piece of explosion.debris) {
         const d = piece.speed*scale*explosion.t*(1 - p*0.4);
         const px = x + Math.cos(piece.angle)*d;
         const py = y + Math.sin(piece.angle)*d;
-        ctx.globalAlpha = (1 - p)*0.9;
-        ctx.beginPath();
         for (let i = 0; i < piece.sides; ++i) {
             const a = piece.spin*explosion.t + (i/piece.sides)*Math.PI*2;
             const r = piece.size*scale*((i % 2) ? 0.6 : 1);
@@ -391,7 +514,15 @@ function explosion_draw(explosion, x, y, scale)
             }
         }
         ctx.closePath();
-        ctx.fill();
+    }
+    ctx.fill();
+    if (p < 0.6) {
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.globalAlpha = 1 - p/0.6;
+        ctx.strokeStyle = explosion_ember_color(p + 0.15);
+        ctx.lineWidth = Math.max(1, scale);
+        ctx.stroke();
+        ctx.globalCompositeOperation = 'source-over';
     }
     // Smoke rises late, in loose puffs, faint enough never to read as a hole on a bright sky.
     if (p > 0.4) {
@@ -404,6 +535,157 @@ function explosion_draw(explosion, x, y, scale)
         }
     }
     ctx.restore();
+}
+
+// In the screen's units, over the scene: a blast's white flash, and a red edge for a hit on your hull, deepest at the
+// corners so the middle of the fight stays clear
+let hurt_edge = null;
+let hurt_edge_key = '';
+
+function render_blast_screen()
+{
+    if (!full_fx || ((blast_flash <= 0) && (hurt <= 0))) {
+        return;
+    }
+    ctx.save();
+    if (blast_flash > 0) {
+        ctx.fillStyle = `rgba(255, 246, 232, ${Math.min(0.38, blast_flash*0.75)})`;
+        ctx.fillRect(0, 0, W, H);
+    }
+    if (hurt > 0) {
+        // drawn once a size into a canvas an eighth of the screen's, and stretched over it: a radial gradient over the
+        // whole screen costs several times a copy, and a copy of a canvas the screen's size rasters the whole frame
+        // there and then (12 ms a frame in bin/perf's fight-w6), where a small one costs nothing
+        const width = Math.round(W/8);
+        const height = Math.round(H/8);
+        const key = `${width}:${height}`;
+        if (hurt_edge_key !== key) {
+            hurt_edge = document.createElement('canvas');
+            hurt_edge.width = width;
+            hurt_edge.height = height;
+            const draw = hurt_edge.getContext('2d');
+            const g = draw.createRadialGradient(width/2, height/2, Math.min(width, height)*0.32, width/2, height/2, Math.hypot(width, height)*0.55);
+            g.addColorStop(0, 'rgba(255, 40, 50, 0)');
+            g.addColorStop(0.6, 'rgba(255, 40, 50, 0.22)');
+            g.addColorStop(1, 'rgba(255, 30, 40, 0.6)');
+            draw.fillStyle = g;
+            draw.fillRect(0, 0, width, height);
+            hurt_edge_key = key;
+        }
+        ctx.globalAlpha = Math.min(1, hurt/hurt_duration);
+        ctx.drawImage(hurt_edge, 0, 0, W, H);
+    }
+    ctx.restore();
+}
+
+// White, gold, orange, then dark red, as p goes from 0 to 1
+function explosion_ember_color(p)
+{
+    return (p < 0.18) ? '#fff6e0' : (p < 0.4) ? '#ffd27a' : (p < 0.65) ? '#ff8a3d' : '#b8361f';
+}
+
+// A soft warm light, white at its heart, drawn once and scaled to every blast
+let explosion_light_canvas = null;
+
+function explosion_light_sprite()
+{
+    if (!explosion_light_canvas) {
+        explosion_light_canvas = document.createElement('canvas');
+        explosion_light_canvas.width = explosion_light_canvas.height = 128;
+        const draw = explosion_light_canvas.getContext('2d');
+        const g = draw.createRadialGradient(64, 64, 0, 64, 64, 64);
+        g.addColorStop(0, 'rgba(255, 246, 225, 1)');
+        g.addColorStop(0.18, 'rgba(255, 210, 140, 0.6)');
+        g.addColorStop(0.45, 'rgba(255, 140, 70, 0.22)');
+        g.addColorStop(1, 'rgba(255, 110, 50, 0)');
+        draw.fillStyle = g;
+        draw.fillRect(0, 0, 128, 128);
+    }
+    return explosion_light_canvas;
+}
+
+// What a blast leaves: smoke spreading and thinning, and hull fragments turning slowly as they drift apart, their
+// edges glowing orange, then dark red, then cold. The wrecks share their fills: the smoke and the glowing edges are
+// drawn in three steps of fading for all of them at once, so the cost stays a few calls however many there are.
+function render_wrecks()
+{
+    ctx.save();
+    for (const wreck of wrecks) {
+        wreck.seen = (wreck.t >= 0) && in_view(wreck, wreck.size*3);
+        if (!wreck.seen) {
+            continue;
+        }
+        const p = wreck.t/wreck.duration;
+        wreck.p = p;
+        wreck.fade = Math.min(1, wreck.t/0.35)*(1 - p);
+        wreck.travel = wreck.duration*0.5*(1 - Math.pow(1 - p, 2));
+        wreck.heat = (p < 0.7) ? Math.min(1, wreck.t/0.2)*(1 - p/0.7) : 0;
+    }
+    ctx.fillStyle = '#5c5652';
+    for (let step = 0; step < 3; ++step) {
+        // a wide faint fill and a denser heart: soft at the cost of plain fills
+        for (const k of [1, 0.55]) {
+            ctx.globalAlpha = ((3 - step)/3)*((k === 1) ? 0.12 : 0.14);
+            ctx.beginPath();
+            for (const wreck of wrecks) {
+                if (!wreck.seen || (wreck_step(wreck.fade) !== step)) {
+                    continue;
+                }
+                for (const puff of wreck.puffs) {
+                    const px = wreck.x + puff.x + puff.vx*wreck.travel;
+                    const py = wreck.y + puff.y + puff.vy*wreck.travel;
+                    const r = puff.size*(0.7 + wreck.p*0.9)*k;
+                    ctx.moveTo(px + r, py);
+                    ctx.arc(px, py, r, 0, Math.PI*2);
+                }
+            }
+            ctx.fill();
+        }
+    }
+    for (const wreck of wrecks) {
+        if (wreck.seen) {
+            ctx.globalAlpha = Math.min(1, wreck.fade*1.4);
+            ctx.fillStyle = wreck.hull;
+            ctx.beginPath();
+            wreck_shards_trace(wreck);
+            ctx.fill();
+        }
+    }
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.lineWidth = 1.4;
+    for (let step = 0; step < 3; ++step) {
+        ctx.globalAlpha = (3 - step)/3;
+        ctx.strokeStyle = explosion_ember_color(0.3 + step*0.2);
+        ctx.beginPath();
+        for (const wreck of wrecks) {
+            if (wreck.seen && (wreck.heat > 0) && (wreck_step(wreck.heat) === step)) {
+                wreck_shards_trace(wreck);
+            }
+        }
+        ctx.stroke();
+    }
+    ctx.restore();
+}
+
+// 0 for a value near 1, 1 for one near 2/3, 2 for one near 1/3 and below
+function wreck_step(v)
+{
+    return (v > 0.66) ? 0 : (v > 0.33) ? 1 : 2;
+}
+
+function wreck_shards_trace(wreck)
+{
+    for (const shard of wreck.shards) {
+        const px = wreck.x + shard.x + shard.vx*wreck.travel;
+        const py = wreck.y + shard.y + shard.vy*wreck.travel;
+        const a = shard.angle + shard.spin*wreck.t;
+        const r = shard.size;
+        ctx.moveTo(px + Math.cos(a)*r, py + Math.sin(a)*r);
+        ctx.lineTo(px + Math.cos(a + 2.1)*r*0.55, py + Math.sin(a + 2.1)*r*0.55);
+        ctx.lineTo(px + Math.cos(a + 3.3)*r*0.9, py + Math.sin(a + 3.3)*r*0.9);
+        ctx.lineTo(px + Math.cos(a + 4.6)*r*0.45, py + Math.sin(a + 4.6)*r*0.45);
+        ctx.closePath();
+    }
 }
 
 function explosion_light_draw(explosion, x, y, scale)
@@ -440,6 +722,27 @@ function explosion_light_draw(explosion, x, y, scale)
         ctx.fillStyle = '#ffffff';
         explosion_circle(x, y, size*(0.35 + p*0.5)*((explosion.kind === 'warp') ? 1.4 : 1));
         ctx.fill();
+    }
+    // a shield that breaks flares: the whole bubble lights up and comes apart in pieces of arc flying outward
+    if (explosion.kind === 'shield') {
+        const r = size*(0.8 + p*0.2);
+        if (p < 0.4) {
+            ctx.globalAlpha = (1 - p/0.4)*0.35;
+            ctx.fillStyle = explosion.color;
+            explosion_circle(x, y, r);
+            ctx.fill();
+        }
+        ctx.globalAlpha = (1 - p)*(1 - p);
+        ctx.strokeStyle = '#e6f6ff';
+        ctx.lineWidth = Math.max(1, 2.4*scale*(1 - p*0.6));
+        ctx.beginPath();
+        for (let i = 0; i < 8; ++i) {
+            const a = (i/8)*Math.PI*2 + p*0.4;
+            const d = r + size*p*0.6*(1 + (i % 3)*0.3);
+            ctx.moveTo(x + Math.cos(a)*d, y + Math.sin(a)*d);
+            ctx.arc(x, y, d, a, a + 0.5*(1 - p*0.5));
+        }
+        ctx.stroke();
     }
     if ((explosion.kind === 'shield') || (explosion.kind === 'warp')) {
         ctx.globalAlpha = (1 - p)*0.9;

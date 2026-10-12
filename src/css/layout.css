@@ -158,6 +158,19 @@ body {
     overscroll-behavior: contain;
 }
 
+/* After your ship blows up, the results wait for the blast to be seen, and a click meant for the fight never lands on
+   them unseen */
+#result_overlay.after-blast {
+    animation: result-after-blast 0.4s 1.1s both;
+}
+
+@keyframes result-after-blast {
+    from {
+        opacity: 0;
+        pointer-events: none;
+    }
+}
+
 #intro {
     padding-top: 56px;
     padding-bottom: 24px;

@@ -318,6 +318,7 @@ function render()
         ctx.fillStyle = `rgba(255,91,175,${flash*0.35})`;
         ctx.fillRect(0, 0, W, H);
     }
+    render_blast_screen();
     render_radiation_edge();
     ctx.restore();
 }

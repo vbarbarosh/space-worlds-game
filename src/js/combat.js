@@ -353,7 +353,13 @@ function damage_player(amount, blast = false)
     player.hp = Math.max(0, player.hp - damage);
     player.invincible = 0.85;
     shake = 16;
-    flash = 0.32;
+    // a hit on the hull reddens the screen's edge; one the shield took tints it as before
+    if (damage > 0) {
+        hurt = hurt_duration;
+    }
+    else {
+        flash = 0.32;
+    }
     combo = 1;
     combo_timer = 0;
     burst(player.x, player.y, absorbed ? blue : cyan, 26, 210);
