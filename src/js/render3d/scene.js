@@ -23,6 +23,13 @@ const render3d = {
     scene: null,
     camera: null,
     sun: null,
+    // a cool light from the side of the view the camera sees, so the hulls' edges stand out from dark space
+    rim: null,
+    // the lights of the fresh blasts, a pool of render3d_blast_lights, and the white of a fireball's core
+    blasts: [],
+    fire: null,
+    // the crystals of rich rocks, their glow breathing, one material per ore
+    ores: new Set(),
     floor: null,
     materials: new Map(),
     geometries: new Map(),
@@ -39,6 +46,12 @@ const render3d_view_key = 'world_explorer_view';
 const render3d_tilt = 1;
 // The plane the shadows fall on, below the plane of flight
 const render3d_floor_y = -45;
+// A blast lights the hulls around it for its first fraction of a second, out to a few times its size. The lights are
+// a pool of a fixed size, always in the scene and dark when unused: Three.js builds its shaders for a count of lights,
+// and a count that changed would build them again in the middle of a fight.
+const render3d_blast_lights = 4;
+const render3d_blast_glow = 0.45;
+const render3d_blast_reach = 4.5;
 
 function render3d_start()
 {
@@ -84,6 +97,14 @@ function render3d_start()
     render3d.scene.add(render3d.sun, render3d.sun.target);
     render3d.hemisphere = new THREE.HemisphereLight('#ffffff', '#000000', 1.1);
     render3d.scene.add(render3d.hemisphere);
+    render3d.rim = new THREE.DirectionalLight('#9ec8ff', 1.3);
+    render3d.scene.add(render3d.rim, render3d.rim.target);
+    render3d.fire = new THREE.Color('#fff1d6');
+    for (let i = 0; i < render3d_blast_lights; ++i) {
+        const light = new THREE.PointLight('#ffffff', 0, 1, 0);
+        render3d.scene.add(light);
+        render3d.blasts.push(light);
+    }
     render3d.floor = new THREE.Mesh(new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI/2), new THREE.ShadowMaterial({opacity: 0.38}));
     render3d.floor.position.y = render3d_floor_y;
     render3d.floor.receiveShadow = true;
@@ -106,6 +127,8 @@ function render3d_world_set()
     render3d.sun.color.set(look.star);
     render3d.hemisphere.color.set(look.star);
     render3d.hemisphere.groundColor.set(look.cloud);
+    // the rim in the world's cloud, lightened, so it reads on every hull
+    render3d.rim.color.set(look.cloud).lerp(new render3d.three.Color('#c8dcff'), 0.55);
     for (const [key, v] of render3d.models) {
         render3d.scene.remove(v.group);
         render3d.models.delete(key);
@@ -149,6 +172,42 @@ function render3d_light_set()
     render3d.floor.position.x = x;
     render3d.floor.position.z = z;
     render3d.floor.scale.set(half*4, 1, half*4);
+    // low from down and to the right: on the faces turned to the camera, opposite the sun
+    render3d.rim.target.position.set(x, 0, z);
+    render3d.rim.position.set(x + 600, 350, z + 900);
+}
+
+// The fresh blasts in view light the pool, the brightest first: a light flares in the blast's colour, warmed toward
+// its white core, and fades over render3d_blast_glow. Reduced effects leave the pool dark.
+function render3d_blasts_set()
+{
+    const lights = render3d.blasts;
+    for (const light of lights) {
+        light.intensity = 0;
+    }
+    if (!full_fx) {
+        return;
+    }
+    for (const v of explosions) {
+        if ((v.kind !== 'blast') || (v.t < 0) || (v.t >= render3d_blast_glow) || !in_view(v, v.size*render3d_blast_reach)) {
+            continue;
+        }
+        const fade = 1 - v.t/render3d_blast_glow;
+        const power = fade*fade*clamp(v.size/30, 0.6, 2.5)*7;
+        let light = lights[0];
+        for (const vv of lights) {
+            if (vv.intensity < light.intensity) {
+                light = vv;
+            }
+        }
+        if (light.intensity >= power) {
+            continue;
+        }
+        light.intensity = power;
+        light.distance = v.size*render3d_blast_reach;
+        light.position.set(v.x, 15 + v.size*0.3, v.y);
+        light.color.set(v.color).lerp(render3d.fire, 0.45);
+    }
 }
 
 // The model of a thing, made the first time it is seen, kept while it is
@@ -178,14 +237,14 @@ function render3d_ship_place(v, x, y, angle, length, flash)
     render3d_flash(group, flash);
 }
 
-// A model hit turns white for its flash, then back to its own materials
+// A model hit turns white-hot for its flash, its faces still shaded so its shape stays, then back to its own materials
 function render3d_flash(group, on)
 {
     if (!!group.userData.flash === on) {
         return;
     }
     group.userData.flash = on;
-    const white = render3d_material('#e5faff', {emissive: '#e5faff', glow: 0.8});
+    const white = render3d_material('#ffffff', {emissive: '#cdeeff', glow: 0.5, roughness: 0.45});
     group.traverse(function (mesh) {
         if (!mesh.isMesh) {
             return;
@@ -226,6 +285,7 @@ function render3d_sync()
     if (player && (state !== 'dead') && !teleport_active()) {
         const model = render3d_model(player, render3d_player_model);
         render3d_ship_place(model, player.x, player.y, player.angle, ship_sprite(current_ship()).length*1.05, false);
+        render3d_player_lights(model.group);
         // blinking while invincible, as the 2D ship does
         model.group.visible = !(player.invincible > 0) || (Math.sin(clock*25) > -0.3);
     }
@@ -239,6 +299,35 @@ function render3d_sync()
     station_model.position.set(station.x, -10, station.y);
     station_model.scale.set(station_size*0.97, station_size*0.4, station_size*0.97);
     station_model.getObjectByName('ring').rotation.y = -clock*0.04;
+    // the beacon flashes twice every 2.4 s, the rich rocks' crystals breathe; steady with reduced effects
+    const beat = clock % 2.4;
+    station_model.userData.beacon.emissiveIntensity = (!full_fx || (beat < 0.12) || ((beat > 0.3) && (beat < 0.42))) ? 2.2 : 0.35;
+    const breath = full_fx ? 0.9 + Math.sin(clock*2.2)*0.35 : 0.9;
+    for (const v of render3d.ores) {
+        v.emissiveIntensity = breath;
+    }
+}
+
+// Your engines glow with the thrust, white-hot on turbo; the running lights are in the ship's colour, with a strobe
+// every 1.5 s
+function render3d_player_lights(group)
+{
+    const turbo = !!player.turbo_active;
+    const power = turbo ? 1 : clamp(Math.abs(player.engine_thrust || 0), 0, 1);
+    const flame = group.userData.flame;
+    flame.emissiveIntensity = 0.7 + power*1.5 + (turbo ? 1.6 : 0);
+    if (flame.userData.turbo !== turbo) {
+        flame.userData.turbo = turbo;
+        flame.emissive.set(turbo ? '#e4f3ff' : '#9bcfff');
+    }
+    const lights = group.userData.lights;
+    const color = current_ship().color;
+    if (lights.userData.color !== color) {
+        lights.userData.color = color;
+        lights.color.set(color);
+        lights.emissive.set(color);
+    }
+    lights.emissiveIntensity = (full_fx && (clock % 1.5 < 0.07)) ? 3.5 : 1.2;
 }
 
 // Draws the 3D scene at the size of the game's canvas and puts it into it, in the scene's units (render() is drawing
@@ -255,6 +344,7 @@ function render3d_draw()
     render3d_sync();
     render3d_camera_set();
     render3d_light_set();
+    render3d_blasts_set();
     render3d.renderer.render(render3d.scene, render3d.camera);
     ctx.drawImage(render3d.renderer.domElement, 0, 0, W, H);
 }

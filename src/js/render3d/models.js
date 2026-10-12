@@ -4,20 +4,33 @@
 
 function render3d_material(color, options = {})
 {
-    const THREE = render3d.three;
     const key = `${color}|${options.emissive || ''}|${options.glow || 0}`;
     let out = render3d.materials.get(key);
     if (!out) {
-        out = new THREE.MeshStandardMaterial({
-            color,
-            emissive: options.emissive || '#000000',
-            emissiveIntensity: options.glow || 0,
-            roughness: options.roughness ?? 0.75,
-            metalness: options.metalness ?? 0.15,
-            flatShading: true,
-        });
+        out = render3d_material_own(color, options);
         render3d.materials.set(key, out);
     }
+    return out;
+}
+
+// A material of one model alone, for a glow that changes as it flies: engines, running lights, a beacon
+function render3d_material_own(color, options = {})
+{
+    return new render3d.three.MeshStandardMaterial({
+        color,
+        emissive: options.emissive || '#000000',
+        emissiveIntensity: options.glow || 0,
+        roughness: options.roughness ?? 0.75,
+        metalness: options.metalness ?? 0.15,
+        flatShading: true,
+    });
+}
+
+// A small light on a hull that casts no shadow
+function render3d_lamp(group, geometry, material, x, y, z)
+{
+    const out = render3d_mesh(group, geometry, material, x, y, z);
+    out.castShadow = false;
     return out;
 }
 
@@ -60,15 +73,19 @@ function render3d_wing(THREE, points, thickness)
     return out;
 }
 
-// Your ship: an orange hull with a nose, swept wings, a cockpit and two engines glowing at the back
+// Your ship: an orange hull with a nose, swept wings, a cockpit and two engines glowing at the back, brighter with
+// thrust and turbo; running lights on the wingtips and the fin in the ship's colour (js/render3d/scene.js lights them)
 function render3d_player_model()
 {
     const out = new render3d.three.Group();
     const hull = render3d_material('#e8743b', {roughness: 0.6});
     const plate = render3d_material('#c9d3dd', {roughness: 0.55, metalness: 0.3});
     const dark = render3d_material('#2a3340');
-    const glass = render3d_material('#6cf8ec', {emissive: '#6cf8ec', glow: 0.35, roughness: 0.2});
-    const flame = render3d_material('#9bcfff', {emissive: '#9bcfff', glow: 1.6});
+    const glass = render3d_material('#6cf8ec', {emissive: '#6cf8ec', glow: 0.5, roughness: 0.2});
+    const flame = render3d_material_own('#9bcfff', {emissive: '#9bcfff', glow: 1.6});
+    const lights = render3d_material_own('#ffffff', {emissive: '#ffffff', glow: 1});
+    out.userData.flame = flame;
+    out.userData.lights = lights;
     render3d_mesh(out, render3d_geometry('player:nose', v => render3d_nose(v, 0.16, 0.62, 4)), hull, 0.19, 0, 0);
     render3d_mesh(out, render3d_geometry('player:body', v => new v.BoxGeometry(0.42, 0.16, 0.22)), hull, -0.3, 0, 0);
     const wing = render3d_geometry('player:wing', v => render3d_wing(v, [[0.05, 0.08], [-0.34, 0.46], [-0.46, 0.46], [-0.4, 0.08]], 0.035));
@@ -78,10 +95,16 @@ function render3d_player_model()
     render3d_mesh(out, render3d_geometry('player:cockpit', v => new v.OctahedronGeometry(0.075)), glass, 0.04, 0.09, 0).scale.set(1.9, 0.8, 1);
     const engine = render3d_geometry('player:engine', v => new v.CylinderGeometry(0.06, 0.075, 0.18, 6).rotateZ(Math.PI/2));
     const nozzle = render3d_geometry('player:nozzle', v => new v.CylinderGeometry(0.05, 0.05, 0.02, 6).rotateZ(Math.PI/2));
+    const exhaust = render3d_geometry('player:exhaust', v => new v.CylinderGeometry(0.035, 0.035, 0.022, 6).rotateZ(Math.PI/2));
     for (const z of [-0.14, 0.14]) {
         render3d_mesh(out, engine, dark, -0.48, 0, z);
-        render3d_mesh(out, nozzle, flame, -0.58, 0, z).castShadow = false;
+        render3d_lamp(out, nozzle, flame, -0.58, 0, z);
+        render3d_lamp(out, exhaust, flame, -0.595, 0, z);
     }
+    const lamp = render3d_geometry('player:lamp', v => new v.OctahedronGeometry(0.04));
+    render3d_lamp(out, lamp, lights, -0.42, 0.01, 0.47);
+    render3d_lamp(out, lamp, lights, -0.42, 0.01, -0.47);
+    render3d_lamp(out, lamp, lights, -0.46, 0.2, 0);
     return out;
 }
 
@@ -122,8 +145,11 @@ function render3d_raider_model(type, color, elite)
         render3d_mesh(out, render3d_geometry('splitter:core', v => new v.OctahedronGeometry(0.1)), core, 0, 0.04, 0);
         return out;
     }
+    // an engine glowing at the stern, in the raider's colour
+    const exhaust = render3d_geometry('raider:exhaust', v => new v.BoxGeometry(0.04, 0.07, 0.14));
     if (type === 'lancer') {
         render3d_mesh(out, render3d_geometry('lancer:lance', v => render3d_nose(v, 0.1, 1, 4).scale(1, 0.7, 1)), paint);
+        render3d_lamp(out, exhaust, core, -0.5, 0, 0).scale.set(1, 0.8, 0.8);
         const wing = render3d_geometry('lancer:fin', v => render3d_wing(v, [[-0.1, 0.04], [-0.42, 0.26], [-0.48, 0.26], [-0.36, 0.04]], 0.03));
         render3d_mesh(out, wing, fin);
         render3d_mesh(out, wing, fin).scale.z = -1;
@@ -133,6 +159,8 @@ function render3d_raider_model(type, color, elite)
     render3d_mesh(out, render3d_geometry('raider:wedge', v => render3d_nose(v, 0.3, 0.9, 3).rotateX(Math.PI).scale(1, 0.45, 1)), dark);
     render3d_mesh(out, render3d_geometry('raider:spine', v => render3d_nose(v, 0.1, 0.62, 3).scale(1, 0.7, 1)), paint, -0.04, 0.08, 0);
     render3d_mesh(out, render3d_geometry('raider:eye', v => new v.OctahedronGeometry(0.05)), core, 0.12, 0.1, 0);
+    render3d_lamp(out, exhaust, core, -0.45, 0.02, 0.1);
+    render3d_lamp(out, exhaust, core, -0.45, 0.02, -0.1);
     if (type === 'shooter') {
         const gun = render3d_geometry('shooter:pod', v => new v.CylinderGeometry(0.05, 0.06, 0.4, 6).rotateZ(Math.PI/2));
         render3d_mesh(out, gun, fin, 0.02, 0, 0.24);
@@ -144,7 +172,8 @@ function render3d_raider_model(type, color, elite)
     return out;
 }
 
-// A rock: an icosahedron pushed in and out by its seed, one of seven; a rich one wears crystals of its ore
+// A rock: an icosahedron pushed in and out by its seed, one of seven; a rich one wears crystals of its ore, their glow
+// breathing (js/render3d/scene.js)
 function render3d_rock_model(variant, rock_color, ore)
 {
     const out = new render3d.three.Group();
@@ -165,10 +194,12 @@ function render3d_rock_model(variant, rock_color, ore)
         out.computeVertexNormals();
         return out;
     });
-    render3d_mesh(out, geometry, render3d_material(rock_color, {roughness: 0.95, metalness: 0}));
+    // a rich rock's stone glows faintly in its ore, as its crystals do brightly
+    render3d_mesh(out, geometry, render3d_material(rock_color, {emissive: ore || '#000000', glow: ore ? 0.1 : 0, roughness: 0.95, metalness: 0}));
     if (ore) {
         const crystal = render3d_geometry('rock:crystal', v => new v.OctahedronGeometry(0.09).scale(0.8, 1.8, 0.8));
         const material = render3d_material(ore, {emissive: ore, glow: 0.9, roughness: 0.3});
+        render3d.ores.add(material);
         for (let i = 0; i < 3; ++i) {
             const a = variant + i*2.1;
             const mesh = render3d_mesh(out, crystal, material, Math.cos(a)*0.22, 0.24, Math.sin(a)*0.22);
@@ -187,9 +218,19 @@ function render3d_station_model(metal, accent)
     const plate = render3d_material(metal, {roughness: 0.6, metalness: 0.35});
     const dark = render3d_material('#2a3340');
     const light = render3d_material(accent, {emissive: accent, glow: 0.8});
+    // lit windows, warm against the accent, and a beacon of its own that blinks
+    const window_light = render3d_material('#ffe7b8', {emissive: '#ffd58a', glow: 0.9});
+    const beacon = render3d_material_own(accent, {emissive: accent, glow: 1.5});
+    out.userData.beacon = beacon;
     render3d_mesh(out, render3d_geometry('station:hub', v => new v.CylinderGeometry(0.11, 0.14, 0.12, 8)), plate);
     render3d_mesh(out, render3d_geometry('station:dome', v => new v.CylinderGeometry(0.035, 0.07, 0.05, 8)), plate, 0, 0.085, 0);
-    render3d_mesh(out, render3d_geometry('station:beacon', v => new v.OctahedronGeometry(0.018)), light, 0, 0.125, 0).castShadow = false;
+    render3d_lamp(out, render3d_geometry('station:beacon', v => new v.OctahedronGeometry(0.018)), beacon, 0, 0.125, 0);
+    // a ring of small windows on the hub's deck, round the dome
+    const pane = render3d_geometry('station:pane', v => new v.BoxGeometry(0.007, 0.004, 0.012));
+    for (let i = 0; i < 20; ++i) {
+        const a = (i/20)*Math.PI*2 + Math.PI/20;
+        render3d_lamp(out, pane, window_light, Math.cos(a)*0.092, 0.06, Math.sin(a)*0.092).rotation.y = -a;
+    }
     const ring = new THREE.Group();
     ring.name = 'ring';
     render3d_mesh(ring, render3d_geometry('station:ring', v => new v.TorusGeometry(0.36, 0.035, 5, 28).rotateX(Math.PI/2)), plate);
@@ -206,9 +247,15 @@ function render3d_station_model(metal, accent)
         mesh.castShadow = false;
     }
     const module = render3d_geometry('station:module', v => new v.BoxGeometry(0.05, 0.05, 0.08));
+    // the ring's modules, each with a row of three windows on its top
     for (let i = 0; i < 8; ++i) {
         const a = (i/8)*Math.PI*2 + Math.PI/8;
         render3d_mesh(ring, module, plate, Math.cos(a)*0.36, 0.02, Math.sin(a)*0.36).rotation.y = -a;
+        for (const d of [-0.022, 0, 0.022]) {
+            const x = Math.cos(a)*0.36 - Math.sin(a)*d;
+            const z = Math.sin(a)*0.36 + Math.cos(a)*d;
+            render3d_lamp(ring, pane, window_light, x, 0.046, z).rotation.y = -a;
+        }
     }
     out.add(ring);
     // two wings of solar panels on a mast, east and west of the hub
