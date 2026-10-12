@@ -39,7 +39,9 @@ function base_finish(won)
     el.result_sector.textContent = String(wave).padStart(2, '0');
     el.result_best.textContent =
         `${record ? 'NEW PERSONAL BEST · ' : 'PERSONAL BEST · '}${best.toLocaleString()}  /  ${kills} ELIMINATIONS · ${artifacts_count} ARTIFACTS · ${format_time(run_time)}`;
-    document.getElementById('restart_button').focus();
+    // the first button takes Enter: the tow home when there is one, so a key pressed after a death never starts over
+    const retry = document.getElementById('retry_sector');
+    (retry.classList.contains('hidden') ? document.getElementById('restart_button') : retry).focus();
     update_hud();
 }
 
