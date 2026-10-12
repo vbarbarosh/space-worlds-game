@@ -43,7 +43,19 @@ and an armour share and shield that every raider there carries.
   - defence (`defense_rating`): Phase armor + Shield capacitor levels + the
     ship's shield / 35, rounded down;
   - radiation (`radiation_protection` in `src/js/expedition.js`): the hull's
-    own share + 20% per Radiation lining level, at most 98%.
+    own share + 20% per Radiation lining level, at most 98%;
+  - armour (`armour_rating`, `gate_armour_share` in `src/js/campaign.js`):
+    one mounted gun that keeps at least 20% of each hit through the world's
+    raider armour (`gun_armour_share` in `src/js/hardpoints.js`; the armour
+    at the story's front, `world_armour`). A cannon with no Hotter plasma
+    keeps 19% in Dustfall, so the guide's plan adds Hotter plasma 1 (38);
+    in Obsidian the cannon, the shotgun and the ion gun keep 9% to 13% at
+    any tier a pilot has by then, so the plan names a gun that bites (the
+    Seeker or the Lance railgun, licensed at Vanguard with chapter 4). The
+    guide's plan adds up to two Hotter plasma levels when they are enough,
+    else that gun (`preparation_plan` in `src/js/guide.js`), and its button
+    opens the ARSENAL. Before, the gate let a pilot with a shotgun into
+    Obsidian, where it died over and over (18 to 39 deaths for the bot).
 - The raider mix (`world.mix`) is the share of each type: chaser, tank,
   shooter, splitter, lancer. Haven is `[0.7, 0, 0.3, 0, 0]`: chasers and
   shooters only.
@@ -81,6 +93,18 @@ That gives, in the campaign at NORMAL:
 
 - A tank carries 1.4 times the world's shield (`spawn_enemy` in
   `src/js/campaign.js`).
+- **The story's front** (campaign; `raider_tier` in `src/js/campaign.js`):
+  a world the story has moved past fights harder. Its tier is the larger of
+  the world's index and the chapters claimed less one. Past the world's own
+  index, each tier is a threat level of two more `wave` (hull and speed, as
+  in the tables), 4% more armour (72% at most), 15 more shield, 8% more to
+  the raider's gun, 8% more flagship hull, and a patrol as often and as many
+  as that tier's world sends. In act I it touches only a world you go back
+  to (Haven during chapter 3 fights like Verdant). In act II (chapters 9 to
+  16, story 8 to 15) every world fights seven tiers past its own: Haven's
+  raiders have Eclipse's hull and guns, 28% armour and 105 shield; Eclipse's
+  in chapter 16 have a threat level of 29 (a chaser 225 hull), 72% armour,
+  305 shield and guns 2.12 times Haven's.
 - A shot is taken by the shield first; what passes is cut by the armour
   twice (`armour_hull_damage` in `src/js/campaign.js`): its plating takes a
   flat 50 × the armour share off every hit, never more than three quarters
@@ -91,7 +115,8 @@ That gives, in the campaign at NORMAL:
 - Raider guns (`world_audio_base_enemy_fire` in `src/js/campaign.js`): rail
   30, missile 14 to 40 by its kind (below), ion 17 (and it drains 8 pulse),
   scatter 12 a pellet in a fan of three, plasma 10; each 8% more a world past
-  Haven (`raider_hit_scale`), Eclipse's 1.56 times. From Nova Forge on, darts
+  Haven (`raider_hit_scale`), Eclipse's 1.56 times, and in the campaign 8%
+  more a tier of the story's front (above). From Nova Forge on, darts
   and seekers come in pairs. A raider fires every 3.6 s, a tank every 2.8 s
   (`src/js/navigation.js`).
 - A raider's missile goes off at its fuse, units from your shield's edge (or
@@ -162,6 +187,13 @@ That gives, in the campaign at NORMAL:
 
 - Where: `weapon_catalog` in `src/js/fleet.js`; the specials in
   `hit_with_weapon` and `fire_equipped_weapon`.
+- The ARSENAL's gun cards show ARMOUR: the share of one hit, at the tier you
+  own and your Hotter plasma, that passes the armour of the world the guide
+  heads for (`gun_armour_share` in `src/js/hardpoints.js`), red below the
+  gates' 20%.
+  At tier 1 with no Hotter plasma, in Obsidian (50%): the cannon, the
+  shotgun and the ion gun keep 13%, the beam 18%, the Seeker 29%, the rail
+  80%.
 - A shot deals gun damage × (1 + 36% per Hotter plasma level) × (1 + 22%
   per tier past the first) × the ship's damage: Hotter plasma lifts a slug as
   much as a bolt (`hotter_plasma_share`). Prism gives every gun more a shot
@@ -174,7 +206,11 @@ That gives, in the campaign at NORMAL:
   shotgun 1810, the beam 4200 while the pulse lasts, the rail 890 a raider
   and up to three in a line, the Seeker 1550 and its blast.
 - Tiers run 1 to 5. In the campaign a tier costs (130 + 22% of the gun's
-  price) × the tier you have (`upgrade_weapon`). In the arcade a cleared world
+  price) × the tier you have × 1.5 (`gun_tier_cost` in `src/js/fleet.js`):
+  tiers 2 to 5 cost 2676 for the shotgun, 3765 for the ion gun, 5580 for the
+  rail, 6570 for the Seeker and 10530 for the beam. (Before, without the
+  1.5, a story pilot had its gun at tier 5 by chapter 7 and kept 15 000 to
+  25 000 salvage unspent through act II.) In the arcade a cleared world
   raises every gun you own a tier, and a new gun takes the run's tier
   (`arcade_weapon_take`).
 - A gun fits a mount of its size or larger (`gun_fits` in
@@ -263,7 +299,7 @@ before rocks and the Relic processor.
 | Repair | Full repair 60 | free on docking |
 | Ships | half the campaign price, rounded to 10 (`arcade_ship_price`): 180, 430, 530, 1150, 2800 | the price above, gated by rank |
 | Guns | 120 + 45 × rating, no rank | the price above, gated by rank |
-| Gun tier | free, one per world cleared | (130 + 22% of price) × tier |
+| Gun tier | free, one per world cleared | (130 + 22% of price) × tier × 1.5 |
 | Modules, supplies | the tables above | the tables above |
 | Builder drone, outposts, transport | none | see below |
 
@@ -389,17 +425,47 @@ NORMAL in numbers:
 
 ## Campaign pace
 
-- Patrols: every 11 s in Haven, elsewhere every max(4.5, 10 − 0.6 × world
-  index) s, 1 + world index / 3 raiders, while you are outside the station's
+- Patrols: every 11 s in Haven, elsewhere every max(4.5, 10 − 0.6 × tier)
+  s, 1 + min(9, tier) / 3 raiders (the tier is the world's index, or the
+  story's front past it, above), while you are outside the station's
   shelter and fewer than 12 are out (`src/js/navigation.js`).
+- A death (campaign): a tug brings the ship to the world's station, docked
+  and repaired, for 10% of the salvage saved; the cargo aboard is lost, the
+  contracts keep their progress (`tow_to_station` in `src/js/checkpoint.js`).
+  Before, the flight resumed at the last autosave with the hull and the
+  radiation dose saved there, which could die again at once, over and over.
 - Ranks license ships and guns: XP from kills (table above) and from
   contracts.
 
 | Rank | Cadet | Courier | Pathfinder | Vanguard | Ace | Commander | Admiral | Legend |
 |---|---|---|---|---|---|---|---|---|
-| XP | 0 | 120 | 380 | 800 | 1450 | 2500 | 4000 | 6000 |
+| XP | 0 | 120 | 420 | 1100 | 2400 | 4200 | 7000 | 10500 |
 
 - Where: `rank_thresholds`, `rank_names` in `src/js/fleet.js`.
+- The licences follow the story. A story pilot (the campaign bot, below)
+  reaches Courier with chapter 1, Pathfinder with chapter 2, Vanguard
+  (gunship, Lance railgun, Seeker) with chapter 4, before Obsidian's 50%
+  armour asks for a heavy gun, Ace (Flux beam) with
+  chapter 6 and Commander (Aurora Cruiser) with chapter 8, as act I ends.
+  Before (120 / 380 / 800 / 1450 / 2500), Commander came with chapter 6 and
+  nothing was left to license for the last ten chapters.
+- Measured (2026-10-12, a bot playing the campaign as a story pilot on a
+  virtual clock with the game's own guided flight: it follows the chapters,
+  buys what the gates ask, takes side contracts when it cannot pay, and
+  spends the rest on a sturdier ship, a better gun and its tier). Before:
+  chapters 1 to 7 took 33 to 41 game minutes, 1.4 to 6 minutes a chapter;
+  the gates never stopped it; it died 18 times in Obsidian with a shotgun
+  and 25 times at the Ember flagship with a tier-1 beam; a death resumed at
+  the autosave and could die again at once (205 deaths in a row once, from a
+  burnt-out radiation shield). Act II from a chapter-8 kit (the cruiser, the
+  Seeker at tier 5): all eight chapters in 49 minutes, no hull lost outside
+  Nova Forge, no death, and 58 000 salvage left unspent. After: chapters 1 to
+  4 as before (12 to 13 minutes); the Obsidian gate asks for a gun that
+  bites, the bot earns it with two Commander bounties in Verdant (7 to 8
+  minutes) and clears Obsidian with no death; in act II, Obsidian cost 710
+  hull and a death where it cost none, and chapter 11 took 10.9 minutes
+  instead of 4.7 (the bot's runs ended at chapter 12, the machine being
+  slow that night).
 
 ## Scoring
 

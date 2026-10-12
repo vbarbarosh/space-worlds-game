@@ -322,7 +322,7 @@ function update_expedition_environment(dt)
             finish(false);
             el.result_eyebrow.textContent = 'RADIATION EXPOSURE';
             el.result_description.textContent =
-                'Your radiation lining could not protect the hull. Fit radiation protection in MODULES or choose a protected ship in HANGAR, then continue the saved flight.';
+                'Your radiation lining could not protect the hull. Fit radiation protection in MODULES or choose a protected ship in HANGAR, then fly again from the station.';
             return;
         }
     }

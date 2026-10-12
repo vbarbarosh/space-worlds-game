@@ -350,7 +350,7 @@ function arsenal_gun_card(v)
     const on = ship_loadout().map((id, i) => ((id === v.id) ? i + 1 : 0)).filter(Boolean);
     const locked = !owned && (pilot_rank() < v.rank);
     const fits = gun_fits_ship(v);
-    const cost = Math.round((130 + v.price*0.22)*level);
+    const cost = gun_tier_cost(v, level);
     let note = owned ? (on.length ? `Mount${(on.length > 1) ? 's' : ''} ${on.join(', ')}` : fits ? 'Owned · not mounted' : `Needs a ${v.size} mount`) : '';
     let action = null;
     if (locked) {
@@ -369,15 +369,31 @@ function arsenal_gun_card(v)
         action = ui_button({label: 'Buy', price: v.price, size: 'sm', disabled: salvage < v.price, on: () => fleet_purchase(v.id, 'weapon')});
     }
     const damage = (v.id === 'scatter') ? `${v.damage}×5` : String(v.damage);
+    const target = guide_context().target;
+    const world = Number.isInteger(target) ? target : campaign.world;
+    const share = gun_armour_share(v, world);
+    const through = `<span class="${(share < gate_armour_share) ? 't-red' : ''}" title="Of each hit at your tier and Hotter plasma, what passes the armour of ${worlds[world].name} (${Math.round(world_armour(world)*100)}%)">${Math.round(share*100)}%</span>`;
     return ui_card({
         tags: `${ui_size(v.size)}${owned ? ui_tier(level) : ''}${on.length ? ui_badge(`Equipped${(on.length > 1) ? ` ×${on.length}` : ''}`, 'cyan') : ''}`,
         title: v.name,
-        stats: [['DMG', damage], ['RATE', `${v.interval.toFixed(2)}s`], ['RANGE', `${(weapon_range(v)/1000).toFixed(1)} km`]],
+        stats: [['DMG', damage], ['RATE', `${v.interval.toFixed(2)}s`], ['RANGE', `${(weapon_range(v)/1000).toFixed(1)} km`], ['ARMOUR', through]],
         note,
         action,
         state: on.length ? 'is-equipped' : locked ? 'is-locked' : '',
         art: gun_icon_html(v, 40),
     });
+}
+
+// What a hit of the gun keeps through a world's armour, at the tier you own and a Hotter plasma level (yours unless
+// given): plating takes a flat part of each hit (armour_hull_damage), so light guns lose most of their bolts to a heavy
+// hull; the rail ignores 75% of the armour, the beam 40% (hit_with_weapon). The ARSENAL shows it for the world you head
+// for (the guide's target), and the gates ask for it (allowed_world).
+function gun_armour_share(v, world, damage_level = upgrades.damage)
+{
+    const tier = ensure_career().weapon_levels[v.id] || 1;
+    const hit = v.damage*(1 + damage_level*hotter_plasma_share)*(1 + (tier - 1)*0.22)*current_ship().damage;
+    const pierce = (v.id === 'rail') ? 0.25 : (v.id === 'beam') ? 0.6 : 1;
+    return armour_hull_damage({armor: world_armour(world)*pierce}, hit)/hit;
 }
 
 // A gun's turret drawing as an image for the page

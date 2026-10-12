@@ -90,7 +90,40 @@ function load_checkpoint()
     }
 }
 document.getElementById('retry_sector').addEventListener('click', function () {
-    if (checkpoint) {
-        reset_run(true);
+    if (!checkpoint) {
+        return;
+    }
+    const towed = (state === 'dead') && !arcade.active;
+    reset_run(true);
+    if (towed) {
+        tow_to_station();
     }
 });
+
+// A campaign death: a tug brings the wreck to the world's station, docked and repaired. The tow takes a share of the
+// salvage, and the cargo aboard is lost; contracts keep their progress. (Resuming at the last autosave could leave the
+// ship with a sliver of hull or a burnt-out radiation shield amid raiders, and die again at once, over and over.)
+const tow_share = 0.1;
+
+function tow_fee(amount)
+{
+    return Math.round(amount*tow_share);
+}
+
+function tow_to_station()
+{
+    const fee = tow_fee(salvage);
+    salvage -= fee;
+    for (const key of Object.keys(campaign.cargo)) {
+        campaign.cargo[key] = 0;
+    }
+    player.x = station.x;
+    player.y = station.y + station_size/2 + 100;
+    player.vx = player.vy = 0;
+    player.radiation_dose = 0;
+    update_camera(0, true);
+    dock_station();
+    dock_message = `Towed in for ◆ ${fee}. Hull repaired; the cargo aboard was lost with the wreck. Contracts keep their progress.`;
+    render_station();
+    show_toast(`TOWED TO ${worlds[campaign.world].station.toUpperCase()}`, `◆ ${fee} FOR THE TOW · THE CARGO ABOARD IS LOST · CONTRACTS KEPT`, 5);
+}

@@ -99,7 +99,9 @@ const weapon_catalog = [
         line: 'A beam that ignores 40% armour.',
     },
 ];
-const rank_thresholds = [0, 120, 380, 800, 1450, 2500, 4000, 6000];
+// Licences follow the story (docs/balance.md): Vanguard (the gunship, the rail and the Seeker) with chapter 4, before
+// Obsidian's armour; Ace (the beam) with chapter 6; Commander (the cruiser) as act I ends; Admiral and Legend in act II
+const rank_thresholds = [0, 120, 420, 1100, 2400, 4200, 7000, 10500];
 const rank_names = ['Cadet', 'Courier', 'Pathfinder', 'Vanguard', 'Ace', 'Commander', 'Admiral', 'Legend'];
 function ensure_career()
 {
@@ -245,12 +247,21 @@ function fleet_purchase(id, kind)
     sfx('upgrade');
 }
 
+// A gun's next tier in the campaign: (130 + 22% of its price) × the tier you have × 1.5, so taking one gun to tier 5
+// costs about as much as act I pays (the Seeker 6570, the beam 10530) and the salvage of act II still buys something
+const gun_tier_price_scale = 1.5;
+
+function gun_tier_cost(v, level)
+{
+    return Math.round((130 + v.price*0.22)*level*gun_tier_price_scale);
+}
+
 function upgrade_weapon(id)
 {
     const f = ensure_career();
     const level = f.weapon_levels[id] || 1;
     const v = weapon_catalog.find(v => v.id === id);
-    const cost = Math.round((130 + v.price*0.22)*level);
+    const cost = gun_tier_cost(v, level);
     if ((state !== 'upgrade') || !f.weapons.includes(id) || (level >= 5) || (salvage < cost)) {
         return;
     }

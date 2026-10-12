@@ -168,7 +168,8 @@ function guide_base_render_navigation()
 function requirements(id)
 {
     const w = worlds[id];
-    return `${allowed_world(id) ? 'FLIGHT CLEARED' : 'UPGRADE REQUIRED'} · WEAPONS ${attack_rating()}/${w.attack} · DEFENSE ${defense_rating()}/${w.defense} · RAD ${Math.round(radiation_protection()*100)}%/${Math.round(expedition_conditions[id].required*100)}%`;
+    const armour = world_armour(id) ? ` · ARMOUR ${Math.round(armour_rating(id)*100)}%/${Math.round(gate_armour_share*100)}%` : '';
+    return `${allowed_world(id) ? 'FLIGHT CLEARED' : 'UPGRADE REQUIRED'} · WEAPONS ${attack_rating()}/${w.attack} · DEFENSE ${defense_rating()}/${w.defense} · RAD ${Math.round(radiation_protection()*100)}%/${Math.round(expedition_conditions[id].required*100)}%${armour}`;
 }
 
 function interact()
@@ -304,9 +305,11 @@ function guide_base_update_frontier(dt)
     }
     patrol_timer -= dt;
     if ((patrol_timer <= 0) && !arcade.active) {
-        patrol_timer = (campaign.world === 0) ? 11 : Math.max(4.5, 10 - campaign.world*0.6);
+        // patrols come as often and as many as the story's front asks (raider_tier), four at most
+        const tier = raider_tier();
+        patrol_timer = (tier === 0) ? 11 : Math.max(4.5, 10 - tier*0.6);
         if ((distance(player, station) > station_shelter + 50) && (enemies.length < 12)) {
-            for (let i = 0; i < 1 + Math.floor(campaign.world/3); ++i) {
+            for (let i = 0; i < 1 + Math.floor(Math.min(9, tier)/3); ++i) {
                 spawn_enemy(enemy_type());
             }
         }
@@ -405,10 +408,11 @@ function finish(won)
         return;
     }
     base_finish(won);
-    document.getElementById('retry_sector').innerHTML = '<span>Continue the saved flight</span>';
+    const home = checkpoint ? worlds[checkpoint.campaign.world].station : worlds[campaign.world].station;
+    document.getElementById('retry_sector').innerHTML = `<span>Towed to ${home}</span>`;
     el.result_sector.textContent = worlds[campaign.world].name;
     el.result_description.textContent =
-        'Continue from your last autosave with your contracts, cargo and upgrades. Prepare at a station before entering heavily armed worlds.';
+        `A tug brings your ship to ${home} for ◆ ${tow_fee(checkpoint ? checkpoint.salvage : salvage)}: repaired, with your contracts, their progress and upgrades, but not the cargo aboard. Prepare at a station before entering heavily armed worlds.`;
     document.getElementById('nav_button').classList.add('hidden');
     document.getElementById('dock_button').classList.add('hidden');
 }

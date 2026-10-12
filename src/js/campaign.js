@@ -21,10 +21,24 @@ function defense_rating()
     return upgrades.armor + upgrades.shield + Math.floor(current_ship().shield/35);
 }
 
+// A gate also asks for a gun that bites: one mounted gun that keeps a fifth of each hit through the world's armour
+// (gun_armour_share). Without it every bolt of a light gun bounces off the raiders there, and a pilot let in dies over
+// and over with nothing to show for it.
+const gate_armour_share = 0.2;
+
+function armour_rating(id, damage_level = upgrades.damage)
+{
+    const guns = mounted_weapons().filter(Boolean);
+    return guns.length ? Math.max(...guns.map(v => gun_armour_share(v, id, damage_level))) : 0;
+}
+
 function allowed_world(id)
 {
     return (
-        (attack_rating() >= worlds[id].attack) && (defense_rating() >= worlds[id].defense) && (radiation_protection() + 0.001 >= expedition_conditions[id].required)
+        (attack_rating() >= worlds[id].attack) &&
+        (defense_rating() >= worlds[id].defense) &&
+        (radiation_protection() + 0.001 >= expedition_conditions[id].required) &&
+        (armour_rating(id) + 0.001 >= gate_armour_share)
     );
 }
 
@@ -188,14 +202,41 @@ function visual_base_generate_map()
 // Gunners spawned so far: from Verdant on, every other one carries missiles, whatever its world's gun
 let gunners_spawned = 0;
 
+// The story's front: the world one behind the chapter you fly. A world the story has moved past fights as hard as the
+// front, so in act I only a world you go back to is harder, and in act II (chapters 9 to 16, back through the eight
+// worlds) every world fights seven tiers past its own: Haven's raiders with Eclipse's hull and guns, Eclipse's beyond
+// them. The arcade keeps the world's own.
+function raider_tier(id = campaign.world)
+{
+    return arcade.active ? id : Math.max(id, campaign.story - 1);
+}
+
+// A world's raider armour at the story's front: 4% more a tier past its own, 72% at most
+function world_armour(id)
+{
+    return Math.min(0.72, worlds[id].armor + (raider_tier(id) - id)*0.04);
+}
+
 function spawn_enemy(type)
 {
+    const tier = raider_tier();
+    // a raider's hull and speed follow the tier's threat level, as a world's follow its own (1, 3, ... 15, then on)
+    const own_wave = wave;
+    if (tier > campaign.world) {
+        wave = 1 + tier*2;
+    }
     base_spawn_enemy(type);
+    wave = own_wave;
     const enemy = enemies[enemies.length - 1];
     const w = worlds[campaign.world];
+    // past the world's own tier, 4% more armour (72% at most) and 15 more shield a tier: in act II every world's
+    // raiders come 28% heavier and with 105 more shield than in act I, so a light gun's bolts fail there again
+    const past = tier - campaign.world;
+    const armour = world_armour(campaign.world);
+    const shield = w.shield + past*15;
     enemy.color = w.accent;
-    enemy.armor = w.armor;
-    enemy.max_shield = w.shield*((type === 'tank') ? 1.4 : 1);
+    enemy.armor = armour;
+    enemy.max_shield = shield*((type === 'tank') ? 1.4 : 1);
     enemy.shield = enemy.max_shield;
     enemy.since_hit = 0;
     enemy.weapon = w.weapon;
@@ -207,10 +248,10 @@ function spawn_enemy(type)
     }
     enemy.gun_cd = rand(1, 3);
     if (type === 'boss') {
-        enemy.hp = enemy.max_hp = (campaign.world === 7) ? 19000 : 10500;
+        enemy.hp = enemy.max_hp = ((campaign.world === 7) ? 19000 : 10500)*(1 + past*0.08);
         enemy.r = 66;
-        enemy.armor = w.armor;
-        enemy.max_shield = enemy.shield = w.shield*3;
+        enemy.armor = armour;
+        enemy.max_shield = enemy.shield = shield*3;
     }
     return enemy;
 }
@@ -240,16 +281,20 @@ function world_audio_base_enemy_fire(enemy, angle, speed = 210, pattern = false)
             color: enemy.color,
             ...(kind ? missile_raider(kind, s) : {}),
         };
-        shot.damage *= raider_hit_scale();
+        shot.damage *= raider_hit_scale(enemy);
         hostile.push(shot);
     }
     explode(enemy.x + Math.cos(angle)*enemy.r, enemy.y + Math.sin(angle)*enemy.r, 11, enemy.color || pink, 0, 'muzzle');
 }
 
-// Raiders' guns hit harder the farther the world: 8% more a world past Haven, Eclipse's half as much again
-function raider_hit_scale()
+// Raiders' guns hit harder the farther the world: 8% more a world past Haven, Eclipse's half as much again; in the
+// campaign, 8% more a tier of the story's front past the world (raider_tier). A raider sent for a freighter, the survey
+// robot or a structure keeps its world's own: their hulls do not grow with the story, and a stage that guards one
+// would never end.
+function raider_hit_scale(enemy = null)
 {
-    return 1 + campaign.world*0.08;
+    const own = enemy && (enemy.escort_raider || enemy.robot_raider || enemy.structure_target);
+    return 1 + (own ? campaign.world : raider_tier())*0.08;
 }
 
 // Armour cuts a hit twice: its plating takes a flat part of every hit, 50 at full armour and never more than three

@@ -105,7 +105,9 @@ screen you read, or press by label.
     off.
   - `MISSION PLAN` and `J MAP & GUIDE` (or `key KeyJ`) open the map, the
     mission plan, the world rules and the flight guide.
-- **Death**: the screen `result_overlay` offers `CONTINUE SAVED FLIGHT`.
+- **Death**: the screen `result_overlay` offers `TOWED TO <station>`: a tug brings
+  the ship to the world's station, repaired, for a tenth of your salvage; the
+  cargo aboard is lost, the contracts keep their progress.
 
 A good loop: `screen`, choose, `press`, then `wait 60` and read why it
 ended. In flight you rarely need anything else: the autopilot goes on until

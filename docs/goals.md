@@ -52,7 +52,9 @@ contracts go on.
   in `expanded_story_stages`, `src/js/operations.js`; their rewards are the
   listed reward × 1.8: 522, 540, 774, 1170, 1170, 1800, 2880.
 - Chapters 9 to 16 (act II) are `second_act` in `src/js/operations.js`: 1200,
-  1450, 1700, 1850, 2150, 2350, 2700, 3400. Their raiders count as level 2.
+  1450, 1700, 1850, 2150, 2350, 2700, 3400. Their raiders count as level 2,
+  and every world fights seven tiers past its own by then (the story's
+  front, in [balance.md](balance.md)).
 - The titles, stages and story text are in
   [scenario/chapters.md](scenario/chapters.md).
 

@@ -86,6 +86,34 @@ function preparation_plan(id)
         levels.radshield++;
         out.push({key: v.key, title: v.title, level: levels.radshield, price, group: 'defense'});
     }
+    // the armour the gate asks a gun to bite through: up to two more Hotter plasma levels, else a heavier gun
+    if (armour_rating(id, levels.damage) + 0.001 < gate_armour_share) {
+        const hotter = upgrade_options.find(v => v.key === 'damage');
+        let level = levels.damage;
+        while ((armour_rating(id, level) + 0.001 < gate_armour_share) && (level < Math.min(hotter.cap, levels.damage + 2))) {
+            level++;
+        }
+        if (armour_rating(id, level) + 0.001 >= gate_armour_share) {
+            for (; levels.damage < level; ++levels.damage) {
+                out.push({key: hotter.key, title: hotter.title, level: levels.damage + 1, price: Math.round(hotter.cost*(1 + levels.damage*0.48)), gain: 1, group: 'weapons'});
+            }
+        }
+        else {
+            const f = ensure_career();
+            const fit = weapon_catalog.filter(v => gun_armour_share(v, id, levels.damage) + 0.001 >= gate_armour_share).sort((a, b) => a.price - b.price);
+            const gun = fit.find(v => gun_fits_ship(v)) || fit[0];
+            if (gun) {
+                const needs = [!f.weapons.includes(gun.id) && (pilot_rank() < gun.rank) ? rank_names[gun.rank] : '', gun_fits_ship(gun) ? '' : `a ${gun.size} mount`].filter(Boolean);
+                out.push({
+                    key: 'gun',
+                    title: `A gun that bites: ${gun.name} (ARSENAL${needs.length ? `; ${needs.join(', ')}` : ''})`,
+                    level: 1,
+                    price: f.weapons.includes(gun.id) ? 0 : gun.price,
+                    group: 'weapons',
+                });
+            }
+        }
+    }
     if (radiation_protection(current_ship(), levels.radshield) + 0.001 < needed) {
         const hull = ship_catalog.find(v => radiation_protection(v, levels.radshield) + 0.001 >= needed);
         out.push({
@@ -172,11 +200,11 @@ function expedition_base_guide_context()
         out.purchases = purchases;
         out.action = (effective_state === 'upgrade') ? 'Open modules' : 'Fly to station';
         out.instruction =
-            `Prepare for ${worlds[blocked].name}: ${purchases.map(v => `${v.title} Lv ${v.level}`).join(', ')}. Dock at ${worlds[campaign.world].station} and use OUTFITTER.`;
+            `Prepare for ${worlds[blocked].name}: ${purchases.map(v => `${v.title}${(v.key === 'gun') ? '' : ` Lv ${v.level}`}`).join(', ')}. Dock at ${worlds[campaign.world].station} and use OUTFITTER.`;
         out.plan.push({
             title: `Prepare your ship for ${worlds[blocked].name}`,
             text:
-                `${requirements(blocked)}. Suggested purchases: ${purchases.map(v => `${v.title} Lv ${v.level} (◆ ${v.price})`).join(', ')}. Total ◆ ${cost}; you have ◆ ${salvage}.${(salvage < cost) ? ' Earn salvage from local mining contracts, mine ore and sell it at the CARGO MARKET.' : ''}`,
+                `${requirements(blocked)}. Suggested purchases: ${purchases.map(v => `${v.title}${(v.key === 'gun') ? '' : ` Lv ${v.level}`} (◆ ${v.price})`).join(', ')}. Total ◆ ${cost}; you have ◆ ${salvage}.${(salvage < cost) ? ' Earn salvage from local mining contracts, mine ore and sell it at the CARGO MARKET.' : ''}`,
             done: false,
         });
     }

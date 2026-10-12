@@ -233,7 +233,7 @@
 }
 
 .ui .arsenal-grid .stats {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 /* GOALS: the goal you follow on the left, career, reputation and the other goals on the right */
