@@ -61,10 +61,10 @@ Two modes, and a try-out:
     bin/build-docs   docs/ as a website in build/docs, with the game from
                      bin/build in play/; published to GitHub Pages on every
                      push to main (.github/workflows/docs.yml)
-    bin/perf         frame times, garbage and drawing costs over 48 scenes
+    bin/perf         frame times, garbage and drawing costs over 47 scenes
                      (every world calm and in a fight, zoom 100% and 50%,
                      the arcade, campaigns of 10, 50 and 100 structures,
-                     jumps in 3D, a ring race in Haven and Eclipse); see
+                     a ring race in Haven and Eclipse); see
                      docs/performance-2026-10-05.md
     bin/playtest     a bot plays arcade runs on a virtual clock (about a
                      minute each) and counts per world and wave the hull
@@ -130,7 +130,7 @@ for the dev page.
     src/js/worlds/   one file per world: map, look, flight rules, expedition, music
     src/js/ships/    one file per ship class: catalog entry and hull profile
     src/js/sfx/      one file per sound effect: its cooldown and its synth calls
-    src/sprites/     drawings (SVG): ships in 3d, weapons, pickups, worlds/<world>; a
+    src/sprites/     drawings (SVG): ships in 3d/ (the shaded set), weapons, pickups, worlds/<world>; a
                      `<!-- svgs sprites as sprite_svgs -->` line packs them
                      into the page
     src/dev.html     what the dev page adds into the slots of src/index.html

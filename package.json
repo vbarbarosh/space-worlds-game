@@ -1,6 +1,6 @@
 {
   "name": "space-worlds-game",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": true,
   "description": "World Explorer: a space flight, trade and exploration game",
   "homepage": "https://vbarbarosh.github.io/space-worlds-game/",
@@ -12,7 +12,6 @@
   "dependencies": {
     "@vbarbarosh/node-helpers": "^3.78.1",
     "marked": "^18.0.14",
-    "playwright": "^1.63.0",
-    "three": "0.185.1"
+    "playwright": "^1.63.0"
   }
 }

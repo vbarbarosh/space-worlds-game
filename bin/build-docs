@@ -17,7 +17,7 @@ cli(main);
 
 // Every page of docs/ as HTML in build/docs: README.md becomes index.html, links between pages point at their HTML,
 // links to the rest of the repository go to GitHub, other files of docs/ are copied as they are (not tools/, the
-// designer's icon script), and the game built by bin/build goes in play/, its dev page beside it (dev.html?render=3d)
+// designer's icon script), and the game built by bin/build goes in play/, its dev page beside it (dev.html)
 function main()
 {
     const template = fs.readFileSync(path.join(docs_dir, template_name), 'utf8');

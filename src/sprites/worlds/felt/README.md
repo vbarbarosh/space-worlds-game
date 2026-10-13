@@ -9,8 +9,7 @@ agent and replace these files one for one, under the same names.
 Each file wraps the cut-out in an SVG. Inside are:
 
 - an `<image>` holding WebP or PNG as a data URI;
-- a few flat polygons of its colours under the image. The 3D view raises its
-  models from shapes, and the image hides the polygons in 2D;
+- a few flat polygons of its colours under the image, which hides them;
 - for the station and the rocket, an anchors layer: berths, engines and gun
   marks.
 
@@ -35,5 +34,4 @@ These have no felt drawing yet, so the game draws its common look for them:
 - the world gate and jump gate;
 - the beacon;
 - the black hole;
-- the hop and warp effects;
-- the rocket's 3D model, which falls back to the scout's.
+- the hop and warp effects.

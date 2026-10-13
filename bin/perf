@@ -7,9 +7,8 @@ const {chromium} = require('playwright');
 
 const data_dir = path.join(__dirname, '..', 'data', 'perf');
 // Every world in calm flight and in a heavy fight (Feltmere, the ninth, too), and the arcade's last worlds in their third wave, at both zooms; a
-// mature campaign of 10, 50 and 100 structures in Haven, as many in the other worlds, raiders on them; and in 3D, jumps
-// from world to world, its station and models counted (each jump must leave one station, not one more); and a ring
-// race in Haven and in Eclipse
+// mature campaign of 10, 50 and 100 structures in Haven, as many in the other worlds, raiders on them; and a ring race
+// in Haven and in Eclipse
 const scenes = [];
 for (const zoom of [1, 0.5]) {
     for (let world = 0; world < 9; ++world) {
@@ -23,7 +22,6 @@ for (const zoom of [1, 0.5]) {
 for (const buildings of [10, 50, 100]) {
     scenes.push({value: `campaign-w0-n${buildings}`, kind: 'campaign', world: 0, zoom: 1, buildings});
 }
-scenes.push({value: 'jumps-3d', kind: 'jumps', world: 0, zoom: 1, view: '3d', frames: 360});
 // A ring race under way in Haven and in Eclipse: the rings, the rivals racing and bumping, the board, your ship on
 // the course
 for (const world of [0, 7]) {
@@ -45,7 +43,7 @@ const usage = `usage: bin/perf [--dpr=2] [--mode=frames] [--label=name] [--frame
     Plays scenes of build/index.html (a copy with a measuring hook, in data/perf/) in Chromium at 1920 × 1080,
     on a virtual clock of 60 frames a second and a seeded Math.random, so a scene is the same on every run.
     Each scene is fast-forwarded 240 frames and drawn 60 more, then measured. Results go to data/perf/<label>/report.json.
-    Exits 1 when a page throws, or when a 3D scene keeps more than one station.
+    Exits 1 when a page throws.
 
     modes:
         frames   the main thread's time per frame (update, render, HUD), long frames, GC and allocations
@@ -56,8 +54,7 @@ const usage = `usage: bin/perf [--dpr=2] [--mode=frames] [--label=name] [--frame
                  and the HUD's text, for comparing the look before and after a change
 
     --wrap times more of the game's functions in split and layers modes.
-    --gpu draws the canvas on Chromium's GPU path, SwiftShader standing in for a graphics card (slow). A 3D scene
-    runs in a browser of its own with WebGL on SwiftShader, at 640 × 360 and DPR 1.
+    --gpu draws the canvas on Chromium's GPU path, SwiftShader standing in for a graphics card (slow).
     --page measures another copy of the page, e.g. a build kept from before a change.
     --compare=a,b compares the canvases of two shots runs (labels under data/perf/) pixel by pixel.
 
@@ -90,28 +87,16 @@ async function main()
     const html = fs.readFileSync(options.page || path.join(__dirname, '..', 'build', 'index.html'), 'utf8');
     const at = html.lastIndexOf('})();');
     const hooked = path.join(data_dir, `index-hooked-${process.pid}.html`);
-    fs.writeFileSync(hooked, `${html.slice(0, at)}window.__t = function (code) { return eval(code); };\n${html.slice(at)}`);
     // --gpu: the canvas on the GPU path, SwiftShader standing in for a graphics card
     const gpu = ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist', '--enable-gpu-rasterization'];
-    // WebGL for the 3D view, the canvas still drawn as in the 2D scenes
-    const webgl = ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'];
-    // a browser for the 2D scenes, and a small one with WebGL for the 3D ones, for SwiftShader draws
-    // them on the CPU; each launched when a scene first needs it
-    const browsers = new Map();
-    async function context_for(scene) {
-        const kind = (scene.view === '3d') ? '3d' : '2d';
-        if (!browsers.has(kind)) {
-            const browser = await chromium.launch({args: (kind === '3d') ? webgl : ('gpu' in options) ? gpu : []});
-            const viewport = (kind === '3d') ? {width: 640, height: 360} : {width: 1920, height: 1080};
-            browsers.set(kind, {browser, context: await browser.newContext({viewport, deviceScaleFactor: (kind === '3d') ? 1 : dpr})});
-        }
-        return browsers.get(kind).context;
-    }
+    const browser = await chromium.launch({args: ('gpu' in options) ? gpu : []});
     const results = [];
     const errors = [];
     try {
+        fs.writeFileSync(hooked, `${html.slice(0, at)}window.__t = function (code) { return eval(code); };\n${html.slice(at)}`);
+        const context = await browser.newContext({viewport: {width: 1920, height: 1080}, deviceScaleFactor: dpr});
         for (const scene of chosen) {
-            const page = await (await context_for(scene)).newPage();
+            const page = await context.newPage();
             page.on('pageerror', function (v) {
                 errors.push(`${scene.value}: ${v.message}`);
                 console.error(`${scene.value}: ${v.message}`);
@@ -123,23 +108,18 @@ async function main()
             await page.evaluate(v => window.__t(v), `(${page_install})(${JSON.stringify({mode, layer_names: names})})`);
             await page.waitForFunction(() => window.__perf.ready, null, {polling: 50});
             await page.evaluate(v => window.__t(v), `(${page_scene})(${JSON.stringify(scene)})`);
-            const result = await scene_measure(page, scene, mode, ((mode === 'shots') && !options.frames) ? 60 : (options.frames ? measured : (scene.frames || measured)), out_dir);
+            const result = await scene_measure(page, scene, mode, ((mode === 'shots') && !options.frames) ? 60 : measured, out_dir);
             results.push(result);
             console.log(scene_line(result));
             await page.close();
         }
     }
     finally {
-        for (const v of browsers.values()) {
-            await v.browser.close();
-        }
-        fs.rmSync(hooked);
+        await browser.close();
+        fs.rmSync(hooked, {force: true});
     }
     fs.writeFileSync(path.join(out_dir, 'report.json'), JSON.stringify(results, null, 1));
     console.log(out_dir);
-    for (const v of results.filter(v => v.counts?.stations > 1)) {
-        errors.push(`${v.scene}: ${v.counts.stations} stations in the 3D scene at once`);
-    }
     if (errors.length) {
         throw new Error(`bin/perf failed:\n${errors.join('\n')}`);
     }
@@ -456,18 +436,11 @@ function page_install(options)
             update: (P.acc['all:update'] || 0) - update0,
             render: (P.acc['all:render'] || 0) - render0,
             hud: (P.acc['all:update_hud'] || 0) - hud0,
-            n: {enemies: enemies.length, hostile: hostile.length, bullets: bullets.length, particles: particles.length, explosions: explosions.length, pulse_waves: pulse_waves.length, ...page_counts_3d()},
+            n: {enemies: enemies.length, hostile: hostile.length, bullets: bullets.length, particles: particles.length, explosions: explosions.length, pulse_waves: pulse_waves.length},
             playing: state === 'playing',
         });
         P.left--;
     };
-    // in 3D, the stations and the models in its scene
-    function page_counts_3d() {
-        if (!render3d.on) {
-            return {};
-        }
-        return {stations: render3d.scene.children.filter(v => v.userData.beacon).length, models: render3d.models.size};
-    }
     // the frame the game asked for before this hook is still to come, unheld: ready once it is past
     window.requestAnimationFrame(function () {
         P.ready = true;
@@ -486,7 +459,7 @@ function page_install(options)
 // Runs inside the game's scope: starts the scene and sets what it does each frame. Calm: a slow circle by the keys.
 // A fight: 36 raiders of three times the hull kept in view, the pulse every 2 s and the EMP every 3 s, two missile
 // launchers, a rail gun and drones. The arcade: its third wave with the flagship, the pulse and the EMP as in a fight.
-// Jumps: calm flight that jumps to the next world half a second after each arrival. A campaign: calm flight among
+// A campaign: calm flight among
 // built structures, half outposts and half platforms on the free spots nearest the ship, as many again in the other
 // worlds, a transport line, and 24 raiders kept round them, a third sent for one of them. The pulse and the EMP fire
 // only in play, as the player's keys do. A race: a ring race taken and started at green, your keys toward your next
@@ -500,14 +473,12 @@ function page_scene(scene)
     ui_timer = 0;
     explosion_seed = 1;
     difficulty = 'normal';
-    render3d_view_set(scene.view || '2d');
     if (scene.kind === 'arcade') {
         arcade_start(scene.world);
     }
     else {
         const extent = world_extents[scene.world];
         const fight = scene.kind === 'fight';
-        const visited = (scene.kind === 'jumps') ? worlds.map((v, i) => i) : [scene.world];
         const weapon = fight ? 'missile' : 'plasma';
         const weapon_levels = {};
         for (const v of weapon_catalog) {
@@ -533,7 +504,7 @@ function page_scene(scene)
                 story: 0,
                 contracts: [],
                 completed: 0,
-                visited,
+                visited: [scene.world],
                 cargo: {ore: 0, cells: 0, relics: 0},
                 maps: {},
                 serial: 0,
@@ -566,7 +537,6 @@ function page_scene(scene)
     let pulse_t = 1;
     let emp_t = 2;
     let spawned = 0;
-    let arrived = 0;
     window.__perf.drive = function () {
         t += 1/60;
         player.hp = hull_max();
@@ -589,17 +559,10 @@ function page_scene(scene)
         if (Math.sin(a) < -0.38) {
             keys.add('KeyW');
         }
-        if (scene.kind === 'jumps') {
-            arrived = (state === 'playing') ? arrived + 1/60 : 0;
-            if (arrived > 0.5) {
-                const next = (campaign.world + 1) % worlds.length;
-                start_jump({world: next, label: worlds[next].name, color: worlds[next].accent});
-            }
-        }
         if (scene.kind === 'campaign') {
             campaign_raiders();
         }
-        if ((scene.kind === 'calm') || (scene.kind === 'jumps') || (scene.kind === 'campaign') || (scene.kind === 'race')) {
+        if ((scene.kind === 'calm') || (scene.kind === 'campaign') || (scene.kind === 'race')) {
             return;
         }
         if (scene.kind === 'fight') {

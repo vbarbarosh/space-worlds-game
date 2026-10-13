@@ -1,6 +1,5 @@
-// Settings, one panel for the menu, pause, the station and the HUD: the view (2D or 3D), music, sound, effects and
-// fullscreen as switches, the volumes under them. Every switch does what its old toolbar button did; the view's
-// switch is on the main menu too.
+// Settings, one panel for the menu, pause, the station and the HUD: music, sound, effects and fullscreen as switches,
+// the volumes under them. Every switch does what its old toolbar button did.
 let settings_music_volume = 0.65;
 
 for (const v of document.querySelectorAll('[data-setting] [data-value]')) {
@@ -28,9 +27,6 @@ function settings_set(name, value)
     else if ((name === 'effects') && ((value === 'on') !== full_fx)) {
         full_fx = !full_fx;
     }
-    else if ((name === 'view') && (value !== render3d_view())) {
-        render3d_view_set(value);
-    }
     sync_settings();
     sync_settings_rows();
 }
@@ -42,7 +38,6 @@ function sync_settings_rows()
         music: (volume_settings.music > 0) ? 'on' : 'off',
         sound: muted ? 'off' : 'on',
         effects: full_fx ? 'on' : 'off',
-        view: render3d_view(),
     };
     for (const v of document.querySelectorAll('[data-setting] [data-value]')) {
         const on = now[v.parentElement.dataset.setting] === v.dataset.value;

@@ -1345,7 +1345,7 @@ function race_start_draw(course, live)
 }
 
 // The rivals, each in its colour with its place and name under it, a bar once raiders have hurt it, a long flame on
-// its turbo; drawn as models in the 3D view (js/render3d/scene.js), their names and bars still here
+// its turbo
 function race_render_rivals()
 {
     if (!race.course) {
