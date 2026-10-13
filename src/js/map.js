@@ -192,13 +192,21 @@ function update_player_navigation(dt, previous)
 
 function enemy_waypoint(v)
 {
+    // Every raider asks every frame: the distances are distance()'s own sum, worked here on a position read once, and
+    // the portals walked by index, so no number is boxed on the way back from a call and no iterator steps
+    const x = v.x;
+    const y = v.y;
     let target = player;
-    let shortest = distance(v, player) - 400;
+    let shortest = Math.sqrt((x - player.x)*(x - player.x) + (y - player.y)*(y - player.y)) - 400;
     if (shortest < 900) {
         return target;
     }
-    for (const portal of portals) {
-        const cost = distance(v, portal) + distance(portals[portal.destination], player);
+    for (let i = 0; i < portals.length; ++i) {
+        const portal = portals[i];
+        const exit = portals[portal.destination];
+        const cost =
+            Math.sqrt((x - portal.x)*(x - portal.x) + (y - portal.y)*(y - portal.y)) +
+            Math.sqrt((exit.x - player.x)*(exit.x - player.x) + (exit.y - player.y)*(exit.y - player.y));
         if (cost < shortest) {
             shortest = cost;
             target = portal;
@@ -213,9 +221,13 @@ function update_enemy_portal(v, dt)
     if (v.portal_cd > 0) {
         return;
     }
+    // every raider, every frame: its position is read once and distance()'s sum worked here, as in enemy_waypoint
+    const x = v.x;
+    const y = v.y;
+    const r = v.r;
     for (let i = 0; i < portals.length; ++i) {
         const p = portals[i];
-        if (distance(v, p) > p.r + v.r) {
+        if (Math.sqrt((x - p.x)*(x - p.x) + (y - p.y)*(y - p.y)) > p.r + r) {
             continue;
         }
         const exit = portal_exit(portals[p.destination]);
