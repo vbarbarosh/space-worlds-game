@@ -54,9 +54,10 @@ Two modes:
     bin/build-docs   docs/ as a website in build/docs, with the game from
                      bin/build in play/; published to GitHub Pages on every
                      push to main (.github/workflows/docs.yml)
-    bin/perf         frame times, garbage and drawing costs over 38 scenes
-                     (every world calm and in a fight, zoom 100% and 50%);
-                     see docs/performance-2026-10-05.md
+    bin/perf         frame times, garbage and drawing costs over 42 scenes
+                     (every world calm and in a fight, zoom 100% and 50%,
+                     the arcade, campaigns of 10, 50 and 100 structures,
+                     jumps in 3D); see docs/performance-2026-10-05.md
     bin/playtest     a bot plays arcade runs on a virtual clock (about a
                      minute each) and counts per world and wave the hull
                      lost, kills off the screen and salvage left; tables

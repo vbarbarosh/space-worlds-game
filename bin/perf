@@ -6,8 +6,9 @@ const path = require('node:path');
 const {chromium} = require('playwright');
 
 const data_dir = path.join(__dirname, '..', 'data', 'perf');
-// Every world in calm flight and in a heavy fight, and the arcade's last worlds in their third wave, at both zooms; and
-// in 3D, jumps from world to world, its station and models counted (each jump must leave one station, not one more)
+// Every world in calm flight and in a heavy fight, and the arcade's last worlds in their third wave, at both zooms; a
+// mature campaign of 10, 50 and 100 structures in Haven, as many in the other worlds, raiders on them; and in 3D, jumps
+// from world to world, its station and models counted (each jump must leave one station, not one more)
 const scenes = [];
 for (const zoom of [1, 0.5]) {
     for (let world = 0; world < 8; ++world) {
@@ -17,6 +18,9 @@ for (const zoom of [1, 0.5]) {
     for (const world of [5, 6, 7]) {
         scenes.push({value: `arcade-w${world}-z${zoom*100}`, kind: 'arcade', world, zoom});
     }
+}
+for (const buildings of [10, 50, 100]) {
+    scenes.push({value: `campaign-w0-n${buildings}`, kind: 'campaign', world: 0, zoom: 1, buildings});
 }
 scenes.push({value: 'jumps-3d', kind: 'jumps', world: 0, zoom: 1, view: '3d', frames: 360});
 // The passes of render() timed one by one; in layers mode the canvas is flushed around each, so its raster counts too
@@ -476,8 +480,10 @@ function page_install(options)
 // Runs inside the game's scope: starts the scene and sets what it does each frame. Calm: a slow circle by the keys.
 // A fight: 36 raiders of three times the hull kept in view, the pulse every 2 s and the EMP every 3 s, two missile
 // launchers, a rail gun and drones. The arcade: its third wave with the flagship, the pulse and the EMP as in a fight.
-// Jumps: calm flight that jumps to the next world half a second after each arrival. The pulse and the EMP fire only in
-// play, as the player's keys do. The ship never dies.
+// Jumps: calm flight that jumps to the next world half a second after each arrival. A campaign: calm flight among
+// built structures, half outposts and half platforms on the free spots nearest the ship, as many again in the other
+// worlds, a transport line, and 24 raiders kept round them, a third sent for one of them. The pulse and the EMP fire
+// only in play, as the player's keys do. The ship never dies, nor do the structures and the transport.
 function page_scene(scene)
 {
     // the menu ran for as long as the page took to load: its clocks and seeds start again
@@ -537,6 +543,9 @@ function page_scene(scene)
             },
         };
         reset_run(true);
+        if (scene.kind === 'campaign') {
+            campaign_build(scene.buildings);
+        }
     }
     zoom = scene.zoom;
     zoom_target = null;
@@ -577,7 +586,10 @@ function page_scene(scene)
                 start_jump({world: next, label: worlds[next].name, color: worlds[next].accent});
             }
         }
-        if ((scene.kind === 'calm') || (scene.kind === 'jumps')) {
+        if (scene.kind === 'campaign') {
+            campaign_raiders();
+        }
+        if ((scene.kind === 'calm') || (scene.kind === 'jumps') || (scene.kind === 'campaign')) {
             return;
         }
         if (scene.kind === 'fight') {
@@ -607,4 +619,48 @@ function page_scene(scene)
             emp_t = 3;
         }
     };
+    // The structures, built: half outposts and half platforms, each on the spots of a grid 170 m apart nearest the
+    // ship that the build rules allow; the other worlds' between them in the list, as a campaign built over time
+    function campaign_build(n) {
+        const spots = [];
+        for (let x = 170; x < world.w; x += 170) {
+            for (let y = 170; y < world.h; y += 170) {
+                spots.push({x, y});
+            }
+        }
+        spots.sort((a, b) => distance(a, player) - distance(b, player));
+        for (const kind of ['outpost', 'platform']) {
+            const end = (kind === 'outpost') ? n/2 : n - structures_here().length;
+            for (let i = 0, built = 0; (i < spots.length) && (built < end); ++i) {
+                if (!structure_spot_ok(kind, spots[i])) {
+                    continue;
+                }
+                built++;
+                const elsewhere = {world: 1 + (campaign.serial % 7), x: 2000 + (campaign.serial % 50)*170, y: 2000 + Math.floor(campaign.serial/50)*170};
+                for (const v of [{world: scene.world, x: spots[i].x, y: spots[i].y}, elsewhere]) {
+                    campaign.structures.push({id: ++campaign.serial, ...v, kind, hp: structure_kinds[kind].hp, built: 1, store: (kind === 'outpost') ? 20 : 0, clock: 0, aim: 0, cooldown: 0});
+                }
+            }
+        }
+        campaign.lines = {[scene.world]: {hp: transport_hp, cargo: {}, count: 0, earned: 0}};
+    }
+    // 24 raiders round the structures, every third sent for the one it starts by; hulls kept whole
+    function campaign_raiders() {
+        const here = campaign.structures.filter(v => v.world === scene.world);
+        for (const v of here) {
+            v.hp = structure_kinds[v.kind].hp;
+        }
+        campaign.lines[scene.world].hp = transport_hp;
+        let alive = enemies.filter(v => v.hp > 0).length;
+        for (; alive < 24; ++alive) {
+            const site = here[Math.floor(rand(0, here.length))];
+            const v = spawn_enemy(types[spawned++ % types.length]);
+            const a = rand(0, Math.PI*2);
+            v.x = clamp(site.x + Math.cos(a)*rand(250, 550), 40, world.w - 40);
+            v.y = clamp(site.y + Math.sin(a)*rand(250, 550), 40, world.h - 40);
+            if (spawned % 3 === 0) {
+                v.structure_target = site.id;
+            }
+        }
+    }
 }
