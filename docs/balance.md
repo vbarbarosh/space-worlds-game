@@ -363,7 +363,7 @@ before rocks and the Relic processor.
 | | Arcade | Campaign |
 |---|---|---|
 | Elite | from the mode's first elite world, the leader of every second squadron from wave 2: hull ×3, size ×1.35, shield 40 + 25 × world index, drops a repair kit or an EMP; a trick of its world (below) | the target of an `elite` stage: hull ×3.5 (at least 600), armour +12% (at most 72%), shield ×1.6 (at least 80), speed ×0.8; carries missiles in Haven |
-| Flagship | 1500 × (1 + 0.6 × world index) hull (CHILL ×0.8, OVERLOAD ×1.25); fights as its world's design (below); calls escorts at 66% and a last stand at 33%; on OVERLOAD, overdrive at 15% | 10500 hull, 19000 in Eclipse; three times the world's shield |
+| Flagship | 1500 × (1 + 0.6 × world index) hull × its design's factor (Haven to Dustfall 1, Ion Reach 4.5, Obsidian 3, Cryosphere and Nova Forge 1.25, Eclipse 2.6) (CHILL ×0.8, OVERLOAD ×1.25); fights as its world's design (below); calls escorts at 66% and a last stand at 33%; on OVERLOAD, overdrive at 15% | 10500 hull, 19000 in Eclipse; three times the world's shield |
 
 - Where: `arcade_elite_make`, `arcade_flagship_spawn`,
   `arcade_flagship_update` in `src/js/arcade.js`; `spawn_operation_enemy` in
@@ -381,6 +381,15 @@ before rocks and the Relic processor.
   the gap between attacks (CHILL ×0.8, OVERLOAD ×1.15, overdrive ×1.3 more),
   never the length of a tell. Drawn attacks aim where you are; only the gun
   between them leads you, as a raider's does.
+- An arcade flagship's hull carries its design's factor (`hull` in
+  `boss_designs`), so that with a mid kit it runs both its cycles before it
+  falls. Measured with a pilot that circles at 300 to 380 m (plasma at tier
+  4 to 5, two guns), NORMAL: Ion Reach 36 s instead of 13, Obsidian 24 s
+  instead of 17, Eclipse 37 s instead of 20; Cryosphere's plates and Nova
+  Forge's heat already held those fights 22 to 31 s. The campaign's
+  flagships keep their hull and fight as their world's design: with a
+  gunship (rail and two launchers at tier 3), the Ember flagship falls in
+  15 s and the Void Dreadnought in 28 s.
 
   | World | Moves | Attacks | Below 50% | Exposed |
   |---|---|---|---|---|
@@ -551,11 +560,11 @@ NORMAL in numbers:
 | Haven | 44 | 140 | 0%, 0 | 40 | 1500 | 13 / 17 / 21 | 4 / 5 / 6 | 4.40 | 80 |
 | Verdant | 74 | 205 | 10%, 0 | 65 | 2400 | 15 / 19 / 23 | 4 / 5 / 6 | 4.16 | 120 |
 | Dustfall | 111 | 283 | 20%, 0 | 90 | 3300 | 17 / 21 / 25 | 5 / 6 / 7 | 3.92 | 160 |
-| Ion Reach | 154 | 372 | 16%, 52 (73) | 115 | 4200 | 19 / 23 / 27 | 5 / 6 / 7 | 3.68 | 200 |
-| Obsidian | 204 | 473 | 40%, 36 (50) | 140 | 5100 | 21 / 25 / 29 | 6 / 7 / 8 | 3.44 | 240 |
-| Cryosphere | 260 | 585 | 28%, 112 (157) | 165 | 6000 | 23 / 27 / 31 | 6 / 7 / 8 | 3.20 | 280 |
-| Nova Forge | 322 | 710 | 48%, 72 (101) | 190 | 6900 | 25 / 29 / 33 | 7 / 8 / 9 | 2.96 | 320 |
-| Eclipse | 391 | 846 | 52%, 160 (224) | 215 | 7800 | 27 / 31 / 35 | 7 / 8 / 9 | 2.72 | (run ends) |
+| Ion Reach | 154 | 372 | 16%, 52 (73) | 115 | 18900 | 19 / 23 / 27 | 5 / 6 / 7 | 3.68 | 200 |
+| Obsidian | 204 | 473 | 40%, 36 (50) | 140 | 15300 | 21 / 25 / 29 | 6 / 7 / 8 | 3.44 | 240 |
+| Cryosphere | 260 | 585 | 28%, 112 (157) | 165 | 7500 | 23 / 27 / 31 | 6 / 7 / 8 | 3.20 | 280 |
+| Nova Forge | 322 | 710 | 48%, 72 (101) | 190 | 8625 | 25 / 29 / 33 | 7 / 8 / 9 | 2.96 | 320 |
+| Eclipse | 391 | 846 | 52%, 160 (224) | 215 | 20280 | 27 / 31 / 35 | 7 / 8 / 9 | 2.72 | (run ends) |
 
 ## Campaign pace
 

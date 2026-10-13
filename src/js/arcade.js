@@ -602,7 +602,8 @@ function arcade_flagship_spawn()
 {
     const enemy = spawn_enemy('boss');
     const scale = (difficulty === 'chill') ? 0.8 : (difficulty === 'overload') ? 1.25 : 1;
-    enemy.hp = Math.round(1500*(1 + campaign.world*0.6)*scale);
+    // from Ion Reach on, its design's factor more, for time to run its attacks (boss_designs)
+    enemy.hp = Math.round(1500*(1 + campaign.world*0.6)*scale*boss_designs[campaign.world].hull);
     enemy.max_hp = enemy.hp;
     boss_spawned = true;
     boss_defeated = false;

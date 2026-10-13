@@ -17,11 +17,15 @@ const boss_tell_color = '#ffd16e';
 const boss_open_color = '#ffffff';
 
 // Emitters are points on the hull in units of its radius: [ahead, to the right]. A cycle is the order the attacks run
-// in; the second cycle starts below half the hull, with the phase's toast, after a roar.
+// in; the second cycle starts below half the hull, with the phase's toast, after a roar. `hull`: a factor on the arcade
+// flagship's hull (arcade_flagship_spawn), so that with a mid kit each one runs both its cycles before it falls: from
+// Ion Reach on its attacks are longer than its world's growth gave it time for; Cryosphere's plates and Nova Forge's
+// heat already hold the fight longer, so they need less.
 const boss_designs = [
     {
         // Haven: crescent wings; a corsair that orbits you, fans plasma from its wingtips and strafes across you
         name: 'THE CRESCENT',
+        hull: 1,
         hint: 'WATCH ITS LINES · HIT IT WHILE IT STALLS',
         move: {kind: 'orbit', range: 380, turn: 0.42},
         gun: {every: 2.4, weapon: 'plasma', speed: 240},
@@ -42,6 +46,7 @@ const boss_designs = [
         // Verdant: a beetle with glowing eyes and spines; it drifts with the living current, sows spores that drift too,
         // and in its second half hatches a brood
         name: 'THE THORN BEETLE',
+        hull: 1,
         hint: 'SPORES DRIFT WITH THE CURRENT · HIT IT WHEN ITS SHELL OPENS',
         move: {kind: 'drift', range: 430, speed: 70, lunge: 4.5},
         gun: {every: 2.4, weapon: 'scatter', speed: 200},
@@ -64,6 +69,7 @@ const boss_designs = [
         // Dustfall: a toothed blade with hatches and side pods; it coasts as everything here does, launches missiles from
         // its hatches, flak from its pods, and saws across you, the dust bursting behind it
         name: 'THE SAWTOOTH',
+        hull: 1,
         hint: 'IT COASTS · DODGE THE SAW, THEN HIT IT WHILE IT IS JAMMED',
         move: {kind: 'coast', range: 470, thrust: 170, top: 250},
         gun: {every: 2.2, weapon: 'scatter', speed: 200},
@@ -85,6 +91,7 @@ const boss_designs = [
         // Ion Reach: a wheel with a hub and four pods; it holds its range and jumps through the storm, sweeps you with
         // lightning spokes, and in its second half sends its pods out to shield the hub
         name: 'THE STORM WHEEL',
+        hull: 4.5,
         hint: 'SPOKES SWEEP A QUARTER TURN · HIT THE HUB WHEN IT OVERHEATS',
         move: {kind: 'hold', range: 520, spin: 0.7},
         gun: {every: 2.2, weapon: 'ion', speed: 210},
@@ -96,8 +103,8 @@ const boss_designs = [
         phase2: {title: 'PODS LAUNCHED', line: 'THE PODS SHIELD THE HUB · DOWN THE PODS TO OPEN IT'},
         attacks: {
             volley: {kind: 'fan', emitters: [[0.8, 0], [0, 0.8], [-0.8, 0], [0, -0.8]], spin: true, count: 1, spread: 0, weapon: 'ion', speed: 210, volleys: 2, every: 0.3, tell: 0.6},
-            spokes: {kind: 'beam', count: 4, length: 700, width: 22, tell: 1.1, time: 2.6, sweep: 1.57, damage: 20, effect: 'drain', stall: 1.6},
-            spokes_wide: {kind: 'beam', count: 4, length: 760, width: 22, tell: 1.1, time: 3, sweep: 2.4, damage: 20, effect: 'drain'},
+            spokes: {kind: 'beam', count: 4, length: 700, width: 22, tell: 1.1, time: 2.6, sweep: 1.57, damage: 16, effect: 'drain', stall: 1.6},
+            spokes_wide: {kind: 'beam', count: 4, length: 760, width: 22, tell: 1.1, time: 3, sweep: 2.4, damage: 16, effect: 'drain'},
             blink: {kind: 'blink', tell: 0.9, range: 500},
             pods: {kind: 'pods', count: 4, radius: 150, turn: 0.9, tell: 1, open: 3},
         },
@@ -106,6 +113,7 @@ const boss_designs = [
         // Obsidian: a stepped blade, heavy and slow; it steps forward, tracks you with rail sights that lock before they
         // fire, opens gravity wells under you, and turns broadside to fire a row of lanes
         name: 'THE IRON STAIR',
+        hull: 3,
         hint: 'A SIGHT LOCKS BEFORE IT FIRES · MOVE WHEN IT LOCKS',
         move: {kind: 'step', range: 540, stride: 170, every: 2.4},
         gun: null,
@@ -128,6 +136,7 @@ const boss_designs = [
         // Cryosphere: a crystal with a ridge and a diamond core; it glides as ships here do, ice plates turn round it
         // and stop your shots, it spins out shards and drops icicles, and its frost nova draws the plates in
         name: 'THE FROST CRYSTAL',
+        hull: 1.25,
         hint: 'PLATES STOP YOUR SHOTS · SHOOT THROUGH THE GAPS, OR AFTER THE NOVA',
         move: {kind: 'glide', range: 480, thrust: 110, top: 200},
         plates: [{count: 6, filled: 4, turn: 0.7}, {count: 6, filled: 5, turn: 1.1}],
@@ -150,6 +159,7 @@ const boss_designs = [
         // Nova Forge: a furnace with glowing vents; it lumbers in close, sweeps a flame from its vents that heats your
         // guns, lobs embers that leave burning slag, fires missiles, and its flare opens the furnace
         name: 'THE FURNACE',
+        hull: 1.25,
         hint: 'ITS FLAME HEATS YOUR GUNS · THE FLARE OPENS ITS CORE',
         move: {kind: 'lumber', range: 320, speed: 55},
         gun: null,
@@ -172,6 +182,7 @@ const boss_designs = [
         // Eclipse: a crescent with a dark eye in a pink ring and a dome core; it jumps through the void, its eye beam turns
         // after you, it fires fans of rail lanes, and it opens a singularity that pulls you in while its dome is open
         name: 'THE ECLIPSE EYE',
+        hull: 2.6,
         hint: 'ITS BEAM TURNS SLOWER THAN YOU · HIT THE DOME WHILE IT HOLDS THE SINGULARITY',
         move: {kind: 'hover', range: 560},
         gun: null,
