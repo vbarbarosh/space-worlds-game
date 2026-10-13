@@ -4,8 +4,13 @@ let last_render_state = '';
 let performance_render_dirty = true;
 let guide_context_cache = null;
 let guide_context_cache_key = '';
+// the view's size the nebula layers were drawn for: a resize event that leaves it as it was keeps them
+let nebula_layers_size = '';
 addEventListener('resize', function () {
-    nebula_layers.clear();
+    if (`${W}x${H}` !== nebula_layers_size) {
+        nebula_layers_size = `${W}x${H}`;
+        nebula_layers.clear();
+    }
     performance_render_dirty = true;
 });
 function render_nebula_layer(id, sky)
