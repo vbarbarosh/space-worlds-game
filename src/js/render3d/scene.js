@@ -297,18 +297,23 @@ function render3d_sync()
         render3d_flash(model.group, v.flash > 0);
     }
     for (const enemy of enemies) {
-        const length = enemy_sprite(enemy).length;
+        const art = enemy_sprite(enemy);
+        const length = art.length;
         if (!in_view(enemy, length + render3d_margin)) {
             continue;
         }
         const color = enemy.color || pink;
-        const model = render3d_model(enemy, () => render3d_raider_model(enemy.type, color, !!enemy.elite));
+        // a flagship as its world's drawing
+        const model = render3d_model(enemy, () => render3d_arts[art.name] ? render3d_flagship_model(art.name, color) : render3d_raider_model(enemy.type, color, !!enemy.elite));
         const angle = ((enemy.type === 'lancer') && (enemy.charge_time > 0)) ? enemy.charge_angle : enemy.angle;
         render3d_ship_place(model, enemy.x, enemy.y, angle, length, enemy.flash > 0);
     }
     if (player && (state !== 'dead') && !teleport_active()) {
-        const model = render3d_model(player, render3d_player_model);
-        render3d_ship_place(model, player.x, player.y, player.angle, ship_sprite(current_ship()).length*1.05, false);
+        // the model of the class you fly: after a change of ship (the hangar, a load) the old one is not seen, and goes
+        // below this frame
+        const ship = current_ship();
+        const model = render3d_model(ship, () => render3d_player_model(ship));
+        render3d_ship_place(model, player.x, player.y, player.angle, ship_sprite(ship).length, false);
         render3d_player_lights(model.group);
         // blinking while invincible, as the 2D ship does
         model.group.visible = !(player.invincible > 0) || (Math.sin(clock*25) > -0.3);
