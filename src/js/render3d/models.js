@@ -13,7 +13,8 @@ function render3d_material(color, options = {})
     return out;
 }
 
-// A material of one model alone, for a glow that changes as it flies: engines, running lights, a beacon
+// A material of one model alone, for a glow that changes as it flies: engines, running lights, a beacon. The model
+// lists it in its `userData.own`, and render3d_retire frees it with the model
 function render3d_material_own(color, options = {})
 {
     return new render3d.three.MeshStandardMaterial({
@@ -86,6 +87,7 @@ function render3d_player_model()
     const lights = render3d_material_own('#ffffff', {emissive: '#ffffff', glow: 1});
     out.userData.flame = flame;
     out.userData.lights = lights;
+    out.userData.own = [flame, lights];
     render3d_mesh(out, render3d_geometry('player:nose', v => render3d_nose(v, 0.16, 0.62, 4)), hull, 0.19, 0, 0);
     render3d_mesh(out, render3d_geometry('player:body', v => new v.BoxGeometry(0.42, 0.16, 0.22)), hull, -0.3, 0, 0);
     const wing = render3d_geometry('player:wing', v => render3d_wing(v, [[0.05, 0.08], [-0.34, 0.46], [-0.46, 0.46], [-0.4, 0.08]], 0.035));
@@ -222,6 +224,7 @@ function render3d_station_model(metal, accent)
     const window_light = render3d_material('#ffe7b8', {emissive: '#ffd58a', glow: 0.9});
     const beacon = render3d_material_own(accent, {emissive: accent, glow: 1.5});
     out.userData.beacon = beacon;
+    out.userData.own = [beacon];
     render3d_mesh(out, render3d_geometry('station:hub', v => new v.CylinderGeometry(0.11, 0.14, 0.12, 8)), plate);
     render3d_mesh(out, render3d_geometry('station:dome', v => new v.CylinderGeometry(0.035, 0.07, 0.05, 8)), plate, 0, 0.085, 0);
     render3d_lamp(out, render3d_geometry('station:beacon', v => new v.OctahedronGeometry(0.018)), beacon, 0, 0.125, 0);

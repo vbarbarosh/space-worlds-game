@@ -130,11 +130,24 @@ function render3d_world_set()
     // the rim in the world's cloud, lightened, so it reads on every hull
     render3d.rim.color.set(look.cloud).lerp(new render3d.three.Color('#c8dcff'), 0.55);
     for (const [key, v] of render3d.models) {
-        render3d.scene.remove(v.group);
+        render3d_retire(v.group);
         render3d.models.delete(key);
+    }
+    if (render3d.station) {
+        render3d_retire(render3d.station);
     }
     render3d.station = render3d_station_model(new render3d.three.Color(look.material).multiplyScalar(0.7).getStyle(), w.accent);
     render3d.scene.add(render3d.station);
+}
+
+// A model leaves the scene, and the materials it alone owns are freed with it; the shared geometries and materials
+// stay for the models still using them
+function render3d_retire(group)
+{
+    render3d.scene.remove(group);
+    for (const material of group.userData.own || []) {
+        material.dispose();
+    }
 }
 
 // The camera on the 2D view's rectangle of the plane, from above, the height sheared up the screen
@@ -291,7 +304,7 @@ function render3d_sync()
     }
     for (const [key, v] of render3d.models) {
         if (v.seen !== render3d.frame) {
-            render3d.scene.remove(v.group);
+            render3d_retire(v.group);
             render3d.models.delete(key);
         }
     }
