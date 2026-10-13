@@ -1,6 +1,7 @@
 // The low-poly models of the 3D view, built in code from a few shapes: no model files. Each points along +x and is one
 // unit long (a station: one unit across), its height kept low, so the caller scales it to the sprite it stands in for.
-// Geometries and materials are shared by every model of a kind; a model is a group of meshes.
+// Geometries and materials are shared by every model of a kind; a model is a group of meshes, its parts that never
+// move apart merged into one mesh per material (render3d_merge).
 
 function render3d_material(color, options = {})
 {
@@ -56,6 +57,56 @@ function render3d_mesh(group, geometry, material, x = 0, y = 0, z = 0)
     return out;
 }
 
+// The group's meshes of one material and one shadow become one mesh, a draw call instead of one per part; a group
+// within it (the station's ring, which turns) keeps its own. The merged geometry is made once, kept by the model's
+// name and the parts it holds, and shared: every model of a name has the same parts in the same places, its materials
+// may differ.
+function render3d_merge(group, name)
+{
+    const sets = new Map();
+    for (const [i, mesh] of group.children.filter(v => v.isMesh).entries()) {
+        const key = `${mesh.material.id}|${mesh.castShadow}`;
+        if (!sets.has(key)) {
+            sets.set(key, []);
+        }
+        sets.get(key).push({mesh, i});
+    }
+    for (const parts of sets.values()) {
+        if (parts.length < 2) {
+            continue;
+        }
+        const meshes = parts.map(v => v.mesh);
+        const geometry = render3d_geometry(`${name}:${parts.map(v => v.i).join(',')}`, v => render3d_merged(v, meshes));
+        group.remove(...meshes);
+        render3d_mesh(group, geometry, meshes[0].material).castShadow = meshes[0].castShadow;
+    }
+}
+
+// One geometry of the meshes, each part moved to its place; a mirrored part has its faces turned so they face out
+function render3d_merged(THREE, meshes)
+{
+    const position = [];
+    const normal = [];
+    const index = [];
+    for (const mesh of meshes) {
+        mesh.updateMatrix();
+        const part = mesh.geometry.clone().applyMatrix4(mesh.matrix);
+        const offset = position.length/3;
+        const mirrored = mesh.matrix.determinant() < 0;
+        const corners = part.index ? part.index.array : [...Array(part.attributes.position.count).keys()];
+        for (let i = 0, end = corners.length; i < end; i += 3) {
+            index.push(offset + corners[i], offset + corners[mirrored ? i + 2 : i + 1], offset + corners[mirrored ? i + 1 : i + 2]);
+        }
+        position.push(...part.attributes.position.array);
+        normal.push(...part.attributes.normal.array);
+    }
+    const out = new THREE.BufferGeometry();
+    out.setAttribute('position', new THREE.Float32BufferAttribute(position, 3));
+    out.setAttribute('normal', new THREE.Float32BufferAttribute(normal, 3));
+    out.setIndex(index);
+    return out;
+}
+
 // A cone of `sides` faces lying along +x, its tip forward
 function render3d_nose(THREE, radius, length, sides)
 {
@@ -107,6 +158,7 @@ function render3d_player_model()
     render3d_lamp(out, lamp, lights, -0.42, 0.01, 0.47);
     render3d_lamp(out, lamp, lights, -0.42, 0.01, -0.47);
     render3d_lamp(out, lamp, lights, -0.46, 0.2, 0);
+    render3d_merge(out, 'player');
     return out;
 }
 
@@ -129,12 +181,14 @@ function render3d_raider_model(type, color, elite)
             const mesh = render3d_mesh(out, spike, paint, Math.cos(a)*0.55, 0, Math.sin(a)*0.55);
             mesh.rotation.y = -a;
         }
+        render3d_merge(out, `raider:${type}`);
         return out;
     }
     if (type === 'tank') {
         render3d_mesh(out, render3d_geometry('tank:hull', v => new v.CylinderGeometry(0.4, 0.46, 0.24, 6)), dark);
         render3d_mesh(out, render3d_geometry('tank:top', v => new v.CylinderGeometry(0.26, 0.32, 0.12, 6)), paint, 0, 0.17, 0);
         render3d_mesh(out, render3d_geometry('tank:gun', v => new v.BoxGeometry(0.34, 0.06, 0.08)), fin, 0.3, 0.17, 0);
+        render3d_merge(out, `raider:${type}`);
         return out;
     }
     if (type === 'splitter') {
@@ -145,6 +199,7 @@ function render3d_raider_model(type, color, elite)
             mesh.rotation.y = -a;
         }
         render3d_mesh(out, render3d_geometry('splitter:core', v => new v.OctahedronGeometry(0.1)), core, 0, 0.04, 0);
+        render3d_merge(out, `raider:${type}`);
         return out;
     }
     // an engine glowing at the stern, in the raider's colour
@@ -155,6 +210,7 @@ function render3d_raider_model(type, color, elite)
         const wing = render3d_geometry('lancer:fin', v => render3d_wing(v, [[-0.1, 0.04], [-0.42, 0.26], [-0.48, 0.26], [-0.36, 0.04]], 0.03));
         render3d_mesh(out, wing, fin);
         render3d_mesh(out, wing, fin).scale.z = -1;
+        render3d_merge(out, `raider:${type}`);
         return out;
     }
     // chaser and shooter: a flat wedge, the shooter with a gun pod on each side
@@ -171,6 +227,7 @@ function render3d_raider_model(type, color, elite)
     else {
         render3d_mesh(out, render3d_geometry('raider:fin', v => new v.BoxGeometry(0.22, 0.14, 0.03)), fin, -0.3, 0.08, 0);
     }
+    render3d_merge(out, `raider:${type}`);
     return out;
 }
 
@@ -209,6 +266,7 @@ function render3d_rock_model(variant, rock_color, ore)
             mesh.castShadow = false;
         }
     }
+    render3d_merge(out, `rock:${variant}`);
     return out;
 }
 
@@ -260,6 +318,7 @@ function render3d_station_model(metal, accent)
             render3d_lamp(ring, pane, window_light, x, 0.046, z).rotation.y = -a;
         }
     }
+    render3d_merge(ring, 'station:ring');
     out.add(ring);
     // two wings of solar panels on a mast, east and west of the hub
     const solar = render3d_material('#1d3550', {roughness: 0.35, metalness: 0.6});
@@ -276,5 +335,6 @@ function render3d_station_model(metal, accent)
         render3d_mesh(out, berth, plate, Math.cos(a)*0.46, 0, Math.sin(a)*0.46).rotation.y = -a;
         render3d_mesh(out, pad, light, Math.cos(a)*0.55, 0, Math.sin(a)*0.55).rotation.y = -a;
     }
+    render3d_merge(out, 'station');
     return out;
 }
