@@ -330,7 +330,7 @@ function dash(held = false)
     player.dash_time = turbo_fuel();
     player.turbo_active = true;
     player.dash_cd = 0;
-    // the arcade's dash slips through bolts, not through a blast: a missile is outrun, outturned or cleared by the EMP
+    // the arcade's dash slips through bolts, not through a blast: a missile is outturned or cleared by the EMP
     if (arcade.active) {
         player.dash_grace = 0.25;
     }

@@ -163,6 +163,11 @@ function missile_guide(b, dt)
     missile_fly(b, b.target, dt);
 }
 
+// A raider's missile keeps up with the ship it chases, turbo included: it flies at this much the ship's speed now when
+// that is more than its own. It turns no harder sideways than at its own speed (its turn rate falls as it speeds up), so
+// a ship in turbo that turns hard shakes it, and one far enough ahead keeps its lead until the missile's flight ends.
+const missile_chase = 1.15;
+
 // One step of a missile's flight toward target (null: straight on); the world's projectile speed scales the motor
 function missile_fly(b, target, dt)
 {
@@ -175,9 +180,13 @@ function missile_fly(b, target, dt)
         // a marksman's missile (raider_aim) flies for where you will be when it gets there, not where you are
         if (target) {
             const t = b.lead ? Math.min(1, distance(b, target)/Math.max(1, speed)) : 0;
-            heading = turn_toward(heading, Math.atan2(target.y + (target.vy || 0)*t - b.y, target.x + (target.vx || 0)*t - b.x), b.turn*dt);
+            const grip = (b.side === 'raider') ? Math.min(1, b.top*k/Math.max(1, speed)) : 1;
+            heading = turn_toward(heading, Math.atan2(target.y + (target.vy || 0)*t - b.y, target.x + (target.vx || 0)*t - b.x), b.turn*grip*dt);
         }
-        if (speed < b.top*k) {
+        if ((b.side === 'raider') && target) {
+            speed = Math.max(b.top*k, missile_chase*Math.sqrt((target.vx || 0)*(target.vx || 0) + (target.vy || 0)*(target.vy || 0)));
+        }
+        else if (speed < b.top*k) {
             speed = Math.min(b.top*k, speed + b.accel*k*dt);
         }
     }

@@ -260,9 +260,10 @@ function spawn_enemy(type)
 // since the author asked for nimbler fire (raider_shot_boost). In every world a gun's bolt outflies the fastest
 // cruising ship (an interceptor with three Slipstreams; the closest: a Haven shooter's bolt, 707 m/s against 620) and
 // stays slower than your own gun of its kind (a raider's ion bolt 1056 against yours 1150), so your shots still feel
-// the faster. A missile outflies that ship too, a torpedo included (575 against 558 in Eclipse). Turbo outruns them
-// all: it is the way out. A flagship's patterns (rings, fans, spirals) are made to be woven through, so they gain
-// least. A shot's flight is cut by as much as its speed grows, so its reach stays.
+// the faster. A missile outflies that ship too, a torpedo included (575 against 558 in Eclipse), and keeps up with it
+// in turbo (missile_chase). Turbo outruns the bolts: it is the way out of a crossfire. A flagship's patterns (rings,
+// fans, spirals) are made to be woven through, so they gain least. A shot's flight is cut by as much as its speed
+// grows, so its reach stays.
 const raider_shot_first = {gun: 2.4, missile: 2.4, pattern: 1.4};
 const raider_shot_boost = {gun: 1.6, missile: 1.8, pattern: 1.15};
 

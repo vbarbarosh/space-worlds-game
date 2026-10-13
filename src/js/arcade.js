@@ -234,7 +234,7 @@ function arcade_update(dt)
     // the run's first raider missile close by says that a dash does not carry you through its blast
     if (!arcade.missile_hint && hostile.some(v => v.missile && (distance(v, player) < 600))) {
         arcade.missile_hint = true;
-        show_toast('MISSILES', 'A DASH IS NO SHIELD FROM THE BLAST · OUTRUN OR OUTTURN THEM', 3.5, 'danger');
+        show_toast('MISSILES', 'A DASH IS NO SHIELD FROM THE BLAST · OUTTURN THEM', 3.5, 'danger');
     }
     if (arcade.world !== campaign.world) {
         arcade.world = campaign.world;
@@ -511,15 +511,14 @@ function arcade_marksman(enemy)
     return enemy.elite || (Math.random() < share);
 }
 
-// Where a raider fires at its target: straight at it, or, for a marksman in the arcade, where the target will be when
-// a shot of this speed gets there if it keeps its course; straight at it when the shot cannot catch it within 1.5 s
+// Where a raider fires at its target: where the target will be when a shot of this speed (raider_shot_speed) gets there
+// if it keeps its course, in the campaign and the arcade alike; straight at it when the shot cannot catch it within
+// 1.5 s. The course is taken as straight: a target that turns is not where the shot goes, and that is how it is
+// dodged. A marksman differs by the dashed line that shows its aim, and by its missiles (world_audio_base_enemy_fire).
 function raider_aim(enemy, target, speed)
 {
     const dx = target.x - enemy.x;
     const dy = target.y - enemy.y;
-    if (!arcade.active || !enemy.marksman) {
-        return Math.atan2(dy, dx);
-    }
     const t = intercept_time(dx, dy, target.vx || 0, target.vy || 0, raider_shot_speed(enemy, speed)*current_world_rules().projectile);
     return Math.atan2(dy + (target.vy || 0)*t, dx + (target.vx || 0)*t);
 }

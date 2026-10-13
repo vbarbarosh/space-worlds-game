@@ -134,9 +134,20 @@ That gives, in the campaign at NORMAL:
   world each bolt and missile outflies the fastest cruising ship (an
   interceptor with three Slipstreams; the closest are a Haven shooter's
   bolt, 707 against 620, and an Eclipse torpedo, 575 against 558); turbo
-  outruns them all. Hits are checked along a shot's whole step
+  outruns the bolts, not the missiles (below). Hits are checked along a shot's whole step
   (`hostile_shot_contact`), so a slug never passes through a small hull
   between two frames.
+- Every raider's gun leads its aim (`raider_aim` in `src/js/arcade.js`), in
+  the campaign and the arcade alike: it fires where you will be when the
+  shot gets there if you hold your course, at the shot's real speed, or
+  straight at you when it could not catch you within 1.5 s. The course is
+  taken as straight, so a turn is what dodges it.
+- A raider's missile keeps up with the ship it chases, turbo included: it
+  flies at 1.15 times the ship's speed at that moment when that is more
+  than its own (`missile_chase` in `src/js/missiles.js`). It turns no
+  harder sideways than at its own speed (its turn rate falls as it speeds
+  up), so a ship in turbo that turns hard shakes it, and one far enough
+  ahead keeps its lead until the missile's flight ends.
 - A raider's missile goes off at its fuse, units from your shield's edge (or
   your hull without one), and its blast is a wave: the full damage within
   the fuse, falling to half at the blast's rim; a wave sets off the missiles
@@ -148,7 +159,7 @@ That gives, in the campaign at NORMAL:
 - A dash (Shift) gives a quarter second of grace. In the campaign it covers
   everything; in the arcade it covers bolts and slugs but not a blast, a
   missile's wave or a ship's explosion (`dash_grace`, `damage_player`'s
-  `blast`): a missile is outrun, outturned or cleared by the EMP, not dashed
+  `blast`): a missile is outturned or cleared by the EMP, not dashed
   through. The run's first raider missile within 600 m says so in a toast.
 
 | Kind | Size | Speed | Turn | Flight | Fuse | Blast | Damage | Toughness | Trail |
@@ -440,8 +451,8 @@ before rocks and the Relic processor.
     Haven and Verdant, nor in the rail worlds, Obsidian and Eclipse, where a
     slug crosses the screen in a quarter second.
 - **Marksmen** (`arcade_marksmen`, `raider_aim`): a share of the raiders
-  aims where you will be when the shot gets there if you keep your course,
-  not where you are, and shows that aim as a dashed line for the last half
+  shows its aim, where you will be when the shot gets there if you keep
+  your course (as every raider aims), as a dashed line for the last half
   second before it fires (`arcade_aim_time`, drawn in
   `render_hostile_marks`). Its missiles steer for that point too, and turn
   1.15 times as hard as others (`arcade_marksman_turn`). Holding one
@@ -454,7 +465,8 @@ before rocks and the Relic processor.
 
   An elite is always a marksman where the share is above 0; a flagship and
   a shard never are. The run's first marksman brings a toast that says what
-  the line means. The campaign's raiders do not lead their shots.
+  the line means. The campaign has no marksmen; its raiders lead their
+  shots all the same.
 - Measured (`bin/playtest`'s bot, NORMAL, seeds 1 to 3, with one more of its
   gun bought for each empty mount; before and after the marksmen and the
   fanning out): all six runs won with no deaths. All damage taken, hull and
