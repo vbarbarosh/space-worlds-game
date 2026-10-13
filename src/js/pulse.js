@@ -140,7 +140,6 @@ function pulse_update(dt)
     const due = pulse_fuses.filter(v => v.t <= 0);
     pulse_fuses = pulse_fuses.filter(v => v.t > 0);
     for (const fuse of due) {
-        delete fuse.target.pulse_fuse;
         pulse_strike(fuse);
     }
     for (const enemy of enemies) {
@@ -218,12 +217,13 @@ function pulse_hit(wave, target, kind)
         }
     }
     pulse_sparks_add(target.x, target.y, nx, ny, pulse_looks[wave.kind].color, wave.damage ? 8 : 4);
-    if (target.pulse_fuse || !damage) {
+    // a target already on a fuse is left to it, found among the fuses: a mark set on it and deleted would give the
+    // raider, rock or wreck a shape of its own, and every loop over them a slow lookup that allocates
+    if (!damage || pulse_fuses.some(v => v.target === target)) {
         return;
     }
     const strike = {target, kind, damage, depth: wave.depth, base: wave.base, chains: wave.chains};
     if (pulse_lethal(target, kind, damage)) {
-        target.pulse_fuse = true;
         pulse_fuses.push({...strike, t: pulse_fuse_delay(target, wave.depth)});
         return;
     }
