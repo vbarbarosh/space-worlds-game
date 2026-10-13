@@ -1196,6 +1196,7 @@ function render_inventory()
 
 function reset_run(resume = false)
 {
+    tryout_reset();
     portal_leg_cache.clear();
     guide_context_cache = null;
     guide_context_cache_key = '';

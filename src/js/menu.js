@@ -1,5 +1,5 @@
 // The main menu, after the designer's main-menu.html: the modes as one family of rows (Continue the big one). A click
-// on Continue, New campaign or Arcade opens the row in place, and only its button (or Enter) plays; Load, Settings and
+// on Continue, New campaign, Arcade or Feltmere opens the row in place, and only its button (or Enter) plays; Load, Settings and
 // Controls show their scene on the right. Starting plays the launch, then the game.
 // The arcade preview per difficulty: seconds between swarms, raiders on the stage at most, the share of elites
 const menu_arcade_levels = {
@@ -17,7 +17,7 @@ const menu_arcade = {
     kills: 0, spawn: 0, fire: 0, angle: 0, launch: -1, shake: 0, level: menu_arcade_levels.normal, hero: new Image(), images: null,
 };
 let menu_scene_now = '';
-// the row open in place: continue, campaign, arcade, or none once Esc folds it
+// the row open in place: continue, campaign, arcade, felt (Feltmere's try-out), or none once Esc folds it
 let menu_open_row = '';
 let menu_launching = false;
 // the world and ship of the game to continue, and those the menu's art was last drawn for
@@ -35,12 +35,14 @@ document.getElementById('menu_continue_go').addEventListener('click', () => menu
 document.getElementById('menu_campaign_go').addEventListener('click', () => menu_launch('campaign'));
 document.getElementById('menu_arcade_go').addEventListener('click', () => menu_launch('arcade'));
 document.getElementById('menu_arcade_back').addEventListener('click', menu_fold);
+document.getElementById('menu_felt_go').addEventListener('click', () => menu_launch('felt'));
+document.getElementById('menu_felt_back').addEventListener('click', menu_fold);
 document.getElementById('menu_all_saves').addEventListener('click', () => saves_open('menu'));
 document.getElementById('menu_volume').addEventListener('click', toggle_audio_settings);
 addEventListener('keydown', on_menu_key);
 menu_controls_fill();
 
-// C, N, A, L, S and ? pick their row; the arrows move between the rows; 1 2 3 pick a difficulty in the open Arcade;
+// C, N, A, F, L, S and ? pick their row; the arrows move between the rows; 1 2 3 pick a difficulty in the open Arcade;
 // Enter plays the open row; Esc folds it
 function on_menu_key(event)
 {
@@ -83,7 +85,7 @@ function on_menu_key(event)
 
 function menu_scene(name)
 {
-    menu_open_row = ['continue', 'campaign', 'arcade'].includes(name) ? name : '';
+    menu_open_row = ['continue', 'campaign', 'arcade', 'felt'].includes(name) ? name : '';
     for (const v of document.querySelectorAll('#menu_modes .fold')) {
         v.classList.toggle('on', v.dataset.scene === name);
         v.classList.toggle('open', v.dataset.scene === menu_open_row);
@@ -91,6 +93,8 @@ function menu_scene(name)
     document.getElementById('menu_modes').classList.toggle('has-open', !!menu_open_row);
     // short windows hide the other rows while the arcade's tiles are open, so they fit
     document.getElementById('menu_modes').classList.toggle('arcade-open', menu_open_row === 'arcade');
+    // in a short window the rows scroll: the open one comes into view, its button with it
+    document.querySelector('#menu_modes .fold.open')?.scrollIntoView({block: 'nearest'});
     if (name === menu_scene_now) {
         // back on the menu with the arcade scene showing: its preview starts again
         if (name === 'arcade') {
@@ -135,7 +139,7 @@ function menu_launch(mode)
     }
     menu_launching = true;
     menu_arcade.launch = 0;
-    const titles = {continue: document.getElementById('continue_title').textContent, campaign: 'New campaign', arcade: `Arcade · ${menu_arcade.level.name}`};
+    const titles = {continue: document.getElementById('continue_title').textContent, campaign: 'New campaign', arcade: `Arcade · ${menu_arcade.level.name}`, felt: 'Feltmere · a try-out'};
     document.getElementById('menu_go_title').textContent = titles[mode];
     document.getElementById('intro').classList.add('launching');
     setTimeout(() => menu_start(mode), menu_launch_ms);
@@ -150,6 +154,9 @@ function menu_start(mode)
     else if (mode === 'campaign') {
         arcade_stop();
         reset_run();
+    }
+    else if (mode === 'felt') {
+        tryout_start();
     }
     else {
         arcade_start();
@@ -191,6 +198,16 @@ function menu_art_sync(world, ship_id)
 function menu_art_draw()
 {
     const {world, ship_id} = menu_art;
+    // Feltmere's row and scene always show the felt world and its rocket: drawn once
+    if (!document.getElementById('felt_planet').src) {
+        const felt = worlds.findIndex((v, i) => world_slug(i) === 'felt');
+        const rocket = sprite('3d/ship-rocket');
+        const planet = menu_sprite_url(menu_planet_text(felt));
+        document.getElementById('felt_row_planet').src = planet;
+        document.getElementById('felt_planet').src = planet;
+        document.getElementById('felt_station').src = menu_sprite_url(sprite_svgs.worlds?.felt?.station);
+        document.getElementById('felt_ship').src = rocket ? menu_sprite_url(new XMLSerializer().serializeToString(rocket.svg)) : '';
+    }
     if ((world === menu_art.drawn_world) && (ship_id === menu_art.drawn_ship_id)) {
         return;
     }

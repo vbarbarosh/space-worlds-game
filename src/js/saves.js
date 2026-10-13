@@ -122,7 +122,8 @@ function on_saves_key(event)
 function saves_render()
 {
     const slots = saves_read();
-    const can_save = (saves_return === 'pause') && !!player && (player.hp > 0);
+    // a try-out is not saved (src/js/tryout.js)
+    const can_save = (saves_return === 'pause') && !!player && (player.hp > 0) && !tryout.active;
     const list = document.getElementById('save_slots');
     list.replaceChildren();
     for (let i = 0; i < save_slot_count; ++i) {
@@ -145,7 +146,9 @@ function saves_render()
     if (saves_return === 'pause') {
         document.getElementById('saves_note').textContent = arcade.active
             ? 'An arcade save keeps your score, salvage and gear; loading it starts its world again from the first wave.'
-            : 'The game saves itself as you play, and Continue in the main menu picks it up. A slot keeps a copy you can come back to. Times are Chisinau time.';
+            : tryout.active
+                ? 'A try-out of Feltmere is not saved. Load a game here, or go back to the main menu: your campaign is as you left it.'
+                : 'The game saves itself as you play, and Continue in the main menu picks it up. A slot keeps a copy you can come back to. Times are Chisinau time.';
     }
 }
 
@@ -157,6 +160,9 @@ function save_time(ms)
 // The campaign as the autosave would keep it, into slot i
 function save_to_slot(i)
 {
+    if (tryout.active) {
+        return;
+    }
     const slots = saves_read();
     if (arcade.active) {
         // an arcade run: its snapshot, loaded at the start of the world it was saved in

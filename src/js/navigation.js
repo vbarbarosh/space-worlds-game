@@ -421,6 +421,11 @@ function finish(won)
         return;
     }
     base_finish(won);
+    document.getElementById('restart_button').innerHTML = tryout.active ? '<span>Fly to Feltmere again</span>' : '<span>New expedition</span>';
+    if (tryout.active) {
+        tryout_finish();
+        return;
+    }
     const home = checkpoint ? worlds[checkpoint.campaign.world].station : worlds[campaign.world].station;
     document.getElementById('retry_sector').innerHTML = `<span>Towed to ${home}</span>`;
     el.result_sector.textContent = worlds[campaign.world].name;

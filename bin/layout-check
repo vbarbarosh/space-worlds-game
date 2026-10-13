@@ -34,6 +34,8 @@ const screens = [
     {value: 'map-worlds', label: 'map-worlds-felt', world: 'felt'},
     {value: 'pause', label: 'pause'},
     {value: 'menu', label: 'main-menu'},
+    // the Feltmere row open: its text and button below the other rows
+    {value: 'menu-felt', label: 'main-menu-felt'},
 ];
 // The designer's twelve window sizes, from 1440p down to a half-width window and a short strip
 const sizes = [

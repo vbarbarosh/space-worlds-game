@@ -1,6 +1,7 @@
 function save_checkpoint()
 {
-    if (arcade.active || loading_campaign || !player || (player.hp <= 0)) {
+    // an arcade run and Feltmere's try-out leave the campaign's save as it was
+    if (arcade.active || tryout.active || loading_campaign || !player || (player.hp <= 0)) {
         return;
     }
     store_world();

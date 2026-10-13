@@ -27,7 +27,7 @@ built from [docs/](docs/README.md) (Settings → Pages → Source: GitHub Action
 turns it on). The rules the game keeps everywhere (what is solid, and the
 like) are in [docs/principles.md](docs/principles.md).
 
-Two modes:
+Two modes, and a try-out:
 
 - **Arcade**: one run through the eight worlds, three waves each, the world's
   flagship in the third. Raiders come in squadrons; elites lead some of them,
@@ -44,6 +44,10 @@ Two modes:
   it starts its world again from the first wave.
 - **Campaign**: the stations, contracts, trading and story chapters; see
   [docs/scenario/](docs/scenario/README.md).
+- **Feltmere** (the menu's F row): a try-out of the felt world in the felt
+  rocket, beside its Camper Dock. Nothing of it is saved: the campaign's save
+  and the save slots stay as they were (`src/js/tryout.js`); Pause, then Main
+  menu, goes back.
 
 ## Commands
 
