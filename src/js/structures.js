@@ -30,17 +30,26 @@ const platform_range = 480;
 let build_placing = null;
 let builder_drone = null;
 let structure_raid_clock = 90;
+// structures_here()'s list, kept while the campaign's list and world stay as they were
+let structures_kept = {list: null, length: 0, world: null, here: []};
 
 addEventListener('keydown', on_build_key, true);
 document.getElementById('quick_build').addEventListener('click', on_build_button);
 document.getElementById('build_close').addEventListener('click', () => set_hidden(document.getElementById('build_overlay'), true));
 
+// The structures of the world you are in. Kept from call to call, and filtered again when the list or the world
+// changes: a build adds to the list, a loss or a load replaces it, a jump changes the world. A new array each time, so
+// one taken before stays as it was; callers only read it
 function structures_here()
 {
     if (!Array.isArray(campaign.structures)) {
         campaign.structures = [];
     }
-    return campaign.structures.filter(v => v.world === campaign.world);
+    const kept = structures_kept;
+    if ((kept.list !== campaign.structures) || (kept.length !== campaign.structures.length) || (kept.world !== campaign.world)) {
+        structures_kept = {list: campaign.structures, length: campaign.structures.length, world: campaign.world, here: campaign.structures.filter(v => v.world === campaign.world)};
+    }
+    return structures_kept.here;
 }
 
 function on_build_key(event)
@@ -240,7 +249,8 @@ function outpost_update(site, dt)
     if (!Array.isArray(site.crew)) {
         site.crew = [0, 1].map(() => ({x: site.x, y: site.y, angle: 0, state: 'docked', rock: null, load: {}, count: 0}));
     }
-    const rocks = ore_nodes.filter(v => (v.hp > 0) && (distance(v, site) < outpost_reach));
+    // a rock outside the square round the reach is out of it: no distance taken for every rock of the world
+    const rocks = ore_nodes.filter(v => (v.hp > 0) && (Math.abs(v.x - site.x) < outpost_reach) && (Math.abs(v.y - site.y) < outpost_reach) && (distance(v, site) < outpost_reach));
     site.idle = !rocks.length;
     for (const drone of site.crew) {
         outpost_drone(site, drone, rocks, dt);
@@ -265,7 +275,8 @@ function outpost_update(site, dt)
 function outpost_drone(site, drone, rocks, dt)
 {
     const room = site.store + drone.count < outpost_store;
-    let rock = ore_nodes.find(v => (v.id === drone.rock) && (v.hp > 0)) || null;
+    // a docked drone has no rock: no search for one
+    let rock = (drone.rock === null) ? null : (ore_nodes.find(v => (v.id === drone.rock) && (v.hp > 0)) || null);
     if (['out', 'cut'].includes(drone.state) && !rock) {
         rock = outpost_pick_rock(drone, rocks);
         drone.state = (rock && room) ? 'out' : 'home';
@@ -320,19 +331,24 @@ function outpost_drone(site, drone, rocks, dt)
     }
 }
 
-// The rock nearest the drone among those in reach, now its target; null when there is none
+// The rock nearest the drone among those in reach, the first of them on a tie, now its target; null when there is none
 function outpost_pick_rock(drone, rocks)
 {
-    const rock = rocks.slice().sort((a, b) => distance(a, drone) - distance(b, drone))[0];
+    let rock = null;
+    for (const v of rocks) {
+        if (!rock || (distance(v, drone) < distance(rock, drone))) {
+            rock = v;
+        }
+    }
     drone.rock = rock ? (rock.id = rock.id || `${rock.x}:${rock.y}`) : null;
-    return rock || null;
+    return rock;
 }
 
 // A platform turns to the nearest raider within range and fires heavy plasma at it
 function platform_update(site, dt)
 {
     site.cooldown -= dt;
-    const target = enemies.filter(v => (v.hp > 0) && (distance(v, site) < platform_range)).sort((a, b) => distance(a, site) - distance(b, site))[0];
+    const target = raider_nearest(site, platform_range);
     if (!target) {
         return;
     }
@@ -347,6 +363,24 @@ function platform_update(site, dt)
         }
         explode_muzzle(site.x + Math.cos(site.aim)*16, site.y + Math.sin(site.aim)*16, site.aim, 5, gold);
     }
+}
+
+// The live raider nearest p and closer than range, the first in enemies on a tie (as a stable sort by distance would
+// put first); null when there is none
+function raider_nearest(p, range)
+{
+    let found = null;
+    let d_found = range;
+    for (const v of enemies) {
+        if (v.hp > 0) {
+            const d = distance(v, p);
+            if (d < d_found) {
+                found = v;
+                d_found = d;
+            }
+        }
+    }
+    return found;
 }
 
 function structure_damage(site, dt)

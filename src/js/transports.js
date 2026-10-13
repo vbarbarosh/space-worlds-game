@@ -234,7 +234,7 @@ function transport_guns(ship, dt)
         const m = mounts[i];
         ship.cooldown[i] -= dt;
         ship.recoil[i] = Math.max(0, ship.recoil[i] - dt*10);
-        const target = enemies.filter(v => (v.hp > 0) && (distance(v, m) < transport_range)).sort((a, b) => distance(a, m) - distance(b, m))[0];
+        const target = raider_nearest(m, transport_range);
         if (!target) {
             continue;
         }
