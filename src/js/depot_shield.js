@@ -56,6 +56,9 @@ function depot_shield_update(dt)
     }
 }
 
+// The dome's glow and rim colour at the level they were made for: one look, the last
+const depot_shield_look = {k: -1, glow: null, rim: ''};
+
 // The dome, in the world's frame: a rim of light, a hex lattice that shimmers, and bright arcs where ships met it
 function depot_shield_draw()
 {
@@ -66,11 +69,17 @@ function depot_shield_draw()
     const r = depot_shield_radius*(0.92 + 0.08*k);
     ctx.save();
     ctx.translate(station.x, station.y);
-    const glow = ctx.createRadialGradient(0, 0, r*0.6, 0, 0, r);
-    glow.addColorStop(0, 'rgba(108, 248, 236, 0)');
-    glow.addColorStop(0.85, `rgba(108, 248, 236, ${0.05*k})`);
-    glow.addColorStop(1, `rgba(108, 248, 236, ${0.22*k})`);
-    ctx.fillStyle = glow;
+    // the glow and the rim's colour made again only while the dome rises or falls, not each frame it stands
+    if (depot_shield_look.k !== k) {
+        const glow = ctx.createRadialGradient(0, 0, r*0.6, 0, 0, r);
+        glow.addColorStop(0, 'rgba(108, 248, 236, 0)');
+        glow.addColorStop(0.85, `rgba(108, 248, 236, ${0.05*k})`);
+        glow.addColorStop(1, `rgba(108, 248, 236, ${0.22*k})`);
+        depot_shield_look.k = k;
+        depot_shield_look.glow = glow;
+        depot_shield_look.rim = `rgba(108, 248, 236, ${0.75*k})`;
+    }
+    ctx.fillStyle = depot_shield_look.glow;
     ctx.beginPath();
     ctx.arc(0, 0, r, 0, Math.PI*2);
     ctx.fill();
@@ -99,7 +108,7 @@ function depot_shield_draw()
         ctx.shadowColor = '#6cf8ec';
         ctx.shadowBlur = 24;
     }
-    ctx.strokeStyle = `rgba(108, 248, 236, ${0.75*k})`;
+    ctx.strokeStyle = depot_shield_look.rim;
     ctx.lineWidth = 4;
     ctx.beginPath();
     ctx.arc(0, 0, r, 0, Math.PI*2);
