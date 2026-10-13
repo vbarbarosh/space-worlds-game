@@ -273,16 +273,19 @@ function enemy_sprite(enemy)
         names = {};
         enemy_sprite_names.set(campaign.world, names);
     }
-    let pair = names[enemy.type];
+    const key = enemy.split ? 'split' : enemy.type;
+    let pair = names[key];
     if (!pair) {
         if (enemy.type === 'boss') {
             const name = world_art('flagship') || (sprite(`flagship-${world_slug()}`) ? `flagship-${world_slug()}` : 'flagship');
             pair = [name, name];
         }
         else {
-            pair = [`enemy-${enemy.type}`, `enemy-${enemy.type}-elite`].map(v => world_art(v) || v);
+            // a splitter's halves where the world draws them (Feltmere's small ladybugs), else the shards they are
+            const type = (key === 'split') ? (world_art('enemy-split') ? 'split' : 'shard') : enemy.type;
+            pair = [`enemy-${type}`, `enemy-${type}-elite`].map(v => world_art(v) || v);
         }
-        names[enemy.type] = pair;
+        names[key] = pair;
     }
     return {name: pair[enemy.elite ? 1 : 0], length: enemy.r*((enemy.type === 'boss') ? sprite_sizes.flagship : sprite_sizes.raider)};
 }

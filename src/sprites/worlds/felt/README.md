@@ -25,6 +25,7 @@ Each file wraps the cut-out in an SVG. Inside are:
 | space | the knitted swatch, made seamless: the sky's cloth |
 | enemy-chaser, -splitter, -shard, -lancer, -shooter, -tank | ladybug, beetle, bee, dragonfly, wasp, tortoise |
 | flagship | the stag beetle (The Wool Stag) |
+| enemy-split | a small ladybug beside the beetle: a splitter's halves here, the shard (a bee) elsewhere |
 
 The elites have no files of their own. An elite is its plain drawing with a
 gold rim, made in `sprite_text` (`src/js/sprites.js`).
