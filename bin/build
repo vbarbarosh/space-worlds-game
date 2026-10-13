@@ -5,6 +5,9 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const build_dir = path.join(__dirname, '..', 'build');
+const build_regex = /^<!-- build as (.+) -->\n$/;
+// one time for every page of a build
+const build_time = new Date().toISOString();
 const include_regex = /^<!-- include (.+) -->\n$/;
 const slot_regex = /^<!-- slot (.+) -->\n$/;
 const svgs_regex = /^<!-- svgs (.+) as (.+) -->\n$/;
@@ -58,6 +61,7 @@ function html_from_template(template, lines_by_slot)
         const match = line.match(include_regex);
         const svgs = line.match(svgs_regex);
         const missions = line.match(missions_regex);
+        const build = line.match(build_regex);
         if (match) {
             parts.push(fs.readFileSync(path.join(src_dir, match[1]), 'utf8'));
         }
@@ -66,6 +70,9 @@ function html_from_template(template, lines_by_slot)
         }
         else if (missions) {
             parts.push(`const ${missions[2]} = ${JSON.stringify(missions_from_dir(path.join(src_dir, missions[1])))};\n`);
+        }
+        else if (build) {
+            parts.push(build_js(build[1]));
         }
         else {
             parts.push(line);
@@ -79,6 +86,14 @@ function html_from_template(template, lines_by_slot)
 function svgs_js(dir, name)
 {
     return `const ${name} = ${JSON.stringify(svgs_from_dir(path.join(src_dir, dir)))};\n`;
+}
+
+// A `<!-- build as build_info -->` line becomes `const build_info = {version, time};`: the version of package.json
+// and when this build ran, which the main menu shows and the play log keeps
+function build_js(name)
+{
+    const version = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8')).version || null;
+    return `const ${name} = ${JSON.stringify({version, time: build_time})};\n`;
 }
 
 function svgs_from_dir(dir)
