@@ -383,16 +383,21 @@ function raider_nearest(p, range)
     return found;
 }
 
+// Hostile shots and raiders within reach of a structure hurt it. A shot or raider as far as its reach on either axis
+// is out of it, for the distance is never less than that: distance() only for the few close on both
 function structure_damage(site, dt)
 {
+    const size = structure_kinds[site.kind].size*0.4;
     for (const b of hostile) {
-        if ((b.life > 0) && (distance(b, site) < b.r + structure_kinds[site.kind].size*0.4)) {
+        const reach = b.r + size;
+        if ((b.life > 0) && (Math.abs(b.x - site.x) < reach) && (Math.abs(b.y - site.y) < reach) && (distance(b, site) < reach)) {
             site.hp -= b.damage || 13;
             b.life = 0;
         }
     }
     for (const e of enemies) {
-        if ((e.hp > 0) && (distance(e, site) < e.r + structure_kinds[site.kind].size*0.4)) {
+        const reach = e.r + size;
+        if ((e.hp > 0) && (Math.abs(e.x - site.x) < reach) && (Math.abs(e.y - site.y) < reach) && (distance(e, site) < reach)) {
             site.hp -= 25*dt;
         }
     }
