@@ -1,5 +1,6 @@
 // The HUD's blocks (data-hud-safe) as rectangles on the canvas, in screen px: labels in the world keep clear of them,
-// edge markers stop short of them, and the minimap is drawn inside its box. Kept fresh on resize, zoom and HUD changes.
+// edge markers stop short of them, and the minimap is drawn inside its box. Kept fresh on resize, zoom and HUD changes;
+// the HUD toggles a class rather than writing the whole string, so a tick that changes nothing measures nothing here.
 const hud_layout = {rects: [], minimap: null, width: 0, height: 0};
 
 hud_layout_watch();

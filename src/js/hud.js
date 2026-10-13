@@ -185,7 +185,8 @@ function sync_arcade_card()
     const at_depot = (distance(player, station) < station_reach) && !depot_shield_up();
     const kind_el = document.getElementById('mc_kind');
     hud_text(kind_el, (arcade.pause > 0) ? `Wave ${wave} of ${arcade_waves} · clear` : `Wave ${wave} of ${arcade_waves} · ${ui_sentence(arcade_wave_names[wave] || '')}`);
-    kind_el.className = `eyebrow ${threat ? 'eyebrow--red' : 'eyebrow--gold'}`;
+    kind_el.classList.toggle('eyebrow--red', !!threat);
+    kind_el.classList.toggle('eyebrow--gold', !threat);
     hud_text(document.getElementById('mc_title'), (arcade.pause > 0)
         ? 'Wave clear: repair at the depot or wait for the next'
         : flagship ? `Destroy the flagship of ${worlds[id].name}` : `Destroy ${left} raider${(left === 1) ? '' : 's'}`);
@@ -255,7 +256,8 @@ function sync_mission_card()
     }
     const kind_el = document.getElementById('mc_kind');
     hud_text(kind_el, kind);
-    kind_el.className = `eyebrow ${threat ? 'eyebrow--red' : 'eyebrow--gold'}`;
+    kind_el.classList.toggle('eyebrow--red', !!threat);
+    kind_el.classList.toggle('eyebrow--gold', !threat);
     hud_text(document.getElementById('mc_title'), title);
     // the distance: to the raiders in a fight, else to the marker
     const target = threat || (c.goal && waypoint ? waypoint_live() : c.goal);
