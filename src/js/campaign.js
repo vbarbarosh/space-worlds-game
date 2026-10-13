@@ -182,7 +182,7 @@ function visual_base_generate_map()
         const old = saved.size || {w: 9000 + wave*320, h: 7400 + wave*240};
         const sx = world.w/old.w;
         const sy = world.h/old.h;
-        ore_nodes = clone(saved.ore).map(v => ({...v, x: v.x*sx, y: v.y*sy}));
+        ore_nodes = clone(saved.ore).map(v => ore_node_new({...v, x: v.x*sx, y: v.y*sy}));
         pickups = clone(saved.pickups).map(v => ({...v, x: v.x*sx, y: v.y*sy}));
         recenter_mining_fields();
     }

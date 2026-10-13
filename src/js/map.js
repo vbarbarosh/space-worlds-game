@@ -127,9 +127,37 @@ function base_generate_map()
             const r = 40 + seeded()*210;
             const size = 22 + seeded()*24;
             const hp = 30 + size + wave*3;
-            ore_nodes.push(ore_resource_assign({x: x + Math.cos(a)*r, y: y + Math.sin(a)*r, r: size, hp, max_hp: hp, type: 'ore', field: i, angle: seeded()*6.28, flash: 0}, i));
+            ore_nodes.push(ore_resource_assign(ore_node_new({x: x + Math.cos(a)*r, y: y + Math.sin(a)*r, r: size, hp, max_hp: hp, type: 'ore', field: i, angle: seeded()*6.28, flash: 0}), i));
         }
     }
+}
+
+// A rock with every field it may get later, in one order: its resource (ore_resource_assign), its deposit (ore_reserve,
+// ore_chip) and the drill on it (drones, outposts). All rocks keep one shape, so the loops over them read their numbers
+// without boxing them; a field not set yet stays undefined, as it was, and a save keeps the same JSON
+function ore_node_new(v)
+{
+    return {
+        x: v.x,
+        y: v.y,
+        r: v.r,
+        hp: v.hp,
+        max_hp: v.max_hp,
+        type: v.type,
+        field: v.field,
+        angle: v.angle,
+        flash: v.flash,
+        resource: v.resource,
+        amount: v.amount,
+        id: v.id,
+        cutter: v.cutter,
+        r0: v.r0,
+        reserve0: v.reserve0,
+        reserve: v.reserve,
+        deposit: v.deposit,
+        chip: v.chip,
+        depleted: v.depleted,
+    };
 }
 
 function segment_distance(v, a, b)

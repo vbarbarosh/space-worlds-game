@@ -117,7 +117,7 @@ function replenish_mining_supply(needed)
         const x = field.x + Math.cos(a)*radius;
         const y = field.y + Math.sin(a)*radius;
         const hp = 65 + wave*3 + size;
-        ore_nodes.push({x, y, r: size, hp, max_hp: hp, type: 'ore', field: field.id, angle: a, flash: 0});
+        ore_nodes.push(ore_node_new({x, y, r: size, hp, max_hp: hp, type: 'ore', field: field.id, angle: a, flash: 0}));
     }
     mark_mining_changed();
     return count;
