@@ -239,44 +239,67 @@ function update_enemy_portal(v, dt)
     }
 }
 
+// In a world with no black hole nothing is pulled and no core takes anything: only the rocks' flash fades
 function update_gravity_objects(dt)
 {
-    for (const v of enemies.slice()) {
-        if (v.hp <= 0) {
-            continue;
-        }
-        gravity_move(v, dt);
-        if (in_gravity_core(v, v.r*0.4)) {
-            v.core_kill = true;
-            damage_enemy(v, v.hp/(1 - (v.armor || 0)) + (v.shield || 0) + 1);
-        }
-    }
-    for (const items of [bullets, hostile, pickups, particles, trail]) {
-        for (const item of items) {
-            if (item.life <= 0) {
+    if (black_holes.length) {
+        // the raiders this pass began with, by index: a split's young, pushed on the list, wait for the next frame
+        const list = enemies;
+        for (let i = 0, end = list.length; i < end; ++i) {
+            const v = list[i];
+            if (v.hp <= 0) {
                 continue;
             }
-            gravity_move(item, dt);
-            if (in_gravity_core(item)) {
-                item.life = 0;
+            gravity_move(v, dt);
+            if (in_gravity_core(v, v.r*0.4)) {
+                v.core_kill = true;
+                damage_enemy(v, v.hp/(1 - (v.armor || 0)) + (v.shield || 0) + 1);
+            }
+        }
+        for (const items of [bullets, hostile, pickups, particles, trail]) {
+            for (let i = 0; i < items.length; ++i) {
+                const item = items[i];
+                if (item.life <= 0) {
+                    continue;
+                }
+                gravity_move(item, dt);
+                if (in_gravity_core(item)) {
+                    item.life = 0;
+                }
             }
         }
     }
-    for (const ore_node of ore_nodes) {
+    for (let i = 0; i < ore_nodes.length; ++i) {
+        const ore_node = ore_nodes[i];
         if (ore_node.hp <= 0) {
             continue;
         }
         ore_node.flash = Math.max(0, ore_node.flash - dt);
-        gravity_move(ore_node, dt);
-        if (in_gravity_core(ore_node, ore_node.r*0.4)) {
-            ore_node.hp = 0;
+        if (black_holes.length) {
+            gravity_move(ore_node, dt);
+            if (in_gravity_core(ore_node, ore_node.r*0.4)) {
+                ore_node.hp = 0;
+            }
         }
     }
-    enemies = enemies.filter(v => v.hp > 0);
-    bullets = bullets.filter(v => v.life > 0);
-    hostile = hostile.filter(v => v.life > 0);
-    pickups = pickups.filter(v => v.life > 0);
-    particles = particles.filter(v => v.life > 0);
-    trail = trail.filter(v => v.life > 0);
-    ore_nodes = ore_nodes.filter(v => v.hp > 0);
+    // update() filtered the lists earlier this frame: these drop only what died since, a core's kill or a rock shot
+    // apart, and most frames nothing did
+    enemies = dead_drop(enemies, v => v.hp > 0);
+    bullets = dead_drop(bullets, v => v.life > 0);
+    hostile = dead_drop(hostile, v => v.life > 0);
+    pickups = dead_drop(pickups, v => v.life > 0);
+    particles = dead_drop(particles, v => v.life > 0);
+    trail = dead_drop(trail, v => v.life > 0);
+    ore_nodes = dead_drop(ore_nodes, v => v.hp > 0);
+}
+
+// The list as list.filter(alive) gives it, but the list itself when nothing in it is dead: no copy
+function dead_drop(list, alive)
+{
+    for (let i = 0, end = list.length; i < end; ++i) {
+        if (!alive(list[i])) {
+            return list.filter(alive);
+        }
+    }
+    return list;
 }
