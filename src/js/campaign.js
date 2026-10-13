@@ -262,6 +262,10 @@ function spawn_enemy(type)
         }
     }
     enemy.gun_cd = rand(1, 3);
+    // the campaign's raiders carry twice the hull of the table (campaign_raider_hull); a flagship keeps its own
+    if (!arcade.active && (type !== 'boss')) {
+        enemy.hp = enemy.max_hp = enemy.max_hp*campaign_raider_hull;
+    }
     if (type === 'boss') {
         enemy.hp = enemy.max_hp = ((campaign.world === 7) ? 19000 : 10500)*(1 + past*0.08);
         enemy.r = 66;
@@ -340,6 +344,19 @@ function raider_shot_speed(enemy, speed = 210, pattern = false)
     const group = raider_shot_group(w, pattern);
     const base = (w === 'missile') ? 190*missile_kinds[missile_kind_for(enemy)].speed : (w === 'rail') ? 520 : (w === 'ion') ? 275 : speed;
     return base*raider_shot_first[group]*raider_shot_boost[group];
+}
+
+// The campaign's raiders against the arcade's: twice the hull and half the reload they had, so a patrol lives long
+// enough to shoot back. Before, half to three quarters of them died before their first shot, and a minute in the
+// campaign brought 5 to 26 shots at you where the arcade brings 50 to 220 (docs/balance.md). A missile still reloads
+// twice as slowly as another gun, as in the arcade. The arcade keeps its own numbers (arcade_modes).
+const campaign_raider_hull = 2;
+const campaign_raider_reload = 0.5;
+
+// A factor on a raider's reload: the arcade's (arcade_reload), or the campaign's, slower for a missile
+function raider_reload(enemy)
+{
+    return arcade.active ? arcade_reload(enemy) : campaign_raider_reload*(arcade_reloads[enemy.weapon] || 1);
 }
 
 // Raiders' guns hit harder the farther the world: 8% more a world past Haven, Eclipse's half as much again; in the

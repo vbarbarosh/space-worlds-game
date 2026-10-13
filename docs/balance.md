@@ -89,18 +89,20 @@ A raider's hull grows with the world's `wave` (`base_spawn_enemy` in
 | lancer | 35 + 9·wave | 100 | 80 | 4 |
 | shard (from a splitter) | 12 + 3·wave | 150 + 3·wave | 80 | 1 |
 
-That gives, in the campaign at NORMAL:
+In the campaign every raider but a flagship carries twice that hull
+(`campaign_raider_hull` in `src/js/campaign.js`; the arcade scales its own,
+below). That gives, in the campaign at NORMAL:
 
 | World | chaser | tank | shooter | splitter | lancer | shield (tank) |
 |---|---|---|---|---|---|---|
-| Haven | 29 | 93 | 47 | 62 | 44 | 0 |
-| Verdant | 43 | 119 | 65 | 82 | 62 | 0 |
-| Dustfall | 57 | 145 | 83 | 102 | 80 | 0 |
-| Ion Reach | 71 | 171 | 101 | 122 | 98 | 65 (91) |
-| Obsidian | 85 | 197 | 119 | 142 | 116 | 45 (63) |
-| Cryosphere | 99 | 223 | 137 | 162 | 134 | 140 (196) |
-| Nova Forge | 113 | 249 | 155 | 182 | 152 | 90 (126) |
-| Eclipse | 127 | 275 | 173 | 202 | 170 | 200 (280) |
+| Haven | 58 | 186 | 94 | 124 | 88 | 0 |
+| Verdant | 86 | 238 | 130 | 164 | 124 | 0 |
+| Dustfall | 114 | 290 | 166 | 204 | 160 | 0 |
+| Ion Reach | 142 | 342 | 202 | 244 | 196 | 65 (91) |
+| Obsidian | 170 | 394 | 238 | 284 | 232 | 45 (63) |
+| Cryosphere | 198 | 446 | 274 | 324 | 268 | 140 (196) |
+| Nova Forge | 226 | 498 | 310 | 364 | 304 | 90 (126) |
+| Eclipse | 254 | 550 | 346 | 404 | 340 | 200 (280) |
 
 - A tank carries 1.4 times the world's shield (`spawn_enemy` in
   `src/js/campaign.js`).
@@ -129,8 +131,21 @@ That gives, in the campaign at NORMAL:
   Haven (`raider_hit_scale`), Eclipse's 1.56 times, and in the campaign 8%
   more a tier of the story's front (above). From Nova Forge on, darts
   and seekers come in pairs. A raider fires every 3.6 s, a tank every 2.8 s
-  (`src/js/navigation.js`); in the arcade a missile raider reloads twice as
-  slowly as one with another gun (`arcade_reloads`, `arcade_reload`).
+  (`src/js/navigation.js`), a shooter every 2.1 − 0.04·wave s, at least 1.2
+  (`src/js/update.js`), each times its reload (`raider_reload` in
+  `src/js/campaign.js`): in the campaign half of that
+  (`campaign_raider_reload`), so every 1.8 s, 1.4 s and 0.6 to 1 s; in the
+  arcade the mode's gap. In both a missile raider reloads twice as slowly
+  as one with another gun (`arcade_reloads`).
+- Measured (a bot taking contracts with a story pilot's kit, 4 minutes a
+  world, seeds 1 to 3 in Haven, 1 and 2 elsewhere; before, and after the
+  raiders took twice the hull and half the reload, with the growing hold
+  waves, the campaign dash's grace and one gun a mount of the same change):
+  shots at you a minute, Haven 4 → 18, Obsidian 13 → 33, Eclipse 14 → 28;
+  raiders killed before they fire 74% → 49%, 49% → 25%, 77% → 65%; the
+  share of the time in a fight 24% → 45%, 41% → 46%, 36% → 44%. Deaths:
+  Haven one in 12 minutes, before and after; Obsidian and Eclipse none
+  before, one in each 4-minute run after.
 - Raider shot speeds (`raider_shot_first` × `raider_shot_boost`, read by
   `raider_shot_speed` in `src/js/campaign.js`), before the world's
   projectile rule: a gun's bolt flies 3.84 times the speed it is fired at
@@ -468,8 +483,8 @@ before rocks and the Relic processor.
 
 - Where: `arcade_modes` in `src/js/arcade.js`; the menu's line for each mode
   is `sync_mode_note`.
-- A raider's hull is the campaign's × the mode's hull × (1 + growth × world
-  index), so on NORMAL an Eclipse raider has ×2.05 on top of the mode's
+- A raider's hull is the first table's (`base_spawn_enemy`, without the
+  campaign's ×2) × the mode's hull × (1 + growth × world index), so on NORMAL an Eclipse raider has ×2.05 on top of the mode's
   ×1.5; the flagship keeps its own scale (`arcade_hull_scale`). Raiders carry
   the mode's share of the world's armour and shield, elites of its armour
   (`defense`, read in `arcade_update` and `arcade_elite_make`). Radiation is

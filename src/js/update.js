@@ -349,7 +349,7 @@ function update(dt, frame_dt = dt)
             v.fire_cd -= enemy_dt;
             if ((v.fire_cd <= 0) && (v.age > 0.8)) {
                 enemy_fire(v, (waypoint === player) ? raider_aim(v, player, 180 + wave*4) : a, 180 + wave*4);
-                v.fire_cd = Math.max(1.2, 2.1 - wave*0.04)*arcade_reload(v);
+                v.fire_cd = Math.max(1.2, 2.1 - wave*0.04)*raider_reload(v);
                 ring(v.x, v.y, gold, 30, 0.25);
             }
         }

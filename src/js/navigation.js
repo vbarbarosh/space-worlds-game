@@ -301,7 +301,7 @@ function guide_base_update_frontier(dt)
             const target = structure_prey(enemy) || ((enemy.robot_raider && survey_robot) ? survey_robot : player);
             if ((enemy.gun_cd <= 0) && (distance(enemy, target) < 900)) {
                 enemy_fire(enemy, raider_aim(enemy, target));
-                enemy.gun_cd = ((enemy.type === 'tank') ? 2.8 : 3.6)*(arcade.active ? arcade_mode().gun_gap : 1)*arcade_reload(enemy);
+                enemy.gun_cd = ((enemy.type === 'tank') ? 2.8 : 3.6)*(arcade.active ? arcade_mode().gun_gap : 1)*raider_reload(enemy);
             }
         }
     }
