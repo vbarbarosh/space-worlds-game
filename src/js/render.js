@@ -227,6 +227,7 @@ function render()
     ctx.translate(-camera.x, -camera.y);
     render_map();
     render_navigation_objects();
+    race_render_course();
     ctx.save();
     ctx.globalCompositeOperation = 'lighter';
     for (const v of trail) {
@@ -262,6 +263,7 @@ function render()
     render_hostile_marks();
     boss_render();
     render_enemies();
+    race_render_rivals();
     render_explosions();
     render_pulse();
     render_pickups();

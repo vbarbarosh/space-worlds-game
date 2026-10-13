@@ -572,8 +572,8 @@ function physics_base_render_navigation_objects()
         ctx.strokeStyle = gold;
         ctx.setLineDash([5, 10]);
         ctx.beginPath();
-        // round a moving goal (the freighter) the ring clears its hull
-        ctx.arc(p.x, p.y, waypoint.follow ? Math.max(65, sprite_sizes.freighter*0.62) : 65, 0, Math.PI*2);
+        // round a moving goal (the freighter) the ring clears its hull, round a race's ring (round) that ring
+        ctx.arc(p.x, p.y, waypoint.round || (waypoint.follow ? Math.max(65, sprite_sizes.freighter*0.62) : 65), 0, Math.PI*2);
         ctx.stroke();
         ctx.setLineDash([]);
     }
@@ -601,7 +601,7 @@ function guide_base_render_screen_controls()
         }
         else {
             // above the marker's ring, which is wider round a moving goal's hull
-            const above = waypoint.follow ? Math.max(65, sprite_sizes.freighter*0.62)*zoom + 10 : 20;
+            const above = waypoint.round ? waypoint.round*zoom + 10 : waypoint.follow ? Math.max(65, sprite_sizes.freighter*0.62)*zoom + 10 : 20;
             world_label(px, py - above - 31, waypoint.label.toUpperCase(), `${d} m`, gold);
         }
     }

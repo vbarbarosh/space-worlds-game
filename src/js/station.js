@@ -254,6 +254,7 @@ function dock_station()
     if ((state !== 'playing') || (distance(player, station) > station_reach)) {
         return;
     }
+    race_dock();
     state = 'upgrade';
     waypoints_clear();
     drones_recall_now();

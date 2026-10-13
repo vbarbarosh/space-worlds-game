@@ -217,6 +217,9 @@ const sfx_by_kind = {
     flare: sfx_flare,
     upgrade: sfx_upgrade,
     win: sfx_win,
+    countdown: sfx_countdown,
+    go: sfx_go,
+    ring: sfx_ring,
 };
 function sfx(kind, volume = 1, position = null, when)
 {

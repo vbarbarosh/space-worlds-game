@@ -9,6 +9,9 @@ const dev_screen_options = [
     {value: 'arcade-cleared', label: 'Arcade: depot after a world'},
     {value: 'arcade-finale', label: 'Arcade: finale'},
     {value: 'rocks', label: 'Facing a mining field'},
+    {value: 'race', label: 'Race: lined up, the count'},
+    {value: 'race-mid', label: 'Race: mid-race, the standings'},
+    {value: 'race-finish', label: 'Race: over the line, the results'},
     {value: 'station-jobs', label: 'Station: contracts'},
     {value: 'station-arsenal', label: 'Station: arsenal'},
     {value: 'station-outfit', label: 'Station: modules'},
@@ -108,6 +111,10 @@ function dev_screen_open()
         arcade_world_clear();
         return;
     }
+    if (dev_screen.startsWith('race')) {
+        dev_race_open(dev_screen);
+        return;
+    }
     if (dev_screen === 'rocks') {
         // a kilometre east of the first mining field, nose to it, still
         const field = mining_fields[0];
@@ -165,4 +172,114 @@ function dev_screen_modules_set()
             upgrades[key] = Number(level) || 0;
         }
     }
+}
+
+// A ring race straight from the URL (js/race.js): its contract taken in this world and you in your place on the start
+// line, the count about to run (race), everyone along the course (race-mid), or you over the line (race-finish).
+// &race_long=1 gives a rival a very long name, &race_left=1 leaves one rival in the race, &race_place=1, 2, 3 or last
+// sets your place at the finish, &race_raiders=1 brings raiders to the start line
+const dev_race_params = new URLSearchParams(location.search);
+
+function dev_race_open(screen)
+{
+    const offer = race_offer(campaign.world, 1);
+    if (!offer) {
+        show_toast('NO RACE HERE', 'NO COURSE FITS THIS WORLD', 3);
+        return;
+    }
+    if (dev_race_params.get('race_long') === '1') {
+        offer.race.rivals[1].name = 'Maximiliana Wolkenkratzer-Abernathy of the Outer Rim Racing Guild';
+    }
+    const m = contract_copy({...offer, level: 1, reward: offer.race.top});
+    campaign.contracts = [m];
+    campaign.tracked_id = m.id;
+    race_grid_set(m);
+    const you = race_you();
+    player.x = you.slot.x;
+    player.y = you.slot.y;
+    player.angle = m.race.start.angle;
+    player.vx = 0;
+    player.vy = 0;
+    const rivals = race.racers.filter(v => !v.you);
+    for (const v of rivals) {
+        v.alpha = 1;
+    }
+    if (dev_race_params.get('race_left') === '1') {
+        for (const v of rivals.slice(0, -1)) {
+            v.out = true;
+        }
+    }
+    if (dev_race_params.get('race_raiders') === '1') {
+        for (const [type, a] of [['shooter', -0.4], ['chaser', 0], ['chaser', 0.4]]) {
+            const enemy = spawn_enemy(type);
+            enemy.x = player.x + Math.cos(m.race.start.angle + a)*800;
+            enemy.y = player.y + Math.sin(m.race.start.angle + a)*800;
+        }
+    }
+    if (screen !== 'race') {
+        race_go(m);
+        dev_race_spread(m, screen === 'race-finish');
+    }
+    update_camera(0, true);
+    update_hud();
+}
+
+// Everyone along the course: you on the way to ring 3, the best rival a ring ahead, the rest behind; or, at the
+// finish, you over the line in the place the URL asks, the rivals before you over it already
+function dev_race_spread(m, finish)
+{
+    const rings = m.race.rings;
+    const you = race_you();
+    const rivals = race.racers.filter(v => !v.you).sort((a, b) => b.skill - a.skill);
+    function place(v, next, along) {
+        const i = Math.min(next, rings.length - 1);
+        const from = i ? rings[i - 1] : m.race.start;
+        const to = rings[i];
+        v.next = next;
+        v.x = from.x + (to.x - from.x)*along;
+        v.y = from.y + (to.y - from.y)*along;
+        v.angle = Math.atan2(to.y - from.y, to.x - from.x);
+        v.vx = Math.cos(v.angle)*(v.pace || 300);
+        v.vy = Math.sin(v.angle)*(v.pace || 300);
+        return v;
+    }
+    race.clock = m.race.par*(finish ? 1.04 : 0.45);
+    if (!finish) {
+        place(you, 2, 0.62);
+        player.x = you.x;
+        player.y = you.y;
+        player.angle = you.angle;
+        player.vx = you.vx;
+        player.vy = you.vy;
+        m.progress = 2;
+        const spots = [[3, 0.3], [2, 0.88], [2, 0.3], [1, 0.7]];
+        for (let i = 0; i < rivals.length; ++i) {
+            place(rivals[i], ...spots[i]);
+            rivals[i].delay = 0;
+        }
+        return;
+    }
+    const wanted = dev_race_params.get('race_place') || '2';
+    const ahead = (wanted === 'last') ? rivals.length : clamp(Number(wanted) - 1, 0, rivals.length);
+    for (let i = 0; i < rivals.length; ++i) {
+        if (i < ahead) {
+            place(rivals[i], rings.length, 1);
+            rivals[i].x += Math.cos(rivals[i].angle)*(220 + 160*i);
+            rivals[i].y += Math.sin(rivals[i].angle)*(220 + 160*i);
+            rivals[i].time = race.clock - 3.1 + i*1.4;
+        }
+        else {
+            place(rivals[i], rings.length - 1, 0.55 - 0.18*(i - ahead));
+            rivals[i].delay = 0;
+        }
+    }
+    place(you, rings.length - 1, 1);
+    you.next = rings.length;
+    you.time = race.clock;
+    player.x = you.x + Math.cos(you.angle)*80;
+    player.y = you.y + Math.sin(you.angle)*80;
+    player.angle = you.angle;
+    player.vx = you.vx*0.6;
+    player.vy = you.vy*0.6;
+    race_you_finish(m);
 }

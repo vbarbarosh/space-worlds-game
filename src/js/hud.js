@@ -236,6 +236,7 @@ function sync_hud_kit()
         return;
     }
     sync_ship_status();
+    race_board_sync();
     if (arcade.active) {
         sync_arcade_card();
     }
@@ -309,6 +310,10 @@ function sync_mission_card()
     const threat_level = Math.floor(world_tier(id)) + 1;
     const pips = Math.ceil((threat_level/arcade_worlds)*5);
     hud_html(document.getElementById('mc_where'), `${ui_world_badge(id)}<span class="threat" title="Threat ${threat_level} of ${arcade_worlds}">${[0, 1, 2, 3, 4].map(v => `<b class="${(v < pips) ? 'on' : ''}"></b>`).join('')}</span>`);
+    // in a race the card is the race's: place, ring and its distance (js/race.js)
+    if (race_card()) {
+        return;
+    }
     const step = (g && (g.index >= 0)) ? g.steps[g.index] : null;
     const goal_leads = step && !m;
     let kind = 'Next';

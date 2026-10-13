@@ -55,6 +55,15 @@ ships. "Modes" is arcade, campaign or both.
 - Where: `beacons` in `src/js/campaign.js`; `operation_point` in
   `src/js/operations.js`; `src/js/survey.js`.
 
+### Race rings and the start line
+
+- A ring race's course: a start line with a place for each racer and three
+  lights, and numbered gold rings to fly through in order, the next one lit,
+  the passed ones faded, the last chequered (the finish).
+- Background: ships and shots pass through them. Campaign, while a race
+  contract waits in the world. Where: `src/js/race.js`;
+  [placement.md](placement.md#race-courses).
+
 ### Combat zone
 
 - The point where elite, boss and recover stages happen; the flagship of a
@@ -163,6 +172,13 @@ ships. "Modes" is arcade, campaign or both.
 - The lure mission's beast: guns cannot hurt it; lead it into a black hole.
 - Solid, not damageable by shots. Campaign, Verdant (Haven has no black
   hole). Where: `src/js/lure.js`.
+
+### A ring race's rivals
+
+- The ships you race in a ring race: three or four, each a name, a hull and
+  a colour; they fly the course's rings by a ship's rules, bump, and turbo.
+- Solid; raiders' shots and rams damage them (a bar once hit), your shots
+  pass through, and they never shoot. Campaign. Where: `src/js/race.js`.
 
 ### The convoy's freighter
 

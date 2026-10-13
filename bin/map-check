@@ -24,13 +24,17 @@ const rules = {
     zone_apart: 1000, // the combat zone from the station's shelter, gates and portals
     beacon_apart: 1000, // a survey beacon from a gate
     scan: 120, // a survey beacon scans a ship this close
+    race_rings: [5, 7], // a race course's rings, fewest and most
+    race_turn: 25, // degrees a race course turns at each ring at least, so its line needs steering
 };
 const usage = `usage: bin/map-check
 
     Opens every world of build/dev.html in the campaign and every world of the arcade's run, reads the map the game generated
     (window.dev_state) and checks it against docs/placement.md: R's docking and jumping ranges and the portals'
     rings never touch, gates face the worlds they lead to and stand far out, portal pairs span a real distance and
-    keep apart from each other and the station, no gravity well or solid lies on any of them. Exits 1 on any failure.`;
+    keep apart from each other and the station, no gravity well or solid lies on any of them; the campaign's race
+    courses (js/race.js) keep their rings and start line out of every range, rock and pull, their legs off gravity,
+    portals and the station, and turn at each ring. Exits 1 on any failure.`;
 
 cli(main);
 
@@ -52,7 +56,7 @@ async function main()
                 const map = await page.evaluate(() => window.dev_state());
                 const found = check_map(map);
                 const title = `${mode.label} ${world + 1} ${map.world_name}`;
-                console.log(`${found.length ? 'FAIL' : 'ok  '} ${title.padEnd(22)} ${map.gates.length} gates, ${map.portals.length} portals${found.length ? `\n     ${found.join('\n     ')}` : ''}`);
+                console.log(`${found.length ? 'FAIL' : 'ok  '} ${title.padEnd(22)} ${map.gates.length} gates, ${map.portals.length} portals${map.arcade ? '' : `, ${map.races.filter(Boolean).length} race courses`}${found.length ? `\n     ${found.join('\n     ')}` : ''}`);
                 failures.push(...found.map(v => `${title}: ${v}`));
             }
         }
@@ -133,6 +137,9 @@ function check_map(map)
         fail('combat zone near the station', distance(station, map.combat_zone), need);
     }
     const solids = [...map.ore.map(v => ({...v, kind: 'rock'})), ...map.debris];
+    if (!map.arcade) {
+        out.push(...check_races(map, things, solids));
+    }
     for (const thing of things) {
         for (const v of map.holes) {
             const need = v.radius + thing.range;
@@ -145,6 +152,84 @@ function check_map(map)
         }
     }
     return out;
+}
+
+// The race courses of a world (docs/placement.md, Race courses): every ring and the start line out of the station's
+// shelter and 150 m beyond every range, a ship's width clear of every solid, out of every pull; rings apart; legs
+// clear of pulls, portals and the station; a turn at every ring but the last
+function check_races(map, things, solids)
+{
+    const out = [];
+    const shelter = map.station_size/2 + 400;
+    for (let k = 0; k < map.races.length; ++k) {
+        const course = map.races[k];
+        const name = `race course ${k + 1}`;
+        if (!course) {
+            out.push(`${name}: no course fits`);
+            continue;
+        }
+        const rings = course.rings.map((v, i) => ({...v, r: course.r, label: `${name} ring ${i + 1}`}));
+        const spots = [{...course.start, r: course.start_r, label: `${name} start line`}, ...rings];
+        if ((rings.length < rules.race_rings[0]) || (rings.length > rules.race_rings[1])) {
+            out.push(`${name}: ${rings.length} rings, need ${rules.race_rings.join(' to ')}`);
+        }
+        function fail(text, d, need) {
+            if (d < need - 1) {
+                out.push(`${text}: ${Math.round(d)} m, need ${Math.round(need)} m`);
+            }
+        }
+        for (const spot of spots) {
+            fail(`${spot.label} in the station's shelter`, distance(spot, map.station), shelter + spot.r + rules.margin);
+            for (const thing of things.slice(1)) {
+                fail(`${spot.label} and ${thing.label} ranges touch`, distance(spot, thing), thing.range + spot.r + rules.margin);
+            }
+            for (const v of map.holes) {
+                fail(`${spot.label} in the pull at ${v.x},${v.y}`, distance(spot, v), v.reach + spot.r);
+            }
+            for (const v of solids) {
+                fail(`${v.kind} at ${v.x},${v.y} in the ${spot.label}`, distance(spot, v), v.r + spot.r + map.ship_radius*2);
+            }
+        }
+        for (let i = 0; i < spots.length; ++i) {
+            for (let j = i + 1; j < spots.length; ++j) {
+                fail(`${spots[i].label} and ${spots[j].label} overlap`, distance(spots[i], spots[j]), spots[i].r + spots[j].r + rules.margin);
+            }
+        }
+        for (let i = 1; i < spots.length; ++i) {
+            const a = spots[i - 1];
+            const b = spots[i];
+            for (const v of map.holes) {
+                fail(`${name} leg ${i} crosses the pull at ${v.x},${v.y}`, segment_distance(v, a, b), v.reach);
+            }
+            for (const v of map.portals) {
+                fail(`${name} leg ${i} crosses portal ${v.label}`, segment_distance(v, a, b), v.r + map.ship_radius);
+            }
+            fail(`${name} leg ${i} crosses the station`, segment_distance(map.station, a, b), map.station_size/2 + 100);
+        }
+        for (let i = 1; i < spots.length - 1; ++i) {
+            const turn = Math.abs(angle_between(Math.atan2(spots[i].y - spots[i - 1].y, spots[i].x - spots[i - 1].x), Math.atan2(spots[i + 1].y - spots[i].y, spots[i + 1].x - spots[i].x)))*180/Math.PI;
+            if ((i > 1) && (turn < rules.race_turn)) {
+                out.push(`${name} turns ${Math.round(turn)}° at ring ${i}, need ${rules.race_turn}°`);
+            }
+        }
+    }
+    return out;
+}
+
+// The distance from a point to the segment a, b
+function segment_distance(v, a, b)
+{
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    const l = dx*dx + dy*dy;
+    const t = l ? Math.max(0, Math.min(1, ((v.x - a.x)*dx + (v.y - a.y)*dy)/l)) : 0;
+    return distance(v, {x: a.x + dx*t, y: a.y + dy*t});
+}
+
+// The signed angle from a to b, in (-π, π]
+function angle_between(a, b)
+{
+    return Math.atan2(Math.sin(b - a), Math.cos(b - a));
 }
 
 function distance(a, b)

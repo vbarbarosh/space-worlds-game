@@ -8,7 +8,8 @@ const {chromium} = require('playwright');
 const data_dir = path.join(__dirname, '..', 'data', 'perf');
 // Every world in calm flight and in a heavy fight (Feltmere, the ninth, too), and the arcade's last worlds in their third wave, at both zooms; a
 // mature campaign of 10, 50 and 100 structures in Haven, as many in the other worlds, raiders on them; and in 3D, jumps
-// from world to world, its station and models counted (each jump must leave one station, not one more)
+// from world to world, its station and models counted (each jump must leave one station, not one more); and a ring
+// race in Haven and in Eclipse
 const scenes = [];
 for (const zoom of [1, 0.5]) {
     for (let world = 0; world < 9; ++world) {
@@ -23,6 +24,11 @@ for (const buildings of [10, 50, 100]) {
     scenes.push({value: `campaign-w0-n${buildings}`, kind: 'campaign', world: 0, zoom: 1, buildings});
 }
 scenes.push({value: 'jumps-3d', kind: 'jumps', world: 0, zoom: 1, view: '3d', frames: 360});
+// A ring race under way in Haven and in Eclipse: the rings, the rivals racing and bumping, the board, your ship on
+// the course
+for (const world of [0, 7]) {
+    scenes.push({value: `race-w${world}`, kind: 'race', world, zoom: 1});
+}
 // The passes of render() timed one by one; in layers mode the canvas is flushed around each, so its raster counts too
 const layer_names = [
     'draw_background', 'render_map', 'render_gravity_fields', 'base_render_navigation_objects', 'render_world_fields',
@@ -30,7 +36,7 @@ const layer_names = [
     'render_projectiles', 'render_structures', 'render_transport', 'render_waypoints', 'render_survey_robot',
     'render_hostile_marks', 'render_enemies', 'render_explosions', 'render_pulse', 'render_pickups', 'render_equipment',
     'render_hazards', 'render_teleport', 'render_screen_controls', 'render_minimap', 'render_target_brackets',
-    'render_world_labels', 'render_radiation_edge',
+    'render_world_labels', 'render_radiation_edge', 'race_render_course', 'race_render_rivals',
 ];
 const modes = ['frames', 'split', 'layers', 'profile', 'shots'];
 const usage = `usage: bin/perf [--dpr=2] [--mode=frames] [--label=name] [--frames=300] [--page=build/index.html] [--gpu] [--wrap=name,...] [scene...]
@@ -483,7 +489,8 @@ function page_install(options)
 // Jumps: calm flight that jumps to the next world half a second after each arrival. A campaign: calm flight among
 // built structures, half outposts and half platforms on the free spots nearest the ship, as many again in the other
 // worlds, a transport line, and 24 raiders kept round them, a third sent for one of them. The pulse and the EMP fire
-// only in play, as the player's keys do. The ship never dies, nor do the structures and the transport.
+// only in play, as the player's keys do. A race: a ring race taken and started at green, your keys toward your next
+// ring. The ship never dies, nor do the structures and the transport.
 function page_scene(scene)
 {
     // the menu ran for as long as the page took to load: its clocks and seeds start again
@@ -546,6 +553,9 @@ function page_scene(scene)
         if (scene.kind === 'campaign') {
             campaign_build(scene.buildings);
         }
+        if (scene.kind === 'race') {
+            race_begin();
+        }
     }
     zoom = scene.zoom;
     zoom_target = null;
@@ -565,7 +575,7 @@ function page_scene(scene)
         if (scene.kind !== 'arcade') {
             patrol_timer = 60;
         }
-        const a = t*0.35;
+        const a = (scene.kind === 'race') ? race_heading() : t*0.35;
         keys.clear();
         if (Math.cos(a) > 0.38) {
             keys.add('KeyD');
@@ -589,7 +599,7 @@ function page_scene(scene)
         if (scene.kind === 'campaign') {
             campaign_raiders();
         }
-        if ((scene.kind === 'calm') || (scene.kind === 'jumps') || (scene.kind === 'campaign')) {
+        if ((scene.kind === 'calm') || (scene.kind === 'jumps') || (scene.kind === 'campaign') || (scene.kind === 'race')) {
             return;
         }
         if (scene.kind === 'fight') {
@@ -619,6 +629,25 @@ function page_scene(scene)
             emp_t = 3;
         }
     };
+    // A race taken and started at once: its contract here, you in your place, green given
+    function race_begin() {
+        const offer = race_offer(scene.world, 1);
+        const m = contract_copy({...offer, level: 1, reward: offer.race.top});
+        campaign.contracts.push(m);
+        race_grid_set(m);
+        player.x = race_you().slot.x;
+        player.y = race_you().slot.y;
+        for (const v of race.racers) {
+            v.alpha = 1;
+        }
+        race_go(m);
+    }
+    // In a race your keys point at your next ring (the last one once you are over the line)
+    function race_heading() {
+        const rings = race.course ? race.course.rings : [player];
+        const ring = rings[Math.min(race_you()?.next ?? 0, rings.length - 1)];
+        return Math.atan2(ring.y - player.y, ring.x - player.x);
+    }
     // The structures, built: half outposts and half platforms, each on the spots of a grid 170 m apart nearest the
     // ship that the build rules allow; the other worlds' between them in the list, as a campaign built over time
     function campaign_build(n) {

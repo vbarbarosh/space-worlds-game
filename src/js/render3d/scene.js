@@ -324,6 +324,14 @@ function render3d_sync()
         const angle = ((enemy.type === 'lancer') && (enemy.charge_time > 0)) ? enemy.charge_angle : enemy.angle;
         render3d_ship_place(model, enemy.x, enemy.y, angle, length, enemy.flash > 0);
     }
+    // a race's rivals, raised from their hulls' drawings in their colours (js/race.js)
+    for (const v of race.racers) {
+        if (v.you || v.out || (v.alpha <= 0.02) || !in_view(v, v.length + render3d_margin) || !render3d_drawn(v.hull)) {
+            continue;
+        }
+        const model = render3d_model(v, () => render3d_raider_model(v.hull, v.color));
+        render3d_ship_place(model, v.x, v.y, v.angle, v.length, v.flash > 0);
+    }
     if (player && (state !== 'dead') && !teleport_active() && render3d_drawn(ship_sprite(current_ship()).name)) {
         // the model of your ship as it is: its class and the parts it wears, one list a layout (js/ship_parts.js);
         // after a change of ship or of a module (the hangar, a load) the old one is not seen, and goes below this frame

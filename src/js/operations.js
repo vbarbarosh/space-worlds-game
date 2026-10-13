@@ -712,6 +712,11 @@ function offered_jobs()
     if (supply) {
         out.push(supply);
     }
+    // a ring race against rivals on a course off the station (js/race.js)
+    const race_job = race_offer(id, level);
+    if (race_job) {
+        out.push(race_job);
+    }
     if (rank >= 2) {
         out.push({
             title: `Commander bounty / ${w.faction}`,
@@ -790,6 +795,7 @@ function stage_minutes(v, from)
         courier: 0.3,
         trade: 0.5,
         lure: 3,
+        race: 0.5 + v.target*0.12,
     }[v.type] ?? 1;
     // a convoy's run here is as long as its route: a minute in Haven, three in the far worlds
     if ((v.type === 'escort') && (v.world === campaign.world)) {
@@ -837,6 +843,12 @@ function guide_base_claim_contract(id)
 function build_guide_context()
 {
     const out = expedition_base_guide_context();
+    // a race under way leads, whatever contract is followed
+    const racing = race_running() ? campaign.contracts.find(v => v.id === race.id) : null;
+    if (racing) {
+        race_guide(out, racing);
+        return out;
+    }
     const m = out.mission;
     if (!m) {
         return out;
@@ -856,6 +868,10 @@ function build_guide_context()
         out.plan.push(...claim);
     }
     if (m.ready || (out.kind === 'prepare') || (out.kind === 'jump') || guide_manual) {
+        return out;
+    }
+    if ((m.type === 'race') && (m.world === campaign.world) && m.race) {
+        race_guide(out, m);
         return out;
     }
     if ((m.type === 'lure') && (m.world === campaign.world)) {
@@ -927,6 +943,9 @@ function stage_description(v, m, index)
     }
     if (v.type === 'boss') {
         return 'Approach the marked flagship zone and destroy the warship. Prepare your ship and weapon tier before jumping.';
+    }
+    if (v.type === 'race') {
+        return `Fly to the start line off ${worlds[v.world].station} and into your place: the rivals line up beside you and the count runs (a raider near the line holds it). Then through the ${v.target} rings in order, the last one the finish. Your place and the time set the prize: first pays most, and every second under par pays more. Flying ${race_leash/1000} km off the course for ${race_leash_time} s, docking or a jump forfeits; the start line waits for another try.`;
     }
     if (v.type === 'lure') {
         return 'Fly to the marked black hole and the Leviathan comes for you. Guns cannot hurt it. Keep ahead of it and lead it across the pull: your ship climbs out, its thrust cannot, and the core takes it. Keep clear of the core yourself.';

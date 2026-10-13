@@ -80,6 +80,27 @@ A pair crosses a big distance: fly into one end, leave by the other.
   Feltmere there.
 - Where: `configure_expedition_portals`, `src/js/expedition.js`.
 
+## Race courses
+
+A ring race's course (`race_course_make`, `src/js/race.js`): a start line and
+5 to 7 rings. A ring acts on a ship within its radius (85 to 120 m); the
+start line on the five places along it (298 m from its middle).
+
+- **The start line and every ring stand out of the station's shelter and
+  150 m beyond every range above** (gate, portal, beacon), as two ranges
+  never touch. *Checked.*
+- **None in a gravity pull, and no leg crosses one.** A racer in a pull is
+  dragged off the line, or into the core. *Checked.*
+- **A ship's width (50 m) clear of every rock and drifting piece**, so a ring
+  is never in a rock. *Checked*; while a race is on, a ring a rock drifts into
+  moves off it.
+- **No leg crosses a portal's ring or the station.** A portal on the line
+  would jump a racer away. *Checked.*
+- **Rings and the line 150 m clear of each other**, and the course turns at
+  least 25° at every ring but the first and the last, so its line needs
+  steering. *Checked.*
+- Clear of structures you build too, and 600 m from the combat zone.
+
 ## Round them
 
 - **Survey beacons stand 1 km from every gate**; a beacon that would not

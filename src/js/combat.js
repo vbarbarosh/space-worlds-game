@@ -42,6 +42,7 @@ function base_reset_run(resume = false)
     waypoints_clear();
     survey_robot = null;
     structures_leave();
+    race_clear();
     let hp = hull_max();
     if (resume && checkpoint) {
         wave = checkpoint.wave;

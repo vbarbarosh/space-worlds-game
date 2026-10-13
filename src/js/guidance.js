@@ -31,6 +31,7 @@ function refresh_guidance()
                     ? 'SAFE ROUTE / NEXT MARKER'
                     : c.goal.label,
         follow: (guide_path.length > 1) ? null : c.goal.follow,
+        round: (guide_path.length > 1) ? 0 : (c.goal.round || 0),
     };
     // the guided flight waits while the ship docks or backs out of its berth
     if (guide_flying && (state === 'playing') && !docking) {
@@ -99,7 +100,8 @@ function track_local_point(v, label)
 function guide_action()
 {
     const c = guide_context();
-    if (!player || !['playing', 'upgrade', 'navigation', 'paused'].includes(state)) {
+    // a race is flown by hand: no guided flight from the line to the finish
+    if (!player || !['playing', 'upgrade', 'navigation', 'paused'].includes(state) || race_running()) {
         return;
     }
     if (!c.goal) {

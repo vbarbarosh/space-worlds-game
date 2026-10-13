@@ -59,6 +59,10 @@ shows a health bar (its armour or energy, and how much is left as it is hit).
   - **The transport line's ship** (campaign): a bar always shown; raiders
     damage it; it is not solid, and your shots pass through.
   - **The survey robot** (campaign): a bar always shown; raiders damage it.
+  - **A ring race's rivals** (campaign): solid (they bounce off rocks and
+    bump you and each other), raiders' shots and rams damage them, a bar once
+    hit; your shots pass through them, and they never shoot
+    (`src/js/race.js`).
 - Open question: should ore rocks be shot apart in the campaign as they are
   in the arcade, and if a rock both holds ore and can break, does it show two
   bars (hull and reserve) or one? Not decided yet.
@@ -196,7 +200,10 @@ its edges and says each thing once, in the least room and for the least time.
   red with the raiders near), no EMP or Repair on the card (the quick bar has
   them).
 - **The minimap** is small and see-through, fainter still while a raider
-  flies under it; Hide folds it.
+  flies under it; Hide folds it. Near a ring race it shows the course.
+- **A race's standings** are a small board under the minimap (in its place
+  when it is hidden, under the one-line card on a narrow window): place,
+  name and rings, your row lit; the news line leaves it room.
 - **Text in the world** (`label` in `src/js/combat.js`) does not pile up: the
   same text close by starts again, amounts of the same thing add up (+6 and
   +4 make +10), another text stands a line above.

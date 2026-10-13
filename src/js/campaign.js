@@ -77,7 +77,7 @@ function valid_checkpoint(candidate)
         (candidate.campaign.contracts.length <= 3) &&
         candidate.campaign.contracts.every(function (v) {
             return (
-                ['mining', 'hunt', 'courier', 'survey', 'boss', 'escort', 'trade', 'scan', 'recover', 'defend', 'elite', 'lure'].includes(v.type) &&
+                ['mining', 'hunt', 'courier', 'survey', 'boss', 'escort', 'trade', 'scan', 'recover', 'defend', 'elite', 'lure', 'race'].includes(v.type) &&
                 worlds[v.world] &&
                 Number.isFinite(v.progress) &&
                 (v.target > 0) &&

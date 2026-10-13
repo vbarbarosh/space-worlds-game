@@ -217,6 +217,7 @@ function update(dt, frame_dt = dt)
     player.x = clamp(player.x + player.vx*dt, 24, world.w - 24);
     player.y = clamp(player.y + player.vy*dt, 24, world.h - 24);
     docking_update(dt);
+    race_hold(dt);
     if (!update_player_navigation(dt, previous_player)) {
         return;
     }
@@ -319,7 +320,7 @@ function update(dt, frame_dt = dt)
         const enemy_dt = dt*stasis_scale(v);
         v.age += enemy_dt;
         v.flash = Math.max(0, v.flash - dt);
-        const prey = (v.escort_raider && escort) ? escort : (v.robot_raider && survey_robot) ? survey_robot : structure_prey(v);
+        const prey = (v.escort_raider && escort) ? escort : (v.robot_raider && survey_robot) ? survey_robot : (structure_prey(v) || race_prey(v));
         const waypoint = prey || (drones.length && drone_prey(v)) || enemy_waypoint(v);
         const a = Math.atan2(waypoint.y - v.y, waypoint.x - v.x);
         const d = distance(v, player);
@@ -348,7 +349,8 @@ function update(dt, frame_dt = dt)
             move = (d < 220) ? -0.6 : (d < 320) ? 0.18 : 1;
             v.fire_cd -= enemy_dt;
             if ((v.fire_cd <= 0) && (v.age > 0.8)) {
-                enemy_fire(v, (waypoint === player) ? raider_aim(v, player, 180 + wave*4) : a, 180 + wave*4);
+                // you and a race's rivals move fast: the shot leads them
+                enemy_fire(v, ((waypoint === player) || waypoint.rival) ? raider_aim(v, waypoint, 180 + wave*4) : a, 180 + wave*4);
                 v.fire_cd = Math.max(1.2, 2.1 - wave*0.04)*raider_reload(v);
                 ring(v.x, v.y, gold, 30, 0.25);
             }
@@ -405,6 +407,8 @@ function update(dt, frame_dt = dt)
     }
     // no two hulls overlap: raiders out of asteroids, structures, the freighter, you and each other
     bodies_resolve();
+    // a ring race: the rivals fly, bump and pass rings, and yours count (js/race.js)
+    race_update(dt);
     apply_world_projectile_physics(dt);
     for (let i = 0, end = bullets.length; i < end; ++i) {
         const b = bullets[i];
@@ -535,6 +539,11 @@ function update(dt, frame_dt = dt)
             if (missile_fuse_raider(b)) {
                 missile_detonate(b);
             }
+            continue;
+        }
+        // a race's rivals are hulls: a raider's shot stops on them
+        if (race.course && race_shot_hit(b)) {
+            b.life = 0;
             continue;
         }
         // A shield is a bubble: it takes the shot at its edge, and the hull only once it is gone. The bubble is a wider

@@ -26,6 +26,7 @@ more **stages** done in order. A stage has a kind, a world and an amount
 | trade | you sell the amount of a good at that world's station, from your own hold (what you bought at that station does not count); intercepted like a courier when carried from another world |
 | lure | the Leviathan falls into a black hole's core |
 | survey | you fly within 120 m of three beacons (a one-stage contract) |
+| race | you fly the course's rings in order through the last, the finish, in any place (see [Ring races](#ring-races)) |
 
 - Progress counts only in the stage's world (`mission_event`). A delivery
   (courier or trade) starts where the stage before it ended, or where the
@@ -77,6 +78,7 @@ at most 12, and n = level − 1.
 | Two of the world's own | in the table below | always |
 | Sealed dispatch to a neighbour | courier to it (intercepted), defend 40 + 5n there | always |
 | Supply run: a good to a neighbour | trade: sell 5 + level (at most 12) of this world's cheapest good at the neighbour that pays most for it (intercepted); offered when that pays at least 8 more | always |
+| Ring race: the world's sprint, slalom or loop | race: 5 to 7 rings against 3 or 4 rivals ([Ring races](#ring-races)) | always, in every world, Feltmere too |
 | Commander bounty | scan 16 + n, hunt 6 + n, elite | rank Pathfinder |
 | Frontier expedition n | scan 22 + n here; defend 70 + 6n, elite, recover 20 in a neighbour | rank Ace |
 | Side missions | from their file | in their world, until done |
@@ -135,6 +137,56 @@ Each world's own two, in its terms (its raiders, its resource, its rules):
   hold waits until they are cleared.
 - A mining stage whose drones are all lost sends the guide to the station to
   buy new ones (MODULES).
+
+## Ring races
+
+A contract at every station, in every world (`race_offer` in `src/js/race.js`):
+a course of rings off the station and rivals to beat through it.
+
+- **The course:** a start line 1.5 to 2 km from the station, then
+  5 + ⌊tier/3⌋ rings (5 in Haven to 7 in Eclipse), each 1 to 1.7 km from the
+  one before and turned 30° to 75° off its line, mostly to the other side, so
+  the line between them needs steering; it is laid out among the rocks of the
+  fields nearest the station where they are. A ring is 120 m across its
+  radius in Haven, 5 m less a tier (85 m in Eclipse). Three courses a world
+  (sprint, slalom, loop), one offered at a time by the board. Each keeps
+  clear of everything R or a ring acts on ([placement.md](placement.md#race-courses)).
+  A ring a drifting rock comes into (Verdant's current) moves off it.
+- **The rivals:** 3 in Haven, Feltmere and Verdant, 4 from Dustfall on, from
+  the slowest to the best, each with a name, a hull from the ships' drawings
+  in its colour (Feltmere lets in the felt rocket alone, so its racers fly
+  felt rockets, a ring of their colour under each). A rival's cruise is
+  285 m/s × the world's speed × (1 + 0.06 tier + 0.01 (level − 1)) ×
+  (0.9 + 0.3 skill), its turn and thrust the world's own scaled by its
+  skill; it aims at its own line through each ring, slows for the turn after
+  it as much as its thrust needs, lights a turbo of 2 to 2.8 × its cruise for
+  1.5 to 4 s on a long straight, steers round rocks, bumps you and the others,
+  and can miss a ring and loop back for it. Rivals never shoot. Raiders may go
+  for them (two raiders in five pick a rival near them over you), and their
+  shots and rams hurt them (120 hull + 25 a tier); a rival with its hull gone
+  is out. Your shots pass through them.
+- **The start:** fly into your place on the line (the guide marks it); the
+  rivals stand in theirs, and the count runs 3, 2, 1 over three lights, then
+  green. A raider within 1.1 km of the line holds the start until it is
+  cleared. You are held in your place during the count.
+- **The finish:** your place is one more than the rivals over the line before
+  you. The prize is the contract's reward for first at par time × the place's
+  share (1, 0.7, 0.5, 0.35; the last always 0.2) × par ÷ your time (0.75 to
+  1.25), to the nearest 10. Par is the course at 1.4 × the best rival's
+  cruise, plus 0.6 s a ring. The reward offered is first at par:
+  (0.5 + 0.12 a ring) minutes × the formula below × 1.3. The contract is done
+  then; dock and collect as for any other. The race runs on 25 s for the
+  rivals still out, then the results stay 8 s on the board.
+- **Forfeit:** 2.5 km off the course's line for 6 s (the card counts it down
+  in red), docking, or a jump to another world forfeits; the contract stays,
+  and the start line waits for another try.
+- **Saves:** a race is not saved. A save made mid-race loads with the race
+  called off and the contract as it was before the start; so does a tow after
+  a death.
+- **On screen:** the mission card is the race's (your place, the ring and its
+  distance, the clock), the standings stand in a small board under the
+  minimap, and near the course the minimap shows the course instead of the
+  world.
 
 ## What a contract pays
 

@@ -129,6 +129,11 @@ function captain_pilot_tick()
         captain_pilot_keys_set([]);
         return;
     }
+    // a ring race is flown by hand, not by the guide: the pilot steers for the next ring (js/race.js)
+    if (race_running()) {
+        captain_race_pilot();
+        return;
+    }
     // Between moves the ship keeps station: B brakes and holds it against currents, drift and planetary pull.
     captain_pilot_keys_set(['KeyB']);
     captain_pilot.idle += captain_tick_ms;
@@ -268,6 +273,32 @@ function captain_arcade_dock()
 }
 
 // The pilot holds keys like a player would; it lets go of the ones it no longer needs.
+// In a ring race: still on the line during the count, then the keys toward the next ring's middle
+function captain_race_pilot()
+{
+    const you = race_you();
+    if ((race.phase !== 'racing') || !you || (you.next >= race.course.rings.length)) {
+        captain_pilot_keys_set([]);
+        return;
+    }
+    const ring = race.course.rings[you.next];
+    const a = Math.atan2(ring.y - player.y, ring.x - player.x);
+    const held = [];
+    if (Math.cos(a) > 0.38) {
+        held.push('KeyD');
+    }
+    if (Math.cos(a) < -0.38) {
+        held.push('KeyA');
+    }
+    if (Math.sin(a) > 0.38) {
+        held.push('KeyS');
+    }
+    if (Math.sin(a) < -0.38) {
+        held.push('KeyW');
+    }
+    captain_pilot_keys_set(held);
+}
+
 function captain_pilot_keys_set(held)
 {
     for (const code of captain_pilot.keys) {

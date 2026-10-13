@@ -22,6 +22,8 @@ window.dev_state = function () {
         portals: portals.map(v => ({x: Math.round(v.x), y: Math.round(v.y), r: v.r, label: v.label, destination: v.destination})),
         beacons: beacons.map(v => ({x: Math.round(v.x), y: Math.round(v.y)})), combat_zone: {...combat_zone},
         escort: escort ? {x: escort.x, y: escort.y, hp: escort.hp, active: escort.active} : null, formation: !!formation.leader,
+        races: arcade.active ? [] : race_variants.map((v, i) => race_course_make(campaign.world, i)),
+        race: {phase: race.phase, clock: race.clock, place: race.place, prize: race.prize, racers: race.racers.map(v => ({name: v.name, you: v.you, next: v.next, time: v.time, out: v.out, x: Math.round(v.x), y: Math.round(v.y), speed: Math.round(Math.hypot(v.vx || 0, v.vy || 0))}))},
         cargo: {...campaign.cargo}, drones: {owned: drones_owned(), out: drones_out, flying: drones.map(v => ({x: Math.round(v.x), y: Math.round(v.y), state: v.state, hp: v.hp}))}, salvage, kills, xp: campaign.xp, turbo: !!player?.turbo_active, bullets: bullets.length, canisters: pickups.filter(v => v.type === 'cargo').map(v => ({x: Math.round(v.x), y: Math.round(v.y), key: v.key, amount: v.amount}))};
 };
 

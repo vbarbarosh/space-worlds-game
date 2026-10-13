@@ -12,7 +12,8 @@ window stays open, so the human can watch you play.
   its build or its saves: a pilot sees the screen, not the engine.
 - Write nothing outside `data/agent/`.
 - The game runs in real time. While you think, your **autopilot** carries
-  out standing orders: it flies stage after stage of your tracked contract,
+  out standing orders: it flies stage after stage of your tracked contract
+  (a ring race too, once you are lined up on its start line),
   flies home and docks when the contract is done, jumps the gates on your
   route, and fights on its own. Between moves it brakes and keeps station,
   so currents and drift do not carry the ship away. At a station the game

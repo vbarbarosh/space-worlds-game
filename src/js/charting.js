@@ -530,6 +530,10 @@ function render_minimap()
     if (!box) {
         return;
     }
+    // near a race the minimap is its course (js/race.js)
+    if (race_minimap(box)) {
+        return;
+    }
     const x = box.left + 5;
     const y = box.top + 5;
     const w = Math.round(box.width - 10);
@@ -606,6 +610,7 @@ function render_minimap()
         }
     }
     render_chart_route(ctx, point, 10, null);
+    race_minimap_course(ctx, point);
     const you = point(player);
     map_icon(ctx, 'you', you.x, you.y, 12, null, player.angle + Math.PI/2);
     ctx.strokeStyle = '#6cf8ec55';

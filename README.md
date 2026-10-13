@@ -61,10 +61,11 @@ Two modes, and a try-out:
     bin/build-docs   docs/ as a website in build/docs, with the game from
                      bin/build in play/; published to GitHub Pages on every
                      push to main (.github/workflows/docs.yml)
-    bin/perf         frame times, garbage and drawing costs over 46 scenes
+    bin/perf         frame times, garbage and drawing costs over 48 scenes
                      (every world calm and in a fight, zoom 100% and 50%,
                      the arcade, campaigns of 10, 50 and 100 structures,
-                     jumps in 3D); see docs/performance-2026-10-05.md
+                     jumps in 3D, a ring race in Haven and Eclipse); see
+                     docs/performance-2026-10-05.md
     bin/playtest     a bot plays arcade runs on a virtual clock (about a
                      minute each) and counts per world and wave the hull
                      lost, kills off the screen and salvage left; tables
@@ -74,7 +75,8 @@ Two modes, and a try-out:
     bin/map-check    every world's map, campaign and arcade, against
                      docs/placement.md: no two things R acts on within reach
                      of each other, gates and portals where the rules put
-                     them; exit 1 on a failure
+                     them, race courses clear of all of it; exit 1 on a
+                     failure
 
 `build/dev.html` is the developer mode: the game with a dev panel. It starts
 straight into any world, ship and weapon, and has time controls, cheats,
@@ -82,7 +84,10 @@ enemy and target-dummy spawning, live upgrade levels and a sound board. The
 scene lives in the URL, e.g. `dev.html?world=3&ship=gunship&weapon=rail`; a world goes by number or file name (`world=felt` opens Feltmere in the felt rocket).
 `&screen=station-arsenal` (or flight, combat, arcade, crowded, pause, menu,
 map-plan, ...; the list is in src/js/dev/screen.js) opens that screen with the
-panel folded. It keeps its own storage and never touches the game's save.
+panel folded. `&screen=race` starts a ring race at its start line
+(`race-mid` mid-race, `race-finish` over the line; `&race_place=1|2|3|last`,
+`&race_long=1`, `&race_left=1`, `&race_raiders=1` for its edge states), e.g.
+`dev.html?world=0&screen=race`. It keeps its own storage and never touches the game's save.
 
 The interface is the designer's UI kit (src/css/ui-kit.css): one root,
 `.ui-screen`, is a size container, so every layout rule is an `@container`
