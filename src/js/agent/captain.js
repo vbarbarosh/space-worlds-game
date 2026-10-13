@@ -62,7 +62,7 @@ function captain_status()
     out.objective = context.goal ? {title: context.title, kind: context.kind, distance: Math.round(distance(player, context.goal))} : null;
     out.autopilot = captain_pilot.on ? (guide_flying ? 'flying' : 'on') : 'off';
     if (arcade.active) {
-        out.arcade = {world: `${campaign.world + 1} / ${worlds.length}`, wave: `${arcade.wave} / ${arcade_waves}`};
+        out.arcade = {world: `${campaign.world + 1} / ${arcade_worlds}`, wave: `${arcade.wave} / ${arcade_waves}`};
     }
     out.enemies_near = enemies.filter(v => (v.hp > 0) && (distance(v, player) < 900)).length;
     out.run_time = format_time(run_time);

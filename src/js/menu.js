@@ -206,12 +206,12 @@ function menu_art_draw()
     menu_arcade.hero.src = ship_url;
     for (const v of document.querySelectorAll('#intro [data-world]')) {
         v.src = menu_sprite_url(menu_planet_text(Number(v.dataset.world)));
-        v.style.filter = (Number(v.dataset.world) <= world) ? '' : 'saturate(.35) brightness(.7)';
+        v.style.filter = (Number(v.dataset.world) <= world_tier(world)) ? '' : 'saturate(.35) brightness(.7)';
     }
     for (const v of document.querySelectorAll('#intro [data-world-name]')) {
         const i = Number(v.dataset.worldName);
         v.textContent = worlds[i].name;
-        v.style.color = (i <= world) ? `var(--w-${world_slug(i)})` : '#7f93a8';
+        v.style.color = (i <= world_tier(world)) ? `var(--w-${world_slug(i)})` : '#7f93a8';
     }
 }
 

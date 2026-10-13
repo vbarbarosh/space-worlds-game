@@ -18,6 +18,10 @@ function render_nebula_layer(id, sky)
     const key = `${id}:${W}:${H}:${world.w}:${world.h}`;
     const look = world_looks[id];
     let v = nebula_layers.get(key);
+    // a world with a drawing of its sky's cloth (worlds/felt/space, a knitted swatch) weaves it under the clouds; the
+    // layer is kept once the drawing has loaded
+    const cloth = !v && world_art('space');
+    const weave = cloth && sprite_raster(cloth, null, 256);
     if (!v) {
         const pad = Math.max(360, Math.ceil(Math.max(world.w, world.h)*0.025));
         const ratio = 0.5;
@@ -36,6 +40,21 @@ function render_nebula_layer(id, sky)
         gradient.addColorStop(1, '#02040a');
         draw.fillStyle = gradient;
         draw.fillRect(-pad, -pad, W + pad*2, H + pad*2);
+        if (weave) {
+            // the cloth over the glow, its stitches small and dim so the sky stays behind the raiders, its edges darkened
+            // again as the glow's are
+            const pattern = draw.createPattern(weave, 'repeat');
+            pattern.setTransform(new DOMMatrix().scale(0.7));
+            draw.globalAlpha = 0.5;
+            draw.fillStyle = pattern;
+            draw.fillRect(-pad, -pad, W + pad*2, H + pad*2);
+            draw.globalAlpha = 1;
+            const edge = draw.createRadialGradient(W*0.44, H*0.45, Math.min(W, H)*0.3, W*0.44, H*0.45, Math.max(W, H));
+            edge.addColorStop(0, '#02040a00');
+            edge.addColorStop(1, '#02040acc');
+            draw.fillStyle = edge;
+            draw.fillRect(-pad, -pad, W + pad*2, H + pad*2);
+        }
         for (let i = 0, end = sky.clouds.length; i < end; ++i) {
             const cloud = sky.clouds[i];
             const x = cloud.x*W + Math.sin(cloud.phase)*35;
@@ -52,7 +71,9 @@ function render_nebula_layer(id, sky)
         // Keep just the current sky to avoid retaining high-resolution buffers for every world.
         nebula_layers.clear();
         v = {layer, left: box.left, top: box.top, w: layer.width/ratio, h: layer.height/ratio};
-        nebula_layers.set(key, v);
+        if (!cloth || weave) {
+            nebula_layers.set(key, v);
+        }
     }
     const drift = full_fx ? Math.sin(clock*0.025)*18 : 0;
     const x = v.left - camera.x*0.018 + drift;

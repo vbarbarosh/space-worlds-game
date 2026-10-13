@@ -665,6 +665,22 @@ function world_contracts(id, level)
                 stages: [stage('mining', 7, 10 + 2*n, 'Mine void matter'), stage('elite', 7, 1, 'Drive off the Void hunter')],
             },
         ],
+        [
+            {
+                title: 'Shoo the brood off the campsite',
+                description: 'The Stitchwing Brood crawls over the lanes round the Camper Dock. Find where it nests, shoo the bugs off, and bring back the dropped spool of the last rocket they chased.',
+                stages: [
+                    stage('scan', 8, 12 + n, 'Find the brood nest', {beacon}),
+                    stage('hunt', 8, 6 + n, 'Shoo the bugs off the lanes'),
+                    stage('recover', 8, 10, 'Bring back the dropped spool'),
+                ],
+            },
+            {
+                title: 'Felt berries for the Camper Dock',
+                description: 'The Camper Dock trades in felt berries, and the bees come for their smell. Pick a load with your drones, then guard the baskets while they fill.',
+                stages: [stage('mining', 8, 8 + 2*n, 'Pick felt berries'), stage('defend', 8, 40 + 5*n, 'Guard the baskets from the bees', {beacon: 2})],
+            },
+        ],
     ][id];
 }
 
@@ -792,7 +808,7 @@ function contract_reward(stages, id, level, premium = 1)
         minutes += stage_minutes(v, from);
         from = v.world;
     }
-    return Math.round((minutes*105*(1 + 0.2*id)*(1 + 0.1*(level - 1))*premium)/10)*10;
+    return Math.round((minutes*105*(1 + 0.2*world_tier(id))*(1 + 0.1*(level - 1))*premium)/10)*10;
 }
 
 function guide_base_claim_contract(id)
@@ -970,18 +986,21 @@ function render_station()
             const selected = f.ship_id === v.id;
             const locked = rank < v.rank;
             const oversize = cargo_count() > v.cargo;
+            const held = fleet_ship_held(v);
             function on_select() {
                 fleet_purchase(v.id, 'ship');
             }
             const action = selected
                 ? 'ACTIVE SHIP'
-                : locked
-                    ? `REQUIRES ${rank_names[v.rank].toUpperCase()}`
-                    : oversize
-                        ? 'SELL CARGO TO SWITCH'
-                        : owned
-                            ? 'SWITCH SHIP'
-                            : `BUY · ◆ ${v.price}`;
+                : held
+                    ? 'NOT FLOWN HERE'
+                    : locked
+                        ? `REQUIRES ${rank_names[v.rank].toUpperCase()}`
+                        : oversize
+                            ? 'SELL CARGO TO SWITCH'
+                            : owned
+                                ? 'SWITCH SHIP'
+                                : `BUY · ◆ ${v.price}`;
             const c = card(
                 parent,
                 `${v.name} / ${v.role}`,
@@ -989,7 +1008,7 @@ function render_station()
                 `HULL ${v.hull} · SHIELD +${v.shield} · SPEED ${Math.round(v.speed*100)}% · CARGO ${v.cargo} · GUNS ${mounts_text(v)}`,
                 action,
                 on_select,
-                selected || locked || oversize || (!owned && (salvage < v.price)),
+                selected || held || locked || oversize || (!owned && (salvage < v.price)),
                 selected ? 'active' : ''
             );
             const art = document.createElement('div');

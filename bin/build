@@ -201,9 +201,9 @@ function mission_from_text(file, text, worlds)
     return out;
 }
 
-// The eight worlds' names, in order, as src/js/worlds/*.js name them
+// The nine worlds' names, in order, as src/js/worlds/*.js name them
 function world_names()
 {
-    const order = ['haven', 'verdant', 'dustfall', 'ion_reach', 'obsidian', 'cryosphere', 'nova_forge', 'eclipse'];
+    const order = ['haven', 'verdant', 'dustfall', 'ion_reach', 'obsidian', 'cryosphere', 'nova_forge', 'eclipse', 'felt'];
     return order.map(v => fs.readFileSync(path.join(src_dir, 'js', 'worlds', `${v}.js`), 'utf8').match(/^\s+name: '([^']+)'/m)[1]);
 }

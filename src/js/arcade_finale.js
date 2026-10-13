@@ -96,7 +96,7 @@ function finale_build()
         const name = document.createElement('span');
         name.className = 'finale-name';
         name.style.color = world.accent;
-        name.innerHTML = `${ui_escape(world.name)}<s>${i + 1}/${worlds.length}</s>`;
+        name.innerHTML = `${ui_escape(world.name)}<s>${i + 1}/${arcade_worlds}</s>`;
         holder.append(image, name);
         return {image, name};
     });
@@ -105,7 +105,7 @@ function finale_build()
     for (const v of flags.querySelectorAll('img')) {
         v.remove();
     }
-    for (let i = 0; i < worlds.length; ++i) {
+    for (let i = 0; i < arcade_worlds; ++i) {
         const image = document.createElement('img');
         image.alt = '';
         image.title = `${worlds[i].name} flagship`;
@@ -208,7 +208,7 @@ function finale_geometry(t, w, h, top = 0, results = 0)
     const cy = cy0 + (cy1 - cy0)*k;
     const r = r0 + (r1 - r0)*k;
     const points = worlds.map(function (_, i) {
-        const a = Math.PI/2 + (i*2*Math.PI)/worlds.length;
+        const a = Math.PI/2 + (i*2*Math.PI)/arcade_worlds;
         return {x: cx + Math.cos(a)*r*1.18, y: cy + Math.sin(a)*r};
     });
     return {cx, cy, r, points, short};
@@ -253,13 +253,13 @@ function finale_draw_scene(c, story, t, w, h, g, path)
     const glow = clamp(finale_seg(story, finale_burst - 0.2, finale_burst + 0.6)*1.2, 0, 1)*(1 - finale_seg(story, finale_burst + 0.6, 9)*0.6);
     finale_draw_sky(c, t, w, h, g, glow, 1 - finale_seg(story, 0, 1.1));
     // the constellation: dashed lines join the cleared worlds; after the burst, spokes run from each to the centre
-    for (let i = 0; i < worlds.length; ++i) {
+    for (let i = 0; i < arcade_worlds; ++i) {
         if (!finale_seg(story, finale_arrive(i), finale_arrive(i) + 0.5)) {
             continue;
         }
-        const last = i === worlds.length - 1;
+        const last = i === arcade_worlds - 1;
         const b = last ? finale_seg(story, finale_burst, finale_burst + 0.8) : finale_seg(story, finale_arrive(i + 1) - 0.1, finale_arrive(i + 1) + 0.4);
-        finale_draw_link(c, g.points[i], g.points[(i + 1) % worlds.length], worlds[i].accent, b);
+        finale_draw_link(c, g.points[i], g.points[(i + 1) % arcade_worlds], worlds[i].accent, b);
         finale_draw_spoke(c, g.points[i], g, worlds[i].accent, finale_seg(story, finale_burst, finale_burst + 1));
     }
     // the ship's trail, in the colour of the world it just left
@@ -273,7 +273,7 @@ function finale_draw_scene(c, story, t, w, h, g, path)
             }
             const a = finale_along(path, (u*(k - 1))/steps);
             const b = finale_along(path, v);
-            const world = Math.min(worlds.length - 1, Math.floor(v*9) - 1);
+            const world = Math.min(arcade_worlds - 1, Math.floor(v*9) - 1);
             const fade = (1 - (u - v)/0.22)*(1 - finale_seg(story, 6.3, 7.6));
             c.strokeStyle = (world < 0) ? worlds[0].accent : worlds[world].accent;
             c.globalAlpha = fade*0.9;
@@ -286,7 +286,7 @@ function finale_draw_scene(c, story, t, w, h, g, path)
         c.globalAlpha = 1;
     }
     // a ring in the world's colour as the ship arrives
-    for (let i = 0; i < worlds.length; ++i) {
+    for (let i = 0; i < arcade_worlds; ++i) {
         finale_draw_arrival(c, g.points[i], g, worlds[i].accent, finale_seg(story, finale_arrive(i), finale_arrive(i) + 0.9));
     }
     // three shockwaves at the burst
@@ -424,7 +424,7 @@ function finale_draw_fireworks(c, t, w, h, color = null)
 // The planets (dim until reached, then lit and named), the ship on its route, the burst, the ring and the flash
 function finale_place_art(story, t, g, path)
 {
-    for (let i = 0; i < worlds.length; ++i) {
+    for (let i = 0; i < arcade_worlds; ++i) {
         const lit = finale_seg(story, finale_arrive(i) - 0.05, finale_arrive(i) + 0.35);
         const named = finale_seg(story, finale_arrive(i), finale_arrive(i) + 0.4)*(1 - finale_seg(story, 6.3, 6.9));
         finale_place_planet(i, g, t, finale_seg(story, 0.3 + i*0.06, 0.9 + i*0.06), lit, named);
@@ -581,7 +581,7 @@ function finale_world_draw(c, story, t, w, h, g)
 function finale_world_place_art(story, t, g)
 {
     const here = finale.world;
-    for (let i = 0; i < worlds.length; ++i) {
+    for (let i = 0; i < arcade_worlds; ++i) {
         const appear = finale_seg(story, 0.1 + i*0.04, 0.5 + i*0.04);
         const lit = (i < here) ? appear : (i === here) ? finale_seg(story, 0.65, 1.05) : (i === here + 1) ? finale_seg(story, 1.4, 1.9)*0.35 : 0;
         finale_place_planet(i, g, t, appear, lit, 0);
@@ -603,7 +603,7 @@ function finale_world_words(t)
 // When the ship reaches world i: the route visits the eight in order, then the centre
 function finale_arrive(i)
 {
-    return finale_route[0] + (finale_route[1] - finale_route[0])*((i + 1)/(worlds.length + 1));
+    return finale_route[0] + (finale_route[1] - finale_route[0])*((i + 1)/(arcade_worlds + 1));
 }
 
 // A point at u (0..1) along a smooth curve through the points

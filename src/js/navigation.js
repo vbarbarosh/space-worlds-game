@@ -84,7 +84,7 @@ function guide_base_render_navigation()
         b.classList.toggle('is-active', b.dataset.nav === nav_tab);
     }
     document.getElementById('nav_summary').textContent =
-        `${worlds[campaign.world].name} · weapon rating ${attack_rating()} · defense ${defense_rating()} · ${campaign.visited.length}/8 worlds visited · cargo ${cargo_count()}/${cargo_capacity()}`;
+        `${worlds[campaign.world].name} · weapon rating ${attack_rating()} · defense ${defense_rating()} · ${campaign.visited.length}/${worlds.length} worlds visited · cargo ${cargo_count()}/${cargo_capacity()}`;
     if (nav_tab === 'jobs') {
         render_contracts(parent);
         return;
@@ -167,6 +167,10 @@ function guide_base_render_navigation()
 function requirements(id)
 {
     const w = worlds[id];
+    const only = world_ship_lock(id);
+    if (only) {
+        return `ONLY THE ${only.name.toUpperCase()} CAN ENTER · BUY IT IN A HANGAR (◆ ${only.price}) AND FLY IT HERE`;
+    }
     const armour = world_armour(id) ? ` · ARMOUR ${Math.round(armour_rating(id)*100)}%/${Math.round(gate_armour_share*100)}%` : '';
     return `${allowed_world(id) ? 'FLIGHT CLEARED' : 'UPGRADE REQUIRED'} · WEAPONS ${attack_rating()}/${w.attack} · DEFENSE ${defense_rating()}/${w.defense} · RAD ${Math.round(radiation_protection()*100)}%/${Math.round(expedition_conditions[id].required*100)}%${armour}`;
 }
@@ -187,7 +191,7 @@ function interact()
     const g = world_gates.find(v => distance(player, v) < gate_reach);
     if (g) {
         if (!allowed_world(g.destination)) {
-            show_toast('SHIP NOT READY', `${requirements(g.destination)} / DOCK AND OPEN MODULES`, 5);
+            show_toast('SHIP NOT READY', `${requirements(g.destination)} / ${world_ship_lock(g.destination) ? 'DOCK AND OPEN HANGAR' : 'DOCK AND OPEN MODULES'}`, 5);
             return;
         }
         start_jump({world: g.destination, color: g.color, label: `JUMP TO ${worlds[g.destination].name}`, gate: g});
@@ -373,7 +377,7 @@ function guide_base_update_hud()
     const m = campaign.contracts.find(v => !v.ready) || campaign.contracts[0];
     const sector_html = `${campaign.world + 1}<small>/${worlds.length}</small>`;
     hud_html(el.sector, sector_html);
-    hud_text(el.act_label, `${w.name.toUpperCase()} / THREAT ${campaign.world + 1}`);
+    hud_text(el.act_label, `${w.name.toUpperCase()} / THREAT ${Math.floor(world_tier(campaign.world)) + 1}`);
     hud_text(el.mission_name, m ? m.title : `FREE FLIGHT / ${w.station}`);
     hud_text(el.mission_phase, m
         ? m.ready
@@ -433,7 +437,7 @@ function world_gate_label(world_gate, y)
     if (arcade.active) {
         return;
     }
-    world_label(world_gate.x, world_gate.y + y - 12, `WORLD GATE → ${worlds[world_gate.destination].name.toUpperCase()}`, `R jump · ${allowed_world(world_gate.destination) ? 'cleared' : 'upgrades required'}`, world_gate.color);
+    world_label(world_gate.x, world_gate.y + y - 12, `WORLD GATE → ${worlds[world_gate.destination].name.toUpperCase()}`, `R jump · ${allowed_world(world_gate.destination) ? 'cleared' : world_ship_lock(world_gate.destination) ? `needs the ${world_ship_lock(world_gate.destination).name.toLowerCase()}` : 'upgrades required'}`, world_gate.color);
 }
 
 function physics_base_render_navigation_objects()

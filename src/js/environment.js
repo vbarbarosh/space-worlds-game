@@ -14,9 +14,17 @@ function generate_environment()
         [0, -1150],
         [700, 950],
         [-700, -650],
+        [1500, -1250],
     ];
-    const diameters = [1300, 1450, 1250, 1400, 1450, 1600, 1800, 1650];
+    const diameters = [1300, 1450, 1250, 1400, 1450, 1600, 1800, 1650, 1500];
     const v = offsets[campaign.world];
+    // a world with a drawing of its sun (worlds/felt/star) shows it in place of its outer moon; its sky's cloth starts
+    // loading now, so the sky layer is baked with it (render_nebula_layer)
+    const sun = world_art('star');
+    const cloth = world_art('space');
+    if (cloth) {
+        sprite_raster(cloth, null, 256);
+    }
     world_bodies = [
         {
             x: clamp(station.x + v[0], 850, world.w - 850),
@@ -29,10 +37,11 @@ function generate_environment()
         {
             x: world.w*((campaign.world % 2) ? 0.22 : 0.77),
             y: world.h*((campaign.world % 3 === 0) ? 0.72 : 0.24),
-            diam: 650 + campaign.world*35,
+            diam: sun ? 1100 : 650 + campaign.world*35,
             texture: 2,
             primary: false,
-            name: `${worlds[campaign.world].name} OUTER MOON`,
+            art: sun,
+            name: `${worlds[campaign.world].name} ${sun ? 'SUN' : 'OUTER MOON'}`,
         },
     ];
     world_zones = [];

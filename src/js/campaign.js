@@ -32,9 +32,24 @@ function armour_rating(id, damage_level = upgrades.damage)
     return guns.length ? Math.max(...guns.map(v => gun_armour_share(v, id, damage_level))) : 0;
 }
 
+// The ship a world lets in alone (expedition.only: Feltmere, the felt rocket), while you fly another; null otherwise
+function world_ship_lock(id)
+{
+    const only = expedition_conditions[id].only;
+    return (only && (current_ship().id !== only)) ? ship_catalog.find(v => v.id === only) : null;
+}
+
+// A world's place in the order of threat, as its threat level (wave) gives it: Haven 0 to Eclipse 7, Feltmere 0.5. The
+// raiders' tier, prices and rewards read it, never the world's place in the list
+function world_tier(id)
+{
+    return (worlds[id].wave - 1)/2;
+}
+
 function allowed_world(id)
 {
     return (
+        !world_ship_lock(id) &&
         (attack_rating() >= worlds[id].attack) &&
         (defense_rating() >= worlds[id].defense) &&
         (radiation_protection() + 0.001 >= expedition_conditions[id].required) &&
@@ -154,8 +169,8 @@ function visual_base_generate_map()
     current_sector().mix = w.mix;
     station = {x: world.w/2, y: world.h/2};
     // A gate faces the world it leads to, as the galaxy chart draws it, 60% of the way to the map's edge
-    // (docs/placement.md)
-    world_gates = w.links.map(function (destination) {
+    // (docs/placement.md). The arcade's maps keep only the gates of its own run: Feltmere's is the campaign's alone
+    world_gates = w.links.filter(v => !arcade.active || (v < arcade_worlds)).map(function (destination) {
         const a = galaxy_bearing(campaign.world, destination);
         const edge = Math.min(world.w/2/Math.abs(Math.cos(a)), world.h/2/Math.abs(Math.sin(a)));
         return {
@@ -208,13 +223,13 @@ let gunners_spawned = 0;
 // them. The arcade keeps the world's own.
 function raider_tier(id = campaign.world)
 {
-    return arcade.active ? id : Math.max(id, campaign.story - 1);
+    return arcade.active ? world_tier(id) : Math.max(world_tier(id), campaign.story - 1);
 }
 
 // A world's raider armour at the story's front: 4% more a tier past its own, 72% at most
 function world_armour(id)
 {
-    return Math.min(0.72, worlds[id].armor + (raider_tier(id) - id)*0.04);
+    return Math.min(0.72, worlds[id].armor + (raider_tier(id) - world_tier(id))*0.04);
 }
 
 function spawn_enemy(type)
@@ -222,7 +237,7 @@ function spawn_enemy(type)
     const tier = raider_tier();
     // a raider's hull and speed follow the tier's threat level, as a world's follow its own (1, 3, ... 15, then on)
     const own_wave = wave;
-    if (tier > campaign.world) {
+    if (tier > world_tier(campaign.world)) {
         wave = 1 + tier*2;
     }
     base_spawn_enemy(type);
@@ -231,7 +246,7 @@ function spawn_enemy(type)
     const w = worlds[campaign.world];
     // past the world's own tier, 4% more armour (72% at most) and 15 more shield a tier: in act II every world's
     // raiders come 28% heavier and with 105 more shield than in act I, so a light gun's bolts fail there again
-    const past = tier - campaign.world;
+    const past = tier - world_tier(campaign.world);
     const armour = world_armour(campaign.world);
     const shield = w.shield + past*15;
     enemy.color = w.accent;
@@ -242,7 +257,7 @@ function spawn_enemy(type)
     enemy.weapon = w.weapon;
     if (type === 'shooter') {
         gunners_spawned += 1;
-        if ((campaign.world >= 1) && (gunners_spawned % 2 === 0)) {
+        if ((world_tier(campaign.world) >= 1) && (gunners_spawned % 2 === 0)) {
             enemy.weapon = 'missile';
         }
     }
@@ -274,7 +289,7 @@ function world_audio_base_enemy_fire(enemy, angle, speed = 210, pattern = false)
     const kind = (w === 'missile') ? missile_kind_for(enemy) : null;
     const group = raider_shot_group(w, pattern);
     const s = raider_shot_speed(enemy, speed, pattern);
-    const spread = (w === 'scatter') ? [-0.23, 0, 0.23] : (kind && (kind !== 'torpedo') && (campaign.world >= 6)) ? [-0.2, 0.2] : [0];
+    const spread = (w === 'scatter') ? [-0.23, 0, 0.23] : (kind && (kind !== 'torpedo') && (world_tier(campaign.world) >= 6)) ? [-0.2, 0.2] : [0];
     for (const offset of spread) {
         const a = angle + offset;
         const x = enemy.x + Math.cos(a)*enemy.r;
@@ -334,7 +349,7 @@ function raider_shot_speed(enemy, speed = 210, pattern = false)
 function raider_hit_scale(enemy = null)
 {
     const own = enemy && (enemy.escort_raider || enemy.robot_raider || enemy.structure_target);
-    return 1 + (own ? campaign.world : raider_tier())*0.08;
+    return 1 + (own ? world_tier(campaign.world) : raider_tier())*0.08;
 }
 
 // Armour cuts a hit twice: its plating takes a flat part of every hit, 50 at full armour and never more than three

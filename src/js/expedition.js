@@ -112,13 +112,13 @@ function configure_expedition_portals()
         pair(at([0.23, 0.68]), at([0.81, 0.24]), 7) || pair(at([0.27, 0.72]), at([0.73, 0.12]), 7);
     }
     // The station's pairs: one end 1.5 km out toward a gate, the other beside that gate; a world with two gates takes a
-    // third to the first beacon that fits, and Haven has only the first
+    // third to the first beacon that fits, and Haven and Feltmere (one gate) have only the first
     function from_station(v, index, gate = null) {
         const a = Math.atan2(v.y - hub.y, v.x - hub.x);
         return pair({x: hub.x + Math.cos(a)*1500, y: hub.y + Math.sin(a)*1500}, {x: v.x - Math.sin(a)*440, y: v.y + Math.cos(a)*440}, index, gate);
     }
     from_station(world_gates[0], 3, world_gates[0]);
-    if (campaign.world > 0) {
+    if ((campaign.world > 0) && world_gates[1]) {
         from_station(world_gates[1], 4, world_gates[1]);
         if (world_gates[2]) {
             from_station(world_gates[2], 5, world_gates[2]);

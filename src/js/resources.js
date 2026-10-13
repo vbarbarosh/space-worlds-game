@@ -1,5 +1,6 @@
 // Each world mines a resource of its own besides plain ore; rich rocks hold it, several units each.
-// value: what a unit is worth; a market pays 60% of it at home and 30% more for each world farther away.
+// value: what a unit is worth; a market pays 60% of it at home and 30% more for each tier of threat farther away
+// (world_tier: Feltmere's berries sell at Haven as a near world's).
 const resources = [
     {key: 'iron', name: 'Haven iron', world: 0, color: '#ff7a59', value: 16},
     {key: 'resin', name: 'Spore resin', world: 1, color: '#7cf29a', value: 20},
@@ -9,12 +10,19 @@ const resources = [
     {key: 'helium', name: 'Helium-3 ice', world: 5, color: '#bff4ff', value: 40},
     {key: 'plasma', name: 'Plasma ore', world: 6, color: '#ff4f7a', value: 48},
     {key: 'void', name: 'Void matter', world: 7, color: '#c46bff', value: 60},
+    {key: 'berries', name: 'Felt berries', world: 8, color: '#d8435a', value: 22},
 ];
 commodities.push(...resources);
 
 function resource_of(key)
 {
     return resources.find(v => v.key === key) || null;
+}
+
+// The resource world id mines in its rich rocks
+function world_resource(id)
+{
+    return resources.find(v => v.world === id);
 }
 
 // The price a market at world id starts from: the world's own table for the first three, the resource value otherwise.
@@ -24,7 +32,7 @@ function commodity_base_price(id, index)
         return worlds[id].prices[index];
     }
     const resource = commodities[index];
-    return Math.round(resource.value*(0.6 + 0.3*Math.abs(id - resource.world)));
+    return Math.round(resource.value*(0.6 + 0.3*Math.abs(world_tier(id) - world_tier(resource.world))));
 }
 
 // Every third mining field is rich: its rocks hold the world's resource, two to four units by size.
@@ -33,7 +41,7 @@ function ore_resource_assign(v, field_id)
     if ((field_id % 3) !== 1) {
         return v;
     }
-    v.resource = resources[campaign.world].key;
+    v.resource = world_resource(campaign.world).key;
     v.amount = 2 + Math.floor((v.r - 22)/12);
     return v;
 }
@@ -101,7 +109,7 @@ function cargo_spill(enemy)
     }
     const count = (enemy.type === 'boss') ? 6 : 1 + Math.floor(Math.random()*2);
     for (let i = 0; i < count; ++i) {
-        const key = (Math.random() < 0.6) ? resources[campaign.world].key : (Math.random() < 0.5) ? 'cells' : 'relics';
+        const key = (Math.random() < 0.6) ? world_resource(campaign.world).key : (Math.random() < 0.5) ? 'cells' : 'relics';
         pickups.push({
             x: clamp(enemy.x + rand(-30, 30), 25, world.w - 25),
             y: clamp(enemy.y + rand(-30, 30), 25, world.h - 25),

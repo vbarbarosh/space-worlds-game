@@ -18,14 +18,18 @@ dev_time.scale = dev_scenario.speed;
 function dev_scenario_from_url()
 {
     const params = new URLSearchParams(location.search);
-    const world = Number(params.get('world'));
+    // a world by its number or its file name: world=8, world=felt, world=ion-reach
+    const named = worlds.findIndex((v, i) => world_slug(i) === params.get('world'));
+    const world = (named >= 0) ? named : Number(params.get('world'));
+    // a world that lets in one ship alone starts in it unless the URL names another
+    const only = worlds[world] && expedition_conditions[world].only;
     function flag(name, fallback) {
         return params.has(name) ? (params.get(name) === '1') : fallback;
     }
     return {
         started: params.has('world'),
         world: (Number.isInteger(world) && worlds[world]) ? world : 0,
-        ship: ship_catalog.some(v => v.id === params.get('ship')) ? params.get('ship') : 'scout',
+        ship: ship_catalog.some(v => v.id === params.get('ship')) ? params.get('ship') : (only || 'scout'),
         weapon: weapon_catalog.some(v => v.id === params.get('weapon')) ? params.get('weapon') : 'plasma',
         tier: clamp(Number(params.get('tier')) || 1, 1, 5),
         difficulty: ['chill', 'normal', 'overload'].includes(params.get('difficulty')) ? params.get('difficulty') : 'normal',
@@ -108,7 +112,8 @@ function dev_scenario_start()
 function dev_arcade_start()
 {
     difficulty = dev_scenario.difficulty;
-    arcade_start(dev_scenario.world);
+    // the arcade's run is the first eight worlds: from Feltmere, outside it, the run starts in Haven
+    arcade_start((dev_scenario.world < arcade_worlds) ? dev_scenario.world : 0);
     dev_scenario_save();
     dev_panel_refresh();
 }

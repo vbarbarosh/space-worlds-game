@@ -72,10 +72,12 @@ A pair crosses a big distance: fly into one end, leave by the other.
     diagonal (H);
   - the station's pairs: one end 1.5 km out toward a world gate, the other
     440 m beside that gate (D, E, F); a world with two gates gives F to the
-    first beacon that fits; Haven has only D.
+    first beacon that fits; Haven and Feltmere (one gate) have only D.
 - **Placed in that order, and a pair that breaks a rule is left out.** The
   arcade's map (7.2 × 5.6 km) is too small for the station's pairs to save
   a flight, and its gates do nothing, so it has the three crossings only.
+  Its maps keep only the gates of its own run: Haven has no gate to
+  Feltmere there.
 - Where: `configure_expedition_portals`, `src/js/expedition.js`.
 
 ## Round them

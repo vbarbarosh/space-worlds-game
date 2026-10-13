@@ -11,7 +11,7 @@
 
 # World Explorer
 
-A space flight, trade and exploration game: eight worlds, six ship classes, story chapters and frontier expeditions, offline, with no server.
+A space flight, trade and exploration game: nine worlds (the ninth, Feltmere, open only to the felt rocket), seven ship classes, story chapters and frontier expeditions, offline, with no server.
 
 [Website](https://vbarbarosh.github.io/space-worlds-game/)
 
@@ -57,7 +57,7 @@ Two modes:
     bin/build-docs   docs/ as a website in build/docs, with the game from
                      bin/build in play/; published to GitHub Pages on every
                      push to main (.github/workflows/docs.yml)
-    bin/perf         frame times, garbage and drawing costs over 42 scenes
+    bin/perf         frame times, garbage and drawing costs over 46 scenes
                      (every world calm and in a fight, zoom 100% and 50%,
                      the arcade, campaigns of 10, 50 and 100 structures,
                      jumps in 3D); see docs/performance-2026-10-05.md
@@ -75,7 +75,7 @@ Two modes:
 `build/dev.html` is the developer mode: the game with a dev panel. It starts
 straight into any world, ship and weapon, and has time controls, cheats,
 enemy and target-dummy spawning, live upgrade levels and a sound board. The
-scene lives in the URL, e.g. `dev.html?world=3&ship=gunship&weapon=rail`.
+scene lives in the URL, e.g. `dev.html?world=3&ship=gunship&weapon=rail`; a world goes by number or file name (`world=felt` opens Feltmere in the felt rocket).
 `&screen=station-arsenal` (or flight, combat, arcade, crowded, pause, menu,
 map-plan, ...; the list is in src/js/dev/screen.js) opens that screen with the
 panel folded. It keeps its own storage and never touches the game's save.

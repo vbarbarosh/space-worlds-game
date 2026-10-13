@@ -8,6 +8,8 @@ const galaxy_positions = [
     [720, 80],
     [720, 260],
     [880, 170],
+    // Feltmere, above Haven: its only lane
+    [80, 42],
 ];
 
 // The direction from one world to another on the galaxy chart, in radians, y down as on the map
@@ -35,7 +37,8 @@ function render_galaxy_chart(parent, c)
             const b = positions[id];
             const active = route_edges.has(`${i}:${id}`);
             const known = campaign.visited.includes(i) || campaign.visited.includes(id);
-            const open = allowed_world(i) && allowed_world(id);
+            // the world you stand in is open to leave, whatever your ship
+            const open = (allowed_world(i) || (i === campaign.world)) && (allowed_world(id) || (id === campaign.world));
             const stroke = active ? gold : open ? '#6f8fb8' : '#b0457a';
             svg +=
                 `<path d="M ${a[0]} ${a[1]} L ${b[0]} ${b[1]}" stroke="${stroke}" stroke-width="${active ? 4 : 2}"${(active || !open) ? ' stroke-dasharray="7 7"' : ''} opacity="${(active || known) ? 1 : 0.45}"/>`;
@@ -50,7 +53,8 @@ function render_galaxy_chart(parent, c)
         const locked = !allowed_world(i) && !current;
         // a world not reached yet is faded, a locked one more, the one you are heading for less
         const opacity = reached ? 1 : target ? 0.85 : locked ? 0.45 : 0.7;
-        const status = current ? 'YOU ARE HERE' : locked ? 'UPGRADES REQUIRED' : reached ? 'VISITED' : 'OPEN · NOT VISITED';
+        const only = world_ship_lock(i);
+        const status = current ? 'YOU ARE HERE' : (locked && only) ? `NEEDS THE ${only.name.toUpperCase()}` : locked ? 'UPGRADES REQUIRED' : reached ? 'VISITED' : 'OPEN · NOT VISITED';
         const status_color = current ? cyan : locked ? pink : reached ? '#9dff9b' : '#c9d6e6';
         const ring = current ? cyan : target ? gold : reached ? '#9dff9b' : locked ? '#b0457a' : '#c9d6e6';
         const art = sprite_svgs.worlds?.[world_slug(i)]?.[`planet-${world_slug(i)}`];
@@ -71,7 +75,8 @@ function render_galaxy_chart(parent, c)
             svg += `<circle cx="${p[0] + 24}" cy="${p[1] - 24}" r="8" fill="#0b1a14" stroke="#9dff9b" stroke-width="2"/><path d="M ${p[0] + 20} ${p[1] - 24} l 3 3 l 5 -6" stroke="#9dff9b" stroke-width="2" fill="none"/>`;
         }
         svg +=
-            `<text x="${p[0]}" y="${p[1] + 53}" text-anchor="middle" fill="#e9f6ff" font-size="15" font-weight="bold">${world.name}</text><text x="${p[0]}" y="${p[1] + 70}" text-anchor="middle" fill="${status_color}" font-size="10">${status}</text></g>`;
+            // the labels on a halo of the chart's dark, so a lane passing under them (Feltmere's, up from Haven) never cuts them
+            `<text x="${p[0]}" y="${p[1] + 53}" text-anchor="middle" fill="#e9f6ff" font-size="15" font-weight="bold" stroke="#0a1426" stroke-width="5" paint-order="stroke">${world.name}</text><text x="${p[0]}" y="${p[1] + 70}" text-anchor="middle" fill="${status_color}" font-size="10" stroke="#0a1426" stroke-width="4" paint-order="stroke">${status}</text></g>`;
     }
     svg += '</svg>';
     const div = document.createElement('div');
@@ -94,7 +99,7 @@ function render_galaxy_chart(parent, c)
     const legend = document.createElement('p');
     legend.className = 'chart-legend';
     legend.textContent =
-        `${campaign.visited.length} OF ${worlds.length} WORLDS VISITED · CLICK A WORLD TO PLAN TRAVEL · CYAN RING: YOU · ✓ VISITED · DASHED RING: OPEN, NOT VISITED · PADLOCK: UPGRADES REQUIRED · GOLD: YOUR ROUTE · Lanes are world gates, not the local jump gates.`;
+        `${campaign.visited.length} OF ${worlds.length} WORLDS VISITED · CLICK A WORLD TO PLAN TRAVEL · CYAN RING: YOU · ✓ VISITED · DASHED RING: OPEN, NOT VISITED · PADLOCK: UPGRADES OR ANOTHER SHIP REQUIRED · GOLD: YOUR ROUTE · Lanes are world gates, not the local jump gates.`;
     parent.append(legend);
 }
 

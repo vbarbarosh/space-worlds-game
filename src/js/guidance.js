@@ -113,7 +113,7 @@ function guide_action()
         toggle_pause();
     }
     if ((c.kind === 'prepare') && (state === 'upgrade')) {
-        station_tab = (c.purchases[0]?.key === 'gun') ? 'arsenal' : 'outfit';
+        station_tab = (c.purchases[0]?.key === 'gun') ? 'arsenal' : (c.purchases[0]?.key === 'ship') ? 'hangar' : 'outfit';
         render_station();
         el.shop_grid.querySelector(`[data-key="${c.purchases[0]?.key}"]`)?.scrollIntoView({block: 'center', behavior: 'smooth'});
         return;
@@ -337,6 +337,10 @@ function guide_purchase_buttons(purchases)
     for (const p of purchases) {
         if (p.key === 'gun') {
             out.append(ui_button({label: `Arsenal · ${p.title}`, size: 'sm', on: () => station_tab_open('arsenal')}));
+            continue;
+        }
+        if (p.key === 'ship') {
+            out.append(ui_button({label: `Hangar · ${p.name}${p.price ? ` · ◆ ${p.price}` : ''}`, size: 'sm', on: () => station_tab_open('hangar')}));
             continue;
         }
         const option = upgrade_options.find(v => v.key === p.key);

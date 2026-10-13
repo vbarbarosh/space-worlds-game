@@ -75,8 +75,9 @@ function render_celestial_body(body)
         ctx.drawImage(corona, px - diam, py - diam, diam*2, diam*2);
         ctx.globalAlpha = 1;
     }
-    // The designer's planet: its disc as wide as today's, a little see-through so it stays in the background
-    const art = body.primary && world_art(`planet-${world_slug()}`);
+    // The designer's planet: its disc as wide as today's, a little see-through so it stays in the background; a body
+    // with a drawing of its own (Feltmere's sun) the same way
+    const art = body.art || (body.primary && world_art(`planet-${world_slug()}`));
     if (art && sprite_draw_box(art, null, diam*0.913, px, py, 0, 0.85)) {
         return;
     }

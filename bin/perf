@@ -6,12 +6,12 @@ const path = require('node:path');
 const {chromium} = require('playwright');
 
 const data_dir = path.join(__dirname, '..', 'data', 'perf');
-// Every world in calm flight and in a heavy fight, and the arcade's last worlds in their third wave, at both zooms; a
+// Every world in calm flight and in a heavy fight (Feltmere, the ninth, too), and the arcade's last worlds in their third wave, at both zooms; a
 // mature campaign of 10, 50 and 100 structures in Haven, as many in the other worlds, raiders on them; and in 3D, jumps
 // from world to world, its station and models counted (each jump must leave one station, not one more)
 const scenes = [];
 for (const zoom of [1, 0.5]) {
-    for (let world = 0; world < 8; ++world) {
+    for (let world = 0; world < 9; ++world) {
         scenes.push({value: `calm-w${world}-z${zoom*100}`, kind: 'calm', world, zoom});
         scenes.push({value: `fight-w${world}-z${zoom*100}`, kind: 'fight', world, zoom});
     }

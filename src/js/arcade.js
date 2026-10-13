@@ -95,6 +95,12 @@ addEventListener('keydown', function (event) {
 });
 sync_mode_note();
 
+// The ships the arcade sells: all but those a world outside its run keeps for itself (Feltmere's felt rocket)
+function arcade_ship_catalog()
+{
+    return ship_catalog.filter(v => !expedition_conditions.some((e, i) => (i >= arcade_worlds) && (e.only === v.id)));
+}
+
 // A run from world 1, or (from: an arcade save) resumed at the start of the world it was saved in
 function arcade_start(world = 0, from = null)
 {
@@ -615,7 +621,7 @@ function arcade_flagship_spawn()
 // before the jump to the next world.
 function arcade_world_clear()
 {
-    if (campaign.world === worlds.length - 1) {
+    if (campaign.world === arcade_worlds - 1) {
         state = 'victory';
         victory_timer = 2.5;
         return;
@@ -742,7 +748,7 @@ function arcade_depot_fill()
     const here = cleared ? cleared.world : campaign.world;
     const next = cleared ? cleared.world + 1 : null;
     set_hidden(document.getElementById('cleared_tick'), !cleared);
-    document.getElementById('arcade_depot_eyebrow').textContent = `Arcade · depot · world ${here + 1} of ${worlds.length}`;
+    document.getElementById('arcade_depot_eyebrow').textContent = `Arcade · depot · world ${here + 1} of ${arcade_worlds}`;
     document.getElementById('cleared_title').textContent = cleared ? `${worlds[here].name} cleared` : worlds[here].station;
     const stats = [['Raiders', String(kills)], ['Time', format_time(run_time)], ...(cleared ? [['Bonus', `+${cleared.bonus}`]] : []), ['Score', ui_number(score)]];
     document.getElementById('cleared_stats').innerHTML = stats.map(v => `<div><dt>${v[0]}</dt><dd${(v[0] === 'Bonus') ? ' class="t-gold"' : ''}>${v[1]}</dd></div>`).join('');
@@ -812,7 +818,7 @@ function arcade_depot_items()
         const room = carried < mounts.filter(v => gun_fits(weapon, v)).length;
         const spare = (owned[weapon.id] || 0) > carried;
         const where = (mounts.length > 1) ? `On ${carried} of your ${mounts.length} mounts.` : 'On your one mount.';
-        const line = !fits ? `Needs a ${weapon.size} mount: ${ship_catalog.filter(v => gun_fits_ship(weapon, v)).map(v => v.name).join(', ')}.` : carried ? (room ? `${where} Buy another for one more mount.` : `${where} Every gun grows a tier with every world you clear.`) : spare ? `Yours, spare. ${weapon.line}` : weapon.line;
+        const line = !fits ? `Needs a ${weapon.size} mount: ${arcade_ship_catalog().filter(v => gun_fits_ship(weapon, v)).map(v => v.name).join(', ')}.` : carried ? (room ? `${where} Buy another for one more mount.` : `${where} Every gun grows a tier with every world you clear.`) : spare ? `Yours, spare. ${weapon.line}` : weapon.line;
         out.push({
             kind: 'weapon', id: weapon.id, section: 'weapons', title: carried ? `${weapon.name} T${weapon_level()}${(carried > 1) ? ` ×${carried}` : ''}` : weapon.name,
             line,
@@ -825,7 +831,7 @@ function arcade_depot_items()
     }
     // the ships in the catalog's order, their hull, shield and speed against yours; a ship bought stays yours too
     const flying = current_ship();
-    for (const ship of ship_catalog) {
+    for (const ship of arcade_ship_catalog()) {
         const now = ship.id === flying.id;
         const have = ensure_career().ships.includes(ship.id);
         out.push({
@@ -1106,7 +1112,7 @@ function arcade_finish(won)
         ? `Eight worlds, eight flagships, ${format_time(run_time)}.`
         : `You reached ${worlds[campaign.world].name}, wave ${arcade.wave} of ${arcade_waves}.${salvage ? ` Salvage kept: ◆ ${ui_number(salvage)}, +${ui_number(kept)} points.` : ''}`;
     el.result_score.textContent = score.toLocaleString();
-    el.result_sector.textContent = `${campaign.world + 1} / ${worlds.length}`;
+    el.result_sector.textContent = `${campaign.world + 1} / ${arcade_worlds}`;
     el.result_best.textContent = `${record ? 'NEW PERSONAL BEST · ' : 'PERSONAL BEST · '}${best.toLocaleString()}  /  ${kills} ELIMINATIONS · ${format_time(run_time)}`;
     document.getElementById('restart_button').focus();
 }
@@ -1130,7 +1136,7 @@ function arcade_kill_shake(enemy)
 
 function arcade_update_hud()
 {
-    hud_text(el.act_label, `ARCADE · WORLD ${campaign.world + 1} / ${worlds.length} · ${world_looks[campaign.world].biome}`);
+    hud_text(el.act_label, `ARCADE · WORLD ${campaign.world + 1} / ${arcade_worlds} · ${world_looks[campaign.world].biome}`);
     hud_text(el.mission_name, worlds[campaign.world].name.toUpperCase());
     hud_text(el.mission_phase, (arcade.pause > 0) ? `WAVE ${arcade.wave} CLEAR` : `WAVE ${Math.max(1, arcade.wave)} / ${arcade_waves}`);
     const total = arcade_wave_size(arcade.wave);

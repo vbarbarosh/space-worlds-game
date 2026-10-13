@@ -1,5 +1,5 @@
 // Flagships: each world's flagship is a fight of its own, its moves taken from its look and its world. One entry a world
-// in boss_designs (Haven to Eclipse): how it moves, its gun, its attacks, and the cycle it runs them in, one for each
+// in boss_designs (Haven to Eclipse, then Feltmere): how it moves, its gun, its attacks, and the cycle it runs them in, one for each
 // half of its hull. Every attack shows its tell first (a wind-up, a glow, a drawn line or circle) and can be dodged;
 // a big attack ends in a window where the hull is exposed and takes more damage. The same kinds of attack drive the
 // arcade elites' tricks (elite_tricks). Hooks: update() calls boss_update for a flagship or an elite, damage_enemy asks
@@ -201,11 +201,35 @@ const boss_designs = [
             singularity: {kind: 'well', count: 1, tell: 1.5, life: 4.5, reach: 380, pull: 150, core: 70, damage: 18, drain: 6, stall: 4.5},
         },
     },
+    {
+        // Feltmere: a needle-felted stag beetle; it circles you, flicks pins from its mandibles, drops woollen pom-poms
+        // that burst when you fly close, lowers its horns and butts across you, then sits tangled in its own yarn; in its
+        // second half a ring of buttons with one gap, and its ladybugs hatch. A gentle world: the hull of Haven's
+        name: 'THE WOOL STAG',
+        hull: 1,
+        hint: 'IT LOWERS ITS HORNS BEFORE IT BUTTS · HIT IT WHILE IT SITS TANGLED',
+        move: {kind: 'orbit', range: 400, turn: 0.38},
+        gun: {every: 2.6, weapon: 'plasma', speed: 220},
+        gap: 1.2,
+        cycles: [
+            ['pins', 'pompoms', 'horns'],
+            ['pins_wide', 'buttons', 'horns', 'pompoms', 'ladybugs', 'horns'],
+        ],
+        phase2: {title: 'THE YARN UNRAVELS', line: 'A RING OF BUTTONS WITH ONE GAP · ITS LADYBUGS HATCH'},
+        attacks: {
+            pins: {kind: 'fan', emitters: [[0.9, -0.35], [0.9, 0.35]], count: 3, spread: 0.35, weapon: 'plasma', speed: 145, volleys: 2, every: 0.45, tell: 0.7},
+            pins_wide: {kind: 'fan', emitters: [[0.9, -0.35], [0.9, 0.35]], count: 5, spread: 0.55, weapon: 'plasma', speed: 150, volleys: 2, every: 0.4, tell: 0.7},
+            pompoms: {kind: 'mines', place: 'around', count: 5, arm: 1.3, life: 8, reach: 80, trigger: 95, damage: 16, look: 'spore', tell: 0.7},
+            horns: {kind: 'charge', speed: 720, length: 1100, width: 1.3, tell: 1.2, drop: null, stall: 2.6},
+            buttons: {kind: 'ring', count: 16, gap: 1.3, weapon: 'plasma', speed: 120, rings: 2, every: 0.65, tell: 0.9},
+            ladybugs: {kind: 'summon', types: ['chaser', 'chaser', 'chaser'], tell: 1.3, eyes: true, stall: 2.4},
+        },
+    },
 ];
 
 // An arcade elite's trick, by world: an attack of the same kinds, smaller, every `every` seconds, while you are within
 // 750 m. Haven's bursts, Verdant's spores, Dustfall's charge, Ion Reach's and Eclipse's jumps, Obsidian's locked rail,
-// Cryosphere's frost ring, Nova Forge's embers.
+// Cryosphere's frost ring, Nova Forge's embers, Feltmere's pom-poms.
 const elite_tricks = [
     {every: 5, attack: {kind: 'fan', emitters: [[0.6, 0]], count: 3, spread: 0.3, weapon: 'plasma', speed: 150, volleys: 2, every: 0.4, tell: 0.6}},
     {every: 6, attack: {kind: 'mines', place: 'around', count: 2, arm: 1.2, life: 7, reach: 70, trigger: 90, damage: 14, look: 'spore', tell: 0.4}},
@@ -215,6 +239,7 @@ const elite_tricks = [
     {every: 7, attack: {kind: 'wave', reach: 280, speed: 300, width: 20, damage: 14, tell: 1, effect: 'chill'}},
     {every: 6, attack: {kind: 'mines', place: 'player', count: 3, spread: 160, arm: 1.3, life: 1.3, reach: 70, damage: 16, look: 'ember', tell: 0.3}},
     {every: 7, attack: {kind: 'blink', tell: 0.8, range: 320}},
+    {every: 6, attack: {kind: 'mines', place: 'around', count: 2, arm: 1.3, life: 7, reach: 70, trigger: 90, damage: 12, look: 'spore', tell: 0.5}},
 ];
 
 // The fight of each flagship and the trick of each elite, by its ship; gone with it

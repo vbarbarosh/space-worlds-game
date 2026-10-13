@@ -294,11 +294,11 @@ function update_audio_scene()
     f.air_filter.frequency.setTargetAtTime(boost ? 2300 : 1200, now, 0.5);
     const id = campaign.world;
     const sheltered = player && (distance(player, station) < station_shelter);
-    const ambient = flight ? [0.014, 0.034, 0.025, 0.042, 0.035, 0.018, 0.05, 0.028][id]*(sheltered ? 0.35 : 1) : 0;
+    const ambient = flight ? [0.014, 0.034, 0.025, 0.042, 0.035, 0.018, 0.05, 0.028, 0.02][id]*(sheltered ? 0.35 : 1) : 0;
     f.space_gain.gain.setTargetAtTime(ambient, now, 0.5);
-    f.space_filter.frequency.setTargetAtTime([420, 950, 380, 1500, 260, 1100, 650, 190][id], now, 0.8);
+    f.space_filter.frequency.setTargetAtTime([420, 950, 380, 1500, 260, 1100, 650, 190, 600][id], now, 0.8);
     f.reactor_gain.gain.setTargetAtTime(flight ? 0.008 : 0, now, 0.3);
-    f.reactor.frequency.setTargetAtTime([62, 73, 55, 82, 46, 88, 65, 38][id], now, 0.7);
+    f.reactor.frequency.setTargetAtTime([62, 73, 55, 82, 46, 88, 65, 38, 58][id], now, 0.7);
     sound.combat = (flight && enemies.some(v => (v.hp > 0) && (distance(v, player) < 850))) ? 1 : 0;
 }
 

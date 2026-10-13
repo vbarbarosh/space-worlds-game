@@ -14,8 +14,10 @@ const dev_screen_options = [
     {value: 'station-outfit', label: 'Station: modules'},
     {value: 'station-career', label: 'Station: goals'},
     {value: 'station-market', label: 'Station: market'},
+    {value: 'station-hangar', label: 'Station: hangar'},
     {value: 'map-plan', label: 'Map: mission plan'},
     {value: 'map-local', label: 'Map: world map'},
+    {value: 'map-worlds', label: 'Map: worlds and lanes'},
     {value: 'pause', label: 'Pause'},
     {value: 'menu', label: 'Main menu'},
 ];
@@ -68,7 +70,7 @@ function dev_screen_open()
     if (dev_screen === 'arcade-finale') {
         dev_arcade_start();
         dev_screen_modules_set();
-        campaign.world = worlds.length - 1;
+        campaign.world = arcade_worlds - 1;
         score = 556825;
         kills = 700;
         run_time = 824;
@@ -90,7 +92,7 @@ function dev_screen_open()
         dev_arcade_start();
         dev_screen_modules_set();
         // the eighth world ends in the finale instead
-        campaign.world = Math.min(campaign.world, worlds.length - 2);
+        campaign.world = Math.min(campaign.world, arcade_worlds - 2);
         arcade.world_start = {score: 18400, kills: 41, run_time: 512};
         score = 31960;
         kills = 77;
@@ -127,6 +129,10 @@ function dev_screen_open()
     }
     if (dev_screen === 'map-local') {
         open_local_world_map();
+        return;
+    }
+    if (dev_screen === 'map-worlds') {
+        open_map();
         return;
     }
     if (dev_screen === 'pause') {

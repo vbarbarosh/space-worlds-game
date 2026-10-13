@@ -45,6 +45,7 @@
   /* world accents (the game sets --world to the current one) */
   --w-haven: #6cf8ec;  --w-verdant: #9dff9b;  --w-dustfall: #ffd16e;  --w-ion-reach: #8d9cff;
   --w-obsidian: #ed97cf;  --w-cryosphere: #8be9ff;  --w-nova-forge: #ff9469;  --w-eclipse: #ff5baf;
+  --w-felt: #ffb46b;
   --world: var(--w-haven);
 
   /* type */

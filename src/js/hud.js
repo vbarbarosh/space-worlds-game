@@ -250,8 +250,8 @@ function sync_hud_kit()
 function sync_arcade_card()
 {
     const id = campaign.world;
-    const pips = Math.ceil(((id + 1)/worlds.length)*5);
-    hud_html(document.getElementById('mc_where'), `${ui_world_badge(id)}<span class="small">Arcade · world ${id + 1}/${worlds.length}</span><span class="threat" title="Threat ${id + 1} of ${worlds.length}">${[0, 1, 2, 3, 4].map(v => `<b class="${(v < pips) ? 'on' : ''}"></b>`).join('')}</span>`);
+    const pips = Math.ceil(((id + 1)/arcade_worlds)*5);
+    hud_html(document.getElementById('mc_where'), `${ui_world_badge(id)}<span class="small">Arcade · world ${id + 1}/${arcade_worlds}</span><span class="threat" title="Threat ${id + 1} of ${arcade_worlds}">${[0, 1, 2, 3, 4].map(v => `<b class="${(v < pips) ? 'on' : ''}"></b>`).join('')}</span>`);
     const wave = Math.max(1, arcade.wave);
     const left = spawn_left + enemies.filter(v => v.hp > 0).length;
     const threat = hud_threat();
@@ -305,8 +305,10 @@ function sync_mission_card()
     const m = focused_contract();
     const threat = hud_threat();
     const id = campaign.world;
-    const pips = Math.ceil(((id + 1)/worlds.length)*5);
-    hud_html(document.getElementById('mc_where'), `${ui_world_badge(id)}<span class="threat" title="Threat ${id + 1} of ${worlds.length}">${[0, 1, 2, 3, 4].map(v => `<b class="${(v < pips) ? 'on' : ''}"></b>`).join('')}</span>`);
+    // the threat by the world's tier, of eight: Feltmere is as calm as Haven
+    const threat_level = Math.floor(world_tier(id)) + 1;
+    const pips = Math.ceil((threat_level/arcade_worlds)*5);
+    hud_html(document.getElementById('mc_where'), `${ui_world_badge(id)}<span class="threat" title="Threat ${threat_level} of ${arcade_worlds}">${[0, 1, 2, 3, 4].map(v => `<b class="${(v < pips) ? 'on' : ''}"></b>`).join('')}</span>`);
     const step = (g && (g.index >= 0)) ? g.steps[g.index] : null;
     const goal_leads = step && !m;
     let kind = 'Next';
