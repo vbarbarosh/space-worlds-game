@@ -19,7 +19,7 @@ const screens = [
     // over the line: the results and the prize on the board
     {value: 'race-finish', label: 'hud-race-results'},
     // the world's cleared screen held after its button is ready
-    {value: 'arcade-world-cleared', label: 'arcade-world-cleared', query: '&t=5'},
+    {value: 'arcade-world-cleared', label: 'arcade-world-cleared', query: '&t=7'},
     {value: 'arcade-cleared', label: 'arcade-cleared'},
     // the finale held after its results are in
     {value: 'arcade-finale', label: 'arcade-finale', query: '&t=13'},

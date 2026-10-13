@@ -1194,11 +1194,13 @@ body:not(.in-game) .ui.hud .hud-top .toolbar {
 }
 
 /* the arcade's ending (the designer's arcade-finale.html): a canvas for the sky, the trail and the fireworks; the
-   planets, the ship, the title and the results over it, placed each frame by arcade_finale.js */
+   planets, the ship, the title and the results over it, placed each frame by arcade_finale.js, which also fades the
+   whole of it in over the game (after a world, once the flagship's death has been seen) */
 .ui.overlay#arcade_finale {
     display: block;
     padding: 0;
     background: #02050b;
+    opacity: 0;
 }
 
 .ui .finale {
@@ -1226,7 +1228,9 @@ body:not(.in-game) .ui.hud .hud-top .toolbar {
     pointer-events: none;
 }
 
+/* unseen until arcade_finale.js places it, so a planet it never places is never drawn at its own size */
 .ui .finale-planet {
+    opacity: 0;
     transform-origin: 50% 50%;
     will-change: transform, opacity, filter;
 }
@@ -1417,8 +1421,10 @@ body:not(.in-game) .ui.hud .hud-top .toolbar {
     color: var(--gold-ink);
 }
 
+/* the buttons wrap to a second row where a phone's width cannot hold them in one */
 .ui .finale-acts {
     display: flex;
+    flex-wrap: wrap;
     justify-content: center;
     gap: 10px;
     opacity: 0;
