@@ -3,12 +3,14 @@
 // blocks and of the labels before it, and kept inside the window. A target off the screen becomes an edge marker.
 const world_label_pad = 8;
 let world_labels = [];
+const world_labels_taken = [];
 
 // Queue a label hanging from (x, y) in the canvas's current frame: `title` in bold, `sub` under it
 function world_label(x, y, title, sub = '', color = cyan)
 {
-    const p = ctx.getTransform().transformPoint(new DOMPoint(x, y));
-    world_labels.push({x: p.x/dpr, y: p.y/dpr, title, sub, color});
+    // the point through the canvas's matrix as DOMMatrix.transformPoint works it, with no points made for it
+    const t = ctx.getTransform();
+    world_labels.push({x: (x*t.a + y*t.c + t.e)/dpr, y: (x*t.b + y*t.d + t.f)/dpr, title, sub, color});
 }
 
 function render_world_labels()
@@ -22,7 +24,12 @@ function render_world_labels()
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
-    const taken = [...hud_layout.rects];
+    // the HUD's blocks and the plates placed so far, in one list kept from frame to frame
+    const taken = world_labels_taken;
+    taken.length = 0;
+    for (let i = 0; i < hud_layout.rects.length; ++i) {
+        taken.push(hud_layout.rects[i]);
+    }
     for (const v of labels) {
         // a thing off the window keeps its name off it too
         if ((v.x < 0) || (v.x > hud_layout.width) || (v.y < -40) || (v.y > hud_layout.height)) {
@@ -74,28 +81,39 @@ function hud_place_label(box, rects)
 {
     let x = box.x;
     let y = box.y;
-    function inside(vx, vy) {
-        return (vx - box.w/2 >= world_label_pad) && (vx + box.w/2 <= hud_layout.width - world_label_pad) && (vy >= world_label_pad) && (vy + box.h <= hud_layout.height - world_label_pad);
-    }
-    x = clamp(x, world_label_pad + box.w/2, hud_layout.width - world_label_pad - box.w/2);
+    const half = box.w/2;
+    x = clamp(x, world_label_pad + half, hud_layout.width - world_label_pad - half);
     y = clamp(y, world_label_pad, hud_layout.height - world_label_pad - box.h);
     for (let pass = 0; pass < 8; ++pass) {
         let moved = false;
-        for (const r of rects) {
-            const b = {left: x - box.w/2, right: x + box.w/2, top: y, bottom: y + box.h};
-            if (!hud_rects_hit(b, r)) {
+        for (let i = 0; i < rects.length; ++i) {
+            const r = rects[i];
+            const left = x - half;
+            const right = x + half;
+            const bottom = y + box.h;
+            if (!((left < r.right) && (right > r.left) && (y < r.bottom) && (bottom > r.top))) {
                 continue;
             }
-            const moves = [
-                {x, y: y - (b.bottom - r.top), cost: b.bottom - r.top},
-                {x, y: y + (r.bottom - b.top), cost: r.bottom - b.top},
-                {x: x - (b.right - r.left), y, cost: (b.right - r.left)*1.6},
-                {x: x + (r.right - b.left), y, cost: (r.right - b.left)*1.6},
-            ].sort(function (p, q) {
-                return (inside(q.x, q.y) - inside(p.x, p.y)) || (p.cost - q.cost);
-            });
-            x = moves[0].x;
-            y = moves[0].y;
+            // the four ways out, up, down, left and right, in that order: the first inside the window, the cheapest
+            // of those, wins (as a stable sort of them by both would put first); worked in numbers, no list made
+            let best_x = x;
+            let best_y = y - (bottom - r.top);
+            let best_cost = bottom - r.top;
+            let best_inside = hud_label_inside(box, best_x, best_y);
+            for (let way = 1; way < 4; ++way) {
+                const vx = (way === 2) ? x - (right - r.left) : (way === 3) ? x + (r.right - left) : x;
+                const vy = (way === 1) ? y + (r.bottom - y) : y;
+                const cost = (way === 1) ? r.bottom - y : (way === 2) ? (right - r.left)*1.6 : (r.right - left)*1.6;
+                const inside = hud_label_inside(box, vx, vy);
+                if ((inside > best_inside) || ((inside === best_inside) && (cost < best_cost))) {
+                    best_x = vx;
+                    best_y = vy;
+                    best_cost = cost;
+                    best_inside = inside;
+                }
+            }
+            x = best_x;
+            y = best_y;
             moved = true;
         }
         if (!moved) {
@@ -104,6 +122,12 @@ function hud_place_label(box, rects)
     }
     // boxed in between blocks: no place for it this frame
     return null;
+}
+
+// Whether a box ({w, h}) centred at vx with its top at vy is inside the window, its margin kept
+function hud_label_inside(box, vx, vy)
+{
+    return (vx - box.w/2 >= world_label_pad) && (vx + box.w/2 <= hud_layout.width - world_label_pad) && (vy >= world_label_pad) && (vy + box.h <= hud_layout.height - world_label_pad);
 }
 
 function hud_rects_hit(a, b)

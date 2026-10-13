@@ -438,6 +438,9 @@ function structure_prey(enemy)
     return structures_here().find(v => v.id === enemy.structure_target) || null;
 }
 
+// The platform's heavy turret as render_structures draws it, one for all of them
+const structure_turret = {id: 'heavy', color: gold};
+
 function render_structures()
 {
     for (const v of structures_here()) {
@@ -449,7 +452,7 @@ function render_structures()
         ctx.globalAlpha = 0.35 + v.built*0.65;
         // The designer's outpost turns its drill ring while its drones are out; the platform carries the heavy turret
         const working = (v.kind === 'outpost') && outpost_busy(v);
-        const drawn = sprite_draw_box(`structures/${(v.kind === 'outpost') ? 'mining-outpost' : 'defence-platform'}`, null, k.size*1.1, v.x, v.y, 0, ctx.globalAlpha, working ? clock*1.2 : 0);
+        const drawn = sprite_draw_box((v.kind === 'outpost') ? 'structures/mining-outpost' : 'structures/defence-platform', null, k.size*1.1, v.x, v.y, 0, ctx.globalAlpha, working ? clock*1.2 : 0);
         if (!drawn) {
             polygon(v.x, v.y, k.size*0.42, (v.kind === 'outpost') ? 6 : 8, 0, gold, '#2b2210');
         }
@@ -460,13 +463,20 @@ function render_structures()
             ctx.save();
             ctx.translate(v.x, v.y);
             ctx.rotate(v.aim);
-            turret_draw(ctx, {id: 'heavy', color: gold}, 34, 0);
+            turret_draw(ctx, structure_turret, 34, 0);
             ctx.restore();
         }
         ctx.restore();
-        const outpost_text = v.idle ? `field empty · ${v.store}/${outpost_store}` : (v.store >= outpost_store) ? `full ${v.store}/${outpost_store} · awaiting pickup` : `mining · ${v.store}/${outpost_store}`;
+        // the line under the name made only for the structure it is for
+        let sub = '';
+        if (v.built < 1) {
+            sub = `building ${Math.round(v.built*100)}%`;
+        }
+        else if (v.kind === 'outpost') {
+            sub = v.idle ? `field empty · ${v.store}/${outpost_store}` : (v.store >= outpost_store) ? `full ${v.store}/${outpost_store} · awaiting pickup` : `mining · ${v.store}/${outpost_store}`;
+        }
         const title = (v.kind === 'outpost') ? 'OUTPOST' : 'DEFENSE PLATFORM';
-        world_label(v.x, v.y + k.size*0.75 + 2, title, (v.built < 1) ? `building ${Math.round(v.built*100)}%` : (v.kind === 'outpost') ? outpost_text : '', gold);
+        world_label(v.x, v.y + k.size*0.75 + 2, title, sub, gold);
         ctx.save();
         ctx.fillStyle = '#0b1222';
         ctx.fillRect(v.x - 30, v.y - k.size*0.75 - 12, 60, 4);
