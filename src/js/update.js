@@ -92,7 +92,8 @@ function update_effects(dt)
     flash = Math.max(0, flash - dt);
 }
 
-function update(dt)
+// dt: the game's time this frame; frame_dt: the screen's, longer in the arcade's slow motion
+function update(dt, frame_dt = dt)
 {
     time += dt;
     update_effects(dt);
@@ -255,19 +256,33 @@ function update(dt)
     if (target) {
         guns_fire(near);
     }
+    // A moving ship leaves a ghost of itself, and its engine a spark seven times in ten, every 60th of a second of the
+    // screen's time however often it draws (in the arcade's slow motion too, as at 60 Hz): at 144 Hz most frames leave
+    // none, a long frame the ones it owes (three at most), the older ones back along the way it came this frame and as
+    // old as they would be
     if (Math.hypot(player.vx, player.vy) > 20) {
-        trail.push({x: player.x, y: player.y, angle: player.angle, life: (player.dash_time > 0) ? 0.3 : 0.16, total: (player.dash_time > 0) ? 0.3 : 0.16});
-        if (full_fx && (player.turbo_active || (player.engine_thrust > 0.05)) && (Math.random() < 0.7)) {
-            particles.push({
-                x: player.x - Math.cos(player.angle)*14,
-                y: player.y - Math.sin(player.angle)*14,
-                vx: -player.vx*0.1 + rand(-20, 20),
-                vy: -player.vy*0.1 + rand(-20, 20),
-                life: 0.3,
-                total: 0.3,
-                color: cyan,
-                size: 2,
-            });
+        const due = (player.trail_due || 0) + frame_dt*60;
+        const count = Math.min(3, Math.floor(due + 0.25));
+        player.trail_due = Math.min(0.75, due - count);
+        const span = (player.dash_time > 0) ? 0.3 : 0.16;
+        for (let k = count - 1; k >= 0; --k) {
+            const back = k ? Math.min(1, k/(frame_dt*60)) : 0;
+            const age = back*dt;
+            const x = player.x + (previous_player.x - player.x)*back;
+            const y = player.y + (previous_player.y - player.y)*back;
+            trail.push({x, y, angle: player.angle, life: span - age, total: span});
+            if (full_fx && (player.turbo_active || (player.engine_thrust > 0.05)) && (Math.random() < 0.7)) {
+                particles.push({
+                    x: x - Math.cos(player.angle)*14,
+                    y: y - Math.sin(player.angle)*14,
+                    vx: -player.vx*0.1 + rand(-20, 20),
+                    vy: -player.vy*0.1 + rand(-20, 20),
+                    life: 0.3 - age,
+                    total: 0.3,
+                    color: cyan,
+                    size: 2,
+                });
+            }
         }
     }
     spawn_timer -= dt;

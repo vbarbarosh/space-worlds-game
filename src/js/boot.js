@@ -25,7 +25,7 @@ function frame(timestamp)
         hit_stop -= dt;
     }
     else if (!modal) {
-        update(game_dt);
+        update(game_dt, dt);
     }
     hangar_previews_tick(dt);
     ui_timer += dt;
