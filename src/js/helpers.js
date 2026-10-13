@@ -85,11 +85,22 @@ function set_hidden(v, hidden)
     v.classList.toggle('hidden', hidden);
 }
 
+// The window's size and pixel ratio the canvas was last made for
+let resize_last = '';
+
+// The browser itself sends a resize event at most once a frame, however fast the window is dragged
 function resize()
 {
     width = innerWidth;
     height = innerHeight;
     dpr = Math.min(devicePixelRatio || 1, 1.7);
+    // one that leaves the window as it was keeps the canvas (made again, it would be cleared and allocated anew), its
+    // picture and its stars
+    const size = `${width}x${height}@${dpr}`;
+    if (size === resize_last) {
+        return;
+    }
+    resize_last = size;
     canvas.width = Math.round(width*dpr);
     canvas.height = Math.round(height*dpr);
     // A window smaller than 620 × 550 shows the scene scaled down, widened to the window's shape so it fills it
