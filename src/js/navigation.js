@@ -284,6 +284,64 @@ function guide_base_update_jump(dt)
     }
 }
 
+// Growing waves while you hold a stage that waits for raiders: a hunt, or a mining stage while your drones drill (a
+// defend stage's relay calls its own, sized the same way, in update_operations). The first comes 5 s after you settle,
+// then one every 14 s, each a raider bigger than the last, up to three more than the first; they come from one side,
+// from outside your guns' reach, so a wave arrives together. Before, such a stage waited for the patrols, one or two
+// raiders every 11 s in Haven: a hunt for 6 took a minute or more of waiting. The patrols rest while the waves come.
+const hold_wave_first = 5;
+const hold_wave_gap = 14;
+// the waves come from this far, past the guns' 900 m
+const hold_wave_distance = 1100;
+let hold_waves = {key: '', n: 0, clock: 0};
+
+// The contract whose stage you hold now, out of the station's shelter: a hunt here, or mining here with drones out
+function hold_stage()
+{
+    if (arcade.active || (distance(player, station) < station_shelter + 50)) {
+        return null;
+    }
+    return campaign.contracts.find(v => !v.ready && (v.world === campaign.world) && ((v.type === 'hunt') || ((v.type === 'mining') && drones_out && (drones.length > 0)))) || null;
+}
+
+// How many raiders the n-th wave of a hold brings: the patrol's count and one more, growing by one a wave, three at most
+function hold_wave_size(n)
+{
+    const first = 2 + Math.floor(Math.min(9, raider_tier())/3);
+    return first + Math.min(3, Math.max(0, n - 1));
+}
+
+// True while a stage is held and its waves come instead of the patrols
+function hold_waves_update(dt)
+{
+    const m = hold_stage();
+    if (!m) {
+        return false;
+    }
+    const key = `${m.id}:${m.stage_index}`;
+    if (hold_waves.key !== key) {
+        hold_waves = {key, n: 0, clock: hold_wave_first};
+    }
+    hold_waves.clock -= dt;
+    const size = hold_wave_size(hold_waves.n + 1);
+    if ((hold_waves.clock > 0) || (enemies.length + size > 16)) {
+        return true;
+    }
+    hold_waves.n += 1;
+    hold_waves.clock = hold_wave_gap;
+    const a = rand(0, Math.PI*2);
+    const type = enemy_type();
+    for (let i = 0; i < size; ++i) {
+        const enemy = spawn_enemy((i % 2) ? enemy_type() : type);
+        // in a line across their way in, 70 m apart
+        const across = (i - (size - 1)/2)*70;
+        enemy.x = clamp(player.x + Math.cos(a)*hold_wave_distance - Math.sin(a)*across, 60, world.w - 60);
+        enemy.y = clamp(player.y + Math.sin(a)*hold_wave_distance + Math.cos(a)*across, 60, world.h - 60);
+    }
+    show_toast(`WAVE ${hold_waves.n}`, `${size} ${worlds[campaign.world].faction.toUpperCase()} INBOUND`, 2.5);
+    return true;
+}
+
 function guide_base_update_frontier(dt)
 {
     const w = worlds[campaign.world];
@@ -306,7 +364,8 @@ function guide_base_update_frontier(dt)
         }
     }
     patrol_timer -= dt;
-    if ((patrol_timer <= 0) && !arcade.active) {
+    const holding = hold_waves_update(dt);
+    if ((patrol_timer <= 0) && !arcade.active && !holding) {
         // patrols come as often and as many as the story's front asks (raider_tier), four at most
         const tier = raider_tier();
         patrol_timer = (tier === 0) ? 11 : Math.max(4.5, 10 - tier*0.6);

@@ -115,8 +115,18 @@ Each world's own two, in its terms (its raiders, its resource, its rules):
   the Leviathan in Verdant (900). It needs a black hole, and Haven has none.
 - A higher level makes contract raiders tougher (+12% hull a level past the
   first, up to ten levels), sends more raiders to a recover ambush
-  (3 + level, at most 6), to each defend wave (2 + level, at most 4, every
-  12 s) and to an interception (2 + level, at most 4).
+  (3 + level, at most 6), to each defend wave (every 12 s, a hold's wave
+  size below plus level − 1, at most 2 more) and to an interception
+  (2 + level, at most 4).
+- A stage that waits for raiders brings them in growing waves (`hold_waves_update`
+  in `src/js/navigation.js`): a hunt, or a mining stage while your drones
+  drill, out of the station's shelter. The first wave comes 5 s after you
+  settle, then one every 14 s, from one side and 1100 m out, past your guns'
+  reach, so it arrives together: 2 + tier / 3 raiders (rounded down; the
+  patrol's count and one more), one more each wave, three more at most
+  (`hold_wave_size`). The patrols rest meanwhile. A defend stage's waves grow
+  the same way with the seconds held. Before, a hunt waited for the patrols:
+  in Haven one or two raiders every 11 s, a minute or more for a hunt of 6.
 - What you guard grows with the raiders' hits (+8% a world past Haven, +12%
   a level past the first): the survey robot (80 hull in Haven) and the
   convoy's freighter (300). A robot scans at half speed with a raider close;

@@ -608,7 +608,9 @@ NORMAL in numbers:
 - Patrols: every 11 s in Haven, elsewhere every max(4.5, 10 − 0.6 × tier)
   s, 1 + min(9, tier) / 3 raiders (the tier is the world's index, or the
   story's front past it, above), while you are outside the station's
-  shelter and fewer than 12 are out (`src/js/navigation.js`).
+  shelter and fewer than 12 are out (`src/js/navigation.js`). While you hold
+  a hunt or a mining stage, growing waves come instead (see
+  [goals.md](goals.md)).
 - A death (campaign): a tug brings the ship to the world's station, docked
   and repaired, for 10% of the salvage saved; the cargo aboard is lost, the
   contracts keep their progress, a flagship its damage (`tow_to_station` in

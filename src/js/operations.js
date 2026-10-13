@@ -365,7 +365,8 @@ function update_operations(dt)
             m.spawn_clock -= dt;
             if ((m.spawn_clock <= 0) && (enemies.length < 21)) {
                 m.spawn_clock = 12;
-                for (let i = 0; i < 2 + Math.min(2, m.level || 1); ++i) {
+                // the waves grow with the time held, as a hold's do (hold_wave_size), and with the contract's level
+                for (let i = 0; i < hold_wave_size(1 + Math.floor(m.progress/12)) + Math.min(2, (m.level || 1) - 1); ++i) {
                     spawn_operation_enemy(m, (i % 2) ? 'shooter' : 'chaser', point);
                 }
             }
