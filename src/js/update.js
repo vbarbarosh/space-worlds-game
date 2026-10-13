@@ -324,7 +324,7 @@ function update(dt, frame_dt = dt)
         // Chasers and splitters fly attack runs instead of ramming: they close to gun range and circle you, and every
         // few seconds one cuts straight across you, then pulls out to circle again
         if (['chaser', 'splitter'].includes(v.type) && (waypoint === player)) {
-            v.run_cd = (v.run_cd ?? rand(2, 5)) - enemy_dt;
+            v.run_cd = ((v.run_cd === Infinity) ? rand(2, 5) : v.run_cd) - enemy_dt;
             if ((v.run_cd <= 0) && (d < 420)) {
                 v.run_time = 1.5;
                 v.run_cd = rand(3.5, 6.5);
