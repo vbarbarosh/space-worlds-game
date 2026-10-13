@@ -179,12 +179,14 @@ function pulse_wave_reaches(wave, target)
     return (d - target.r <= wave.r) && (d + target.r >= wave.previous - 4);
 }
 
-// The ring wipes raiders' shots as its front passes them
+// The ring wipes raiders' shots as its front passes them: a shot inside the front now that was outside it before its
+// last step (from px, py), as a fast one flying in crosses more than the front grows in a frame
 function pulse_wave_clear_shots(wave)
 {
     for (const shot of hostile) {
         const d = distance(wave, shot);
-        if ((shot.life > 0) && (d <= wave.r) && (d >= wave.previous - 8)) {
+        const before = Math.hypot(shot.px - wave.x, shot.py - wave.y);
+        if ((shot.life > 0) && (d <= wave.r) && (Math.max(d, before) >= wave.previous - 8)) {
             shot.life = 0;
             explode(shot.x, shot.y, 6, pulse_looks[wave.kind].color, 0, 'spark');
         }

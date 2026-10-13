@@ -81,7 +81,7 @@ function survey_damage(dt)
 {
     const v = survey_robot;
     for (const b of hostile) {
-        if ((b.life > 0) && (distance(b, v) < b.r + 14)) {
+        if ((b.life > 0) && (hostile_shot_contact(b, v, b.r + 14) >= 0)) {
             v.hp -= b.damage || 13;
             b.life = 0;
             explode(b.x, b.y, 6, '#bfe4ff', 0, 'muzzle');

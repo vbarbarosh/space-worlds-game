@@ -194,7 +194,7 @@ function drones_update(dt)
             }
         }
         for (const b of hostile) {
-            if ((b.life > 0) && (distance(b, drone) < b.r + 7)) {
+            if ((b.life > 0) && (hostile_shot_contact(b, drone, b.r + 7) >= 0)) {
                 drone.hp -= b.damage || 13;
                 b.life = 0;
             }

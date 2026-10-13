@@ -257,7 +257,7 @@ function transport_guns(ship, dt)
 function transport_damage(ship, dt)
 {
     for (const b of hostile) {
-        if ((b.life > 0) && (distance(b, ship) < b.r + ship.r)) {
+        if ((b.life > 0) && (hostile_shot_contact(b, ship, b.r + ship.r) >= 0)) {
             ship.line.hp -= b.damage || 13;
             b.life = 0;
             explode(b.x, b.y, 8, '#bfe4ff', 0, 'muzzle');

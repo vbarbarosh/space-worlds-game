@@ -429,14 +429,25 @@ function physics_base_fire(mount = null)
     fire_equipped_weapon(mount);
 }
 
-function base_enemy_fire(enemy, angle, speed = 210)
+// Where on its last step, from (px, py) to where it is now, a raider's shot first came within `reach` of v's middle: 0
+// at the step's start, 1 at its end, -1 when it never did. A fast slug flies farther in a frame than a small hull is
+// wide, so the step is checked, not where it ended.
+function hostile_shot_contact(b, v, reach)
 {
-    hostile.push({
-        x: enemy.x + Math.cos(angle)*enemy.r,
-        y: enemy.y + Math.sin(angle)*enemy.r,
-        vx: Math.cos(angle)*speed,
-        vy: Math.sin(angle)*speed,
-        life: 6,
-        r: 5,
-    });
+    const ox = b.px - v.x;
+    const oy = b.py - v.y;
+    const c = ox*ox + oy*oy - reach*reach;
+    if (c <= 0) {
+        return 0;
+    }
+    const dx = b.x - b.px;
+    const dy = b.y - b.py;
+    const a = dx*dx + dy*dy;
+    const half = ox*dx + oy*dy;
+    const disc = half*half - a*c;
+    if (!a || (half >= 0) || (disc < 0)) {
+        return -1;
+    }
+    const t = (-half - Math.sqrt(disc))/a;
+    return (t <= 1) ? t : -1;
 }

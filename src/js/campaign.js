@@ -256,24 +256,37 @@ function spawn_enemy(type)
     return enemy;
 }
 
-// Raiders' shots fly 2.4 times their old speed, well past a cruising ship; a flagship's ring shots 1.4 times. Their
-// lifetime shrinks to keep the old reach.
+// How many times the speeds they were first given raiders' shots fly (raider_shot_first), and how much faster again
+// since the author asked for nimbler fire (raider_shot_boost). In every world a gun's bolt outflies the fastest
+// cruising ship (an interceptor with three Slipstreams; the closest: a Haven shooter's bolt, 707 m/s against 620) and
+// stays slower than your own gun of its kind (a raider's ion bolt 1056 against yours 1150), so your shots still feel
+// the faster. A missile outflies that ship too, a torpedo included (575 against 558 in Eclipse). Turbo outruns them
+// all: it is the way out. A flagship's patterns (rings, fans, spirals) are made to be woven through, so they gain
+// least. A shot's flight is cut by as much as its speed grows, so its reach stays.
+const raider_shot_first = {gun: 2.4, missile: 2.4, pattern: 1.4};
+const raider_shot_boost = {gun: 1.6, missile: 1.8, pattern: 1.15};
+
 function world_audio_base_enemy_fire(enemy, angle, speed = 210, pattern = false)
 {
-    const fast = pattern ? 1.4 : 2.4;
     const w = enemy.weapon || 'plasma';
     // a missile's kind by the raider (missile_kind_for); a torpedo comes alone
     const kind = (w === 'missile') ? missile_kind_for(enemy) : null;
+    const group = raider_shot_group(w, pattern);
+    const s = raider_shot_speed(enemy, speed, pattern);
     const spread = (w === 'scatter') ? [-0.23, 0, 0.23] : (kind && (kind !== 'torpedo') && (campaign.world >= 6)) ? [-0.2, 0.2] : [0];
     for (const offset of spread) {
         const a = angle + offset;
-        const s = kind ? 190*missile_kinds[kind].speed*fast : raider_shot_speed(enemy, speed, pattern);
+        const x = enemy.x + Math.cos(a)*enemy.r;
+        const y = enemy.y + Math.sin(a)*enemy.r;
         const shot = {
-            x: enemy.x + Math.cos(a)*enemy.r,
-            y: enemy.y + Math.sin(a)*enemy.r,
+            x,
+            y,
+            // where the last step started: hits are checked along it (hostile_shot_contact)
+            px: x,
+            py: y,
             vx: Math.cos(a)*s,
             vy: Math.sin(a)*s,
-            life: 6/fast,
+            life: 6/(raider_shot_first[group]*raider_shot_boost[group]),
             r: (w === 'missile') ? 7 : (w === 'rail') ? 3 : 5,
             weapon: w,
             escort_target: !!enemy.escort_raider,
@@ -281,6 +294,10 @@ function world_audio_base_enemy_fire(enemy, angle, speed = 210, pattern = false)
             color: enemy.color,
             ...(kind ? missile_raider(kind, s) : {}),
         };
+        if (kind) {
+            // the kind's flight was set for its first speed: as much shorter as it flies faster
+            shot.life = shot.flight = shot.fuel = missile_kinds[kind].life/raider_shot_boost[group];
+        }
         // a marksman's missile flies for where you will be and turns harder (arcade_marksman_turn)
         if (kind && enemy.marksman && arcade.active) {
             shot.lead = true;
@@ -292,12 +309,21 @@ function world_audio_base_enemy_fire(enemy, angle, speed = 210, pattern = false)
     explode_muzzle(enemy.x + Math.cos(angle)*enemy.r, enemy.y + Math.sin(angle)*enemy.r, angle, (w === 'rail') ? 9 : 7, hostile_shot_color(enemy.color || pink));
 }
 
-// The speed a raider's shot leaves at, a gun's own (a rail's or an ion bolt's) or the one it is fired at, before the
-// world's projectile rule
+// Which pace a raider's shot keeps (raider_shot_first, raider_shot_boost): a flagship's ring shot's, a missile's or a
+// gun's
+function raider_shot_group(weapon, pattern)
+{
+    return pattern ? 'pattern' : (weapon === 'missile') ? 'missile' : 'gun';
+}
+
+// The speed a raider's shot leaves at, before the world's projectile rule: a missile's by its kind, a rail's or an ion
+// bolt's its own, another gun's the one it is fired at
 function raider_shot_speed(enemy, speed = 210, pattern = false)
 {
     const w = enemy.weapon || 'plasma';
-    return ((w === 'rail') ? 520 : (w === 'ion') ? 275 : speed)*(pattern ? 1.4 : 2.4);
+    const group = raider_shot_group(w, pattern);
+    const base = (w === 'missile') ? 190*missile_kinds[missile_kind_for(enemy)].speed : (w === 'rail') ? 520 : (w === 'ion') ? 275 : speed;
+    return base*raider_shot_first[group]*raider_shot_boost[group];
 }
 
 // Raiders' guns hit harder the farther the world: 8% more a world past Haven, Eclipse's half as much again; in the

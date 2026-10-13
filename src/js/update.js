@@ -536,6 +536,8 @@ function update(dt, frame_dt = dt)
         if (b.missile) {
             missile_fly(b, (b.escort_target && escort) ? escort : player, enemy_dt);
         }
+        b.px = b.x;
+        b.py = b.y;
         b.x += b.vx*enemy_dt;
         b.y += b.vy*enemy_dt;
         b.life -= enemy_dt;
@@ -556,7 +558,11 @@ function update(dt, frame_dt = dt)
         // only shots that would have hit the hull reached it.
         const shielded = player.shield > 0;
         const reach = (shielded ? ship_halo() + 3 : player.r) + b.r;
-        if (distance(b, player) < reach) {
+        const contact = hostile_shot_contact(b, player, reach);
+        if (contact >= 0) {
+            // the shot stops where its step met you, not past your middle where the frame left it
+            b.x = b.px + (b.x - b.px)*contact;
+            b.y = b.py + (b.y - b.py)*contact;
             const share = shielded ? (player.r + b.r)/reach : 1;
             damage_player((b.damage || 13)*(arcade.active ? arcade_mode().hits : 1)*share);
             if (shielded) {

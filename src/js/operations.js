@@ -510,7 +510,7 @@ function update_escort(dt)
         }
     }
     for (const b of hostile) {
-        if ((b.life > 0) && (distance(b, escort) < b.r + sprite_sizes.freighter*0.2)) {
+        if ((b.life > 0) && (hostile_shot_contact(b, escort, b.r + sprite_sizes.freighter*0.2) >= 0)) {
             escort.hp -= b.damage || 13;
             b.life = 0;
         }

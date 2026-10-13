@@ -120,6 +120,23 @@ That gives, in the campaign at NORMAL:
   and seekers come in pairs. A raider fires every 3.6 s, a tank every 2.8 s
   (`src/js/navigation.js`); in the arcade a missile raider reloads twice as
   slowly as one with another gun (`arcade_reloads`, `arcade_reload`).
+- Raider shot speeds (`raider_shot_first` × `raider_shot_boost`, read by
+  `raider_shot_speed` in `src/js/campaign.js`), before the world's
+  projectile rule: a gun's bolt flies 3.84 times the speed it is fired at
+  (plasma and scatter 210, so 806; a shooter's 180 + 4·wave; a flagship's
+  gun its design's, `boss_designs` in `src/js/bosses.js`), a rail slug
+  520 × 3.84 = 1997, an ion bolt 275 × 3.84 = 1056; a missile 190 × its
+  kind's speed × 4.32 (dart 1067, seeker 821, torpedo 575); a shot of a
+  flagship's pattern (a ring, a fan, a spiral) 1.61 times its speed. A
+  bolt's flight is 6 s over its factor, a missile's its kind's flight
+  (below) over 1.8, so the reach stays as it was before the boost (2.4 for
+  guns and missiles, 1.4 for a pattern). In every
+  world each bolt and missile outflies the fastest cruising ship (an
+  interceptor with three Slipstreams; the closest are a Haven shooter's
+  bolt, 707 against 620, and an Eclipse torpedo, 575 against 558); turbo
+  outruns them all. Hits are checked along a shot's whole step
+  (`hostile_shot_contact`), so a slug never passes through a small hull
+  between two frames.
 - A raider's missile goes off at its fuse, units from your shield's edge (or
   your hull without one), and its blast is a wave: the full damage within
   the fuse, falling to half at the blast's rim; a wave sets off the missiles
@@ -140,11 +157,11 @@ That gives, in the campaign at NORMAL:
 | Seeker | 14 | ×1 | 0.85 rad/s | 2.5 s | 14 | 70 | 23 | 20 | orange, grey smoke |
 | Torpedo | 22 | ×0.7 | 0.5 rad/s | 3.4 s | 40 | 120 | 40 | 45 | red, thick smoke |
 
-- Measured (stepped, 120 s, three raiders 560 m out, no shield): a missile
-  costs you on average about 15 hull sitting still and 7 to 11 circling at
-  260/s, before and after the fuse and the wave; a dart 14 still and 9.5
-  circling; a torpedo 39 still, 10 circling: slow and dodgeable, deadly to a
-  ship that sits.
+- Measured before the boost above (stepped, 120 s, three raiders 560 m
+  out, no shield): a missile costs you on average about 15 hull sitting
+  still and 7 to 11 circling at 260/s, before and after the fuse and the
+  wave; a dart 14 still and 9.5 circling; a torpedo 39 still, 10 circling:
+  slow and dodgeable, deadly to a ship that sits.
 - Ramming you costs 16 hull, a tank 25, a flagship 35 (`src/js/update.js`).
 - The difficulty switch scales raiders at spawn: CHILL 0.8 speed and hull,
   OVERLOAD 1.2 speed and 1.15 hull (`base_spawn_enemy`).
