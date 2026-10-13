@@ -133,8 +133,10 @@ function create_eclipse_corona()
     return canvas;
 }
 
-// Baked into the sky layer under the clouds' glow: filaments of gas in the world's colours, dark lanes of dust across
-// them and the faint far stars, so the sky has depth at no cost per frame
+// Baked into the sky layer under the clouds' glow: filaments of gas in the world's colours and the faint far stars,
+// so the sky has depth at no cost per frame. Every third filament was a dark lane of dust; the layer barely moves, so
+// a lane stayed on the screen wherever the ship flew and read as a smudge on the glass. Its numbers are still drawn,
+// so the gas and the stars keep their places.
 function nebula_bake_detail(draw, id, box)
 {
     const look = world_looks[id];
@@ -142,32 +144,34 @@ function nebula_bake_detail(draw, id, box)
     const size = Math.max(W, H);
     const w = box.right - box.left;
     const h = box.bottom - box.top;
-    const colors = [look.cloud, look.second, worlds[id].accent];
+    const colors = [look.cloud, look.second];
     const strength = (id === 7) ? '0c' : (id === 6) ? '1e' : '16';
     // Dustfall's banks lie along its wind; the others' filaments curl any way
     const banked = (id === 2);
     for (let i = 0, end = banked ? 7 : 5; i < end; ++i) {
-        const dark = (i % 3 === 2);
+        const lane = (i % 3 === 2);
         let x = box.left + random()*w;
         let y = box.top + random()*h;
         let angle = banked ? 0.12 + random()*0.2 : random()*6.28;
-        const color = dark ? look.base : colors[i % 3];
+        const color = colors[i % 3];
         for (let j = 0; j < 16; ++j) {
-            const r = size*(banked ? 0.07 + random()*0.08 : 0.035 + random()*0.075)*(dark ? 0.8 : 1);
-            const g = draw.createRadialGradient(x, y, 0, x, y, r);
-            g.addColorStop(0, `${color}${dark ? (banked ? '38' : '30') : strength}`);
-            g.addColorStop(1, `${color}00`);
-            draw.fillStyle = g;
-            if (banked) {
-                draw.save();
-                draw.translate(x, y);
-                draw.scale(1.8, 0.6);
-                draw.translate(-x, -y);
-                draw.fillRect(x - r, y - r, r*2, r*2);
-                draw.restore();
-            }
-            else {
-                draw.fillRect(x - r, y - r, r*2, r*2);
+            const r = size*(banked ? 0.07 + random()*0.08 : 0.035 + random()*0.075);
+            if (!lane) {
+                const g = draw.createRadialGradient(x, y, 0, x, y, r);
+                g.addColorStop(0, `${color}${strength}`);
+                g.addColorStop(1, `${color}00`);
+                draw.fillStyle = g;
+                if (banked) {
+                    draw.save();
+                    draw.translate(x, y);
+                    draw.scale(1.8, 0.6);
+                    draw.translate(-x, -y);
+                    draw.fillRect(x - r, y - r, r*2, r*2);
+                    draw.restore();
+                }
+                else {
+                    draw.fillRect(x - r, y - r, r*2, r*2);
+                }
             }
             angle += random()*0.9 - 0.45;
             x += Math.cos(angle)*r*(banked ? 1.2 : 0.75);
