@@ -419,7 +419,9 @@ function shield_hit_show(target, before)
     }
 }
 
-// Drawn in world units: the wrecks under the blasts, so a fresh fireball burns over the smoke of an old one.
+// Drawn in world units: the wrecks under the blasts, so a fresh fireball burns over the smoke of an old one. The lists
+// are walked by index here and in the drawings below: called once a frame, they run unoptimized for a long while, where
+// each step of an iterator is an object.
 function render_explosions()
 {
     let lights = explosion_light_limit;
@@ -429,7 +431,8 @@ function render_explosions()
         lights -= v.lit ? 1 : 0;
     }
     render_wrecks();
-    for (const explosion of explosions) {
+    for (let i = 0; i < explosions.length; ++i) {
+        const explosion = explosions[i];
         if ((explosion.t >= 0) && in_view(explosion, explosion.size*3)) {
             explosion_draw(explosion, explosion.x, explosion.y, 1);
         }
@@ -462,7 +465,8 @@ function explosion_draw(explosion, x, y, scale)
         ctx.fill();
     }
     explosion_fireball(x, y, size*(0.35 + ease*0.75), p, explosion.color);
-    for (const puff of explosion.puffs) {
+    for (let i = 0; i < explosion.puffs.length; ++i) {
+        const puff = explosion.puffs[i];
         const q = clamp((explosion.t - puff.delay)/(explosion.duration*0.8), 0, 1);
         if (q > 0) {
             explosion_fireball(x + puff.x*scale*(0.4 + q), y + puff.y*scale*(0.4 + q), puff.size*scale*(0.4 + q*0.8), q, explosion.color);
@@ -485,7 +489,8 @@ function explosion_draw(explosion, x, y, scale)
     ctx.strokeStyle = explosion_ember_color(p);
     ctx.lineWidth = Math.max(1, 1.6*scale);
     ctx.beginPath();
-    for (const spark of explosion.sparks) {
+    for (let i = 0; i < explosion.sparks.length; ++i) {
+        const spark = explosion.sparks[i];
         const d = spark.speed*scale*explosion.t*(1 - p*0.5);
         const cos = Math.cos(spark.angle);
         const sin = Math.sin(spark.angle);
@@ -499,7 +504,8 @@ function explosion_draw(explosion, x, y, scale)
     ctx.globalAlpha = (1 - p)*0.9;
     ctx.fillStyle = explosion.hull;
     ctx.beginPath();
-    for (const piece of explosion.debris) {
+    for (let j = 0; j < explosion.debris.length; ++j) {
+        const piece = explosion.debris[j];
         const d = piece.speed*scale*explosion.t*(1 - p*0.4);
         const px = x + Math.cos(piece.angle)*d;
         const py = y + Math.sin(piece.angle)*d;
@@ -529,7 +535,8 @@ function explosion_draw(explosion, x, y, scale)
         const q = (p - 0.4)/0.6;
         ctx.globalAlpha = (1 - q)*0.16;
         ctx.fillStyle = '#3a3532';
-        for (const puff of explosion.puffs) {
+        for (let i = 0; i < explosion.puffs.length; ++i) {
+            const puff = explosion.puffs[i];
             explosion_circle(x + puff.x*scale*(0.8 + q), y + puff.y*scale*(0.8 + q) - size*0.2*q, puff.size*scale*(0.6 + q));
             ctx.fill();
         }
@@ -610,7 +617,8 @@ function explosion_light_sprite()
 function render_wrecks()
 {
     ctx.save();
-    for (const wreck of wrecks) {
+    for (let i = 0; i < wrecks.length; ++i) {
+        const wreck = wrecks[i];
         wreck.seen = (wreck.t >= 0) && in_view(wreck, wreck.size*3);
         if (!wreck.seen) {
             continue;
@@ -624,14 +632,17 @@ function render_wrecks()
     ctx.fillStyle = '#5c5652';
     for (let step = 0; step < 3; ++step) {
         // a wide faint fill and a denser heart: soft at the cost of plain fills
-        for (const k of [1, 0.55]) {
+        for (let layer = 0; layer < 2; ++layer) {
+            const k = layer ? 0.55 : 1;
             ctx.globalAlpha = ((3 - step)/3)*((k === 1) ? 0.12 : 0.14);
             ctx.beginPath();
-            for (const wreck of wrecks) {
+            for (let i = 0; i < wrecks.length; ++i) {
+                const wreck = wrecks[i];
                 if (!wreck.seen || (wreck_step(wreck.fade) !== step)) {
                     continue;
                 }
-                for (const puff of wreck.puffs) {
+                for (let j = 0; j < wreck.puffs.length; ++j) {
+                    const puff = wreck.puffs[j];
                     const px = wreck.x + puff.x + puff.vx*wreck.travel;
                     const py = wreck.y + puff.y + puff.vy*wreck.travel;
                     const r = puff.size*(0.7 + wreck.p*0.9)*k;
@@ -642,7 +653,8 @@ function render_wrecks()
             ctx.fill();
         }
     }
-    for (const wreck of wrecks) {
+    for (let i = 0; i < wrecks.length; ++i) {
+        const wreck = wrecks[i];
         if (wreck.seen) {
             ctx.globalAlpha = Math.min(1, wreck.fade*1.4);
             ctx.fillStyle = wreck.hull;
@@ -657,7 +669,8 @@ function render_wrecks()
         ctx.globalAlpha = (3 - step)/3;
         ctx.strokeStyle = explosion_ember_color(0.3 + step*0.2);
         ctx.beginPath();
-        for (const wreck of wrecks) {
+        for (let i = 0; i < wrecks.length; ++i) {
+            const wreck = wrecks[i];
             if (wreck.seen && (wreck.heat > 0) && (wreck_step(wreck.heat) === step)) {
                 wreck_shards_trace(wreck);
             }
@@ -675,7 +688,8 @@ function wreck_step(v)
 
 function wreck_shards_trace(wreck)
 {
-    for (const shard of wreck.shards) {
+    for (let i = 0; i < wreck.shards.length; ++i) {
+        const shard = wreck.shards[i];
         const px = wreck.x + shard.x + shard.vx*wreck.travel;
         const py = wreck.y + shard.y + shard.vy*wreck.travel;
         const a = shard.angle + shard.spin*wreck.t;
@@ -755,7 +769,8 @@ function explosion_light_draw(explosion, x, y, scale)
     ctx.strokeStyle = (explosion.kind === 'shield') ? '#d8f0ff' : '#ffe9b0';
     ctx.lineWidth = Math.max(1, 1.3*scale);
     ctx.beginPath();
-    for (const spark of explosion.sparks) {
+    for (let i = 0; i < explosion.sparks.length; ++i) {
+        const spark = explosion.sparks[i];
         const d = spark.speed*scale*explosion.t;
         const cos = Math.cos(spark.angle);
         const sin = Math.sin(spark.angle);
@@ -808,7 +823,8 @@ function explosion_impact_draw(explosion, x, y, scale)
     ctx.strokeStyle = explosion.spark_color;
     ctx.lineWidth = Math.max(1, 1.4*scale);
     ctx.beginPath();
-    for (const spark of explosion.sparks) {
+    for (let i = 0; i < explosion.sparks.length; ++i) {
+        const spark = explosion.sparks[i];
         const d = spark.speed*scale*explosion.t*(1 - p*0.45);
         const cos = Math.cos(spark.angle);
         const sin = Math.sin(spark.angle);
@@ -819,7 +835,8 @@ function explosion_impact_draw(explosion, x, y, scale)
     ctx.globalCompositeOperation = 'source-over';
     ctx.globalAlpha = (1 - p)*0.95;
     ctx.fillStyle = explosion.hull_color;
-    for (const piece of explosion.debris) {
+    for (let i = 0; i < explosion.debris.length; ++i) {
+        const piece = explosion.debris[i];
         const d = piece.speed*scale*explosion.t;
         const px = x + Math.cos(piece.angle)*d;
         const py = y + Math.sin(piece.angle)*d;
@@ -893,7 +910,8 @@ function explosion_collect_draw(explosion, scale)
     ctx.strokeStyle = '#ffffff';
     ctx.lineWidth = Math.max(1, 1.4*scale);
     ctx.beginPath();
-    for (const spark of explosion.sparks) {
+    for (let i = 0; i < explosion.sparks.length; ++i) {
+        const spark = explosion.sparks[i];
         const cos = Math.cos(spark.angle);
         const sin = Math.sin(spark.angle);
         const outer = radius + spark.length*scale*(1 - p);
