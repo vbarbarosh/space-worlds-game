@@ -167,11 +167,14 @@ That gives, in the campaign at NORMAL:
   (chaser, splitter, lancer) fire darts; shooters, elites (Haven's carry
   missiles) and flagships fire seekers; tanks fire seekers, torpedoes from
   Nova Forge on.
-- A dash (Shift) gives a quarter second of grace. In the campaign it covers
-  everything; in the arcade it covers bolts and slugs but not a blast, a
+- A dash (Shift) gives a quarter second of grace, in the campaign and the
+  arcade alike: it covers bolts, slugs and rams but not a blast, a
   missile's wave or a ship's explosion (`dash_grace`, `damage_player`'s
   `blast`): a missile is outturned or cleared by the EMP, not dashed
   through. The run's first raider missile within 600 m says so in a toast.
+  Before, the campaign's dash made you untouchable for that quarter second:
+  a bot dashing at every missile within 220 m took no damage at all in
+  Dustfall and Nova Forge (4 raiders, 60 s, a story pilot's kit).
 
 | Kind | Size | Speed | Turn | Flight | Fuse | Blast | Damage | Toughness | Trail |
 |---|---|---|---|---|---|---|---|---|---|

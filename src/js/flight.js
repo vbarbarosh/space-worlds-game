@@ -330,13 +330,10 @@ function dash(held = false)
     player.dash_time = turbo_fuel();
     player.turbo_active = true;
     player.dash_cd = 0;
-    // the arcade's dash slips through bolts, not through a blast: a missile is outturned or cleared by the EMP
-    if (arcade.active) {
-        player.dash_grace = 0.25;
-    }
-    else {
-        player.invincible = Math.max(player.invincible, 0.25);
-    }
+    // a dash slips through bolts and rams, not through a blast: a missile is outturned or cleared by the EMP, in the
+    // campaign as in the arcade (before, the campaign's dash made you untouchable, and a pilot who dashed at every
+    // missile took nothing in Dustfall and Nova Forge)
+    player.dash_grace = 0.25;
     if (campaign.world === 7) {
         player.energy -= 12;
     }
