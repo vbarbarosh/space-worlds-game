@@ -559,9 +559,24 @@ function update(dt)
     bullets = bullets.filter(v => (v.life > 0) && (v.x > -40) && (v.x < world.w + 40) && (v.y > -40) && (v.y < world.h + 40));
     hostile = hostile.filter(v => (v.life > 0) && (v.x > -40) && (v.x < world.w + 40) && (v.y > -40) && (v.y < world.h + 40));
     enemies = enemies.filter(v => v.hp > 0);
-    for (const pickup of pickups) {
+    update_pickups(dt);
+    pickups = pickups.filter(v => v.life > 0);
+    if (state !== 'playing') {
+        return;
+    }
+    update_gravity_objects(dt);
+}
+
+// The pickups age, come to the magnet and are taken. Every pickup asks every frame, so the distances are distance()'s
+// own sum worked here, and the list is walked by index: a function this small keeps its numbers unboxed, where inside
+// update() they were boxed all the same
+function update_pickups(dt)
+{
+    const list = pickups;
+    for (let i = 0; i < list.length; ++i) {
+        const pickup = list[i];
         pickup.life -= dt;
-        const d = distance(pickup, player);
+        const d = Math.sqrt((pickup.x - player.x)*(pickup.x - player.x) + (pickup.y - player.y)*(pickup.y - player.y));
         const takes = pickup_takes(pickup);
         if (!takes && (d < 30) && !pickup.full_said) {
             pickup.full_said = true;
@@ -572,13 +587,8 @@ function update(dt)
             pickup.x += (player.x - pickup.x)*pull;
             pickup.y += (player.y - pickup.y)*pull;
         }
-        if (takes && (distance(pickup, player) < 24)) {
+        if (takes && (Math.sqrt((pickup.x - player.x)*(pickup.x - player.x) + (pickup.y - player.y)*(pickup.y - player.y)) < 24)) {
             collect_pickup(pickup);
         }
     }
-    pickups = pickups.filter(v => v.life > 0);
-    if (state !== 'playing') {
-        return;
-    }
-    update_gravity_objects(dt);
 }
