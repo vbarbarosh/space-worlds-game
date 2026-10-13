@@ -440,8 +440,7 @@ function toggle_navigation()
     stop_turbo();
     touch_boost_hold = false;
     keys.clear();
-    mouse_drive.active = false;
-    mouse_drive.following = false;
+    mouse_drive_suspend();
     joystick.active = false;
     guide_flying = false;
     render_navigation();

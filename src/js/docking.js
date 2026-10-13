@@ -22,10 +22,11 @@ function docking_start(done)
     const berth = docking_berths().sort((p, q) => distance(p, player) - distance(q, player))[0];
     const lane = {x: station.x + Math.cos(berth.a)*docking_lane, y: station.y + Math.sin(berth.a)*docking_lane};
     const line_up = clamp(distance(player, lane)/320, 0.6, 1.8);
-    docking = {phase: 'in', berth, lane, from: {x: player.x, y: player.y, angle: player.angle}, t: 0, line_up, total: line_up + docking_slide_time, done};
+    // following the pointer (double click) is held back while the autopilot flies the approach, and given back at its end
+    docking = {phase: 'in', berth, lane, from: {x: player.x, y: player.y, angle: player.angle}, t: 0, line_up, total: line_up + docking_slide_time, done, following: mouse_drive.following};
     stop_turbo();
     guide_flying = false;
-    mouse_drive.active = false;
+    mouse_drive_suspend();
     mouse_drive.following = false;
     waypoints_clear();
     player.invincible = Math.max(player.invincible, docking.total + 0.5);
@@ -43,6 +44,15 @@ function docking_leave()
     player.invincible = Math.max(player.invincible, docking.total + 1);
 }
 
+// The manoeuvre over, in the berth or broken off: after an approach, following the pointer is the player's again
+function docking_end()
+{
+    if (docking.phase === 'in') {
+        mouse_drive.following = docking.following;
+    }
+    docking = null;
+}
+
 // Every frame in flight, after the ship has moved: while docking or undocking, the manoeuvre places it
 function docking_update(dt)
 {
@@ -52,7 +62,7 @@ function docking_update(dt)
     // steering keys abort either way; a click aborts an approach (the guided flight waits for the back-out)
     const steering = ['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].some(v => keys.has(v)) || (mouse_drive.active && (docking.phase === 'in'));
     if (steering) {
-        docking = null;
+        docking_end();
         return;
     }
     const d = docking;
@@ -101,7 +111,7 @@ function docking_update(dt)
     if (d.t < d.total) {
         return;
     }
-    docking = null;
+    docking_end();
     player.vx = 0;
     player.vy = 0;
     if (d.done) {

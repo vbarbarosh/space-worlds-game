@@ -73,8 +73,7 @@ function toggle_pause()
         touch_boost_hold = false;
         keys.clear();
         joystick.active = false;
-        mouse_drive.active = false;
-        mouse_drive.following = false;
+        mouse_drive_suspend();
         set_hidden(el.pause_overlay, false);
         document.getElementById('pause_layout').classList.remove('is-controls');
 

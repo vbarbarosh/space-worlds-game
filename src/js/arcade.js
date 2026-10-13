@@ -703,8 +703,7 @@ function arcade_depot_open()
     state = 'arcade_depot';
     stop_turbo();
     keys.clear();
-    mouse_drive.active = false;
-    mouse_drive.following = false;
+    mouse_drive_suspend();
     joystick.active = false;
     arcade_depot_view.hover = '';
     arcade_depot_fill();

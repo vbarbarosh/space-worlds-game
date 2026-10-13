@@ -24,6 +24,37 @@ function set_mouse_destination(p)
     mouse_drive.arrival_hold = false;
     pointer.last = -100;
 }
+
+// Flight stops for a screen, a dock or a jump: the ship stops driving to the pointer and a press held through it is
+// let go. Following the pointer (double click) is the player's mode and stays; back in flight it picks up again
+function mouse_drive_suspend()
+{
+    mouse_drive.active = false;
+    mouse_drive.held = false;
+    mouse_drive.turbo_since = -1;
+    mouse_drive.arrival_hold = false;
+}
+
+// Following the pointer, back in flight: to where the mouse is now, wherever it moved while flight stood still
+function mouse_follow_resume()
+{
+    if (pointer.page_x === null) {
+        set_mouse_destination({x: mouse_drive.screen_x, y: mouse_drive.screen_y});
+        return;
+    }
+    set_mouse_destination(pointer_position({clientX: pointer.page_x, clientY: pointer.page_y}));
+}
+
+// The mouse over the whole page: a screen over the canvas keeps its moves from the canvas
+for (const type of ['pointermove', 'pointerdown']) {
+    addEventListener(type, function (event) {
+        if (event.pointerType !== 'touch') {
+            pointer.page_x = event.clientX;
+            pointer.page_y = event.clientY;
+        }
+    }, {capture: true, passive: true});
+}
+
 // Two left presses this close in time and place are a double click. The native dblclick missed often: it needs the
 // pointer to stay put between the clicks, and you are steering with it
 const pointer_double_ms = 450;

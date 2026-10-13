@@ -70,8 +70,7 @@ function guide_base_toggle_navigation()
     stop_turbo();
     touch_boost_hold = false;
     keys.clear();
-    mouse_drive.active = false;
-    mouse_drive.following = false;
+    mouse_drive_suspend();
     joystick.active = false;
     render_navigation();
     set_hidden(document.getElementById('navigation_overlay'), false);
@@ -222,7 +221,7 @@ function start_jump(destination)
     const duration = (destination.world === undefined) ? hop_duration : full_fx ? warp_duration : warp_duration*0.55;
     jump = {...destination, t: 0, duration, switched: false, following: mouse_drive.following, from: {x: player.x, y: player.y}, angle: player.angle, vx: player.vx, vy: player.vy};
     teleport_start(jump);
-    mouse_drive.active = false;
+    mouse_drive_suspend();
     joystick.active = false;
     stop_turbo();
     touch_boost_hold = false;
@@ -273,10 +272,9 @@ function guide_base_update_jump(dt)
         state = 'playing';
         jump = null;
         teleport_end(previous);
+        // the new world's start (begin_wave) cleared following the pointer; it is the player's again, and the next flight
+        // frame picks it up where the mouse is now
         mouse_drive.following = previous.following;
-        if (mouse_drive.following) {
-            set_mouse_destination({x: mouse_drive.screen_x, y: mouse_drive.screen_y});
-        }
         (previous.world !== undefined) ? show_world_arrival(previous.label) : show_toast(previous.label, `LOCAL ARRIVAL / ${current_world_rules().name}`, 3);
         save_checkpoint();
     }

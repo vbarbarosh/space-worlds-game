@@ -57,7 +57,8 @@ const pink = '#ff5baf';
 const gold = '#ffd16e';
 const blue = '#8d9cff';
 const keys = new Set();
-const pointer = {x: 0, y: 0, screen_x: 0, screen_y: 0, last: -100, active: false};
+// page_x, page_y: where the mouse last was on the page (client pixels), over a screen or the HUD too; null before it moves
+const pointer = {x: 0, y: 0, screen_x: 0, screen_y: 0, page_x: null, page_y: null, last: -100, active: false};
 // turbo_since: when the left button went down in follow mode; held 0.15 s it counts as turbo
 // held: the left button is down outside follow mode; the ship steers to the cursor until it is let go
 // arriving: closing on a clicked point, where turbo stays out; arrival_hold: turbo input held through an arrival, not relit

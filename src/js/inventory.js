@@ -41,8 +41,7 @@ function toggle_inventory()
     touch_boost_hold = false;
     keys.clear();
     joystick.active = false;
-    mouse_drive.active = false;
-    mouse_drive.following = false;
+    mouse_drive_suspend();
     render_inventory();
     set_hidden(el.inventory_overlay, false);
     document.getElementById('close_inventory').focus();

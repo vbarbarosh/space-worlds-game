@@ -8,6 +8,8 @@ function base_reset_run(resume = false)
     joystick.active = false;
     mouse_drive.active = false;
     mouse_drive.following = false;
+    // a dock begun in the run before ends with it, and does not pull the new run's ship into a berth
+    docking = null;
     pointer.last = -100;
     pointer.active = false;
     time = 0;

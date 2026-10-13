@@ -260,8 +260,7 @@ function dock_station()
     stop_turbo();
     touch_boost_hold = false;
     keys.clear();
-    mouse_drive.active = false;
-    mouse_drive.following = false;
+    mouse_drive_suspend();
     joystick.active = false;
     player.vx = player.vy = 0;
     player.dash_time = 0;

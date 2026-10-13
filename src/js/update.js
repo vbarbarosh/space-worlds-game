@@ -170,6 +170,10 @@ function update(dt, frame_dt = dt)
         }
     }
     waypoint_steer();
+    // back in flight after a screen, a dock or a jump: following the pointer picks up where the mouse is now
+    if (mouse_drive.following && !mouse_drive.active) {
+        mouse_follow_resume();
+    }
     if ((Math.hypot(dx, dy) === 0) && mouse_drive.active) {
         if (mouse_drive.following || mouse_drive.held) {
             set_mouse_destination({x: mouse_drive.screen_x, y: mouse_drive.screen_y});
