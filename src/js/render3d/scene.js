@@ -28,13 +28,15 @@ const render3d = {
     // the lights of the fresh blasts, a pool of render3d_blast_lights, and the white of a fireball's core
     blasts: [],
     fire: null,
-    // the crystals of rich rocks, their glow breathing, one material per ore
+    // the veins (or crystals) of rich rocks, their glow breathing, one material per ore
     ores: new Set(),
     floor: null,
     materials: new Map(),
     geometries: new Map(),
     // the model of each thing drawn, by the thing: {group, seen, roll, angle}
     models: new Map(),
+    // the place of a gun on your ship worked out each frame, made once (render3d_player_guns)
+    gun: null,
     world: -1,
     station: null,
     frame: 0,
@@ -121,7 +123,7 @@ function render3d_active()
 }
 
 // The light and the colours of the world, from its own file (js/worlds/*.js): its stars light from above, its clouds
-// from below; the station is rebuilt in its metal and accent
+// from below; the station is rebuilt as the world's drawing, in its metal and accent where it has none
 function render3d_world_set()
 {
     const w = worlds[campaign.world];
@@ -138,18 +140,26 @@ function render3d_world_set()
     }
     if (render3d.station) {
         render3d_retire(render3d.station);
+        render3d.station = null;
     }
-    render3d.station = render3d_station_model(new render3d.three.Color(look.material).multiplyScalar(0.7).getStyle(), w.accent);
-    render3d.scene.add(render3d.station);
+    // a drawing with nothing to raise (a stand-in picture) leaves the station to 2D
+    const art = world_art('station');
+    render3d.station = !art ? render3d_station_plain(new render3d.three.Color(look.material).multiplyScalar(0.7).getStyle(), w.accent) : render3d_drawn(art) ? render3d_station_model(art, w.accent) : null;
+    if (render3d.station) {
+        render3d.scene.add(render3d.station);
+    }
 }
 
-// A model leaves the scene, and the materials it alone owns are freed with it; the shared geometries and materials
-// stay for the models still using them
+// A model leaves the scene, and the materials it alone owns are freed with it, and its guns' places (an instanced
+// mesh's own); the shared geometries and materials stay for the models still using them
 function render3d_retire(group)
 {
     render3d.scene.remove(group);
     for (const material of group.userData.own || []) {
         material.dispose();
+    }
+    for (const mesh of group.userData.guns || []) {
+        mesh.dispose();
     }
 }
 
@@ -283,17 +293,19 @@ function render3d_sync()
         render3d_world_set();
     }
     render3d.frame++;
-    const look = world_looks[campaign.world];
-    const rock = new render3d.three.Color(look.material).multiplyScalar(0.62).getStyle();
     for (const v of ore_nodes) {
         if (!in_view(v, v.r*2.2 + render3d_margin)) {
             continue;
         }
-        const variant = Math.abs(Math.floor(v.angle*11)) % 7;
-        const model = render3d_model(v, () => render3d_rock_model(variant, rock, v.resource ? ore_color(v) : null));
+        // the world's drawing of the rock, as 2D picks it (js/surfaces.js), or a lump where the world has none; one
+        // with nothing to raise stays 2D (its drawing looked up only while it has no model)
+        if (!render3d.models.has(v) && render3d_rock_art(v) && !render3d_drawn(render3d_rock_art(v))) {
+            continue;
+        }
+        const model = render3d_model(v, () => render3d_rock_make(v));
         model.group.position.set(v.x, 0, v.y);
         model.group.rotation.y = -v.angle;
-        model.group.scale.setScalar(v.r*2.2);
+        model.group.scale.setScalar(v.r*model.group.userData.scale);
         render3d_flash(model.group, v.flash > 0);
     }
     for (const enemy of enemies) {
@@ -302,19 +314,25 @@ function render3d_sync()
         if (!in_view(enemy, length + render3d_margin)) {
             continue;
         }
+        // a drawing with nothing to raise stays 2D (render3d_render_surface_ship)
+        if (!render3d_drawn(art.name)) {
+            continue;
+        }
         const color = enemy.color || pink;
-        // a flagship as its world's drawing
-        const model = render3d_model(enemy, () => render3d_arts[art.name] ? render3d_flagship_model(art.name, color) : render3d_raider_model(enemy.type, color, !!enemy.elite));
+        // its drawing: a flagship's by its table, a raider's raised from its shapes
+        const model = render3d_model(enemy, () => (render3d_arts[art.name] ? render3d_flagship_model(art.name, color) : render3d_raider_model(art.name, color)));
         const angle = ((enemy.type === 'lancer') && (enemy.charge_time > 0)) ? enemy.charge_angle : enemy.angle;
         render3d_ship_place(model, enemy.x, enemy.y, angle, length, enemy.flash > 0);
     }
-    if (player && (state !== 'dead') && !teleport_active()) {
-        // the model of the class you fly: after a change of ship (the hangar, a load) the old one is not seen, and goes
-        // below this frame
+    if (player && (state !== 'dead') && !teleport_active() && render3d_drawn(ship_sprite(current_ship()).name)) {
+        // the model of your ship as it is: its class and the parts it wears, one list a layout (js/ship_parts.js);
+        // after a change of ship or of a module (the hangar, a load) the old one is not seen, and goes below this frame
         const ship = current_ship();
-        const model = render3d_model(ship, () => render3d_player_model(ship));
+        const parts = ship_parts_player();
+        const model = render3d_model(parts, () => render3d_player_model(ship, parts));
         render3d_ship_place(model, player.x, player.y, player.angle, ship_sprite(ship).length, false);
         render3d_player_lights(model.group);
+        render3d_player_guns(model.group, ship);
         // blinking while invincible, as the 2D ship does
         model.group.visible = !(player.invincible > 0) || (Math.sin(clock*25) > -0.3);
     }
@@ -325,17 +343,62 @@ function render3d_sync()
         }
     }
     const station_model = render3d.station;
-    // its panels reach out to 0.65 of its size
-    station_model.visible = in_view(station, station_size*0.7 + render3d_margin);
-    station_model.position.set(station.x, -10, station.y);
-    station_model.scale.set(station_size*0.97, station_size*0.4, station_size*0.97);
-    station_model.getObjectByName('ring').rotation.y = -clock*0.04;
-    // the beacon flashes twice every 2.4 s, the rich rocks' crystals breathe; steady with reduced effects
-    const beat = clock % 2.4;
-    station_model.userData.beacon.emissiveIntensity = (!full_fx || (beat < 0.12) || ((beat > 0.3) && (beat < 0.42))) ? 2.2 : 0.35;
+    if (station_model) {
+        render3d_station_place(station_model);
+    }
+    // the rich rocks' veins breathe, steady with reduced effects
     const breath = full_fx ? 0.9 + Math.sin(clock*2.2)*0.35 : 0.9;
     for (const v of render3d.ores) {
         v.emissiveIntensity = breath;
+    }
+}
+
+// The world's rock drawing for a rock, as 2D picks it (js/surfaces.js); null where the world has none
+function render3d_rock_art(v)
+{
+    const variant = Math.abs(Math.floor(v.angle*11)) % 7;
+    return world_art(v.resource ? `asteroid-rich-${(variant % 3) + 1}` : `asteroid-${(variant % 4) + 1}`);
+}
+
+// A rock's model: its drawing raised, or a lump in the world's rock colour; its size a factor of the rock's radius, as
+// 2D draws its drawing (2.5) or the lump stood in for the old painted rock (2.2)
+function render3d_rock_make(v)
+{
+    const art = render3d_rock_art(v);
+    const ore = v.resource ? ore_color(v) : null;
+    const rock = new render3d.three.Color(world_looks[campaign.world].material).multiplyScalar(0.62).getStyle();
+    const out = art ? render3d_rock_model(art, ore) : render3d_rock_lump(Math.abs(Math.floor(v.angle*11)) % 7, rock, ore);
+    out.userData.scale = art ? 2.5 : 2.2;
+    return out;
+}
+
+// The station where it stands, its ring turning; the plain one's beacon blinking
+function render3d_station_place(station_model)
+{
+    // its panels reach out to 0.65 of its size
+    station_model.visible = in_view(station, station_size*0.7 + render3d_margin);
+    const height = station_model.userData.height;
+    if (height) {
+        // the drawing's box (js/surfaces.js), its top a little over the plane of flight and its foot over the floor of
+        // the shadows
+        const box = station_size*1.025;
+        const k = Math.min(1, 40/(height*box));
+        station_model.scale.set(box, box*k, box);
+        station_model.position.set(station.x, 6 - height*box*k, station.y);
+    }
+    else {
+        station_model.position.set(station.x, -10, station.y);
+        station_model.scale.set(station_size*0.97, station_size*0.4, station_size*0.97);
+    }
+    const ring = station_model.getObjectByName('ring');
+    if (ring) {
+        ring.rotation.y = -clock*0.04;
+    }
+    // the plain station's beacon flashes twice every 2.4 s, steady with reduced effects; a drawn one's lights glow
+    // steady
+    const beat = clock % 2.4;
+    if (!height) {
+        station_model.userData.beacon.emissiveIntensity = (!full_fx || (beat < 0.12) || ((beat > 0.3) && (beat < 0.42))) ? 2.2 : 0.35;
     }
 }
 
@@ -359,6 +422,56 @@ function render3d_player_lights(group)
         lights.emissive.set(color);
     }
     lights.emissiveIntensity = (full_fx && (clock % 1.5 < 0.07)) ? 3.5 : 1.2;
+}
+
+// Your guns on their mounts (mount_points), each its turret's drawing on the mount's ring, all turned to where they
+// aim and each kicked back as it fires, as the 2D turrets are (js/turrets.js): one instanced mesh a kind of gun, made
+// again when the guns change (the hangar, a load)
+function render3d_player_guns(group, ship)
+{
+    const THREE = render3d.three;
+    const guns = mounted_weapons();
+    const points = mount_points(ship);
+    const length = ship_sprite(ship).length;
+    const had = group.userData.weapons;
+    let same = !!had && (had.length === guns.length);
+    for (let i = 0; same && (i < guns.length); ++i) {
+        same = (had[i] === guns[i]);
+    }
+    if (!same) {
+        for (const mesh of group.userData.guns || []) {
+            group.remove(mesh);
+            mesh.dispose();
+        }
+        group.userData.guns = [];
+        group.userData.weapons = [...guns];
+        const name = ship_sprite(ship).name;
+        const hull = render3d_material('#ffffff', {vertex: true, roughness: 0.6, metalness: 0.25});
+        // a gun with no drawing to raise has no turret in 3D
+        for (const weapon of new Set(guns.filter(v => v && render3d_drawn(`weapons/turret-${v.id}`)))) {
+            const mounts = [...guns.keys()].filter(v => guns[v] === weapon);
+            const mesh = new THREE.InstancedMesh(render3d_turret_geometry(weapon), hull, mounts.length);
+            // each mount's height: the top of its ring in the drawing (render3d_hull_top)
+            mesh.userData.mounts = mounts.map(v => ({index: v, height: render3d_hull_top(name, 128 + (points[v].y*sprite_span)/length, 128 - (points[v].x*sprite_span)/length)}));
+            mesh.receiveShadow = true;
+            mesh.frustumCulled = false;
+            group.add(mesh);
+            group.userData.guns.push(mesh);
+        }
+    }
+    const v = render3d.gun || (render3d.gun = {matrix: new THREE.Matrix4(), position: new THREE.Vector3(), turn: new THREE.Quaternion(), scale: new THREE.Vector3(), up: new THREE.Vector3(0, 1, 0)});
+    const turn = (player.turret_angle ?? player.angle) - player.angle;
+    v.turn.setFromAxisAngle(v.up, -turn);
+    for (const mesh of group.userData.guns) {
+        for (const [j, mount] of mesh.userData.mounts.entries()) {
+            const p = points[mount.index];
+            const back = (turret_recoil(mount.index)*0.4)/length;
+            v.position.set(p.x/length - Math.cos(turn)*back, (mount.height - 1)/sprite_span, p.y/length - Math.sin(turn)*back);
+            v.scale.setScalar(gun_boxes[p.size]/length);
+            mesh.setMatrixAt(j, v.matrix.compose(v.position, v.turn, v.scale));
+        }
+        mesh.instanceMatrix.needsUpdate = true;
+    }
 }
 
 // Draws the 3D scene at the size of the game's canvas and puts it into it, in the scene's units (render() is drawing
@@ -409,26 +522,49 @@ function render3d_render_map()
     }
 }
 
-// Your ship and the raiders are models now; their trails, freighters and escorts stay 2D
+// Your ship and the raiders are models now; their trails, freighters and escorts stay 2D, and so does the shield
+// bubble your ship wears, a glow over its hull
 function render3d_render_surface_ship(x, y, angle, alpha = 1, ghost = false, definition = null)
 {
-    if (render3d_active() && !ghost && (definition ? definition.enemy : is_player_vessel(x, y))) {
+    if (render3d_active() && !ghost && (definition ? definition.enemy : is_player_vessel(x, y)) && render3d_drawn(definition ? definition.sprite.name : ship_sprite(current_ship()).name)) {
+        if (!definition) {
+            render3d_shield_parts(x, y, angle, alpha);
+        }
         return;
     }
     render3d_base_render_surface_ship(x, y, angle, alpha, ghost, definition);
 }
 
+// The shield bubble among your ship's parts, as 2D draws it over the hull (js/ship_parts.js): in the drawing's frame,
+// fading with the charge
+function render3d_shield_parts(x, y, angle, alpha)
+{
+    for (const v of ship_parts_player()) {
+        if (!v.shield) {
+            continue;
+        }
+        const unit = ship_sprite(current_ship()).length/sprite_span;
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(angle + Math.PI/2);
+        ctx.scale(unit, unit);
+        sprite_draw_box(`parts/3d/${v.sprite}`, null, v.size, v.x - 128, v.y - 128, v.rot, alpha*clamp(player.shield/Math.max(1, shield_max()), 0.25, 1));
+        ctx.restore();
+    }
+}
+
+// Your guns are models on a model of your ship; on a ship left to 2D, they stay 2D with it
 function render3d_render_ship_turrets(alpha = 1)
 {
-    if (!render3d_active()) {
+    if (!render3d_active() || !render3d_drawn(ship_sprite(current_ship()).name)) {
         render3d_base_render_ship_turrets(alpha);
     }
 }
 
-// A rock is a model; its hull bar stays
+// A rock is a model, but one whose drawing has nothing to raise (a stand-in picture); its hull bar stays
 function render3d_render_world_ore(v)
 {
-    if (!render3d_active()) {
+    if (!render3d_active() || !render3d.models.has(v)) {
         render3d_base_render_world_ore(v);
         return;
     }
@@ -437,10 +573,10 @@ function render3d_render_world_ore(v)
     }
 }
 
-// The station is a model; its shelter ring, its shield and its name stay
+// The station is a model, but one whose drawing has nothing to raise; its shelter ring, its shield and its name stay
 function render3d_render_world_station()
 {
-    if (!render3d_active()) {
+    if (!render3d_active() || !render3d.station) {
         render3d_base_render_world_station();
         return;
     }

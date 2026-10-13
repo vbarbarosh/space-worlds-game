@@ -3,7 +3,8 @@
 // Geometries and materials are shared by every model of a kind; a model is a group of meshes, its parts that never
 // move apart merged into one mesh per material (render3d_merge).
 
-// A material shared by every model using it; `vertex` takes the colour of each part from its geometry (render3d_art_part)
+// A material shared by every model using it; `vertex` takes the colour of each part from its geometry
+// (render3d_paint)
 function render3d_material(color, options = {})
 {
     const key = `${color}|${options.emissive || ''}|${options.glow || 0}|${options.vertex ? 'vertex' : ''}`;
@@ -112,24 +113,6 @@ function render3d_merged(THREE, meshes)
         out.setAttribute('color', new THREE.Float32BufferAttribute(color, 3));
     }
     out.setIndex(index);
-    return out;
-}
-
-// A cone of `sides` faces lying along +x, its tip forward
-function render3d_nose(THREE, radius, length, sides)
-{
-    const out = new THREE.ConeGeometry(radius, length, sides);
-    out.rotateZ(-Math.PI/2);
-    return out;
-}
-
-// A wing: a flat swept plate on the +z side (span), its root along the hull
-function render3d_wing(THREE, points, thickness)
-{
-    const shape = new THREE.Shape(points.map(v => new THREE.Vector2(v[0], v[1])));
-    const out = new THREE.ExtrudeGeometry(shape, {depth: thickness, bevelEnabled: false});
-    out.rotateX(Math.PI/2);
-    out.translate(0, thickness/2, 0);
     return out;
 }
 
@@ -539,7 +522,7 @@ function render3d_art_shape(THREE, v)
         }
         else if (op === 'A') {
             for (const p of render3d_art_arc(at, n)) {
-                out.lineTo(...p);
+                out.lineTo(...render3d_art_point(...p));
             }
         }
         if (n.length) {
@@ -560,7 +543,7 @@ function render3d_art_circle(THREE, x, y, r)
     return out;
 }
 
-// The points along an arc of a circle of a path (A r r 0 large sweep x y) from `from`, in the model, 15° apart at most
+// The points along an arc of a circle of a path (A r r 0 large sweep x y) from `from`, 15° apart at most
 function render3d_art_arc(from, n)
 {
     const [r, large, sweep, x, y] = [n[0], n[3], n[4], n[5], n[6]];
@@ -581,16 +564,16 @@ function render3d_art_arc(from, n)
     const out = [];
     for (let i = 1; i <= steps; ++i) {
         const a = start + (turn*i)/steps;
-        out.push(render3d_art_point(cx + Math.cos(a)*r, cy + Math.sin(a)*r));
+        out.push([cx + Math.cos(a)*r, cy + Math.sin(a)*r]);
     }
     return out;
 }
 
 // One part of a drawing's model (render3d_arts): a plate of a path or a rect raised from bottom to top, its top
 // edges cut by `bevel`; a disc of a circle or an ellipse ({x, y, r} or rx, ry), its top `taper` of its width or a
-// dome (`dome`); a cone along the nose ({x, y: [from, to], r: [from, to]}) between bottom and top. A part in a colour
-// carries it in its corners, for the one material of the hull.
-function render3d_art_part(THREE, [color, bottom, top, shape, bevel = 0])
+// dome (`dome`); a cone along the nose ({x, y: [from, to], r: [from, to]}) between bottom and top. The part carries its
+// colour in its corners, for the one material of the hull: the canopy's glass, the accent in `accent`.
+function render3d_art_part(THREE, [color, bottom, top, shape, bevel = 0], accent)
 {
     const k = 1/sprite_span;
     let out;
@@ -624,34 +607,40 @@ function render3d_art_part(THREE, [color, bottom, top, shape, bevel = 0])
         out.rotateX(Math.PI/2);
         out.translate(0, (top - bevel)*k, 0);
     }
-    if (color.startsWith('#')) {
-        const rgb = new THREE.Color(color);
-        const colors = new Float32Array(out.attributes.position.count*3);
-        for (let i = 0, end = colors.length; i < end; i += 3) {
-            colors.set([rgb.r, rgb.g, rgb.b], i);
-        }
-        out.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-    }
+    render3d_paint(THREE, out, (color === 'accent') ? accent : (color === 'glass') ? render3d_glass : color);
     return out;
 }
 
-// A drawing's parts into the group: the hull in one material that takes each part's colour, the canopy in glass, the
-// accent in `accent`; only the hull casts a shadow, the rest lie on it
+// A canopy's glass, as the drawings' gradient lit
+const render3d_glass = '#4a8fbf';
+
+// A geometry in one colour, in its corners, for a material that takes them (render3d_material's `vertex`)
+function render3d_paint(THREE, geometry, color)
+{
+    const rgb = new THREE.Color(color);
+    const colors = new Float32Array(geometry.attributes.position.count*3);
+    for (let i = 0, end = colors.length; i < end; i += 3) {
+        colors.set([rgb.r, rgb.g, rgb.b], i);
+    }
+    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+}
+
+// A drawing's parts into the group, all in one material that takes each part's colour: one mesh once merged, the accent
+// in the colour `accent`
 function render3d_art_parts(group, name, accent)
 {
     const hull = render3d_material('#ffffff', {vertex: true, roughness: 0.6, metalness: 0.25});
-    const glass = render3d_material('#2f6a92', {emissive: '#8fd0f0', glow: 0.35, roughness: 0.2, metalness: 0.3});
     for (const [i, part] of render3d_arts[name].parts.entries()) {
-        const material = (part[0] === 'glass') ? glass : (part[0] === 'accent') ? accent : hull;
-        render3d_mesh(group, render3d_geometry(`${name}:${i}`, v => render3d_art_part(v, part)), material).castShadow = (material === hull);
+        const key = (part[0] === 'accent') ? `${name}:${i}:${accent}` : `${name}:${i}`;
+        render3d_mesh(group, render3d_geometry(key, v => render3d_art_part(v, part, accent)), hull);
     }
 }
 
 // A drawing's engines glowing in `material` at its flame marks (js/sprites.js), each as wide as its mark, out of the
-// back of its engine block
-function render3d_art_nozzles(group, name, material)
+// back of its engine block, `nozzle` above the plane (the drawing's units)
+function render3d_art_nozzles(group, name, material, nozzle)
 {
-    const height = render3d_arts[name].nozzle/sprite_span;
+    const height = nozzle/sprite_span;
     for (const [i, v] of sprite_anchors(name, 1).flames.main.entries()) {
         const geometry = render3d_geometry(`${name}:nozzle:${i}`, function (THREE) {
             const r = v.width*0.4;
@@ -664,112 +653,561 @@ function render3d_art_nozzles(group, name, material)
     }
 }
 
-// Your ship as its drawing (render3d_arts), its engines glowing brighter with thrust and turbo, its running lights in
-// the ship's colour (js/render3d/scene.js lights them); one model a class
-function render3d_player_model(ship)
+// Your ship as its drawing (render3d_arts; a class with no table raised from its shapes, render3d_relief) with the
+// parts it wears (`parts`, js/ship_parts.js) on its hull, its engines glowing brighter with thrust and turbo, its
+// running lights in the ship's colour (js/render3d/scene.js lights them and turns its guns); one model a class and a
+// set of parts
+function render3d_player_model(ship, parts)
 {
     const out = new render3d.three.Group();
-    // a class with no model of its own yet flies the scout's
-    const name = render3d_arts[ship_sprite(ship).name] ? ship_sprite(ship).name : 'ship-scout';
+    const name = ship_sprite(ship).name;
+    const art = render3d_arts[name];
     const flame = render3d_material_own('#9bcfff', {emissive: '#9bcfff', glow: 1.6});
     const lights = render3d_material_own('#ffffff', {emissive: '#ffffff', glow: 1});
     out.userData.flame = flame;
     out.userData.lights = lights;
     out.userData.own = [flame, lights];
-    render3d_art_parts(out, name, null);
-    render3d_art_nozzles(out, name, flame);
+    if (art) {
+        render3d_art_parts(out, name, null);
+    }
+    else {
+        render3d_relief(out, name, render3d_relief_ship);
+    }
+    render3d_art_nozzles(out, name, flame, art ? art.nozzle : render3d_relief_ship.base/2);
     const lamp = render3d_geometry('art:lamp', v => new v.OctahedronGeometry(6/sprite_span));
-    for (const [x, y, height] of render3d_arts[name].lights) {
+    for (const [x, y, height] of art ? art.lights : []) {
         const [px, pz] = render3d_art_point(x, y);
         render3d_lamp(out, lamp, lights, px, (height + 2)/sprite_span, pz);
     }
-    render3d_merge(out, `player:${ship.id}`);
+    // each part as its drawing on the hull under its middle, turned and sized as 2D lays it in the ship's drawing; the
+    // shield bubble, a glow, stays a drawing over the model (js/render3d/scene.js)
+    const worn = parts.filter(v => !v.shield);
+    const hull = render3d_material('#ffffff', {vertex: true, roughness: 0.6, metalness: 0.25});
+    for (const v of worn) {
+        if (!render3d_drawn(`parts/3d/${v.sprite}`)) {
+            continue;
+        }
+        const geometry = render3d_relief_geometry(`parts/3d/${v.sprite}`, {base: 6, step: 2, bevel: 1}, false, false);
+        const [px, pz] = render3d_art_point(v.x, v.y);
+        const mesh = render3d_mesh(out, geometry, hull, px, (render3d_hull_top(name, v.x, v.y) - 0.5)/sprite_span, pz);
+        mesh.rotation.y = -(v.rot + Math.PI/2);
+        mesh.scale.setScalar(v.size/sprite_span);
+    }
+    render3d_merge(out, `player:${ship.id}:${worn.map(v => `${v.sprite}@${v.x.toFixed(1)},${v.y.toFixed(1)},${v.size.toFixed(1)},${v.rot.toFixed(2)}`).join(';')}`);
     return out;
 }
 
-// A world's flagship as its drawing (render3d_arts), its accent and engines in the raider's colour, glowing as the
-// raiders' do
+// A world's flagship as its drawing (render3d_arts), its accent in the raider's colour, its engines glowing in it
 function render3d_flagship_model(name, color)
 {
     const out = new render3d.three.Group();
-    render3d_art_parts(out, name, render3d_material(color, {emissive: color, glow: 0.3}));
-    render3d_art_nozzles(out, name, render3d_material(color, {emissive: color, glow: 1.2}));
-    render3d_merge(out, `raider:${name}`);
+    render3d_art_parts(out, name, color);
+    render3d_art_nozzles(out, name, render3d_material(color, {emissive: color, glow: 1.2}), render3d_arts[name].nozzle);
+    render3d_merge(out, `raider:${name}:${color}`);
     return out;
 }
 
-// A raider in its colour over a dark hull, its shape by its type; an elite carries gold fins. A flagship whose drawing
-// has no model of its own (render3d_flagship_model) is a disc with spikes around a glowing core.
-function render3d_raider_model(type, color, elite)
+// Drawings raised into models by their own shapes, for those with no table of their own (render3d_arts): raiders,
+// guns, stations, rocks. Every filled shape of the drawing, in the order it is drawn, stands on the shapes it lies
+// over: one on nothing is `base` high, one on others `step` above the highest of them, so the drawing's layers become
+// the model's. Strokes as wide as a vein or a crack lie on what they cross. Highlights, shadows and halos (mostly
+// transparent) and the engines' glow are left out: the 2D layer and the lamps draw those. Heights are in the drawing's
+// units; `unit` of them is one unit of the model (sprite_span for a ship's drawing, its canvas for the rest).
+const render3d_reliefs = new Map();
+
+// The shapes of a drawing in its order, each {polygons: [{outer, holes}], paint, spin, stroke}: the points in the
+// drawing's units, the paint a colour, an accent or 'glass' (render3d_relief_paint); `spin` for the layer that turns (a
+// station's ring)
+function render3d_relief_shapes(name)
+{
+    let out = render3d_reliefs.get(name);
+    if (out) {
+        return out;
+    }
+    out = [];
+    const svg = sprite(name).svg;
+    const box = sprite(name).box;
+    walk(svg, {fill: '#000000', stroke: 'none', 'stroke-width': '1', opacity: 1, 'fill-opacity': 1, 'stroke-opacity': 1}, false);
+    render3d_reliefs.set(name, out);
+    return out;
+    function walk(node, style, spin) {
+        for (const v of node.children) {
+            if ((v.tagName === 'defs') || (v.id === 'anchors')) {
+                continue;
+            }
+            const own = {...style};
+            for (const key of ['fill', 'stroke', 'stroke-width', 'fill-rule']) {
+                if (v.hasAttribute(key)) {
+                    own[key] = v.getAttribute(key);
+                }
+            }
+            for (const key of ['opacity', 'fill-opacity', 'stroke-opacity']) {
+                if (v.hasAttribute(key)) {
+                    own[key] = ((key === 'opacity') ? style.opacity : 1)*Number(v.getAttribute(key));
+                }
+            }
+            if (v.tagName === 'g') {
+                walk(v, own, spin || (v.id === 'spin'));
+                continue;
+            }
+            const lines = render3d_svg_lines(v);
+            if (!lines.length) {
+                continue;
+            }
+            const fill = render3d_relief_paint(svg, own.fill, own.opacity*own['fill-opacity'], lines);
+            const stroke = (own.stroke === 'none') ? null : render3d_relief_paint(svg, own.stroke, own.opacity*own['stroke-opacity'], lines.map(v => ({points: v.points})));
+            const width = Number(own['stroke-width']);
+            if (fill) {
+                out.push({polygons: render3d_relief_polygons(lines), paint: fill, spin, stroke: false});
+            }
+            // a line drawn on its own, as wide as a vein or a crack and not a glint on one, nor an outline (closed): a
+            // quad a segment
+            else if (stroke && (width >= box/128) && (own.opacity*own['stroke-opacity'] > 0.9)) {
+                const polygons = [];
+                for (const line of lines.filter(v => !v.closed)) {
+                    const points = line.points;
+                    for (let i = 1; i < points.length; ++i) {
+                        const [a, b] = [points[i - 1], points[i]];
+                        const length = Math.hypot(b[0] - a[0], b[1] - a[1]);
+                        if (length > 0.01) {
+                            const [nx, ny] = [((a[1] - b[1])/length)*width/2, ((b[0] - a[0])/length)*width/2];
+                            polygons.push({outer: [[a[0] + nx, a[1] + ny], [b[0] + nx, b[1] + ny], [b[0] - nx, b[1] - ny], [a[0] - nx, a[1] - ny]], holes: []});
+                        }
+                    }
+                }
+                out.push({polygons, paint: stroke, spin, stroke: true});
+            }
+        }
+    }
+}
+
+// A drawing's paint as the model's: a colour; a gradient as its mean over the shape (`lines`), where the shape shows
+// it; the accent's gradient as 'accent' and that mean ('accent#e8743b'), 'glass' for a canopy's; null for none, for
+// the engines' glow and for what is mostly transparent
+function render3d_relief_paint(svg, paint, opacity, lines)
+{
+    if (!paint || (paint === 'none') || (opacity < 0.6)) {
+        return null;
+    }
+    if (!paint.startsWith('url(')) {
+        return paint;
+    }
+    const id = paint.slice(5, -1);
+    const gradient = svg.querySelector(`[id="${id}"]`);
+    if (!gradient || (id === 'nozzle')) {
+        return null;
+    }
+    if (id === 'glass') {
+        return 'glass';
+    }
+    const stops = [...gradient.querySelectorAll('stop')].map(v => ({at: Number(v.getAttribute('offset') || 0), rgba: [...render3d_rgb(v.getAttribute('stop-color')), Number(v.getAttribute('stop-opacity') ?? 1)]}));
+    if (!stops.length) {
+        return null;
+    }
+    // a point of the shape along the gradient: the bounding box's fractions, or the drawing's units
+    const points = lines.flatMap(v => v.points);
+    const [x0, y0] = [Math.min(...points.map(v => v[0])), Math.min(...points.map(v => v[1]))];
+    const [w, h] = [Math.max(...points.map(v => v[0])) - x0 || 1, Math.max(...points.map(v => v[1])) - y0 || 1];
+    const bounding = gradient.getAttribute('gradientUnits') !== 'userSpaceOnUse';
+    function n(key, fallback) {
+        return gradient.hasAttribute(key) ? Number(gradient.getAttribute(key)) : fallback;
+    }
+    const sum = [0, 0, 0, 0];
+    const samples = render3d_samples(lines);
+    for (const [x, y] of samples) {
+        const [u, v] = bounding ? [(x - x0)/w, (y - y0)/h] : [x, y];
+        let t;
+        if (gradient.tagName === 'radialGradient') {
+            t = Math.hypot(u - n('cx', 0.5), v - n('cy', 0.5))/n('r', 0.5);
+        }
+        else {
+            const [ax, ay, dx, dy] = [n('x1', 0), n('y1', 0), n('x2', 1) - n('x1', 0), n('y2', 0) - n('y1', 0)];
+            t = ((u - ax)*dx + (v - ay)*dy)/((dx*dx + dy*dy) || 1);
+        }
+        const rgba = render3d_stop_at(stops, clamp(t, 0, 1));
+        for (let i = 0; i < 4; ++i) {
+            sum[i] += rgba[i];
+        }
+    }
+    if ((sum[3]/samples.length) < 0.6) {
+        return null;
+    }
+    const color = `#${sum.slice(0, 3).map(v => Math.round(v/samples.length).toString(16).padStart(2, '0')).join('')}`;
+    return gradient.querySelector('[id^="accent"]') ? `accent${color}` : color;
+}
+
+// A colour #rrggbb as [r, g, b], 0 to 255
+function render3d_rgb(hex)
+{
+    return [1, 3, 5].map(v => parseInt(hex.slice(v, v + 2), 16));
+}
+
+// A gradient's colour and opacity at t (0 to 1) between its stops
+function render3d_stop_at(stops, t)
+{
+    const next = stops.findIndex(v => v.at >= t);
+    if (next <= 0) {
+        return (next === 0) ? stops[0].rgba : stops.at(-1).rgba;
+    }
+    const [a, b] = [stops[next - 1], stops[next]];
+    const k = (t - a.at)/((b.at - a.at) || 1);
+    return a.rgba.map((v, i) => v + (b.rgba[i] - v)*k);
+}
+
+// Points of a shape to sample its paint at: a grid over its box, those inside it (its lines filled even-odd); a line's
+// own points for a shape with nothing inside (a stroke)
+function render3d_samples(lines)
+{
+    const points = lines.flatMap(v => v.points);
+    const [x0, y0] = [Math.min(...points.map(v => v[0])), Math.min(...points.map(v => v[1]))];
+    const [x1, y1] = [Math.max(...points.map(v => v[0])), Math.max(...points.map(v => v[1]))];
+    const inside = [];
+    for (let i = 0; i < 8; ++i) {
+        for (let j = 0; j < 8; ++j) {
+            const p = [x0 + ((x1 - x0)*(i + 0.5))/8, y0 + ((y1 - y0)*(j + 0.5))/8];
+            if ((lines.filter(v => render3d_inside(p, v.points)).length % 2) === 1) {
+                inside.push(p);
+            }
+        }
+    }
+    return inside.length ? inside : points;
+}
+
+// The lines of a shape of a drawing, each {points, closed} in its units: a path (absolute M, L, Q, A of a circle, Z),
+// a rect, its corners rounded rx, a circle, an ellipse, a polygon
+function render3d_svg_lines(v)
+{
+    function n(key) {
+        return Number(v.getAttribute(key) || 0);
+    }
+    if (v.tagName === 'path') {
+        return render3d_path_lines(v.getAttribute('d') || '');
+    }
+    if (v.tagName === 'rect') {
+        const [x, y, w, h, r] = [n('x'), n('y'), n('width'), n('height'), Math.min(n('rx'), n('width')/2, n('height')/2)];
+        const points = [];
+        for (const [cx, cy, a] of [[x + w - r, y + r, -Math.PI/2], [x + w - r, y + h - r, 0], [x + r, y + h - r, Math.PI/2], [x + r, y + r, Math.PI]]) {
+            for (const t of r ? [0, 0.5, 1] : [0]) {
+                points.push([cx + Math.cos(a + t*Math.PI/2)*r, cy + Math.sin(a + t*Math.PI/2)*r]);
+            }
+        }
+        return [{points, closed: true}];
+    }
+    if ((v.tagName === 'circle') || (v.tagName === 'ellipse')) {
+        const [rx, ry] = (v.tagName === 'circle') ? [n('r'), n('r')] : [n('rx'), n('ry')];
+        const count = clamp(Math.round(Math.max(rx, ry)/2), 10, 28);
+        const points = [];
+        for (let i = 0; i < count; ++i) {
+            const a = (i/count)*Math.PI*2;
+            points.push([n('cx') + Math.cos(a)*rx, n('cy') + Math.sin(a)*ry]);
+        }
+        return [{points, closed: true}];
+    }
+    if (v.tagName === 'polygon') {
+        const p = (v.getAttribute('points') || '').trim().split(/[\s,]+/).map(Number);
+        const points = [];
+        for (let i = 0; i + 1 < p.length; i += 2) {
+            points.push([p[i], p[i + 1]]);
+        }
+        return [{points, closed: true}];
+    }
+    return [];
+}
+
+// The lines of a path, each {points, closed}: absolute M, L, Q, A of a circle and Z
+function render3d_path_lines(d)
+{
+    const lines = [];
+    let line = null;
+    let at = [0, 0];
+    for (const [, op, list] of d.matchAll(/([MLQAZ])([^MLQAZ]*)/g)) {
+        const p = list.trim().split(/[\s,]+/).filter(Boolean).map(Number);
+        if (op === 'M') {
+            line = {points: [], closed: false};
+            lines.push(line);
+        }
+        if ((op === 'M') || (op === 'L')) {
+            for (let i = 0; i < p.length; i += 2) {
+                line.points.push([p[i], p[i + 1]]);
+            }
+        }
+        else if (op === 'Q') {
+            for (const t of [0.25, 0.5, 0.75, 1]) {
+                const u = 1 - t;
+                line.points.push([u*u*at[0] + 2*u*t*p[0] + t*t*p[2], u*u*at[1] + 2*u*t*p[1] + t*t*p[3]]);
+            }
+        }
+        else if (op === 'A') {
+            line.points.push(...render3d_art_arc(at, p));
+        }
+        else if ((op === 'Z') && line) {
+            line.closed = true;
+        }
+        at = line.points.at(-1) || at;
+        if (op === 'Z') {
+            at = line.points[0];
+        }
+    }
+    return lines.filter(v => v.points.length > 1);
+}
+
+// A filled shape's lines as polygons: a line inside a larger one is its hole (a ring)
+function render3d_relief_polygons(lines)
+{
+    const out = [];
+    for (const points of lines.map(v => v.points).sort((a, b) => Math.abs(render3d_area(b)) - Math.abs(render3d_area(a)))) {
+        const outer = out.find(v => render3d_inside(points[0], v.outer));
+        if (outer) {
+            outer.holes.push(points);
+        }
+        else {
+            out.push({outer: points, holes: []});
+        }
+    }
+    return out;
+}
+
+// A polygon's area, signed by its turn
+function render3d_area(points)
+{
+    let twice = 0;
+    for (let i = 0, end = points.length; i < end; ++i) {
+        const [a, b] = [points[i], points[(i + 1) % end]];
+        twice += a[0]*b[1] - b[0]*a[1];
+    }
+    return twice/2;
+}
+
+function render3d_inside([x, y], points)
+{
+    let out = false;
+    for (let i = 0, j = points.length - 1, end = points.length; i < end; j = i++) {
+        const [a, b] = [points[i], points[j]];
+        if (((a[1] > y) !== (b[1] > y)) && (x < ((b[0] - a[0])*(y - a[1]))/(b[1] - a[1]) + a[0])) {
+            out = !out;
+        }
+    }
+    return out;
+}
+
+// The parts of a drawing's model, each {polygon, paint, spin, stroke, bottom, top, bevel, steps}: a shape on nothing
+// stands from the plane `base` high; one on others `step` above the highest of them, from the plane if it reaches past
+// them, from their top if it lies within them (a panel, a vein); `round` cuts the edges of the ones on the plane in a
+// curve (a rock)
+function render3d_relief_parts(name, options)
+{
+    const key = `${name}|${options.base}|${options.step}|${options.bevel}|${options.round || 0}`;
+    let out = render3d_reliefs.get(key);
+    if (out) {
+        return out;
+    }
+    out = [];
+    for (const shape of render3d_relief_shapes(name)) {
+        for (const polygon of shape.polygons) {
+            if (Math.abs(render3d_area(polygon.outer)) < 0.5) {
+                continue;
+            }
+            // the polygon's corners, at most 16 of them, and its middle
+            const corners = polygon.outer.filter((v, i, all) => (i % Math.ceil(all.length/16)) === 0);
+            const middle = [0, 1].map(function (i) {
+                return polygon.outer.reduce((a, v) => a + v[i], 0)/polygon.outer.length;
+            });
+            const samples = [...corners, middle];
+            let under = 0;
+            let within = true;
+            // a line lies on the shapes under it, never on another line (a vein's segments overlap)
+            for (const part of out.filter(v => !v.stroke)) {
+                const on = samples.filter(v => render3d_inside(v, part.polygon.outer) && !part.polygon.holes.some(vv => render3d_inside(v, vv))).length;
+                if (on && (part.top > under)) {
+                    under = part.top;
+                    within = (on === samples.length);
+                }
+            }
+            const top = under ? under + options.step*(shape.stroke ? 0.5 : 1) : options.base;
+            const bottom = (under && within) ? under - 0.5 : 0;
+            const xs = polygon.outer.map(v => v[0]);
+            const ys = polygon.outer.map(v => v[1]);
+            const size = Math.min(Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys));
+            // a round one (a rock) cut deeper, in steps, its edge a curve
+            const deep = options.round ? 0.45 : 0.3;
+            const bevel = (bottom || shape.stroke) ? 0 : Math.min(options.bevel, size*deep*0.7, (top - bottom)*deep);
+            out.push({polygon, paint: shape.paint, spin: shape.spin, stroke: shape.stroke, bottom, top, bevel, steps: (options.round && bevel) ? 3 : 1});
+        }
+    }
+    render3d_reliefs.set(key, out);
+    return out;
+}
+
+// A drawing as a model into `group`: its hull one mesh in one material taking each part's colour, its accent in
+// `accent` (a colour, baked in; a material, a mesh of its own; none, the drawing's own colour), the layer that turns a
+// group of its own named 'ring'. Returns the height of its top in the model's units.
+function render3d_relief(group, name, options)
+{
+    const hull = render3d_material('#ffffff', {vertex: true, roughness: 0.6, metalness: 0.25});
+    const own = (typeof options.accent === 'object') ? options.accent : null;
+    const ring = new render3d.three.Group();
+    ring.name = 'ring';
+    for (const spin of [false, true]) {
+        for (const material of own ? [hull, own] : [hull]) {
+            const geometry = render3d_relief_geometry(name, options, spin, material === own);
+            if (geometry) {
+                render3d_mesh(spin ? ring : group, geometry, material).castShadow = (material === hull);
+            }
+        }
+    }
+    if (ring.children.length) {
+        group.add(ring);
+    }
+    return Math.max(...render3d_relief_parts(name, options).map(v => v.top))/(options.unit || sprite(name).box);
+}
+
+// One layer of a drawing's model as one geometry, made once: the parts that turn or not (`spin`), the accent's alone
+// (`own`, for an accent in a material of its own) or the rest; null for none. The model's origin is the middle of the
+// drawing's canvas; a ship's or a gun's drawing points its nose up, and the model along +x.
+function render3d_relief_geometry(name, options, spin, own)
+{
+    const accent = (typeof options.accent === 'string') ? options.accent : '';
+    const chosen = render3d_relief_parts(name, options).filter(v => (v.spin === spin) && (v.paint.startsWith('accent') && (typeof options.accent === 'object')) === own);
+    if (!chosen.length) {
+        return null;
+    }
+    const key = `relief:${name}|${options.base}|${options.step}|${options.bevel}|${options.round || 0}|${options.unit || 0}|${accent}|${spin}|${own}`;
+    return render3d_geometry(key, function (THREE) {
+        const art = sprite(name);
+        const [left, top, size] = art.svg.getAttribute('viewBox').split(/\s+/).map(Number);
+        const [cx, cy] = [left + size/2, top + size/2];
+        const unit = options.unit || size;
+        function point([x, y]) {
+            return art.turned ? [(cy - y)/unit, (x - cx)/unit] : [(x - cx)/unit, (y - cy)/unit];
+        }
+        const pieces = chosen.map(v => render3d_relief_piece(THREE, v, point, unit, accent));
+        const out = render3d_merged(THREE, pieces.map(v => new THREE.Mesh(v)));
+        for (const piece of pieces) {
+            piece.dispose();
+        }
+        return out;
+    });
+}
+
+// One part of a drawing's model: its polygon raised from bottom to top, the bevel cut in from the outline, its colour
+// in its corners: the accent `accent` or, without one, the drawing's own
+function render3d_relief_piece(THREE, part, point, unit, accent)
+{
+    const shape = new THREE.Shape(part.polygon.outer.map(v => new THREE.Vector2(...point(v))));
+    for (const hole of part.polygon.holes) {
+        shape.holes.push(new THREE.Path(hole.map(v => new THREE.Vector2(...point(v)))));
+    }
+    const out = new THREE.ExtrudeGeometry(shape, {
+        depth: (part.top - part.bottom - part.bevel*2)/unit,
+        bevelEnabled: part.bevel > 0,
+        bevelThickness: part.bevel/unit,
+        bevelSize: part.bevel/unit,
+        bevelOffset: -part.bevel/unit,
+        bevelSegments: part.steps,
+    });
+    out.rotateX(Math.PI/2);
+    out.translate(0, (part.top - part.bevel)/unit, 0);
+    const paint = part.paint;
+    render3d_paint(THREE, out, paint.startsWith('accent') ? (accent || paint.slice(6)) : (paint === 'glass') ? render3d_glass : paint);
+    return out;
+}
+
+// A gun's turret as its drawing (weapons/turret-<id>), its accent in the gun's colour: one geometry for an instanced
+// mesh (js/render3d/scene.js), its pivot the origin, its barrel along +x, one unit across the drawing's canvas
+function render3d_turret_geometry(weapon)
+{
+    return render3d_relief_geometry(`weapons/turret-${weapon.id}`, {base: 5, step: 1.5, bevel: 1, accent: weapon.color}, false, false);
+}
+
+// Whether a drawing raises into a model: it has a table (render3d_arts) or filled shapes. A picture laid in an SVG (a
+// stand-in) has none, and stays a drawing over the 3D view; so does a name with no drawing.
+const render3d_drawns = new Map();
+
+function render3d_drawn(name)
+{
+    let out = render3d_drawns.get(name);
+    if (out === undefined) {
+        out = !!render3d_arts[name] || (!!sprite(name) && render3d_relief_shapes(name).some(v => v.polygons.length > 0));
+        render3d_drawns.set(name, out);
+    }
+    return out;
+}
+
+// The top of a ship's model at the point x, y of its drawing: the highest part over it, 0 off the hull; a class with
+// no table by its raised shapes (render3d_relief_ship)
+function render3d_hull_top(name, x, y)
+{
+    if (!render3d_arts[name]) {
+        const parts = render3d_relief_parts(name, render3d_relief_ship).filter(v => render3d_inside([x, y], v.polygon.outer));
+        return Math.max(0, ...parts.map(v => v.top));
+    }
+    let out = 0;
+    for (const [, , top, shape] of render3d_arts[name].parts) {
+        let lines;
+        if (typeof shape === 'string') {
+            lines = render3d_path_lines(shape);
+        }
+        else if (shape.w) {
+            lines = [{points: [[shape.x, shape.y], [shape.x + shape.w, shape.y], [shape.x + shape.w, shape.y + shape.h], [shape.x, shape.y + shape.h]]}];
+        }
+        else if (Array.isArray(shape.y)) {
+            lines = [{points: [[shape.x - shape.r[0], shape.y[0]], [shape.x + shape.r[0], shape.y[0]], [shape.x, shape.y[1]]]}];
+        }
+        const over = lines ? lines.some(v => render3d_inside([x, y], v.points)) : (((x - shape.x)/(shape.rx || shape.r))**2 + ((y - shape.y)/(shape.ry || shape.r))**2 <= 1);
+        if (over && (top > out)) {
+            out = top;
+        }
+    }
+    return out;
+}
+
+// How a ship's drawing with no table of its own is raised (render3d_relief): a raider's, a class's
+const render3d_relief_ship = {unit: sprite_span, base: 9, step: 3, bevel: 2.5};
+
+// A raider as its drawing, elite or not, a flagship with no table of its own too (render3d_relief): its hull in the
+// drawing's greys, its accent in its colour, its engines glowing in it
+function render3d_raider_model(name, color)
 {
     const out = new render3d.three.Group();
-    const dark = render3d_material('#454c5c', {metalness: 0.3});
-    const paint = render3d_material(color, {emissive: color, glow: 0.3});
-    const core = render3d_material(color, {emissive: color, glow: 1.2});
-    const fin = elite ? render3d_material(gold, {emissive: gold, glow: 0.3, metalness: 0.5}) : dark;
-    if (type === 'boss') {
-        render3d_mesh(out, render3d_geometry('boss:disc', v => new v.CylinderGeometry(0.42, 0.5, 0.14, 6)), dark);
-        render3d_mesh(out, render3d_geometry('boss:deck', v => new v.CylinderGeometry(0.3, 0.36, 0.1, 6)), paint, 0, 0.11, 0);
-        render3d_mesh(out, render3d_geometry('boss:core', v => new v.IcosahedronGeometry(0.13, 0)), core, 0, 0.2, 0);
-        const spike = render3d_geometry('boss:spike', v => render3d_nose(v, 0.06, 0.24, 4));
-        for (let i = 0; i < 6; ++i) {
-            const a = (i/6)*Math.PI*2;
-            const mesh = render3d_mesh(out, spike, paint, Math.cos(a)*0.55, 0, Math.sin(a)*0.55);
-            mesh.rotation.y = -a;
-        }
-        render3d_merge(out, `raider:${type}`);
-        return out;
-    }
-    if (type === 'tank') {
-        render3d_mesh(out, render3d_geometry('tank:hull', v => new v.CylinderGeometry(0.4, 0.46, 0.24, 6)), dark);
-        render3d_mesh(out, render3d_geometry('tank:top', v => new v.CylinderGeometry(0.26, 0.32, 0.12, 6)), paint, 0, 0.17, 0);
-        render3d_mesh(out, render3d_geometry('tank:gun', v => new v.BoxGeometry(0.34, 0.06, 0.08)), fin, 0.3, 0.17, 0);
-        render3d_merge(out, `raider:${type}`);
-        return out;
-    }
-    if (type === 'splitter') {
-        const pod = render3d_geometry('splitter:pod', v => render3d_nose(v, 0.13, 0.42, 3).scale(1, 0.6, 1));
-        for (let i = 0; i < 3; ++i) {
-            const a = (i/3)*Math.PI*2;
-            const mesh = render3d_mesh(out, pod, i ? dark : paint, Math.cos(a)*0.2, 0, Math.sin(a)*0.2);
-            mesh.rotation.y = -a;
-        }
-        render3d_mesh(out, render3d_geometry('splitter:core', v => new v.OctahedronGeometry(0.1)), core, 0, 0.04, 0);
-        render3d_merge(out, `raider:${type}`);
-        return out;
-    }
-    // an engine glowing at the stern, in the raider's colour
-    const exhaust = render3d_geometry('raider:exhaust', v => new v.BoxGeometry(0.04, 0.07, 0.14));
-    if (type === 'lancer') {
-        render3d_mesh(out, render3d_geometry('lancer:lance', v => render3d_nose(v, 0.1, 1, 4).scale(1, 0.7, 1)), paint);
-        render3d_lamp(out, exhaust, core, -0.5, 0, 0).scale.set(1, 0.8, 0.8);
-        const wing = render3d_geometry('lancer:fin', v => render3d_wing(v, [[-0.1, 0.04], [-0.42, 0.26], [-0.48, 0.26], [-0.36, 0.04]], 0.03));
-        render3d_mesh(out, wing, fin);
-        render3d_mesh(out, wing, fin).scale.z = -1;
-        render3d_merge(out, `raider:${type}`);
-        return out;
-    }
-    // chaser and shooter: a flat wedge, the shooter with a gun pod on each side
-    render3d_mesh(out, render3d_geometry('raider:wedge', v => render3d_nose(v, 0.3, 0.9, 3).rotateX(Math.PI).scale(1, 0.45, 1)), dark);
-    render3d_mesh(out, render3d_geometry('raider:spine', v => render3d_nose(v, 0.1, 0.62, 3).scale(1, 0.7, 1)), paint, -0.04, 0.08, 0);
-    render3d_mesh(out, render3d_geometry('raider:eye', v => new v.OctahedronGeometry(0.05)), core, 0.12, 0.1, 0);
-    render3d_lamp(out, exhaust, core, -0.45, 0.02, 0.1);
-    render3d_lamp(out, exhaust, core, -0.45, 0.02, -0.1);
-    if (type === 'shooter') {
-        const gun = render3d_geometry('shooter:pod', v => new v.CylinderGeometry(0.05, 0.06, 0.4, 6).rotateZ(Math.PI/2));
-        render3d_mesh(out, gun, fin, 0.02, 0, 0.24);
-        render3d_mesh(out, gun, fin, 0.02, 0, -0.24);
-    }
-    else {
-        render3d_mesh(out, render3d_geometry('raider:fin', v => new v.BoxGeometry(0.22, 0.14, 0.03)), fin, -0.3, 0.08, 0);
-    }
-    render3d_merge(out, `raider:${type}`);
+    render3d_relief(out, name, {...render3d_relief_ship, accent: color});
+    render3d_art_nozzles(out, name, render3d_material(color, {emissive: color, glow: 1.2}), render3d_relief_ship.base/2);
+    render3d_merge(out, `raider:${name}:${color}`);
     return out;
 }
 
-// A rock: an icosahedron pushed in and out by its seed, one of seven; a rich one wears crystals of its ore, their glow
-// breathing (js/render3d/scene.js)
-function render3d_rock_model(variant, rock_color, ore)
+// A rock as its world's drawing (render3d_relief), round its middle: a rich one's veins glow in its ore, breathing
+// (js/render3d/scene.js)
+function render3d_rock_model(name, ore)
+{
+    const out = new render3d.three.Group();
+    const veins = ore ? render3d_material(ore, {emissive: ore, glow: 0.9, roughness: 0.3}) : undefined;
+    if (ore) {
+        render3d.ores.add(veins);
+    }
+    const height = render3d_relief(out, name, {base: 40, step: 3, bevel: 30, round: true, accent: veins});
+    for (const v of out.children) {
+        v.position.y = -height/2;
+    }
+    return out;
+}
+
+// The station as its world's drawing (render3d_relief), its habitat ring turning (the drawing's spin layer, a group
+// named 'ring'), its lights (the accent) glowing in the world's colour, a material of its own: its beacon, as the
+// plain station's (bin/perf counts the stations in the scene by it); the height of its top kept, for the scene to lay
+// it under the ships
+function render3d_station_model(name, accent)
+{
+    const out = new render3d.three.Group();
+    const lights = render3d_material_own(accent, {emissive: accent, glow: 0.8});
+    out.userData.beacon = lights;
+    out.userData.own = [lights];
+    out.userData.height = render3d_relief(out, name, {base: 10, step: 3, bevel: 3, accent: lights});
+    return out;
+}
+
+// A rock of a world with no drawings of its own: an icosahedron pushed in and out by its seed, one of seven; a rich one
+// wears crystals of its ore, their glow breathing (js/render3d/scene.js)
+function render3d_rock_lump(variant, rock_color, ore)
 {
     const out = new render3d.three.Group();
     const geometry = render3d_geometry(`rock:${variant}`, function (THREE) {
@@ -806,8 +1244,9 @@ function render3d_rock_model(variant, rock_color, ore)
     return out;
 }
 
-// The station: a hub, a ring that turns, spokes, four berths reaching out, and lights in the world's accent
-function render3d_station_model(metal, accent)
+// The station of a world with no drawing of its own: a hub, a ring that turns, spokes, four berths reaching out, and
+// lights in the world's accent
+function render3d_station_plain(metal, accent)
 {
     const THREE = render3d.three;
     const out = new THREE.Group();
