@@ -1,0 +1,722 @@
+#!/usr/bin/env node
+
+const cli = require('@vbarbarosh/node-helpers/src/cli');
+const fs = require('node:fs');
+const path = require('node:path');
+const zlib = require('node:zlib');
+
+const usage = `usage: bin/play-log <file.json|file.json.gz> [--charts=dir] [--mode=campaign|arcade]
+
+    Reads a play log saved from the game's pause panel (Download play log; docs/play-log.md) and prints how the
+    games went: the sessions, each game (run) across its sessions, time, income and spending per world, income by
+    source and spending by kind, the kit as it changed, salvage on hand over time, when the top ship and every module
+    were bought and what the salvage did after, combat per world, deaths, contracts, flagships, races, the arcade's
+    worlds and the frame rate; then notes on what stands out.
+
+    --charts=dir also draws the economy, combat and frame rate as PNGs in dir (Chromium, through playwright).
+    --mode keeps one mode's sessions.`;
+// a balance this many times the priciest thing the game ever bought is salvage with nowhere to go
+const idle_salvage_factor = 3;
+// the charts' light theme: the surface, ink, secondary ink, hairlines; series hues in a fixed order (checked for colour
+// blindness against this surface)
+const chart_theme = {surface: '#E8E6E0', text: '#191A17', muted: '#595B57', line: '#CAC6B8', series: ['#2a78d6', '#eb6834', '#1baf7a', '#eda100']};
+
+cli(main);
+
+async function main()
+{
+    const args = process.argv.slice(2);
+    const options = Object.fromEntries(args.filter(v => v.startsWith('--')).map(v => v.replace(/^--/, '').split('=')));
+    const files = args.filter(v => !v.startsWith('--'));
+    if ((files.length !== 1) || Object.keys(options).some(v => !['charts', 'mode'].includes(v))) {
+        console.log(usage);
+        process.exit(2);
+    }
+    const log = log_from_file(files[0]);
+    const sessions = log.sessions.filter(v => !options.mode || (v.mode === options.mode));
+    const runs = runs_from_sessions(sessions);
+    const lines = [
+        ...report_head(log, sessions),
+        ...report_sessions(sessions),
+        ...report_runs(runs),
+        ...report_worlds(sessions),
+        ...report_money(sessions),
+        ...report_salvage_over_time(runs),
+        ...report_kit(runs),
+        ...report_purchases(runs),
+        ...report_maxed(runs),
+        ...report_combat(sessions),
+        ...report_deaths(runs),
+        ...report_contracts(sessions),
+        ...report_flagships(sessions),
+        ...report_races(sessions),
+        ...report_arcade(sessions),
+        ...report_performance(sessions),
+        ...report_notes(runs, sessions),
+    ];
+    console.log(lines.join('\n'));
+    if (options.charts) {
+        await charts_write(options.charts, runs, sessions);
+    }
+}
+
+// The log as the game saved it, plain or gzipped; an error that says what is wrong with it
+function log_from_file(file)
+{
+    let buffer = fs.readFileSync(file);
+    if ((buffer[0] === 0x1f) && (buffer[1] === 0x8b)) {
+        buffer = zlib.gunzipSync(buffer);
+    }
+    const log = JSON.parse(buffer.toString('utf8'));
+    if ((log.format !== 'world-explorer-play-log') || !Array.isArray(log.sessions)) {
+        throw new Error(`${file}: not a World Explorer play log (format "${log.format}")`);
+    }
+    if (log.format_version > 1) {
+        console.log(`warning: format_version ${log.format_version}, this tool knows 1; fields it does not know are skipped`);
+    }
+    return log;
+}
+
+// A run is one game: a campaign (its save keeps the id) or an arcade run, across the sessions it was played in, with
+// its records and events on one clock: minutes of play since the run's first session began
+function runs_from_sessions(sessions)
+{
+    const run_by_id = new Map();
+    for (const session of sessions) {
+        let run = run_by_id.get(session.run);
+        if (!run) {
+            run = {id: session.run, mode: session.mode, difficulty: session.difficulty, sessions: [], records: [], events: [], played_s: 0};
+            run_by_id.set(session.run, run);
+        }
+        const offset = run.played_s;
+        run.sessions.push(session);
+        for (const record of session.records) {
+            run.records.push({...record, run_t: offset + record.t, session: session.id});
+        }
+        for (const event of session.events) {
+            run.events.push({...event, run_t: offset + event.t, session: session.id});
+        }
+        run.played_s += session.played_s;
+    }
+    return [...run_by_id.values()];
+}
+
+function report_head(log, sessions)
+{
+    const minutes_by_mode = {};
+    for (const session of sessions) {
+        minutes_by_mode[session.mode] = (minutes_by_mode[session.mode] || 0) + session.played_s/60;
+    }
+    const versions = [...new Set(sessions.map(v => `v${v.game?.version || '?'} built ${format_at(v.game?.built)} UTC`))];
+    return [
+        `World Explorer play log · format ${log.format_version} · exported ${format_at(log.exported_at)} UTC`,
+        `game: ${versions.join('; ') || 'unknown'}`,
+        `${sessions.length} sessions · ${format_minutes(sum(sessions.map(v => v.played_s))/60)} of play · ${Object.entries(minutes_by_mode).map(v => `${v[0]} ${format_minutes(v[1])}`).join(', ')}`,
+        'Times are minutes of play: pause, menus and results screens are not counted.',
+    ];
+}
+
+function report_sessions(sessions)
+{
+    const rows = sessions.map(function (session) {
+        const worlds = [...new Set(session.records.map(v => v.world))];
+        const salvage_end = last(session.records)?.salvage ?? session.start.salvage;
+        return [session.id, session.mode, session.difficulty, format_at(session.started), format_minutes(session.played_s/60), session.start.how, session.end_reason || 'still open', worlds.join(' → '), `${format_number(session.start.salvage)} → ${format_number(salvage_end)}`, count(session.events, 'death')];
+    });
+    return section('Sessions', table(['session', 'mode', 'difficulty', 'started (UTC)', 'played', 'how it began', 'how it ended', 'worlds', 'salvage', 'deaths'], rows));
+}
+
+function report_runs(runs)
+{
+    const rows = runs.map(function (run) {
+        const worlds = new Set(run.records.map(v => v.world));
+        const earned = sum(run.records.map(v => total(v.earned)));
+        const spent = sum(run.records.map(v => total(v.spent)));
+        return [run.id, run.mode, run.difficulty, run.sessions.length, format_minutes(run.played_s/60), worlds.size, count(run.events, 'death'), format_number(earned), format_number(spent), format_number(last(run.records)?.salvage ?? 0)];
+    });
+    return section('Games (a campaign save or an arcade run, across its sessions)', table(['run', 'mode', 'difficulty', 'sessions', 'played', 'worlds', 'deaths', 'income', 'spent', 'salvage at end'], rows));
+}
+
+function report_worlds(sessions)
+{
+    const rows = [];
+    for (const [key, records] of group(sessions.flatMap(v => v.records.map(vv => ({...vv, mode: v.mode}))), v => `${v.mode} · ${v.world}`)) {
+        const minutes = sum(records.map(v => v.s))/60;
+        const earned = sum(records.map(v => total(v.earned)));
+        const spent = sum(records.map(v => total(v.spent)));
+        const kills = sum(records.map(v => total(v.kills)));
+        const taken = sum(records.map(v => v.taken.shield + v.taken.hull));
+        rows.push([key, format_minutes(minutes), format_number(earned), format_number(spent), format_number(earned - spent), format_rate(earned, minutes), kills, format_rate(kills, minutes), format_rate(taken, minutes), sum(records.map(v => v.deaths)), format_number(sum(records.map(v => total(v.xp))))]);
+    }
+    return section('Per world', table(['mode · world', 'time', 'income', 'spent', 'net', 'income/min', 'kills', 'kills/min', 'damage taken/min', 'deaths', 'xp'], rows));
+}
+
+function report_money(sessions)
+{
+    const out = [];
+    for (const [mode, list] of group(sessions, v => v.mode)) {
+        const records = list.flatMap(v => v.records);
+        const earned = sum_maps(records.map(v => v.earned));
+        const spent = sum_maps(records.map(v => v.spent));
+        const xp = sum_maps(records.map(v => v.xp));
+        out.push(...section(`Income by source, ${mode}`, share_table(earned, 'source')));
+        out.push(...section(`Spending by kind, ${mode}`, share_table(spent, 'kind')));
+        if (Object.keys(xp).length) {
+            out.push(...section(`XP by source, ${mode}`, share_table(xp, 'source')));
+        }
+    }
+    return out;
+}
+
+// Salvage on hand through each game, about twelve points, and how much of the time it sat far above what the pilot
+// had ever paid for one thing
+function report_salvage_over_time(runs)
+{
+    const out = [];
+    for (const run of runs.filter(v => v.records.length)) {
+        const step = Math.max(1, Math.ceil(run.records.length/12));
+        let earned = 0;
+        let spent = 0;
+        const rows = [];
+        for (let i = 0, end = run.records.length; i < end; ++i) {
+            const record = run.records[i];
+            earned += total(record.earned);
+            spent += total(record.spent);
+            if ((i % step === 0) || (i === end - 1)) {
+                rows.push([format_minute(run_t_end(record)), record.world, format_number(record.salvage), format_number(earned), format_number(spent), earned ? `${Math.round((spent/earned)*100)}%` : '-']);
+            }
+        }
+        const idle = idle_minutes(run);
+        out.push(...section(`Salvage on hand, ${run.mode} ${run.id}`, [
+            sparkline(run.records.map(v => v.salvage)),
+            ...table(['minute', 'world', 'on hand', 'earned so far', 'spent so far', 'spent of earned'], rows),
+            `idle salvage (on hand over ${idle_salvage_factor}× the priciest purchase of the game): ${format_minutes(idle)} of ${format_minutes(run.played_s/60)}`,
+        ]));
+    }
+    return out;
+}
+
+// Minutes the balance sat over idle_salvage_factor × the most the game ever paid for one thing (a ship, a gun, a tier,
+// a module): money that the shop could not take
+function idle_minutes(run)
+{
+    const priciest = Math.max(0, ...run.events.filter(v => (v.type === 'buy') && !['trade', 'tow'].includes(v.kind)).map(v => v.price));
+    let out = 0;
+    for (const record of run.records) {
+        if (priciest && (record.salvage > priciest*idle_salvage_factor)) {
+            out += record.s/60;
+        }
+    }
+    return out;
+}
+
+function report_kit(runs)
+{
+    const out = [];
+    for (const run of runs) {
+        const rows = run.events.filter(v => v.type === 'kit').map(function (kit) {
+            const guns = kit.guns.map(v => (v ? `${v.name} T${v.tier}` : 'empty'));
+            return [format_minute(kit.run_t), kit.ship, guns.join(', '), `${kit.modules_at_cap}/${kit.modules_total}`, kit.rank || '-', format_number(kit.salvage)];
+        });
+        out.push(...section(`Kit as it changed, ${run.mode} ${run.id}`, table(['minute', 'ship', 'guns, mount by mount', 'modules at cap', 'rank', 'salvage then'], rows)));
+    }
+    return out;
+}
+
+function report_purchases(runs)
+{
+    const out = [];
+    for (const run of runs) {
+        const buys = run.events.filter(v => v.type === 'buy');
+        if (!buys.length) {
+            continue;
+        }
+        const top = buys.slice().sort((a, b) => b.price - a.price).slice(0, 10);
+        out.push(...section(`Priciest purchases, ${run.mode} ${run.id}`, table(['minute', 'kind', 'item', 'price', 'left after'], top.map(v => [format_minute(v.run_t), v.kind, `${v.item}${v.tier ? ` T${v.tier}` : ''}`, format_number(v.price), format_number(v.salvage_left)]))));
+    }
+    return out;
+}
+
+// When the game ran out of things to buy: the top ship, every module at its cap; then what the salvage did
+function report_maxed(runs)
+{
+    const rows = [];
+    for (const run of runs) {
+        const top = run.events.find(v => (v.type === 'milestone') && (v.what === 'top ship'));
+        const modules = run.events.find(v => (v.type === 'milestone') && (v.what === 'all modules at cap'));
+        const guns = run.events.find(v => (v.type === 'milestone') && (v.what === 'all guns tier 5'));
+        const maxed = (top && modules) ? Math.max(top.run_t, modules.run_t) : null;
+        const after = (maxed === null) ? [] : run.records.filter(v => v.run_t >= maxed);
+        const earned = sum(after.map(v => total(v.earned)));
+        const spent = sum(after.map(v => total(v.spent)));
+        rows.push([
+            run.id,
+            run.mode,
+            top ? format_minute(top.run_t) : 'no',
+            modules ? format_minute(modules.run_t) : 'no',
+            guns ? format_minute(guns.run_t) : 'no',
+            (maxed === null) ? '-' : `${format_minute(maxed)} (${Math.round((maxed/run.played_s)*100)}% into the game)`,
+            (maxed === null) ? '-' : format_minutes((run.played_s - maxed)/60),
+            (maxed === null) ? '-' : `${format_number(earned)} in, ${format_number(spent)} out`,
+            format_number(last(run.records)?.salvage ?? 0),
+        ]);
+    }
+    return section('Maxed out (the top ship and every module at its cap)', table(['run', 'mode', 'top ship', 'all modules', 'all guns T5', 'maxed at minute', 'played after', 'salvage after', 'on hand at end'], rows));
+}
+
+function report_combat(sessions)
+{
+    const rows = [];
+    const causes = [];
+    for (const [key, records] of group(sessions.flatMap(v => v.records.map(vv => ({...vv, mode: v.mode}))), v => `${v.mode} · ${v.world}`)) {
+        const minutes = sum(records.map(v => v.flight_s))/60;
+        const kills = sum_maps(records.map(v => v.kills));
+        const shots = sum(records.map(v => v.raider_shots));
+        const hits = sum(records.map(v => v.hits_on_you));
+        const supplies = sum_maps(records.map(v => v.supplies));
+        rows.push([
+            key,
+            format_minutes(minutes),
+            Object.entries(kills).sort((a, b) => b[1] - a[1]).map(v => `${v[0]} ${v[1]}`).join(', ') || '-',
+            sum(records.map(v => v.elite_kills)),
+            format_rate(sum(records.map(v => v.dealt)), minutes),
+            format_rate(sum(records.map(v => v.taken.shield)), minutes),
+            format_rate(sum(records.map(v => v.taken.hull)), minutes),
+            format_rate(shots, minutes),
+            shots ? `${Math.round((hits/shots)*100)}%` : '-',
+            format_rate(sum(records.map(v => v.dashes)), minutes),
+            sum(records.map(v => v.pulses)),
+            Object.entries(supplies).map(v => `${v[0]} ${v[1]}`).join(', ') || '-',
+            `${Math.round(Math.min(...records.map(v => v.hull_low))*100)}%`,
+        ]);
+        const taken_by = sum_maps(records.map(v => v.taken_by));
+        causes.push([key, Object.entries(taken_by).sort((a, b) => b[1] - a[1]).map(v => `${v[0]} ${format_number(v[1])}`).join(', ') || '-']);
+    }
+    return [
+        ...section('Combat per world (rates per minute of flight)', table(['mode · world', 'flight', 'kills by type', 'elites', 'dealt/min', 'shield hit/min', 'hull hit/min', 'raider shots/min', 'shots that hit you', 'dashes/min', 'pulses', 'supplies used', 'lowest hull'], rows)),
+        ...section('Damage taken by cause', table(['mode · world', 'shield + hull, by cause'], causes)),
+    ];
+}
+
+function report_deaths(runs)
+{
+    const rows = [];
+    for (const run of runs) {
+        for (const death of run.events.filter(v => v.type === 'death')) {
+            const cause = death.cause || {};
+            const by = [cause.raider, cause.weapon && `(${cause.weapon})`, cause.elite && 'elite'].filter(Boolean).join(' ');
+            rows.push([run.id, run.mode, format_minute(death.run_t), death.world, `${cause.kind}${by ? ` by ${by}` : ''}`, death.first_in_world ? 'yes' : 'no', `${death.in_world_s} s`, death.ship, format_number(death.salvage), (death.flagship_alive === null) ? '-' : `${Math.round(death.flagship_alive*100)}%`]);
+        }
+    }
+    return section('Deaths', rows.length ? table(['run', 'mode', 'minute', 'world', 'cause', 'first here', 'in the world', 'ship', 'salvage', 'flagship hull left'], rows) : ['none']);
+}
+
+function report_contracts(sessions)
+{
+    const events = sessions.flatMap(v => v.events.filter(vv => vv.type === 'contract'));
+    const rows = [];
+    for (const [kind, list] of group(events, v => (v.stages > 1) ? 'multi-stage' : v.kind)) {
+        const claimed = list.filter(v => v.action === 'claimed');
+        const minutes = claimed.filter(v => v.secs !== null).map(v => v.secs/60);
+        rows.push([kind, count_action(list, 'taken'), count_action(list, 'stage done'), count_action(list, 'completed'), claimed.length, count_action(list, 'abandoned'), minutes.length ? format_minutes(median(minutes)) : '-', format_number(sum(claimed.map(v => v.reward))), minutes.length ? format_rate(sum(claimed.map(v => v.reward)), sum(minutes)) : '-']);
+    }
+    return section('Contracts (by kind; several stages count as multi-stage)', rows.length ? table(['kind', 'taken', 'stages done', 'completed', 'claimed', 'abandoned', 'median time to claim', 'paid', 'paid per minute'], rows) : ['none']);
+}
+
+function report_flagships(sessions)
+{
+    const rows = sessions.flatMap(v => v.events.filter(vv => vv.type === 'boss').map(vv => [v.mode, vv.name, vv.world, `${vv.secs} s`, format_number(vv.taken)]));
+    return section('Flagships (timed from the first hit)', rows.length ? table(['mode', 'flagship', 'world', 'time to kill', 'damage taken'], rows) : ['none']);
+}
+
+function report_races(sessions)
+{
+    const events = sessions.flatMap(v => v.events);
+    const rows = events.filter(v => v.type === 'race').map(v => [v.title, v.world, `${v.place} of ${v.of}`, `${v.time} s`, (v.par === null) ? '-' : `${v.par} s`, format_number(v.prize)]);
+    const forfeits = events.filter(v => v.type === 'race forfeit').map(v => `forfeit in ${v.world}: ${v.why}`);
+    return section('Races', [...(rows.length ? table(['race', 'world', 'place', 'time', 'par', 'prize'], rows) : ['none finished']), ...forfeits]);
+}
+
+function report_arcade(sessions)
+{
+    const rows = sessions.filter(v => v.mode === 'arcade').flatMap(v => v.events.filter(vv => vv.type === 'world cleared').map(vv => [v.id, vv.world, format_minutes(vv.secs/60), format_number(vv.bonus)]));
+    return rows.length ? section('Arcade worlds cleared', table(['session', 'world', 'time', 'bonus'], rows)) : [];
+}
+
+function report_performance(sessions)
+{
+    const rows = [];
+    for (const [mode, list] of group(sessions, v => v.mode)) {
+        const records = list.flatMap(v => v.records).filter(v => v.fps !== null);
+        if (!records.length) {
+            continue;
+        }
+        const minutes = sum(records.map(v => v.flight_s))/60;
+        const worst = records.slice().sort((a, b) => a.fps - b.fps)[0];
+        rows.push([mode, format_minutes(minutes), median(records.map(v => v.fps)).toFixed(1), `${worst.fps} (${worst.world}, ${format_minute(worst.t)})`, format_rate(sum(records.map(v => v.frame_ms.over_33)), minutes), format_rate(sum(records.map(v => v.frame_ms.over_50)), minutes), format_rate(sum(records.map(v => v.frame_ms.over_100)), minutes), `${median(records.map(v => v.work_ms.avg)).toFixed(2)} ms`, `${Math.max(...records.map(v => v.work_ms.max))} ms`]);
+    }
+    return section('Frame rate (in flight)', rows.length ? table(['mode', 'flight', 'median fps', 'worst minute', 'frames >33 ms/min', '>50 ms/min', '>100 ms/min', 'median work', 'longest frame work'], rows) : ['none']);
+}
+
+// What stands out, for a person to judge: the balance questions the log was made for
+function report_notes(runs, sessions)
+{
+    const notes = [];
+    for (const run of runs) {
+        const idle = idle_minutes(run);
+        if (run.played_s && (idle/(run.played_s/60) > 0.3)) {
+            notes.push(`${run.mode} ${run.id}: salvage sat over ${idle_salvage_factor}× the priciest purchase of the game for ${Math.round((idle/(run.played_s/60))*100)}% of the game: the shop runs out before the income does.`);
+        }
+        const maxed = run.events.filter(v => v.type === 'milestone').map(v => v.what);
+        if (maxed.includes('top ship') && maxed.includes('all modules at cap')) {
+            const at = Math.max(...run.events.filter(v => v.type === 'milestone').map(v => v.run_t));
+            notes.push(`${run.mode} ${run.id}: maxed out at minute ${format_minute(at)} of ${format_minute(run.played_s)}; the worlds visited by then: ${[...new Set(run.events.filter(v => (v.type === 'world') && (v.run_t <= at)).map(v => v.world))].join(', ')}.`);
+        }
+        for (const [world, deaths] of group(run.events.filter(v => v.type === 'death'), v => v.world)) {
+            if (deaths.length >= 3) {
+                notes.push(`${run.mode} ${run.id}: ${deaths.length} deaths in ${world}.`);
+            }
+        }
+    }
+    const records = sessions.flatMap(v => v.records);
+    const unlogged = sum(records.map(v => (v.earned.unlogged || 0) + (v.spent.unlogged || 0)));
+    if (unlogged) {
+        notes.push(`${format_number(unlogged)} salvage moved without a hook (earned/spent "unlogged"): a dev cheat, or a source the log does not name yet.`);
+    }
+    const slow = records.filter(v => (v.fps !== null) && (v.fps < 50));
+    if (slow.length) {
+        notes.push(`${slow.length} of ${records.length} records ran under 50 fps.`);
+    }
+    return section('Notes', notes.length ? notes : ['nothing stands out']);
+}
+
+// --charts: the economy (salvage on hand, income and spending a minute), combat per world and the frame rate, as
+// PNGs drawn in Chromium on the light theme
+async function charts_write(dir, runs, sessions)
+{
+    const {chromium} = require('playwright');
+    fs.mkdirSync(dir, {recursive: true});
+    const charts = [
+        ['salvage.png', render_salvage_svg(runs)],
+        ['income-spend.png', render_income_svg(runs)],
+        ['combat.png', render_combat_svg(sessions)],
+        ['frame-rate.png', render_fps_svg(sessions)],
+    ];
+    const browser = await chromium.launch();
+    try {
+        const page = await browser.newPage({viewport: {width: 960, height: 480}, deviceScaleFactor: 2});
+        for (const [name, svg] of charts) {
+            await page.setContent(`<!doctype html><meta charset="utf-8"><body style="margin:0;background:${chart_theme.surface}">${svg}</body>`);
+            await page.locator('svg').screenshot({path: path.join(dir, name)});
+            console.log(`chart: ${path.join(dir, name)}`);
+        }
+    }
+    finally {
+        await browser.close();
+    }
+}
+
+// A chart's frame: title, subtitle, y ticks and the hairline grid, x ticks unless x_label is null (bars by category);
+// body_from(x, y, box) draws the data, x and y mapping it to pixels
+function render_frame(title, subtitle, x_max, y_min, y_max, x_label, body_from)
+{
+    const w = 960;
+    const h = 480;
+    const box = {left: 72, right: w - 32, top: 78, bottom: h - 56};
+    const y_ticks = ticks(y_min, y_max, 5);
+    const x_ticks = (x_label === null) ? [] : ticks(0, x_max, 8);
+    const lo = Math.min(y_min, y_ticks[0]);
+    const hi = Math.max(y_max, last(y_ticks));
+    function x(v) {
+        return box.left + (v/(x_max || 1))*(box.right - box.left);
+    }
+    function y(v) {
+        return box.bottom - ((v - lo)/((hi - lo) || 1))*(box.bottom - box.top);
+    }
+    const t = chart_theme;
+    const grid = y_ticks.map(v => `<line x1="${box.left}" x2="${box.right}" y1="${y(v)}" y2="${y(v)}" stroke="${t.line}" stroke-width="1"/><text x="${box.left - 10}" y="${y(v) + 4}" text-anchor="end" fill="${t.muted}" font-size="12">${format_compact(v)}</text>`).join('');
+    const xs = x_ticks.map(v => `<text x="${x(v)}" y="${box.bottom + 20}" text-anchor="middle" fill="${t.muted}" font-size="12">${format_compact(v)}</text>`).join('');
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" font-family="Inter, system-ui, sans-serif"><rect width="${w}" height="${h}" fill="${t.surface}"/><text x="${box.left}" y="32" fill="${t.text}" font-size="18" font-weight="600">${escape_xml(title)}</text><text x="${box.left}" y="54" fill="${t.muted}" font-size="13">${escape_xml(subtitle)}</text>${grid}${xs}<text x="${box.right}" y="${h - 14}" text-anchor="end" fill="${t.muted}" font-size="12">${escape_xml(x_label || '')}</text>${body_from(x, y, box)}</svg>`;
+}
+
+function render_legend(items, box)
+{
+    let at = box.left;
+    const marks = [];
+    for (const [label, color] of items) {
+        marks.push(`<rect x="${at}" y="${box.top - 16}" width="12" height="12" rx="3" fill="${color}"/><text x="${at + 18}" y="${box.top - 6}" fill="${chart_theme.muted}" font-size="12">${escape_xml(label)}</text>`);
+        at += 34 + label.length*7;
+    }
+    return marks.join('');
+}
+
+// Salvage on hand through each game (the first four), against minutes of play; a dot where the top ship and every
+// module were owned
+function render_salvage_svg(runs)
+{
+    const list = runs.filter(v => v.records.length).slice(0, 4);
+    const x_max = Math.max(1, ...list.map(v => v.played_s/60));
+    const y_max = Math.max(1, ...list.flatMap(v => v.records.map(vv => vv.salvage)));
+    const subtitle = `${list.length} ${(list.length === 1) ? 'game' : 'games'}; a ringed dot marks the minute the top ship and every module were owned`;
+    return render_frame('Salvage on hand over the game', subtitle, x_max, 0, y_max, 'minutes of play', function (x, y, box) {
+        const marks = [];
+        for (let i = 0, end = list.length; i < end; ++i) {
+            const run = list[i];
+            const color = chart_theme.series[i];
+            const start = `${x(0)},${y(run.sessions[0].start.salvage).toFixed(1)}`;
+            const points = [start, ...run.records.map(v => `${x(run_t_end(v)/60).toFixed(1)},${y(v.salvage).toFixed(1)}`)].join(' ');
+            marks.push(`<polyline points="${points}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`);
+            const end = last(run.records);
+            marks.push(`<circle cx="${x(run_t_end(end)/60)}" cy="${y(end.salvage)}" r="4" fill="${color}" stroke="${chart_theme.surface}" stroke-width="2"/>`);
+            marks.push(`<text x="${Math.min(box.right - 4, x(run_t_end(end)/60) - 8)}" y="${y(end.salvage) - 10}" text-anchor="end" fill="${chart_theme.text}" font-size="12">${format_number(end.salvage)}</text>`);
+            const milestones = run.events.filter(v => v.type === 'milestone');
+            if (milestones.some(v => v.what === 'top ship') && milestones.some(v => v.what === 'all modules at cap')) {
+                const at = Math.max(...milestones.filter(v => ['top ship', 'all modules at cap'].includes(v.what)).map(v => v.run_t));
+                const record = run.records.find(v => run_t_end(v) >= at) || end;
+                const cx = x(run_t_end(record)/60);
+                const cy = y(record.salvage);
+                marks.push(`<circle cx="${cx}" cy="${cy}" r="6" fill="${chart_theme.surface}" stroke="${color}" stroke-width="2"/><text x="${cx - 10}" y="${cy + 22}" text-anchor="end" fill="${chart_theme.text}" font-size="12">maxed out</text>`);
+            }
+        }
+        marks.push(render_legend(list.map((v, i) => [`${v.mode} ${v.difficulty}`, chart_theme.series[i]]), box));
+        return marks.join('');
+    });
+}
+
+// Income up and spending down, a column per record, through the longest game
+function render_income_svg(runs)
+{
+    const run = runs.filter(v => v.records.length).sort((a, b) => b.played_s - a.played_s)[0];
+    const records = run ? run.records : [];
+    const up = Math.max(1, ...records.map(v => total(v.earned)));
+    const down = Math.max(1, ...records.map(v => total(v.spent)));
+    const x_max = Math.max(1, (run?.played_s || 60)/60);
+    const subtitle = run ? `${run.mode} ${run.difficulty}, ${run.id}: salvage earned (up) and spent (down) in each record of about a minute` : 'no records';
+    return render_frame('Income and spending, minute by minute', subtitle, x_max, -down, up, 'minutes of play', function (x, y, box) {
+        const marks = [];
+        const width = Math.max(2, Math.min(24, ((box.right - box.left)/Math.max(1, records.length)) - 2));
+        for (const v of records) {
+            const cx = x((v.run_t + v.s/2)/60);
+            const earned = total(v.earned);
+            const spent = total(v.spent);
+            if (earned) {
+                marks.push(`<rect x="${cx - width/2}" y="${y(earned)}" width="${width}" height="${Math.max(1, y(0) - y(earned) - 1)}" rx="2" fill="${chart_theme.series[0]}"/>`);
+            }
+            if (spent) {
+                marks.push(`<rect x="${cx - width/2}" y="${y(0) + 1}" width="${width}" height="${Math.max(1, y(-spent) - y(0) - 1)}" rx="2" fill="${chart_theme.series[1]}"/>`);
+            }
+        }
+        marks.push(`<line x1="${box.left}" x2="${box.right}" y1="${y(0)}" y2="${y(0)}" stroke="${chart_theme.muted}" stroke-width="1"/>`);
+        marks.push(render_legend([['earned', chart_theme.series[0]], ['spent', chart_theme.series[1]]], box));
+        return marks.join('');
+    });
+}
+
+// Kills a minute of flight per world, one bar each, the mode named under it; the damage taken a minute beside it in
+// the report's table
+function render_combat_svg(sessions)
+{
+    const rows = [];
+    for (const records of group(sessions.flatMap(v => v.records.map(vv => ({...vv, mode: v.mode}))), v => `${v.mode} · ${v.world}`).values()) {
+        const minutes = sum(records.map(v => v.flight_s))/60;
+        if (minutes > 0) {
+            rows.push({mode: records[0].mode, world: records[0].world, kills: sum(records.map(v => total(v.kills)))/minutes, taken: sum(records.map(v => v.taken.shield + v.taken.hull))/minutes});
+        }
+    }
+    const y_max = Math.max(1, ...rows.map(v => v.kills));
+    return render_frame('Kills per minute of flight, by world', 'each bar one world in one mode; under it the mode, and the hull and shield lost a minute there', rows.length, 0, y_max, null, function (x, y, box) {
+        const marks = [];
+        const band = (box.right - box.left)/Math.max(1, rows.length);
+        const width = Math.min(24, band - 2);
+        for (let i = 0, end = rows.length; i < end; ++i) {
+            const v = rows[i];
+            const cx = box.left + band*(i + 0.5);
+            marks.push(`<rect x="${cx - width/2}" y="${y(v.kills)}" width="${width}" height="${Math.max(1, y(0) - y(v.kills))}" rx="4" fill="${chart_theme.series[0]}"/>`);
+            marks.push(`<text x="${cx}" y="${y(v.kills) - 8}" text-anchor="middle" fill="${chart_theme.text}" font-size="12">${v.kills.toFixed(1)}</text>`);
+            marks.push(`<text x="${cx}" y="${box.bottom + 20}" text-anchor="middle" fill="${chart_theme.text}" font-size="11">${escape_xml(v.world)}</text>`);
+            marks.push(`<text x="${cx}" y="${box.bottom + 36}" text-anchor="middle" fill="${chart_theme.muted}" font-size="11">${v.mode} · ${Math.round(v.taken)} dmg</text>`);
+        }
+        return marks.join('');
+    });
+}
+
+// Frames a second in flight, a point a record, every session one after another
+function render_fps_svg(sessions)
+{
+    const points = [];
+    let t = 0;
+    for (const session of sessions) {
+        for (const v of session.records) {
+            if (v.fps !== null) {
+                points.push([(t + v.t + v.s)/60, v.fps]);
+            }
+        }
+        t += session.played_s;
+    }
+    return render_frame('Frame rate in flight', 'frames a second, a point per record, sessions end to end; 60 is the display\'s pace', Math.max(1, t/60), 0, 60, 'minutes of play', function (x, y) {
+        const line = points.map(v => `${x(v[0]).toFixed(1)},${y(v[1]).toFixed(1)}`).join(' ');
+        const dots = points.map(v => `<circle cx="${x(v[0])}" cy="${y(v[1])}" r="4" fill="${chart_theme.series[0]}" stroke="${chart_theme.surface}" stroke-width="2"/>`).join('');
+        return `<polyline points="${line}" fill="none" stroke="${chart_theme.series[0]}" stroke-width="2" stroke-linejoin="round"/>${dots}`;
+    });
+}
+
+function ticks(lo, hi, n)
+{
+    const span = (hi - lo) || 1;
+    const raw = span/n;
+    const magnitude = Math.pow(10, Math.floor(Math.log10(raw)));
+    const step = [1, 2, 2.5, 5, 10].map(v => v*magnitude).find(v => v >= raw);
+    const out = [];
+    for (let v = Math.floor(lo/step)*step; v <= hi + step*0.001; v += step) {
+        out.push(Math.round(v*1000)/1000);
+    }
+    if (last(out) < hi) {
+        out.push(last(out) + step);
+    }
+    return out;
+}
+
+function section(title, lines)
+{
+    return ['', `## ${title}`, ...lines];
+}
+
+// Rows under a header, each column as wide as its widest cell; numbers to the right
+function table(header, rows)
+{
+    if (!rows.length) {
+        return ['none'];
+    }
+    const cells = [header, ...rows].map(v => v.map(vv => String(vv)));
+    const widths = header.map((v, i) => Math.max(...cells.map(vv => vv[i].length)));
+    const numeric = header.map((v, i) => rows.every(vv => /^[-+]?[\d\s.,%]+$/.test(String(vv[i]))));
+    function line(row) {
+        return row.map((v, i) => (numeric[i] ? v.padStart(widths[i]) : v.padEnd(widths[i]))).join('  ').trimEnd();
+    }
+    return [line(cells[0]), widths.map(v => '-'.repeat(v)).join('  '), ...cells.slice(1).map(line)];
+}
+
+function share_table(amount_by_key, label)
+{
+    const all = total(amount_by_key);
+    const rows = Object.entries(amount_by_key).sort((a, b) => b[1] - a[1]).map(v => [v[0], format_number(v[1]), all ? `${Math.round((v[1]/all)*100)}%` : '-']);
+    return table([label, 'amount', 'share'], rows);
+}
+
+function sparkline(values)
+{
+    const marks = '▁▂▃▄▅▆▇█';
+    const hi = Math.max(1, ...values);
+    const step = Math.max(1, Math.ceil(values.length/60));
+    const bars = [];
+    for (let i = 0, end = values.length; i < end; i += step) {
+        bars.push(marks[Math.min(7, Math.floor((values[i]/hi)*8))]);
+    }
+    return `salvage ${bars.join('')} (peak ${format_number(hi)})`;
+}
+
+function group(items, key_of)
+{
+    const out = new Map();
+    for (const item of items) {
+        const key = key_of(item);
+        if (!out.has(key)) {
+            out.set(key, []);
+        }
+        out.get(key).push(item);
+    }
+    return out;
+}
+
+function sum(values)
+{
+    let out = 0;
+    for (const v of values) {
+        out += v || 0;
+    }
+    return out;
+}
+
+function total(amount_by_key)
+{
+    return sum(Object.values(amount_by_key || {}));
+}
+
+function sum_maps(maps)
+{
+    const out = {};
+    for (const map of maps) {
+        for (const [key, amount] of Object.entries(map || {})) {
+            out[key] = (out[key] || 0) + amount;
+        }
+    }
+    return out;
+}
+
+function median(values)
+{
+    const sorted = values.slice().sort((a, b) => a - b);
+    const mid = Math.floor(sorted.length/2);
+    return (sorted.length % 2) ? sorted[mid] : (sorted[mid - 1] + sorted[mid])/2;
+}
+
+function last(items)
+{
+    return items[items.length - 1];
+}
+
+function count(events, type)
+{
+    return events.filter(v => v.type === type).length;
+}
+
+function count_action(events, action)
+{
+    return events.filter(v => v.action === action).length;
+}
+
+function run_t_end(record)
+{
+    return (record.run_t ?? record.t) + record.s;
+}
+
+function escape_xml(text)
+{
+    return String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function format_number(v)
+{
+    return Math.round(v).toLocaleString('en-US').replace(/,/g, ' ');
+}
+
+function format_compact(v)
+{
+    if (Math.abs(v) >= 1000) {
+        return `${Math.round(v/100)/10}K`;
+    }
+    return String(Math.round(v*10)/10);
+}
+
+function format_rate(amount, minutes)
+{
+    return minutes ? (amount/minutes).toFixed(1) : '-';
+}
+
+function format_minutes(minutes)
+{
+    if (minutes < 60) {
+        return `${minutes.toFixed(1)} min`;
+    }
+    return `${Math.floor(minutes/60)} h ${Math.round(minutes % 60)} min`;
+}
+
+function format_minute(seconds)
+{
+    return (seconds/60).toFixed(1);
+}
+
+function format_at(iso)
+{
+    return iso ? iso.slice(0, 16).replace('T', ' ') : '?';
+}

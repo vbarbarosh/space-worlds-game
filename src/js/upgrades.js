@@ -237,6 +237,7 @@ function collect_pickup(v, quiet = false)
     else if (v.type === 'artifact') {
         const amount = Math.ceil(v.value*(1 + upgrades.salvager*0.25));
         salvage += amount;
+        play_log_earn('pickups', amount);
         artifacts_count++;
         score += 25;
         player.energy = Math.min(100, player.energy + 2);
@@ -331,6 +332,7 @@ function shop_buy(v)
         return false;
     }
     salvage -= price;
+    play_log_spend(is_supply ? 'supply' : 'module', v.key, price);
     if (is_supply) {
         supplies[v.key]++;
         sfx('pickup');
@@ -482,5 +484,6 @@ function use_supply(key)
         sfx('dash');
         show_toast('TIME DILATED', 'STASIS FIELD / 8 SECONDS', 1.8);
     }
+    play_log_supply(key);
     update_hud();
 }

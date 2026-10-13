@@ -399,7 +399,7 @@ function update(dt, frame_dt = dt)
         v.y = clamp(v.y, 24, world.h - 24);
         update_enemy_portal(v, enemy_dt);
         if (d < v.r + player.r) {
-            damage_player((v.type === 'boss') ? 35 : (v.type === 'tank') ? 25 : 16);
+            damage_player((v.type === 'boss') ? 35 : (v.type === 'tank') ? 25 : 16, false, 'ram', v);
             if (player.dash_time > 0) {
                 damage_enemy(v, 35*dt);
             }
@@ -557,7 +557,7 @@ function update(dt, frame_dt = dt)
             b.x = b.px + (b.x - b.px)*contact;
             b.y = b.py + (b.y - b.py)*contact;
             const share = shielded ? (player.r + b.r)/reach : 1;
-            damage_player((b.damage || 13)*(arcade.active ? arcade_mode().hits : 1)*share);
+            damage_player((b.damage || 13)*(arcade.active ? arcade_mode().hits : 1)*share, false, 'shot', b);
             if (shielded) {
                 shield_impact(player, b, ship_halo() + 3);
             }

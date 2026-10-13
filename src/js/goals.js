@@ -167,6 +167,7 @@ function goal_follow(step, fly)
 function goal_reached(kind)
 {
     salvage += kind.reward;
+    play_log_earn('goal', kind.reward);
     campaign.goals_done = [...(campaign.goals_done || []), campaign.goal.id];
     campaign.goal = null;
     sync_goal_strip(null);

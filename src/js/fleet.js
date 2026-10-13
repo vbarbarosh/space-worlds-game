@@ -239,6 +239,7 @@ function fleet_purchase(id, kind)
             return;
         }
         salvage -= v.price;
+        play_log_spend((kind === 'ship') ? 'ship' : 'gun', id, v.price);
         owned.push(id);
         if (kind !== 'ship') {
             f.weapon_levels[id] = 1;
@@ -285,6 +286,7 @@ function upgrade_weapon(id)
         return;
     }
     salvage -= cost;
+    play_log_spend('gun tier', id, cost, {tier: level + 1});
     f.weapon_levels[id] = level + 1;
     save_checkpoint();
     render_station();

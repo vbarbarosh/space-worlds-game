@@ -166,6 +166,7 @@ function kill_xp_grant(enemy)
     const old_rank = pilot_rank();
     const xp = kill_xp(enemy);
     campaign.xp += xp;
+    play_log_xp('kill', xp);
     label(enemy.x, enemy.y + 22, `+${xp} XP`, blue);
     if (pilot_rank() > old_rank) {
         show_toast('PILOT PROMOTED', `${rank_names[pilot_rank()].toUpperCase()} / NEW HANGAR AND ARSENAL LICENSES`, 5);

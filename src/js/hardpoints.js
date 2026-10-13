@@ -114,6 +114,7 @@ function buy_gun_copy(id)
         return;
     }
     salvage -= price;
+    play_log_spend('gun', id, price);
     guns_owned()[id] = (guns_owned()[id] || 0) + 1;
     ship_loadout();
     player.gun_cd = [];

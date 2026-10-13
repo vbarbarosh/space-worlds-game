@@ -43,6 +43,32 @@
     border-top: 1px solid var(--line-1);
 }
 
+/* the play log (js/play_log.js): what it holds, Download and Clear, and that it stays on this device */
+.ui .pause-log {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-top: 14px;
+    border-top: 1px solid var(--line-1);
+}
+
+.ui .pause-log-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 12px;
+}
+
+.ui .pause-log-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.ui .pause-log .small {
+    margin: 0;
+}
+
 /* the key list sits behind Controls (?): it shows in place of the pause column until Back (Esc) */
 .ui .pause-layout .controls-card,
 .ui .pause-layout.is-controls .pause-main {

@@ -17,6 +17,9 @@ at stations, takes contracts, trades between worlds and jumps through gates.
 - [balance.md](balance.md): every number that sets difficulty and economy,
   arcade and campaign: worlds, raiders, ships, weapons, modules, salvage,
   prices, elites, flagships, scoring, and where each lives.
+- [play-log.md](play-log.md): the log the game keeps as you play (sessions,
+  worlds, salvage in and out, kit, combat, deaths, frame rate), kept on the
+  device until Download in the pause panel; its file format and `bin/play-log`.
 - [goals.md](goals.md): contracts and their stages, story chapters, side
   contracts, goals; how they are offered and what they pay.
 - [objects.md](objects.md): every kind of object in space and its purpose,

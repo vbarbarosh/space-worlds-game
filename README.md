@@ -70,6 +70,11 @@ Two modes, and a try-out:
                      minute each) and counts per world and wave the hull
                      lost, kills off the screen and salvage left; tables
                      and JSON in data/playtest/
+    bin/play-log     a play log saved from the pause panel (Download play log)
+                     as a report: time, income and spending per world, the
+                     kit as it changed, when the shop ran out, deaths, frame
+                     rate; --charts=dir draws its charts as PNGs; the format
+                     is in docs/play-log.md
     bin/lint         the rulebook's linter over src/, docs/assets/ and bin/;
                      see AGENTS.md
     bin/map-check    every world's map, campaign and arcade, against

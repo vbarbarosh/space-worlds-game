@@ -199,6 +199,7 @@ function transport_unload(ship)
         }
     }
     salvage += value;
+    play_log_earn('transport', value);
     line.earned = (line.earned || 0) + value;
     show_toast('TRANSPORT UNLOADED', `${line.count} UNITS SOLD AT ${worlds[campaign.world].station.toUpperCase()} · ◆ ${value}`, 3);
     sfx('pickup');
@@ -412,6 +413,7 @@ function buy_transport_line()
         return;
     }
     salvage -= transport_price;
+    play_log_spend('transport line', worlds[campaign.world].name, transport_price);
     campaign.lines = campaign.lines || {};
     campaign.lines[campaign.world] = {hp: transport_hp, cargo: {}, count: 0, earned: 0};
     sfx('upgrade');

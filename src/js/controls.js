@@ -48,6 +48,7 @@ function base_finish(won)
 // Back to the main menu from the results or the pause panel; an arcade run ends here, a campaign was saved before.
 function menu_open()
 {
+    play_log_session_end('back to the main menu');
     arcade_stop();
     stop_turbo();
     keys.clear();

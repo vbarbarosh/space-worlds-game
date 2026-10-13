@@ -296,6 +296,7 @@ function render_drone_shop_card()
             return;
         }
         salvage -= drone_price;
+        play_log_spend('drone', 'mining drone', drone_price);
         campaign.drones++;
         sfx('pickup');
         dock_message = 'Mining drone added to the bay.';
@@ -335,6 +336,7 @@ function buy_drone_tier()
         return;
     }
     salvage -= next.price;
+    play_log_spend('drone tier', next.name, next.price);
     campaign.drone_tier = tier + 1;
     sfx('upgrade');
     dock_message = `Drones upgraded to ${next.name} ${next.mark}.`;

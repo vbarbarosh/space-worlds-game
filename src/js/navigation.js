@@ -251,6 +251,7 @@ function guide_base_update_jump(dt)
             drones_recall_now();
             store_world();
             campaign.world = jump.world;
+            play_log_world_enter(arcade.active ? 'next world' : 'gate');
             wave = worlds[campaign.world].wave;
             if (!campaign.visited.includes(campaign.world)) {
                 campaign.visited.push(campaign.world);
@@ -471,6 +472,7 @@ function expedition_base_render_inventory()
 
 function finish(won)
 {
+    play_log_finish(won);
     if (!won && player) {
         explode_ship_death(player.x, player.y, player.r || 18);
     }

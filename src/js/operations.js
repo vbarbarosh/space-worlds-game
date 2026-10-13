@@ -215,12 +215,14 @@ function mission_event(type, n, details = {})
             player.vx = player.vy = 0;
         }
         if (m.stages && (m.stage_index < m.stages.length - 1)) {
+            play_log_contract('stage done', m);
             m.stage_index++;
             sync_stage(m);
             show_toast('NEXT OPERATION STAGE', `${m.stages[m.stage_index].title} / ${worlds[m.world].name}`, 4);
         }
         else {
             m.ready = true;
+            play_log_contract('completed', m);
             show_toast('CONTRACT COMPLETE', `${m.title} / DOCK TO COLLECT ◆ ${m.reward}`, 4);
             sfx('win');
         }
@@ -388,8 +390,10 @@ function damage_enemy(enemy, damage)
         enemy.flash = 0.08;
         return;
     }
+    const health = play_log_health(enemy);
     // a flagship takes more while its hull is exposed, less while its pods guard it (boss_hit_factor)
     expedition_base_damage_enemy(enemy, (enemy.type === 'boss') ? damage*boss_hit_factor(enemy) : damage);
+    play_log_dealt(enemy, health);
     if (alive && (enemy.hp <= 0) && enemy.leviathan) {
         show_toast('LEVIATHAN CONSUMED', 'THE BLACK HOLE TOOK IT', 4);
         mission_event('lure', 1, {contract_id: enemy.operation_id});
@@ -829,7 +833,9 @@ function guide_base_claim_contract(id)
         campaign.sides_done = [...(campaign.sides_done || []), m.side];
     }
     const xp = Math.round(m.reward*0.28) + (m.stages?.length || 1)*18;
+    play_log_contract('claimed', m, {xp});
     campaign.xp += xp;
+    play_log_xp('contract', xp);
     campaign.reputation[m.issuer] = (campaign.reputation[m.issuer] || 0) + 1;
     if (m.expedition) {
         campaign.expedition++;
@@ -1234,6 +1240,7 @@ function reset_run(resume = false)
     if (state === 'upgrade') {
         render_station();
     }
+    play_log_run_start(resume);
 }
 
 function update_hud()

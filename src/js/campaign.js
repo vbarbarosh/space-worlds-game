@@ -310,6 +310,9 @@ function world_audio_base_enemy_fire(enemy, angle, speed = 210, pattern = false)
             r: (w === 'missile') ? 7 : (w === 'rail') ? 3 : 5,
             weapon: w,
             escort_target: !!enemy.escort_raider,
+            // who fired it, for the play log's cause of a death
+            from: enemy.type,
+            from_elite: !!enemy.elite,
             damage: (w === 'rail') ? 30 : (w === 'missile') ? 23 : (w === 'scatter') ? 12 : (w === 'ion') ? 17 : 10,
             color: enemy.color,
             ...(kind ? missile_raider(kind, s) : {}),
@@ -326,6 +329,7 @@ function world_audio_base_enemy_fire(enemy, angle, speed = 210, pattern = false)
         shot.damage *= raider_hit_scale(enemy);
         hostile.push(shot);
     }
+    play_log_shots(spread.length);
     explode_muzzle(enemy.x + Math.cos(angle)*enemy.r, enemy.y + Math.sin(angle)*enemy.r, angle, (w === 'rail') ? 9 : 7, hostile_shot_color(enemy.color || pink));
 }
 

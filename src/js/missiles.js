@@ -306,7 +306,7 @@ function missile_waves_update(dt)
                 w.hit.add(player);
                 // a bubble wider than the hull drains as if only what reached the hull hit it (as for any shot)
                 const share = (player.shield > 0) ? (player.r + 7)/(reach + 7) : 1;
-                damage_player(missile_wave_damage(w, gap)*(arcade.active ? arcade_mode().blast : 1)*share, true);
+                damage_player(missile_wave_damage(w, gap)*(arcade.active ? arcade_mode().blast : 1)*share, true, 'missile');
                 if (player.shield > 0) {
                     shield_impact(player, w, reach);
                 }

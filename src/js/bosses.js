@@ -454,7 +454,7 @@ function boss_shot(v, angle, weapon, speed, pattern, from)
 // A hit from an attack that is not a shot (a beam, a burst, a wave, a well), grown as a raider's hit is
 function boss_hit(v, amount, blast)
 {
-    damage_player(amount*raider_hit_scale(v)*(arcade.active ? arcade_mode().hits : 1), blast);
+    damage_player(amount*raider_hit_scale(v)*(arcade.active ? arcade_mode().hits : 1), blast, 'flagship', v);
 }
 
 // Where you are now, from the hull: a drawn attack (a line, a lane, a fan's tell) points where it will fire, so it does

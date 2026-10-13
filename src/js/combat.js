@@ -340,6 +340,7 @@ function base_damage_enemy(enemy, damage)
         return;
     }
     kills++;
+    play_log_kill(enemy);
     combo = (combo_timer > 0) ? Math.min(8, combo + 1) : 1;
     combo_timer = 4;
     const chain = pulse_score_scale();
@@ -413,8 +414,9 @@ function base_damage_enemy(enemy, damage)
     }
 }
 
-// blast: a missile's wave or a ship's explosion, which a dash's grace (dash_grace, the arcade's) does not cover
-function damage_player(amount, blast = false)
+// blast: a missile's wave or a ship's explosion, which a dash's grace (dash_grace, the arcade's) does not cover; cause
+// and by, what hit you and the shot or raider that did, go to the play log (play_log_hurt)
+function damage_player(amount, blast = false, cause = 'other', by = null)
 {
     if ((player.invincible > 0) || ((player.dash_grace > 0) && !blast) || (state !== 'playing')) {
         return;
@@ -428,6 +430,7 @@ function damage_player(amount, blast = false)
     shield_hit_show(player, shield_before);
     damage -= absorbed;
     player.hp = Math.max(0, player.hp - damage);
+    play_log_hurt(cause, absorbed, damage, by);
     player.invincible = 0.85;
     shake = 16;
     // a hit on the hull reddens the screen's edge; one the shield took tints it as before
@@ -453,6 +456,7 @@ function pulse()
     }
     player.energy = 0;
     player.invincible = 0.75;
+    play_log_pulse();
     shake = Math.max(shake, 10);
     // nothing is hit here: the ring travels and hits each target as its front reaches it (src/js/pulse.js)
     pulse_fire(player.x, player.y);

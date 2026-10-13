@@ -28,6 +28,8 @@ const dev_screen_options = [
 const dev_screen = new URLSearchParams(location.search).get('screen');
 // read at load: starting the scene rewrites the URL
 const dev_screen_modules = new URLSearchParams(location.search).get('modules') || '';
+// &play_log=full or empty: the play log on the pause panel (dev_screen_play_log_set), read at load too
+const dev_screen_play_log = new URLSearchParams(location.search).get('play_log');
 // &t=7.5 holds the finale (or a world's cleared screen) at one moment
 const dev_screen_time = new URLSearchParams(location.search).get('t');
 // The crowded screen's burst: the news of a busy arrival, danger among it, the same title twice, a long line
@@ -149,7 +151,30 @@ function dev_screen_open()
         return;
     }
     if (dev_screen === 'pause') {
+        dev_screen_play_log_set();
         toggle_pause();
+    }
+}
+
+// &play_log=full fills the play log to its cap with sessions like the one being played, &play_log=empty clears it: the
+// pause panel's longest line and its empty one (bin/layout-check)
+function dev_screen_play_log_set()
+{
+    const kind = dev_screen_play_log;
+    if (kind === 'empty') {
+        play_log_clear();
+        play_log_trash = null;
+    }
+    if (kind === 'full') {
+        play_log_tally.s = 60;
+        play_log_tally.flight_s = 60;
+        const record = play_log_record_make(false);
+        play_log_tally_reset();
+        for (let i = 0; (i < 50) && !play_log_index.dropped; ++i) {
+            const session = {...play_log_session, id: `dev-${i}`, run: `dev-${i}`, played_s: 400*60, records: Array(400).fill(record), ended: new Date().toISOString(), end_reason: 'made up by the dev page'};
+            play_log_index.played_s += session.played_s;
+            play_log_store(session);
+        }
     }
 }
 

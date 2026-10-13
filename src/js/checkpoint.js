@@ -44,7 +44,7 @@ function save_checkpoint()
         }
     }
     try {
-        localStorage.setItem('pulse_drift_frontier_v4', JSON.stringify(checkpoint));
+        storage_set('pulse_drift_frontier_v4', JSON.stringify(checkpoint));
         checkpoint_notice = `Progress saved · ${worlds[campaign.world].name}`;
         menu_continue_show(campaign);
     }
@@ -124,6 +124,7 @@ function tow_to_station()
 {
     const fee = tow_fee(salvage);
     salvage -= fee;
+    play_log_spend('tow', 'fee', fee);
     for (const key of Object.keys(campaign.cargo)) {
         campaign.cargo[key] = 0;
     }

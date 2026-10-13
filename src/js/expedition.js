@@ -318,6 +318,7 @@ function update_expedition_environment(dt)
     if (!safe && radiation && (player.radiation_dose >= 100)) {
         const damage = radiation*(1 - protection)*1.65*dt;
         player.hp = Math.max(0, player.hp - damage);
+        play_log_hurt('radiation', 0, damage);
         if (player.hp <= 0) {
             finish(false);
             el.result_eyebrow.textContent = 'RADIATION EXPOSURE';
@@ -355,7 +356,7 @@ function update_expedition_environment(dt)
                 drifting_debri.r + player.r)
         ) {
             const speed = Math.hypot(player.vx - drifting_debri.vx, player.vy - drifting_debri.vy);
-            damage_player(Math.min(40, 8 + speed*0.022));
+            damage_player(Math.min(40, 8 + speed*0.022), false, 'debris');
             stop_turbo();
             // a crash knocks the turbo out for a moment, so a held Shift does not relight it against the rock every frame
             player.dash_cd = 0.6;

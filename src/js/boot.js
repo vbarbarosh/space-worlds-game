@@ -10,7 +10,9 @@ sync_settings_rows();
 function frame(timestamp)
 {
     requestAnimationFrame(frame);
-    const dt = Math.min(0.033, ((timestamp - last_frame)/1000) || 0.016);
+    const time0 = performance.now();
+    const interval = timestamp - last_frame;
+    const dt = Math.min(0.033, (interval/1000) || 0.016);
     last_frame = timestamp;
     clock += dt;
     zoom_step(dt);
@@ -38,5 +40,6 @@ function frame(timestamp)
         last_render_state = state;
         performance_render_dirty = false;
     }
+    play_log_frame(interval, performance.now() - time0);
 }
 requestAnimationFrame(frame);

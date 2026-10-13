@@ -174,7 +174,7 @@ function arcade_vents_update(e, dt)
         }
         if (!v.hit && (v.time >= arcade_vent_warn) && (v.time < arcade_vent_warn + arcade_vent_burst) && (distance(v, player) < arcade_vent_reach + player.r)) {
             v.hit = true;
-            damage_player(arcade_vent_damage);
+            damage_player(arcade_vent_damage, false, 'vent');
         }
     }
 }

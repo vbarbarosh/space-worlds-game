@@ -25,7 +25,7 @@ function saves_read()
 function saves_write(slots)
 {
     try {
-        localStorage.setItem('pulse_drift_saves_v1', JSON.stringify(slots));
+        storage_set('pulse_drift_saves_v1', JSON.stringify(slots));
         return true;
     }
     catch {

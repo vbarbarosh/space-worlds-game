@@ -280,6 +280,7 @@ function arcade_update(dt)
 function arcade_wave_start(n)
 {
     arcade.wave = n;
+    play_log_wave(n);
     arcade.squad_timer = 0.8;
     arcade.squads = 0;
     phase_index = n;
@@ -628,6 +629,8 @@ function arcade_world_clear()
     }
     const bonus = arcade_clear_bonus();
     salvage += bonus;
+    play_log_earn('world bonus', bonus);
+    play_log_world_cleared(bonus);
     // every gun you own grows a tier: the run's tier is one for all of them
     const fleet = ensure_career();
     const tier = Math.min(5, weapon_level() + 1);
@@ -684,7 +687,7 @@ function arcade_blasts_update(dt)
         }
         const d = distance(player, blast);
         if (d < blast.radius + player.r) {
-            damage_player(blast.damage*arcade_mode().blast*(1 - Math.min(1, d/blast.radius)), true);
+            damage_player(blast.damage*arcade_mode().blast*(1 - Math.min(1, d/blast.radius)), true, 'ship blast', blast.source);
         }
     }
 }
@@ -1060,6 +1063,7 @@ function arcade_depot_buy(id)
         return;
     }
     salvage -= item.price;
+    play_log_depot_spend(item);
     item.buy();
     sfx('upgrade');
     update_hud();

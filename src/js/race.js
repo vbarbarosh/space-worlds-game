@@ -662,6 +662,7 @@ function race_you_finish(m)
     m.reward = race.prize;
     m.race_live = false;
     m.race_result = {place, count, time: Math.round(you.time*10)/10};
+    play_log_race(m, m.race_result);
     m.progress = m.target - 1;
     show_banner('goal', `Race · finished in ${race_time_text(you.time)}`, `${race_ordinal(place)} of ${count}`, `◆ ${ui_number(race.prize)} · dock to collect`, 3);
     sfx('ring');
@@ -699,6 +700,7 @@ function race_forfeit(why)
         m.race_live = false;
         m.progress = 0;
     }
+    play_log_race_forfeit(why);
     show_toast('RACE FORFEIT', `${why.toUpperCase()} · THE START LINE WAITS FOR ANOTHER TRY`, 3.5, 'danger');
     race_reset();
 }

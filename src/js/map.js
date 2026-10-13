@@ -173,6 +173,7 @@ function segment_distance(v, a, b)
 
 function fatal_gravity(h)
 {
+    play_log_hurt('black hole', 0, Math.max(0, player.hp));
     player.hp = 0;
     player.vx = 0;
     player.vy = 0;

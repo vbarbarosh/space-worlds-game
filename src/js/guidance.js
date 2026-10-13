@@ -185,6 +185,7 @@ function accept_contract(template, main = false)
     if (campaign.serial > before) {
         refresh_mining_resources(true);
         const m = campaign.contracts[campaign.contracts.length - 1];
+        play_log_contract('taken', m);
         focus_contract(m);
         render_station();
         show_toast(

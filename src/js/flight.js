@@ -204,7 +204,7 @@ function update_world_environment(dt)
             }
             physics_status = 'SOLAR FLARE · HEAT +15/s';
             if (player.environment_hit_cd <= 0) {
-                damage_player(10);
+                damage_player(10, false, 'flare');
                 player.environment_hit_cd = 1;
             }
         }
@@ -236,7 +236,7 @@ function resolve_solid_ore()
                 player.vy -= ny*impact*1.3;
             }
             if (speed > 110) {
-                damage_player(Math.min(24, (speed - 80)*0.055));
+                damage_player(Math.min(24, (speed - 80)*0.055), false, 'rock');
                 label(player.x, player.y - 25, 'ORE IMPACT', gold);
             }
         }
@@ -329,6 +329,7 @@ function dash(held = false)
     player.turbo_heading = moving ? Math.atan2(player.vy, player.vx) : player.angle;
     player.dash_time = turbo_fuel();
     player.turbo_active = true;
+    play_log_dash();
     player.dash_cd = 0;
     // a dash slips through bolts and rams, not through a blast: a missile is outturned or cleared by the EMP, in the
     // campaign as in the arcade (before, the campaign's dash made you untouchable, and a pilot who dashed at every

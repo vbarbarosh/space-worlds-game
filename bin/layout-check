@@ -26,6 +26,9 @@ const screens = [
     {value: 'station-jobs', label: 'station-contracts'},
     {value: 'station-arsenal', label: 'station-arsenal'},
     {value: 'station-outfit', label: 'station-modules'},
+    // the pause panel's play log at its cap (its longest line), then empty, Download off
+    {value: 'pause', label: 'pause-log-full', query: '&play_log=full'},
+    {value: 'pause', label: 'pause-log-empty', query: '&play_log=empty'},
     {value: 'station-career', label: 'station-goals'},
     {value: 'station-market', label: 'station-market'},
     {value: 'station-hangar', label: 'station-hangar'},

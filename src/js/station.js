@@ -37,6 +37,7 @@ function expedition_base_guide_base_claim_contract(id)
         return;
     }
     salvage += m.reward;
+    play_log_earn(m.race_result ? 'race' : m.main ? 'story' : 'contract', m.reward);
     score += m.reward*10;
     campaign.completed++;
     if (m.main) {
@@ -172,6 +173,7 @@ function contract_follow(m)
 
 function contract_abandon(m)
 {
+    play_log_contract('abandoned', m);
     campaign.contracts = campaign.contracts.filter(v => v.id !== m.id);
     escort = null;
     save_checkpoint();
@@ -188,6 +190,7 @@ function guide_base_render_contracts(parent, board = false)
                 claim_contract(contract.id);
             }
             else if (board) {
+                play_log_contract('abandoned', contract);
                 campaign.contracts = campaign.contracts.filter(v => v.id !== contract.id);
                 escort = null;
                 save_checkpoint();
@@ -475,7 +478,9 @@ function trade_cargo(key, side, requested)
         return 0;
     }
     campaign.cargo[key] += (side === 'buy') ? amount : -amount;
-    salvage += (side === 'buy') ? -amount*price : trade_total(campaign.world, key, side, amount);
+    const value = (side === 'buy') ? -amount*price : trade_total(campaign.world, key, side, amount);
+    salvage += value;
+    play_log_trade(key, amount, value);
     // what was bought at a station and sold back there is no delivery: it does not count for a trade stage
     const bought = campaign.bought || (campaign.bought = {});
     const here = bought[campaign.world] || (bought[campaign.world] = {});

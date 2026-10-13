@@ -152,6 +152,7 @@ function build_click(point)
         return true;
     }
     salvage -= v.cost.salvage;
+    play_log_spend('structure', kind, v.cost.salvage);
     campaign.cargo.ore -= v.cost.ore;
     const site = {id: (campaign.serial = (campaign.serial || 0) + 1), world: campaign.world, kind, x: point.x, y: point.y, hp: v.hp, built: 0, store: 0, clock: 0, aim: 0, cooldown: 0};
     campaign.structures.push(site);
@@ -560,6 +561,7 @@ function structures_leave()
         const site = campaign.structures?.find(v => v.id === builder_drone.site);
         if (site && (site.built < 1)) {
             salvage += structure_kinds[site.kind].cost.salvage;
+            play_log_earn('refund', structure_kinds[site.kind].cost.salvage);
             campaign.cargo.ore = (campaign.cargo.ore || 0) + structure_kinds[site.kind].cost.ore;
             campaign.structures = campaign.structures.filter(v => v !== site);
         }
@@ -591,6 +593,7 @@ function buy_builder()
         return;
     }
     salvage -= builder_price;
+    play_log_spend('builder', 'builder drone', builder_price);
     campaign.builder = true;
     sfx('upgrade');
     dock_message = 'Builder drone added. Press K in flight to build.';
