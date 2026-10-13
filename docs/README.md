@@ -13,7 +13,7 @@ at stations, takes contracts, trades between worlds and jumps through gates.
 
 - [principles.md](principles.md): the rules the game keeps everywhere (what
   is solid, keys and buttons, seeded maps, the arcade apart from the
-  campaign). A change that breaks one changes this file first.
+  campaign, the middle of the screen kept clear). A change that breaks one changes this file first.
 - [balance.md](balance.md): every number that sets difficulty and economy,
   arcade and campaign: worlds, raiders, ships, weapons, modules, salvage,
   prices, elites, flagships, scoring, and where each lives.

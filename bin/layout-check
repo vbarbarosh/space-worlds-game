@@ -12,6 +12,8 @@ const screens = [
     {value: 'flight', label: 'hud-calm'},
     {value: 'combat', label: 'hud-combat'},
     {value: 'arcade', label: 'hud-arcade'},
+    // the world's title, raiders close and a burst of news at once: the news line, the title and the card apart
+    {value: 'crowded', label: 'hud-crowded'},
     // the world's cleared screen held after its button is ready
     {value: 'arcade-world-cleared', label: 'arcade-world-cleared', query: '&t=5'},
     {value: 'arcade-cleared', label: 'arcade-cleared'},
@@ -36,7 +38,7 @@ const sizes = [
 // not cut their own text; boxes whose text must not stick out
 const selectors = {
     blocks: ['.dev-fps', '.hud-top .readouts', '.hud-top .toolbar', '.hud-top .brand', '.ui.hud .mission', '.ui.hud .minimap',
-        '.hud-toasts > *', '.ui.hud .banners > *', '.hud-bottom .qbar', '.hud-bottom .shipstat', '.hud-bottom .hud-end', '.menu-left', '.menu-foot',
+        '.hud-toasts > *', '.hud-toasts .toast', '.ui.hud .banners > *', '.hud-bottom .qbar', '.hud-bottom .shipstat', '.hud-bottom .hud-end', '.menu-left', '.menu-foot',
         '.depot-title', '.depot-stats', '.depot-wallet', '.depot-filters .seg', '.depot-search', '.depot-ship', '.depot-next',
         '.finale-title', '.finale-res'],
     contained: ['.modal', '.pause-layout', '.menu-left', '.menu-foot', '.depot-side', '.depot-top', '.depot-filters', '.finale-title h1', '.finale-res'],

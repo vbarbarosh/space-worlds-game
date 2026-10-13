@@ -8,12 +8,12 @@ let captain_last_command = Date.now();
 const captain_tick_ms = 250;
 pause_on_blur = false;
 
-show_toast = function (title, sub, duration) {
+show_toast = function (title, sub, duration, kind) {
     captain_news.push({n: captain_news.length + 1, time: Math.round(run_time), title, sub});
     if (captain_news.length > 500) {
         captain_news.shift();
     }
-    captain_base_show_toast(title, sub, duration);
+    captain_base_show_toast(title, sub, duration, kind);
 };
 window.captain = {status: captain_status, news: captain_news_since, autopilot: captain_autopilot_set, touch: captain_touch, dock: captain_dock};
 setInterval(captain_pilot_tick, captain_tick_ms);

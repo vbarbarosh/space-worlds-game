@@ -4,6 +4,7 @@ const dev_screen_options = [
     {value: 'flight', label: 'Flight'},
     {value: 'combat', label: 'Flight in a fight'},
     {value: 'arcade', label: 'Arcade'},
+    {value: 'crowded', label: 'Arcade: arrival in a fight, a burst of news'},
     {value: 'arcade-world-cleared', label: 'Arcade: world cleared'},
     {value: 'arcade-cleared', label: 'Arcade: depot after a world'},
     {value: 'arcade-finale', label: 'Arcade: finale'},
@@ -23,6 +24,17 @@ const dev_screen = new URLSearchParams(location.search).get('screen');
 const dev_screen_modules = new URLSearchParams(location.search).get('modules') || '';
 // &t=7.5 holds the finale (or a world's cleared screen) at one moment
 const dev_screen_time = new URLSearchParams(location.search).get('t');
+// The crowded screen's burst: the news of a busy arrival, danger among it, the same title twice, a long line
+const dev_screen_news = [
+    ['DEPOT SHIELDED', 'RAIDERS NEAR THE STATION · CLEAR THEM AND IT OPENS', 'info'],
+    ['MARKSMEN', 'A DASHED LINE IS WHERE THEY AIM · TURN OFF IT', 'danger'],
+    ['MISSILES', 'A DASH IS NO SHIELD FROM THE BLAST · OUTTURN THEM', 'danger'],
+    ['SALVAGE ◆', 'SPEND IT AT THE STATION · FLY IN AND PRESS R', 'info'],
+    ['ACE DOWN', 'Its salvage is yours · ◆ 120', 'income'],
+    ['DRONE LOST', '2 LEFT / REPLACE THEM AT A STATION', 'danger'],
+    ['DRONE LOST', '1 LEFT / REPLACE THEM AT A STATION', 'danger'],
+    ['RAID ON YOUR MINING OUTPOST AT THE FAR SIDE OF THE NEBULA', 'A_PATH_WITH_NO_SPACES_AT_ALL_TO_BREAK_IT · 1240 m AWAY · DEFEND IT BEFORE THEY TEAR IT DOWN', 'danger'],
+];
 
 function dev_screen_open()
 {
@@ -40,6 +52,17 @@ function dev_screen_open()
     if (dev_screen === 'arcade') {
         dev_arcade_start();
         dev_screen_modules_set();
+        return;
+    }
+    // the author's moment: the world's title over a fight that has just begun, and a burst of news at once
+    if (dev_screen === 'crowded') {
+        dev_arcade_start();
+        dev_screen_modules_set();
+        dev_screen_raiders();
+        show_world_arrival();
+        for (const [title, sub, kind] of dev_screen_news) {
+            show_toast(title, sub, 3.5, kind);
+        }
         return;
     }
     if (dev_screen === 'arcade-finale') {
@@ -88,11 +111,7 @@ function dev_screen_open()
         return;
     }
     if (dev_screen === 'combat') {
-        for (const [type, a] of [['shooter', -0.5], ['chaser', 0.3], ['chaser', 0.6]]) {
-            const enemy = spawn_enemy(type);
-            enemy.x = clamp(player.x + Math.cos(player.angle + a)*380, 30, world.w - 30);
-            enemy.y = clamp(player.y + Math.sin(player.angle + a)*380, 30, world.h - 30);
-        }
+        dev_screen_raiders();
         return;
     }
     if (dev_screen.startsWith('station-')) {
@@ -112,6 +131,16 @@ function dev_screen_open()
     }
     if (dev_screen === 'pause') {
         toggle_pause();
+    }
+}
+
+// Three raiders 380 m ahead of you
+function dev_screen_raiders()
+{
+    for (const [type, a] of [['shooter', -0.5], ['chaser', 0.3], ['chaser', 0.6]]) {
+        const enemy = spawn_enemy(type);
+        enemy.x = clamp(player.x + Math.cos(player.angle + a)*380, 30, world.w - 30);
+        enemy.y = clamp(player.y + Math.sin(player.angle + a)*380, 30, world.h - 30);
     }
 }
 

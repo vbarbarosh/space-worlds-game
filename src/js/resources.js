@@ -54,9 +54,13 @@ function cargo_normalize(cargo)
     return cargo;
 }
 
-// Loads what a broken rock held; what does not fit stays behind as a label.
+// Loads what a broken rock held; what does not fit stays behind, and a label says so. The arcade has no hold: its
+// rocks drop salvage, and nothing is loaded.
 function ore_load(v)
 {
+    if (arcade.active) {
+        return;
+    }
     const key = v.resource || 'ore';
     const room = cargo_capacity() - cargo_count();
     const amount = Math.min(room, v.amount || 1);

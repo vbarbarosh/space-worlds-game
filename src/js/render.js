@@ -12,7 +12,6 @@ function base_damage_ore(v, amount)
     ring(v.x, v.y, gold, v.r*2, 0.4);
     explode(v.x, v.y, v.r*1.5, '#c9924e');
     sfx('mine', 1, v);
-    label(v.x, v.y - 25, 'ORE EXTRACTED', gold);
     for (let i = 0; i < 3; ++i) {
         drop_pickup(v.x + rand(-25, 25), v.y + rand(-25, 25), 'artifact', 4 + Math.floor(wave/5));
     }

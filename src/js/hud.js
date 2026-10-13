@@ -1,10 +1,11 @@
-// The flight HUD on the UI kit: the mission card leads with what to do now (the step, its distance, one button) and
-// folds the rest into Details (I); toasts stack under the readouts, banners mark goal steps and arrivals; the view
-// toggles fold into one button on narrow screens; the ship status shows the ship, its guns and three gauges.
-const hud_toast_max = 3;
-let hud_details_open = false;
+// The flight HUD on the UI kit, kept off the middle of the screen, where the ship and the way ahead are: the mission
+// card is two lines (the step, its distance and arrow) and unfolds the rest with ⓘ (I); the news is one line under the
+// readouts, one message at a time, a burst queued and merged; banners mark goal steps and arrivals under it.
+let hud_card_open = false;
 let hud_card_key = '';
-let hud_alert = null;
+// The news line: the message on it and the ones waiting; a banner on screen holds all but danger
+const hud_news = {shown: null, queue: [], banner: null};
+const hud_news_wait_max = 4;
 
 document.getElementById('mc_details_button').addEventListener('click', toggle_mission_details);
 addEventListener('keydown', on_hud_key);
@@ -41,53 +42,132 @@ function on_hud_key(event)
     }
 }
 
+// ⓘ (I): the card unfolds to the world, the step's kind, its buttons, the contract and goal tracks and the details
 function toggle_mission_details()
 {
-    hud_details_open = !hud_details_open;
-    set_hidden(document.getElementById('mission_details'), !hud_details_open);
-    document.getElementById('mc_details_button').setAttribute('aria-expanded', String(hud_details_open));
+    hud_card_open = !hud_card_open;
+    document.getElementById('mission').classList.toggle('is-open', hud_card_open);
+    set_hidden(document.getElementById('mission_details'), !hud_card_open);
+    document.getElementById('mc_details_button').setAttribute('aria-expanded', String(hud_card_open));
 }
 
-// A toast under the readouts: a colour bar for its kind (goal, income, danger, info), the title, a line, and an amount
-// on the right (an ◆ amount in the line moves there); three at most, the oldest goes
+// A message on the news line under the readouts: a dot in its kind's colour (goal, income, danger, info), the title,
+// the line, and an amount at the end (an ◆ amount in the line moves there). One at a time: the rest wait, danger first.
+// The same title again joins the one shown or waiting (×2, the amounts added); a newer info of the same subject (its
+// first word: DEPOT SHIELDED, DEPOT OPEN) takes the place of an older one.
 function show_toast(title, sub, duration = 2.5, kind = null)
 {
-    const stack = document.getElementById('toasts');
     const amount = /◆\s*([\d\s]+)\s*$/.exec(sub || '');
     const type = kind || (amount ? 'income' : /LOST|RAID|DANGER|HOSTILE|FATAL|WARNING|CRITICAL/.test(title) ? 'danger' : 'info');
-    const t = document.createElement('div');
-    t.className = `toast toast--${type}`;
-    t.innerHTML = `<span class="ic"><img src="${hud_icon_url(`toast-${type}`)}" alt=""></span><span><b></b><span></span></span><span class="amt"></span>`;
-    t.querySelector('b').textContent = ui_sentence(title);
-    t.querySelector('span span').textContent = ui_sentence_names(amount ? sub.slice(0, amount.index).replace(/[\s·]+$/, '') : (sub || ''));
-    t.querySelector('.amt').textContent = amount ? `+${amount[1].trim()}` : '';
-    t.life = Math.max(duration, 3);
-    stack.prepend(t);
-    while (stack.children.length > hud_toast_max) {
-        stack.lastChild.remove();
+    const news = {
+        title: ui_sentence(title),
+        sub: ui_sentence_names(amount ? sub.slice(0, amount.index).replace(/[\s·]+$/, '') : (sub || '')),
+        amount: amount ? Number(amount[1].replace(/\s/g, '')) : 0,
+        type,
+        count: 1,
+        life: 0,
+        element: null,
+    };
+    // long enough to read, never longer than the caller asked (plus a little), 1.6 to 3.5 s
+    news.life = clamp(Math.min(duration + 0.5, 1.2 + (news.title.length + news.sub.length)*0.03), 1.6, 3.5);
+    const same = [hud_news.shown, ...hud_news.queue].find(v => v && (v.title === news.title));
+    if (same) {
+        same.count++;
+        same.sub = news.sub;
+        same.amount += news.amount;
+        if (same === hud_news.shown) {
+            same.life = Math.max(same.life, 1.2);
+            news_fill(same);
+        }
+        return;
     }
-}
-
-// Every frame: toasts age and fade out
-function toasts_update(dt)
-{
-    for (const t of [...document.querySelectorAll('#toasts .toast, #banners .banner')]) {
-        t.life -= dt;
-        t.classList.toggle('is-leaving', t.life < 0.4);
-        if (t.life <= 0) {
-            t.remove();
+    if (type === 'info') {
+        const topic = news_topic(news.title);
+        hud_news.queue = hud_news.queue.filter(v => (v.type !== 'info') || (news_topic(v.title) !== topic));
+        const shown = hud_news.shown;
+        if (shown && (shown.type === 'info') && (news_topic(shown.title) === topic)) {
+            shown.life = Math.min(shown.life, 0.3);
         }
     }
+    // danger waits behind danger only
+    const at = (type === 'danger') ? hud_news.queue.findIndex(v => v.type !== 'danger') : -1;
+    hud_news.queue.splice((at < 0) ? hud_news.queue.length : at, 0, news);
+    while (hud_news.queue.length > hud_news_wait_max) {
+        const calm = hud_news.queue.findIndex(v => v.type === 'info');
+        hud_news.queue.splice((calm < 0) ? 0 : calm, 1);
+    }
+    news_next();
+}
+
+// A message's subject: its first word
+function news_topic(title)
+{
+    return title.split(/[\s·]+/)[0].toLowerCase();
+}
+
+// The next message onto the line, when the line is free; while a banner shows, only danger
+function news_next()
+{
+    const next = hud_news.queue[0];
+    if (hud_news.shown || !next || (hud_news.banner && (next.type !== 'danger'))) {
+        return;
+    }
+    hud_news.queue.shift();
+    const t = document.createElement('div');
+    t.className = `toast toast--${next.type}`;
+    t.setAttribute('role', (next.type === 'danger') ? 'alert' : 'status');
+    t.innerHTML = '<span class="dot"></span><b></b><span class="sub"></span><span class="amt"></span>';
+    next.element = t;
+    news_fill(next);
+    hud_news.shown = next;
+    document.getElementById('toasts').append(t);
+}
+
+function news_fill(v)
+{
+    const t = v.element;
+    t.querySelector('b').textContent = (v.count > 1) ? `${v.title} ×${v.count}` : v.title;
+    t.querySelector('.sub').textContent = v.sub;
+    t.querySelector('.amt').textContent = v.amount ? `+${ui_number(v.amount)}` : '';
+    t.title = v.sub ? `${v.title} · ${v.sub}` : v.title;
+}
+
+// Every frame: the message on the line ages (faster while others wait) and fades out; the banner ages
+function toasts_update(dt)
+{
+    const shown = hud_news.shown;
+    if (shown) {
+        shown.life -= dt*(hud_news.queue.length ? 1.6 : 1);
+        shown.element.classList.toggle('is-leaving', shown.life < 0.3);
+        if (shown.life <= 0) {
+            shown.element.remove();
+            hud_news.shown = null;
+        }
+    }
+    const banner = hud_news.banner;
+    if (banner) {
+        banner.life -= dt;
+        banner.classList.toggle('is-leaving', banner.life < 0.4);
+        if (banner.life <= 0) {
+            banner.remove();
+            hud_news.banner = null;
+        }
+    }
+    news_next();
 }
 
 function toasts_clear()
 {
+    hud_news.shown = null;
+    hud_news.queue = [];
+    hud_news.banner = null;
     document.getElementById('toasts').replaceChildren();
     document.getElementById('banners').replaceChildren();
 }
 
-// A banner high on the screen for the moments that matter: a goal step (gold) or arriving in a world (its colour)
-function show_banner(kind, eyebrow, title, line, duration = 4)
+// A banner under the news line for the moments that matter: a goal step (gold) or arriving in a world (its colour).
+// The news waits while it shows, but for danger.
+function show_banner(kind, eyebrow, title, line, duration = 3)
 {
     const holder = document.getElementById('banners');
     holder.replaceChildren();
@@ -99,6 +179,7 @@ function show_banner(kind, eyebrow, title, line, duration = 4)
     b.querySelector('h2').textContent = title;
     b.querySelector('p').textContent = line;
     b.life = duration;
+    hud_news.banner = b;
     holder.append(b);
 }
 
@@ -145,15 +226,7 @@ function hud_distance(d)
     return (d >= 1000) ? [(d/1000).toFixed(1), 'km'] : [String(Math.round(d)), 'm'];
 }
 
-// The compass direction from you to a point: north-east
-function hud_bearing(p)
-{
-    const a = Math.atan2(p.y - player.y, p.x - player.x);
-    const names = ['east', 'south-east', 'south', 'south-west', 'west', 'north-west', 'north', 'north-east'];
-    return names[(Math.round(a/(Math.PI/4)) + 8) % 8];
-}
-
-// Every HUD tick: the mission card, the ship status, the threat chip
+// Every HUD tick: the mission card and the ship status
 function sync_hud_kit()
 {
     document.getElementById('mission').classList.toggle('is-arcade', arcade.active);
@@ -171,8 +244,9 @@ function sync_hud_kit()
     }
 }
 
-// The arcade's card: the world and its wave, the raiders left with the way to the nearest, EMP and Repair in a fight,
-// the depot [R] at the station (from afar, the course there), and the run's waves as one bar; no routes, contracts or goals
+// The arcade's card: the raiders left with the way to the nearest, the wave beside it (and how many are near, in a
+// fight); folded, the world, the wave's name and the depot [R]. No EMP and Repair: the quick bar has them (Q, E); no
+// run bar: the wave is on the card already.
 function sync_arcade_card()
 {
     const id = campaign.world;
@@ -197,7 +271,9 @@ function sync_arcade_card()
     if (nearest) {
         const [value, unit] = hud_distance(distance(player, nearest));
         hud_html(document.getElementById('mc_distance'), `${value}<small>${unit}</small>`);
-        hud_html(document.getElementById('mc_eta'), `${left} left<br>auto fire on`);
+        // folded, the wave is said here (its name, or how many are near in a fight); unfolded, the card's kind says it
+        const eta = threat ? `${hud_near_count()} near` : hud_card_open ? `${left} left` : ui_sentence(arcade_wave_names[wave] || '');
+        hud_text(document.getElementById('mc_eta'), hud_card_open ? eta : `Wave ${wave}/${arcade_waves} · ${eta}`);
         const a = Math.atan2(nearest.y - player.y, nearest.x - player.x);
         document.getElementById('mc_arrow').style.transform = `rotate(${a + Math.PI/4}rad)`;
     }
@@ -206,19 +282,20 @@ function sync_arcade_card()
         hud_card_key = key;
         const acts = document.getElementById('mc_acts');
         acts.replaceChildren();
-        if (threat) {
-            acts.append(ui_button({label: 'EMP', key: 'E', kind: 'primary', on: () => document.getElementById('quick_emp').click()}));
-            acts.append(ui_button({label: 'Repair', key: 'Q', on: () => document.getElementById('quick_medkit').click()}));
+        if (key === 'depot') {
+            acts.append(ui_button({label: 'Depot', key: 'R', kind: 'primary', title: 'Depot (R)', on: interact}));
         }
-        else if (at_depot) {
-            acts.append(ui_button({label: 'Depot', key: 'R', kind: 'primary', on: interact}));
-        }
-        else {
-            acts.append(ui_button({label: 'Fly to the depot', key: 'R', on: interact}));
+        else if (key === 'calm') {
+            acts.append(ui_button({label: 'Fly to the depot', key: 'R', title: 'Fly to the depot (R)', on: interact}));
         }
     }
-    const done = (wave - 1) + ((arcade.pause > 0) ? 1 : 0);
-    hud_html(document.getElementById('mc_tracks'), `<div class="track-row"><div class="head">${ui_badge('Run', 'gold')}<b>${worlds[id].name}</b><span class="eyebrow eyebrow--gold">${done} / ${arcade_waves}</span></div>${ui_progress_html(arcade_waves, done, '')}</div>`);
+    hud_html(document.getElementById('mc_tracks'), '');
+}
+
+// The raiders within 1200 m of you
+function hud_near_count()
+{
+    return enemies.filter(v => (v.hp > 0) && (distance(v, player) < 1200)).length;
 }
 
 function sync_mission_card()
@@ -235,7 +312,7 @@ function sync_mission_card()
     let kind = 'Next';
     let title = ui_sentence(c.title);
     if (threat) {
-        const count = enemies.filter(v => (v.hp > 0) && (distance(v, player) < 1200)).length;
+        const count = hud_near_count();
         kind = m?.stages ? `Now · Contract stage ${m.stage_index + 1} of ${m.stages.length}` : 'Now · Under attack';
         title = m?.stages ? m.stages[m.stage_index].title : `Fight off ${count} raider${(count > 1) ? 's' : ''}`;
     }
@@ -270,7 +347,7 @@ function sync_mission_card()
         // beside the distance, the place it is to (the details keep the time and the portals)
         const run = ((m?.type === 'escort') && escort?.active) ? escort.stops[escort.leg] : null;
         hud_text(document.getElementById('mc_eta'), threat
-            ? `${enemies.filter(v => (v.hp > 0) && (distance(v, player) < 1200)).length} hostiles · auto fire`
+            ? `${hud_near_count()} near · auto fire`
             : (m?.type === 'lure')
                 ? lure_text(m)
                 : run
@@ -283,8 +360,8 @@ function sync_mission_card()
     sync_mission_tracks(m, g, threat);
 }
 
-// The card's buttons: in a fight EMP and Repair; else the guide's next action [T], and the step's own verb (Build at a
-// field, Drones at a mining field). Made again only when they change, so a click is never lost to a redraw.
+// The card's buttons: the guide's next action [T], and the step's own verb (Build at a field); none in a fight, where
+// EMP and Repair are the quick bar's (E, Q). Made again only when they change, so a click is never lost to a redraw.
 function sync_mission_actions(c, step, threat)
 {
     const build = step?.build && step.target && (distance(player, step.target.point) < 450);
@@ -297,15 +374,14 @@ function sync_mission_actions(c, step, threat)
     const acts = document.getElementById('mc_acts');
     acts.replaceChildren();
     if (threat) {
-        acts.append(ui_button({label: 'EMP', key: 'E', kind: 'primary', on: () => document.getElementById('quick_emp').click()}));
-        acts.append(ui_button({label: 'Repair', key: 'Q', on: () => document.getElementById('quick_medkit').click()}));
         return;
     }
     // docking and jumping are R's, wherever they show; T is the way to the next step
     const act_key = /^R \/ /.test(label) ? 'R' : 'T';
-    acts.append(ui_button({label: ui_sentence(label.replace(/^[A-Z] \/ /, '')), key: act_key, kind: 'primary', on: (act_key === 'R') ? interact : guide_action}));
+    const text = ui_sentence(label.replace(/^[A-Z] \/ /, ''));
+    acts.append(ui_button({label: text, key: act_key, kind: 'primary', title: `${text} (${act_key})`, on: (act_key === 'R') ? interact : guide_action}));
     if (build) {
-        acts.append(ui_button({label: 'Build', key: 'K', on: build_menu_toggle}));
+        acts.append(ui_button({label: 'Build', key: 'K', title: 'Build (K)', on: build_menu_toggle}));
     }
 }
 
@@ -399,22 +475,6 @@ function sync_ship_status()
     document.getElementById('hull_gauge').classList.toggle('is-low', player.hp < hull_max()*0.3);
     document.getElementById('turbo_gauge').classList.toggle('is-ready', !player.turbo_active && (player.dash_cd <= 0));
     document.getElementById('combo_box').classList.toggle('is-hot', combo > 1);
-    const threat = hud_threat();
-    if (threat && !hud_alert) {
-        hud_alert = document.createElement('div');
-        hud_alert.className = 'alert';
-        document.getElementById('hud_toasts').prepend(hud_alert);
-    }
-    if (hud_alert) {
-        if (!threat) {
-            hud_alert.remove();
-            hud_alert = null;
-            return;
-        }
-        const count = enemies.filter(v => (v.hp > 0) && (distance(v, player) < 1200)).length;
-        const [value, unit] = hud_distance(distance(player, threat));
-        hud_html(hud_alert, `<span class="dot"></span>Raiders ×${count} · ${value} ${unit} · ${hud_bearing(threat)}`);
-    }
 }
 
 const hud_dock_icon = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="5.5"/><circle cx="8" cy="8" r="2"/><path d="M8 0.8v2.4M8 12.8v2.4M0.8 8h2.4M12.8 8h2.4"/></svg>';

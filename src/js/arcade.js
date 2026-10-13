@@ -263,9 +263,9 @@ function arcade_update(dt)
     if ((spawn_left > 0) || enemies.some(v => v.hp > 0)) {
         return;
     }
+    // the card says the wave is clear, and then the next one: no news for either
     if (arcade.wave < arcade_waves) {
         arcade.pause = 2.5;
-        show_toast(`WAVE ${arcade.wave} CLEAR`, 'NEXT WAVE INBOUND', 2);
         return;
     }
     arcade_world_clear();
@@ -279,7 +279,6 @@ function arcade_wave_start(n)
     phase_index = n;
     phase_timer = 0;
     spawn_left = arcade_wave_size(n);
-    show_toast(`WAVE ${n} / ${arcade_waves} · ${arcade_wave_names[n]}`, `${worlds[campaign.world].name.toUpperCase()} · ${current_world_rules().name.toUpperCase()}`, 2);
     if (n === arcade_waves) {
         arcade_flagship_spawn();
     }

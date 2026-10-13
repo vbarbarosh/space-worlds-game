@@ -142,7 +142,7 @@ function goal_tick()
     campaign.goal.step = g.index;
     const step = g.steps[g.index];
     goal_follow(step, false);
-    show_banner('goal', `Goal · ${g.kind.title}`, `Step ${g.index + 1} of ${g.steps.length}`, step.title, 3.5);
+    show_banner('goal', `Goal · ${g.kind.title}`, `Step ${g.index + 1} of ${g.steps.length}`, step.title, 2.5);
 }
 
 // The guide pointed at the step's target; fly: and the ship sent there at once, undocking if need be

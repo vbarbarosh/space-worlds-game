@@ -289,9 +289,41 @@ function burst(x, y, color, count, speed = 170)
     }
 }
 
+// A line of text that rises from a point and fades in a second. One close by joins it rather than pile on: the same
+// text starts its second again, an amount of the same thing adds up (+6 and +4 make +10, ◆ +4 and ◆ +6 make ◆ +10);
+// another text stands a line above the ones there. 24 at most, the oldest goes.
 function label(x, y, text, color = cyan)
 {
-    labels.push({x, y, text, color, life: 1});
+    const amount = /^(\D*?)\+(\d+)(\D*)$/.exec(text);
+    for (const v of labels) {
+        if ((v.life < 0.5) || (Math.abs(v.x - x) > 90) || (Math.abs(v.y - y) > 60)) {
+            continue;
+        }
+        if (amount && v.amount && (v.amount.head === amount[1]) && (v.amount.tail === amount[3])) {
+            v.amount.n += Number(amount[2]);
+            v.text = `${amount[1]}+${v.amount.n}${amount[3]}`;
+            v.life = 1;
+            return;
+        }
+        if (!amount && (v.text === text)) {
+            v.life = 1;
+            return;
+        }
+    }
+    let top = y;
+    for (let moved = true; moved;) {
+        moved = false;
+        for (const v of labels) {
+            if ((Math.abs(v.x - x) < 70) && (Math.abs(v.y - top) < 14)) {
+                top = v.y - 16;
+                moved = true;
+            }
+        }
+    }
+    labels.push({x, y: top, text, color, life: 1, amount: amount ? {head: amount[1], n: Number(amount[2]), tail: amount[3]} : null});
+    if (labels.length > 24) {
+        labels.shift();
+    }
 }
 
 function base_damage_enemy(enemy, damage)

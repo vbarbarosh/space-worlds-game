@@ -2,7 +2,7 @@ function damage_ore(v, amount)
 {
     const alive = v.hp > 0;
     physics_base_damage_ore(v, amount);
-    if (alive && (v.hp <= 0) && (campaign.world === 2) && (cargo_count() < cargo_capacity())) {
+    if (alive && (v.hp <= 0) && !arcade.active && (campaign.world === 2) && (cargo_count() < cargo_capacity())) {
         campaign.cargo.ore++;
         save_checkpoint();
     }
@@ -51,11 +51,11 @@ function expedition_base_reset_run(resume = false)
     update_hud();
 }
 
-// Arriving in a world: its banner, in its colour, high on the screen
+// Arriving in a world: its banner, in its colour, under the news line for 3 s
 function show_world_arrival(title)
 {
     const r = current_world_rules();
-    show_banner('world', `World ${campaign.world + 1} · arrived`, worlds[campaign.world].name, `${r.name} · ${r.summary}`, 4.5);
+    show_banner('world', `World ${campaign.world + 1} · arrived`, worlds[campaign.world].name, `${r.name} · ${r.summary}`, 3);
 }
 
 function render_celestial_body(body)

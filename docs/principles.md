@@ -175,3 +175,32 @@ The game is one view of one world.
 - The map (J) and the minimap are charts of the same objects, not another
   scene.
 - Where it lives: `src/js/render.js`, `src/js/sprites.js`.
+
+## The middle of the screen is for flying
+
+The ship and the way ahead are in the middle of the screen; the HUD keeps to
+its edges and says each thing once, in the least room and for the least time.
+
+- **News** (`show_toast`) is one line under the readouts, one message at a
+  time: a burst waits its turn, danger first; the same title again joins the
+  one shown (×2, amounts added); a newer word on the same subject replaces an
+  older one. A message stays long enough to read, 1.6 to 3.5 s, shorter while
+  others wait. Danger is red, its dot blinks.
+- **Banners** (a world's arrival, a goal's step) come under the news line,
+  smaller and for 3 s; the news waits while one shows, all but danger.
+- **The mission card** is two lines: the step, then its distance, arrow and
+  a word on it, with the step's key ([T], [R]) as a button. ⓘ (I) unfolds
+  the world, the step's kind, the buttons, the contract and goal tracks.
+- **Nothing says twice what the HUD already shows:** no toast for a wave's
+  start or end (the card says it), no threat chip (the card's distance turns
+  red with the raiders near), no EMP or Repair on the card (the quick bar has
+  them).
+- **The minimap** is small and see-through, fainter still while a raider
+  flies under it; Hide folds it.
+- **Text in the world** (`label` in `src/js/combat.js`) does not pile up: the
+  same text close by starts again, amounts of the same thing add up (+6 and
+  +4 make +10), another text stands a line above.
+- No setting for any of it: one HUD, as clear as it can be.
+- Where it lives: `src/js/hud.js`, `src/css/hud-ui.css`, the layout section of
+  `src/css/ui-kit.css`; `bin/layout-check` holds the crowded screen (`crowded`:
+  an arrival in a fight with a burst of news) to it.

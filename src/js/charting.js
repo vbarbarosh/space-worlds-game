@@ -540,7 +540,9 @@ function render_minimap()
     const sy = mh/world.h;
     ctx.save();
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.fillStyle = '#060a14ee';
+    // see-through, so the world's corner under it still shows; a raider under it makes it fainter still
+    ctx.globalAlpha = minimap_covers_raider(box) ? 0.35 : 0.82;
+    ctx.fillStyle = '#060a14d0';
     ctx.fillRect(x - 5, y - 5, w + 10, h + 10);
     ctx.strokeStyle = '#6cf8ec33';
     ctx.lineWidth = 1;
@@ -617,6 +619,22 @@ function render_minimap()
         ctx.fillText(`◆ ${(distance(player, goal)/1000).toFixed(1)} KM`, x + 3, y + h - 4);
     }
     ctx.restore();
+}
+
+// A raider on the screen under the minimap's box (screen px)
+function minimap_covers_raider(box)
+{
+    for (const v of enemies) {
+        if (v.hp <= 0) {
+            continue;
+        }
+        const x = (v.x - camera.x)*zoom;
+        const y = (v.y - camera.y)*zoom;
+        if ((x > box.left - 20) && (x < box.right + 20) && (y > box.top - 20) && (y < box.bottom + 20)) {
+            return true;
+        }
+    }
+    return false;
 }
 
 // A map icon as an <img> for the page, `size` px across

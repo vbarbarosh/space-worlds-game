@@ -98,66 +98,271 @@
     gap: 6px;
 }
 
-/* the arcade's card has no Details: its lines are the campaign's */
-.ui .mission.is-arcade .details,
-.ui .mission.is-arcade #mc_details_button {
+/* the arcade's card has no Details: its lines are the campaign's; its fold shows the world and the depot button */
+.ui .mission.is-arcade .details {
     display: none;
 }
 
-/* toasts and the threat chip stack in the kit's .hud-toasts, between the mission card and the minimap; banners
-   stay high in the middle */
+/* Folded (the card's default, above the one-line bar of narrow windows): two lines, the step with the fold button
+   beside it, then the arrow, the distance and a word on it, with the step's button as its key alone ([T], [R]); the
+   world, the step's kind, the other buttons and the tracks wait behind the fold (I) */
+.ui.hud {
+    --mission-cw: 280px;
+}
+
+@container screen (max-width: 1100px) {
+    .ui.hud {
+        --mission-cw: 252px;
+    }
+}
+
+@container screen (width > 820px) {
+    .ui.hud .mission:not(.is-open) {
+        width: var(--mission-cw);
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 6px 8px;
+        padding: 10px 10px 10px 14px;
+    }
+
+    .ui.hud .mission:not(.is-open) .where {
+        display: contents;
+    }
+
+    .ui.hud .mission:not(.is-open) #mc_where,
+    .ui.hud .mission:not(.is-open) .next .eyebrow,
+    .ui.hud .mission:not(.is-open) #mc_tracks,
+    .ui.hud .mission:not(.is-open) .acts:empty {
+        display: none;
+    }
+
+    .ui.hud .mission:not(.is-open) #mc_details_button {
+        grid-column: 2;
+        grid-row: 1;
+        align-self: start;
+        margin: 0;
+    }
+
+    .ui.hud .mission:not(.is-open) .next {
+        grid-column: 1;
+        grid-row: 1;
+    }
+
+    .ui.hud .mission:not(.is-open) .next h3 {
+        font-size: 15px;
+    }
+
+    .ui.hud .mission:not(.is-open) .dist {
+        grid-column: 1;
+        grid-row: 2;
+        gap: 8px;
+    }
+
+    .ui.hud .mission:not(.is-open) .dist .readout {
+        font-size: 20px;
+        white-space: nowrap;
+    }
+
+    .ui.hud .mission:not(.is-open) .dist .arrow {
+        flex: none;
+        width: 22px;
+        height: 22px;
+    }
+
+    .ui.hud .mission:not(.is-open) .dist .eta {
+        min-width: 0;
+        font-size: 12px;
+        color: var(--text-3);
+    }
+
+    .ui.hud .mission:not(.is-open) .acts {
+        grid-column: 2;
+        grid-row: 2;
+    }
+
+    .ui.hud .mission:not(.is-open) .acts .btn:not(:first-child),
+    .ui.hud .mission:not(.is-open) .acts .btn > span:not(.key) {
+        display: none;
+    }
+
+    .ui.hud .mission:not(.is-open) .acts .btn {
+        flex: none;
+        height: 26px;
+        padding: 0 4px;
+    }
+
+    .ui.hud .mission:not(.is-open) .gravity-warning {
+        grid-column: 1 / -1;
+    }
+}
+
+.ui .mission #mc_details_button svg {
+    transition: transform 0.2s ease;
+}
+
+.ui .mission.is-open #mc_details_button svg {
+    transform: rotate(180deg);
+}
+
+/* The news line, under the readouts and clear of the middle: one message at a time (show_toast), a dot in its kind's
+   colour, the title, its line (two lines at most, then cut; the whole in the tooltip) and an amount at the end.
+   Danger is red, its dot blinks. The pulse's chain counter comes under it, then a banner. The line and the banner are
+   HUD blocks (data-hud-safe) as wide as their text, so labels and edge markers in the world keep clear of them. */
 .ui .hud-toasts .toasts {
-    display: contents;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: min(100%, 600px);
 }
 
 .ui.hud .toast {
     position: static;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    width: auto;
+    max-width: 100%;
+    padding: 5px 14px 5px 11px;
+    border-radius: 15px;
+    background: rgba(4, 8, 15, 0.66);
+    border: 1px solid var(--line-1);
+    box-shadow: none;
     opacity: 1;
     transform: none;
-    transition: opacity 0.35s ease, transform 0.35s ease;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    animation: news-in 0.2s ease-out;
+}
+
+@keyframes news-in {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+}
+
+.ui.hud .toast::before {
+    display: none;
+}
+
+.ui.hud .toast .dot {
+    flex: none;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--c, var(--cyan));
+    box-shadow: 0 0 8px var(--c, var(--cyan));
+}
+
+.ui.hud .toast b {
+    flex: 0 1 auto;
+    min-width: 0;
+    max-width: 60%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font: 700 12.5px/1.35 var(--font-ui);
+}
+
+.ui.hud .toast .sub {
+    flex: 0 1 auto;
+    min-width: 0;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+}
+
+.ui.hud .toast .sub:empty,
+.ui.hud .toast .amt:empty {
+    display: none;
+}
+
+.ui.hud .toast .amt {
+    flex: none;
+    margin-left: auto;
+    font: 700 12.5px/1.35 var(--font-mono);
+}
+
+.ui.hud .toast--danger {
+    background: rgba(40, 6, 14, 0.8);
+    border-color: rgba(255, 77, 94, 0.55);
+}
+
+.ui.hud .toast--danger b {
+    color: var(--red-2);
+}
+
+.ui.hud .toast--danger .dot {
+    animation: low 0.8s steps(2) infinite;
 }
 
 .ui.hud .toast.is-leaving {
     opacity: 0;
-    transform: translateY(-6px);
+    transform: translateY(-4px);
+}
+
+.ui.hud .pulse-chain {
+    order: 1;
 }
 
 .ui.hud .banners {
-    position: absolute;
-    top: 22%;
-    left: calc(var(--hud-pad) + var(--mission-w) + 16px);
-    right: calc(var(--hud-pad) + var(--mm-w) + 16px);
+    order: 2;
+    position: static;
     pointer-events: none;
 }
 
-/* narrow: under the one-line mission bar and the toasts; short: smaller, above the bottom row, where the threat
-   chip and the toasts are not */
-@container screen (max-width: 820px) {
-    .ui.hud .banners {
-        top: 36%;
-    }
-
-    .ui.hud .banner--world h2 {
-        font-size: 44px;
-    }
+.ui.hud .banner h2 {
+    font-size: 26px;
 }
 
-@container screen (max-height: 560px) {
-    .ui.hud .banners {
-        top: auto;
-        bottom: 96px;
-    }
+.ui.hud .banner--world h2 {
+    font-size: 40px;
+}
 
+.ui.hud .banner .eyebrow {
+    margin-bottom: 6px;
+}
+
+.ui.hud .banner p {
+    margin-top: 6px;
+    font-size: 11px;
+    line-height: 1.4;
+    letter-spacing: 0.12em;
+    text-wrap: balance;
+}
+
+/* narrow: the banner smaller, so it ends well above the ship */
+@container screen (max-width: 820px) {
     .ui.hud .banner h2 {
-        font-size: 24px;
+        font-size: 20px;
     }
 
     .ui.hud .banner--world h2 {
-        font-size: 34px;
+        font-size: 28px;
     }
 
     .ui.hud .banner p {
+        font-size: 10px;
+        letter-spacing: 0.08em;
+    }
+}
+
+/* short: the banner is its title alone, one small line, so it ends above the ship */
+@container screen (max-height: 560px) {
+    .ui.hud .banner h2,
+    .ui.hud .banner--world h2 {
+        font-size: 18px;
+    }
+
+    .ui.hud .banner .eyebrow,
+    .ui.hud .banner p {
         display: none;
+    }
+
+    .ui.hud .toast .sub {
+        -webkit-line-clamp: 1;
     }
 }
 
