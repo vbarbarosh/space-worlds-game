@@ -41,11 +41,9 @@ function render_nebula_layer(id, sky)
         draw.fillStyle = gradient;
         draw.fillRect(-pad, -pad, W + pad*2, H + pad*2);
         if (weave) {
-            // the cloth over the glow, its stitches small and dim so the sky stays behind the raiders, its edges darkened
-            // again as the glow's are
+            // the cloth over the glow, dim so the sky stays behind the raiders, its edges darkened again as the glow's are
             const pattern = draw.createPattern(weave, 'repeat');
-            pattern.setTransform(new DOMMatrix().scale(0.7));
-            draw.globalAlpha = 0.5;
+            draw.globalAlpha = 0.8;
             draw.fillStyle = pattern;
             draw.fillRect(-pad, -pad, W + pad*2, H + pad*2);
             draw.globalAlpha = 1;

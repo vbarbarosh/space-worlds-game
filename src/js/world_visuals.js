@@ -32,7 +32,8 @@ function sky_create_layers(out, id)
 {
     const random = visual_random_from_seed(2671 + id*7121);
     const look = world_looks[id];
-    const dim = (id === 7) ? 0.45 : 1;
+    // fewer stars in Eclipse's dark and on Feltmere's cloth (look.stars)
+    const dim = (id === 7) ? 0.45 : (look.stars ?? 1);
     // A star's group: its layer, its colour and its twinkle, filled as one path
     out.star_groups = [];
     const layers = [
@@ -49,7 +50,7 @@ function sky_create_layers(out, id)
         }
     }
     out.bright = [];
-    for (let i = 0, end = (id === 7) ? 3 : 7; i < end; ++i) {
+    for (let i = 0, end = (id === 7) ? 3 : Math.round(7*dim); i < end; ++i) {
         out.bright.push({x: random(), y: random(), r: 9 + random()*9, phase: random()*6.28});
     }
     out.dust = [];
@@ -188,7 +189,7 @@ function nebula_bake_detail(draw, id, box)
         draw.fillRect(box.left, box.top, w, h);
     }
     draw.fillStyle = look.star;
-    for (let i = 0, end = Math.round(w*h/((id === 7) ? 9000 : 4200)); i < end; ++i) {
+    for (let i = 0, end = Math.round((w*h*(look.stars ?? 1))/((id === 7) ? 9000 : 4200)); i < end; ++i) {
         draw.globalAlpha = 0.12 + random()*random()*0.5;
         draw.fillRect(box.left + random()*w, box.top + random()*h, 2, 2);
     }
@@ -482,7 +483,7 @@ function draw_sky_stars(sky)
 function draw_sky_motes(id, sky)
 {
     const look = world_looks[id];
-    ctx.globalAlpha = (id === 7) ? 0.12 : (id === 2) ? 0.17 : 0.22;
+    ctx.globalAlpha = (id === 7) ? 0.12 : (id === 2) ? 0.17 : 0.22*(look.stars ?? 1);
     ctx.fillStyle = look.star;
     if (id === 6) {
         draw_embers(sky);

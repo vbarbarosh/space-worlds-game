@@ -22,7 +22,7 @@ Each file wraps the cut-out in an SVG. Inside are:
 | planet-felt | the Verdant felt planet |
 | star | the felt campfire sun (Feltmere's sun, in place of an outer moon) |
 | station | the camper dock, drawn as large as a station |
-| space | the knitted swatch, made seamless: the sky's cloth |
+| space | the knitted swatch, made seamless, its big stars taken out (a few small knots kept), darker and softer: the sky's cloth |
 | enemy-chaser, -splitter, -shard, -lancer, -shooter, -tank | ladybug, beetle, bee, dragonfly, wasp, tortoise |
 | flagship | the stag beetle (The Wool Stag) |
 | enemy-split | a small ladybug beside the beetle: a splitter's halves here, the shard (a bee) elsewhere |

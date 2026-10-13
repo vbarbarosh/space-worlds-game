@@ -29,6 +29,8 @@ const world_felt = {
         star: '#ffd9a0',
         material: '#c79a6b',
         station: 'Camper dock',
+        // a third of the stars and motes of other skies: the knitted cloth is the sky here, and the bugs read on it
+        stars: 0.35,
     },
     rules: {
         name: 'Soft weave',
