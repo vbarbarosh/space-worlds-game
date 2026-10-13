@@ -36,9 +36,10 @@ function saves_write(slots)
 // The main menu shows LOAD GAME once any slot holds a game; every LOAD LAST SAVE button names the slot and its time
 function sync_load_button()
 {
-    set_hidden(document.getElementById('load_button'), !saves_read().some(Boolean));
-    const i = last_save_slot();
-    const v = (i >= 0) ? saves_read()[i] : null;
+    const slots = saves_read();
+    set_hidden(document.getElementById('load_button'), !slots.some(Boolean));
+    const i = last_save_slot(slots);
+    const v = (i >= 0) ? slots[i] : null;
     for (const id of ['pause_last_save', 'menu_last_save', 'result_last_save']) {
         const b = document.getElementById(id);
         set_hidden(b, !v);
@@ -76,9 +77,8 @@ function save_slot_valid(v)
 }
 
 // F9, or a LOAD LAST SAVE button (pause, main menu, the end-of-flight screen): the slot saved most recently
-function last_save_slot()
+function last_save_slot(slots)
 {
-    const slots = saves_read();
     let best = -1;
     for (let i = 0; i < slots.length; ++i) {
         if (slots[i] && save_slot_valid(slots[i]) && ((best < 0) || (slots[i].saved_at > slots[best].saved_at))) {
@@ -90,7 +90,7 @@ function last_save_slot()
 
 function load_last_save()
 {
-    const i = last_save_slot();
+    const i = last_save_slot(saves_read());
     if (i >= 0) {
         load_from_slot(i);
     }

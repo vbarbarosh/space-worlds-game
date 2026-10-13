@@ -20,6 +20,8 @@ let menu_scene_now = '';
 // the row open in place: continue, campaign, arcade, or none once Esc folds it
 let menu_open_row = '';
 let menu_launching = false;
+// the world and ship of the game to continue, and those the menu's art was last drawn for
+const menu_art = {world: 0, ship_id: 'scout', drawn_world: -1, drawn_ship_id: ''};
 
 // A row opens on a click, or on a keyboard focus
 for (const v of document.querySelectorAll('#menu_modes .mode')) {
@@ -176,8 +178,24 @@ function menu_continue_sector(wave)
     document.getElementById('continue_line').textContent = 'Retry from the start of the sector.';
 }
 
+// A save in flight only names the art; the menu draws it when it shows, and again only when the world or ship changed
 function menu_art_sync(world, ship_id)
 {
+    menu_art.world = world;
+    menu_art.ship_id = ship_id;
+    if (state === 'menu') {
+        menu_art_draw();
+    }
+}
+
+function menu_art_draw()
+{
+    const {world, ship_id} = menu_art;
+    if ((world === menu_art.drawn_world) && (ship_id === menu_art.drawn_ship_id)) {
+        return;
+    }
+    menu_art.drawn_world = world;
+    menu_art.drawn_ship_id = ship_id;
     const planet = menu_sprite_url(menu_planet_text(world));
     const ship = sprite(`3d/ship-${ship_id}`);
     const ship_url = ship ? menu_sprite_url(new XMLSerializer().serializeToString(ship.svg)) : '';
@@ -586,6 +604,7 @@ function menu_focus()
     menu_launching = false;
     menu_arcade.launch = -1;
     menu_arcade.foes = [];
+    menu_art_draw();
     const scene = el.continue_row.classList.contains('hidden') ? 'campaign' : 'continue';
     document.querySelector(`#menu_modes .mode[data-scene="${scene}"]`).focus();
     menu_scene(scene);
