@@ -21,6 +21,8 @@ const arcade_marksman_turn = 1.15;
 // how much slower a raider reloads by its gun (arcade_reload): a missile is a threat to read and answer, one at a time,
 // not a stream
 const arcade_reloads = {missile: 2};
+// the share of lines and pincers from wave 2 that fly mixed, a second type in every other place (arcade_squad_mix)
+const arcade_squad_mixed = 0.35;
 // What each difficulty changes in the arcade: extra raiders per squadron and per wave, the gap between squadrons, the
 // first world with elites, the share of repairs that still drop, the medkits a run starts with, whether every raider
 // fires its world's gun (Haven's plasma included), how often (a factor on the gun's cooldown), and how hard its shots
@@ -328,10 +330,27 @@ function arcade_squad_spawn(size)
         return;
     }
     const sides = (pattern === 'pincer') ? [angle, angle + Math.PI] : [angle];
+    const mix = arcade_squad_mix(type, size);
     for (let i = 0; i < sides.length; ++i) {
         const count = (sides.length === 1) ? size : (i === 0) ? Math.ceil(size/2) : Math.floor(size/2);
-        arcade_squad_line(type, count, sides[i], elite && (i === 0));
+        arcade_squad_line(type, count, sides[i], elite && (i === 0), mix);
     }
+}
+
+// A mixed squadron: from wave 2, a share of the lines and pincers fly with a second type of the world's mix in every
+// other place (shooters behind chasers, lancers among splitters); none when the world's mix has no other type
+function arcade_squad_mix(type, size)
+{
+    if ((arcade.wave < 2) || (size < 3) || (Math.random() >= arcade_squad_mixed)) {
+        return null;
+    }
+    for (let i = 0; i < 4; ++i) {
+        const other = enemy_type();
+        if ((other !== type) && (other !== 'tank')) {
+            return other;
+        }
+    }
+    return null;
 }
 
 // The pattern for a squadron of this type: tanks lead walls and convoys, lancers lie in ambush where there are rocks
@@ -348,20 +367,22 @@ function arcade_squad_pattern(type, size)
     return ((size >= 4) && (n < 0.35)) ? 'pincer' : 'line';
 }
 
-// One type in a line across its heading, 640 m away on the given side, warping in. Chasers, shooters and splitters then
-// fan out round you, each to its own bearing, so their fire comes from a wide arc (arcade_flank_steer).
-function arcade_squad_line(type, size, angle, elite)
+// One type in a line across its heading (or two, mixed: the second in every other place), 640 m away on the given
+// side, warping in. Chasers, shooters and splitters then fan out round you, each to its own bearing, so their fire comes
+// from a wide arc (arcade_flank_steer).
+function arcade_squad_line(type, size, angle, elite, mix = null)
 {
     const cx = player.x + Math.cos(angle)*640;
     const cy = player.y + Math.sin(angle)*640;
     const step = Math.min(0.55, arcade_flank_arc[campaign.world]/size);
     for (let i = 0; i < size; ++i) {
         const offset = (i - (size - 1)/2)*55;
-        const enemy = arcade_squad_warp(type, cx - Math.sin(angle)*offset, cy + Math.cos(angle)*offset, i);
+        const kind = (mix && (i % 2 === 1)) ? mix : type;
+        const enemy = arcade_squad_warp(kind, cx - Math.sin(angle)*offset, cy + Math.cos(angle)*offset, i);
         if (elite && (i === 0)) {
             arcade_elite_make(enemy);
         }
-        if (['chaser', 'shooter', 'splitter'].includes(type) && (size > 1) && step) {
+        if (['chaser', 'shooter', 'splitter'].includes(kind) && (size > 1) && step) {
             enemy.flank_to = {bearing: angle + (i - (size - 1)/2)*step};
         }
     }

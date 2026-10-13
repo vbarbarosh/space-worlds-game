@@ -353,25 +353,9 @@ function update(dt, frame_dt = dt)
                 ring(v.x, v.y, gold, 30, 0.25);
             }
         }
-        if (v.type === 'boss') {
-            const tx = clamp(player.x + Math.cos(v.age*0.35)*350, 90, world.w - 90);
-            const ty = clamp(player.y + Math.sin(v.age*0.35)*280, 90, world.h - 90);
-            v.x += (tx - v.x)*enemy_dt*0.8;
-            v.y += (ty - v.y)*enemy_dt*0.8;
-            move = 0;
-            v.fire_cd -= enemy_dt;
-            if ((v.fire_cd <= 0) && (v.age > 1)) {
-                const count = ((wave === 5) ? 10 : (wave === 10) ? 14 : 18) + ((v.hp < v.max_hp*0.45) ? 4 : 0);
-                for (let j = 0; j < count; ++j) {
-                    enemy_fire(v, (j/count)*Math.PI*2 + v.age*0.65, 125 + wave*2 + ((v.hp < v.max_hp*0.45) ? 25 : 0), true);
-                }
-                enemy_fire(v, a, 260);
-                v.fire_cd = v.overdrive ? 0.6 : (v.hp < v.max_hp*0.45) ? 0.85 : 1.2;
-                ring(v.x, v.y, pink, 90, 0.4);
-            }
-            if ((Math.floor(v.age/7) > Math.floor((v.age - enemy_dt)/7)) && (enemies.length < 16)) {
-                spawn_enemy((Math.random() < 0.3) ? 'shooter' : 'chaser');
-            }
+        // a flagship fights as its world's design has it, and an arcade elite has a trick of its world (bosses.js)
+        if ((v.type === 'boss') || v.elite) {
+            move = boss_update(v, enemy_dt, move, d);
         }
         if (v.type === 'lancer') {
             v.charge_cd -= enemy_dt;

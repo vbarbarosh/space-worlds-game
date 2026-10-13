@@ -387,7 +387,8 @@ function damage_enemy(enemy, damage)
         enemy.flash = 0.08;
         return;
     }
-    expedition_base_damage_enemy(enemy, damage);
+    // a flagship takes more while its hull is exposed, less while its pods guard it (boss_hit_factor)
+    expedition_base_damage_enemy(enemy, (enemy.type === 'boss') ? damage*boss_hit_factor(enemy) : damage);
     if (alive && (enemy.hp <= 0) && enemy.leviathan) {
         show_toast('LEVIATHAN CONSUMED', 'THE BLACK HOLE TOOK IT', 4);
         mission_event('lure', 1, {contract_id: enemy.operation_id});

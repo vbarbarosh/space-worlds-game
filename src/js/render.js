@@ -261,6 +261,7 @@ function render()
     render_waypoints();
     render_survey_robot();
     render_hostile_marks();
+    boss_render();
     render_enemies();
     render_explosions();
     render_pulse();

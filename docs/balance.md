@@ -362,12 +362,44 @@ before rocks and the Relic processor.
 
 | | Arcade | Campaign |
 |---|---|---|
-| Elite | from the mode's first elite world, the leader of every second squadron from wave 2: hull ×3, size ×1.35, shield 40 + 25 × world index, drops a repair kit or an EMP | the target of an `elite` stage: hull ×3.5 (at least 600), armour +12% (at most 72%), shield ×1.6 (at least 80), speed ×0.8; carries missiles in Haven |
-| Flagship | 1500 × (1 + 0.6 × world index) hull (CHILL ×0.8, OVERLOAD ×1.25); calls escorts at 66% and a last stand at 33%; on OVERLOAD, overdrive at 15% | 10500 hull, 19000 in Eclipse; three times the world's shield |
+| Elite | from the mode's first elite world, the leader of every second squadron from wave 2: hull ×3, size ×1.35, shield 40 + 25 × world index, drops a repair kit or an EMP; a trick of its world (below) | the target of an `elite` stage: hull ×3.5 (at least 600), armour +12% (at most 72%), shield ×1.6 (at least 80), speed ×0.8; carries missiles in Haven |
+| Flagship | 1500 × (1 + 0.6 × world index) hull (CHILL ×0.8, OVERLOAD ×1.25); fights as its world's design (below); calls escorts at 66% and a last stand at 33%; on OVERLOAD, overdrive at 15% | 10500 hull, 19000 in Eclipse; three times the world's shield |
 
 - Where: `arcade_elite_make`, `arcade_flagship_spawn`,
   `arcade_flagship_update` in `src/js/arcade.js`; `spawn_operation_enemy` in
   `src/js/operations.js`; `spawn_enemy` in `src/js/campaign.js`.
+- Every flagship, arcade and campaign, fights as its world's entry in
+  `boss_designs` (`src/js/bosses.js`) has it: a way of moving, a gun between
+  attacks, and a cycle of attacks; below 50% hull it roars (1.4 s, a toast
+  naming what changes) and runs a second cycle. Each attack shows a tell
+  first: a drawn lane, aim lines, a dashed reach, a glow, a swirl. A big
+  attack ends in a stall: the hull is exposed for 1.6 to 4.5 s, its shield
+  drops and hits do ×1.6 (`boss_hit_factor`, asked by `damage_enemy`).
+  Hits that are not shots (a beam, a burst, a wave, a well) grow as a
+  raider's do (`raider_hit_scale`) and by the mode's hits; shots are the
+  raiders' own (`enemy_fire`), at `raider_shot_speed`'s pace. The mode sets
+  the gap between attacks (CHILL ×0.8, OVERLOAD ×1.15, overdrive ×1.3 more),
+  never the length of a tell. Drawn attacks aim where you are; only the gun
+  between them leads you, as a raider's does.
+
+  | World | Moves | Attacks | Below 50% | Exposed |
+  |---|---|---|---|---|
+  | Haven, the Crescent | orbits you at 380 m | wingtip plasma fans; a strafing run down a drawn lane, dropping bolts to both sides | wider fans, a ring with one gap (marked green), two chasers | 2.2 s after a strafe |
+  | Verdant, the Thorn Beetle | drifts with the current, lunging sideways | a spiral of spines; spores that drift and burst near you; three rings of thorns | faster spiral, more spores, its eyes burn and it hatches a brood (shards and a splitter) | after the thorns and the brood |
+  | Dustfall, the Sawtooth | coasts, overshooting as you do | hatch missiles; side-pod flak; a saw charge leaving dust that bursts | missiles from four hatches, two charges in a row, two lancers | 2.2 to 2.6 s after a charge |
+  | Ion Reach, the Storm Wheel | holds 520 m; jumps (a ring marks where) | ion bursts from its four pods; four lightning spokes sweeping a quarter turn, draining your pulse | four pods launched round it: while any flies, the hub takes a third of a hit | 1.6 s after the spokes; 3 s when the last pod falls |
+  | Obsidian, the Iron Stair | still, then a heavy step | rail sights that track, lock and fire; a gravity well under you; a broadside of six lanes | five sights, two wells, a double broadside half a lane apart | 2 s after a broadside |
+  | Cryosphere, the Frost Crystal | glides round you | ice plates turning round it stop your shots (4 of 6); a spiral of shards; icicles bursting round you; a frost nova that slows you | 5 plates turning faster, a three-arm spiral, more icicles | 2.6 s after the nova, the plates drawn in |
+  | Nova Forge, the Furnace | lumbers in to 320 m | a sweeping flame from its vents that heats your guns; embers that leave burning slag; missiles; a flare | twin flames, more slag | 2.6 s after the flare |
+  | Eclipse, the Eclipse Eye | hovers at 560 m; jumps | an eye beam turning after you at 0.4 rad/s, draining your pulse; a fan of rail lanes; a singularity pulling you in | two beams, wider fans, more jumps | 4.5 s while it holds the singularity |
+
+- Arcade elites have a trick of their world, every 5 to 7 s while you are
+  within 750 m, of the same kinds (`elite_tricks`): Haven a three-bolt
+  burst, Verdant two spores, Dustfall a charge, Ion Reach and Eclipse a
+  jump, Obsidian a locked rail sight, Cryosphere a small frost ring, Nova
+  Forge three embers. From wave 2, 35% of the lines and pincers fly mixed:
+  a second type of the world's mix in every other place
+  (`arcade_squad_mix`).
 - Contract enemies grow with the contract's level: +12% hull a level past the
   first, up to ten levels (`spawn_operation_enemy`).
 - A chapter's flagship keeps the damage you dealt it: towed home or docked,
