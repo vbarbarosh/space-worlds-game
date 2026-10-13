@@ -332,17 +332,18 @@ function missile_waves_draw()
         }
         const alpha = (w.peak ? 0.9 : 0.5)*(1 - (w.r/w.reach)*0.5)*(1 - w.fade);
         const inner = Math.max(0, w.r - Math.max(8, w.reach*0.25));
+        const colors = missile_colors(w.color);
         const band = ctx.createRadialGradient(w.x, w.y, inner, w.x, w.y, w.r);
-        band.addColorStop(0, color_with_alpha(w.color, 0));
-        band.addColorStop(0.8, color_with_alpha(w.color, 0.25));
-        band.addColorStop(1, color_with_alpha(w.color, 0.6));
+        band.addColorStop(0, colors.clear);
+        band.addColorStop(0.8, colors.band);
+        band.addColorStop(1, colors.rim);
         ctx.globalAlpha = alpha;
         ctx.fillStyle = band;
         ctx.beginPath();
         ctx.arc(w.x, w.y, w.r, 0, Math.PI*2);
         ctx.arc(w.x, w.y, inner, 0, Math.PI*2, true);
         ctx.fill();
-        ctx.strokeStyle = color_mix(w.color, '#ffffff', 0.6);
+        ctx.strokeStyle = colors.front;
         ctx.lineWidth = w.peak ? 2.2 : 1.4;
         ctx.beginPath();
         ctx.arc(w.x, w.y, w.r, 0, Math.PI*2);
@@ -375,10 +376,30 @@ function missile_group_draw(group)
     if (!group.friendly) {
         return;
     }
-    const locked = new Set(group.items.filter(v => v.target && (v.target.hp > 0) && (v.age < v.fuel)).map(v => v.target));
-    for (const t of locked) {
-        missile_lock_draw(t, group.color);
+    // each raider once, in the order of the first missile on it: no set or lists made each frame
+    const items = group.items;
+    for (let i = 0; i < items.length; ++i) {
+        if (missile_locks(items[i]) && !missile_lock_seen(items, i)) {
+            missile_lock_draw(items[i].target, group.color);
+        }
     }
+}
+
+// A missile of yours still burning toward a raider alive
+function missile_locks(v)
+{
+    return v.target && (v.target.hp > 0) && (v.age < v.fuel);
+}
+
+// Whether a missile before the i-th has locked the same raider
+function missile_lock_seen(items, i)
+{
+    for (let j = 0; j < i; ++j) {
+        if (missile_locks(items[j]) && (items[j].target === items[i].target)) {
+            return true;
+        }
+    }
+    return false;
 }
 
 function missile_wakes_draw()
@@ -389,56 +410,117 @@ function missile_wakes_draw()
 }
 
 // A trail: smoke puffs that swell and fade (a chemical motor's), and a glowing ribbon in the engine's colour, short
-// and hot behind a chemical motor, the whole trail long behind an ion or fusion one
+// and hot behind a chemical motor, the whole trail long behind an ion or fusion one. The trail's points and then the
+// head's: read where they are, not copied into a list each frame.
 function missile_trail_draw(trail, head, now, span, look, size)
 {
-    const points = head ? [...trail, {x: head.x, y: head.y, t: now}] : trail;
-    if (points.length < 2) {
+    const count = trail.length + (head ? 1 : 0);
+    if (count < 2) {
         return;
     }
     const k = size/18;
     ctx.save();
     if (look.smoke) {
         ctx.fillStyle = '#b4bcc6';
-        for (const v of points) {
-            const old = clamp((now - v.t)/span, 0, 1);
+        for (let i = 0; i < count; ++i) {
+            const v = (i < trail.length) ? trail[i] : head;
+            const old = clamp((now - ((i < trail.length) ? v.t : now))/span, 0, 1);
             ctx.globalAlpha = look.smoke*(1 - old)*0.55;
             ctx.beginPath();
             ctx.arc(v.x, v.y, (1.6 + old*6)*k, 0, Math.PI*2);
             ctx.fill();
         }
     }
-    const hot = look.smoke ? points.filter(v => (now - v.t) < 0.12) : points;
-    if (hot.length > 1) {
-        const tail = hot[0];
-        const end = hot.at(-1);
-        const g = ctx.createLinearGradient(tail.x, tail.y, end.x, end.y);
-        g.addColorStop(0, color_with_alpha(look.trail, 0));
-        g.addColorStop(1, color_with_alpha(look.trail, 1));
+    // the hot points: all of them, or behind a chemical motor those under 0.12 s old
+    let tail = -1;
+    let end = -1;
+    let hot = 0;
+    for (let i = 0; i < count; ++i) {
+        if (!look.smoke || ((now - ((i < trail.length) ? trail[i].t : now)) < 0.12)) {
+            tail = (tail < 0) ? i : tail;
+            end = i;
+            ++hot;
+        }
+    }
+    if (hot > 1) {
+        const a = (tail < trail.length) ? trail[tail] : head;
+        const b = (end < trail.length) ? trail[end] : head;
+        const colors = missile_colors(look.trail);
+        const g = ctx.createLinearGradient(a.x, a.y, b.x, b.y);
+        g.addColorStop(0, colors.clear);
+        g.addColorStop(1, colors.solid);
         ctx.globalCompositeOperation = 'lighter';
         ctx.strokeStyle = g;
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
         ctx.beginPath();
-        ctx.moveTo(tail.x, tail.y);
-        for (const v of hot) {
-            ctx.lineTo(v.x, v.y);
+        ctx.moveTo(a.x, a.y);
+        for (let i = tail; i <= end; ++i) {
+            if (!look.smoke || ((now - ((i < trail.length) ? trail[i].t : now)) < 0.12)) {
+                const v = (i < trail.length) ? trail[i] : head;
+                ctx.lineTo(v.x, v.y);
+            }
         }
-        for (const [width, alpha] of [[7*k, 0.25], [2.4*k, 0.9]]) {
-            ctx.globalAlpha = alpha;
-            ctx.lineWidth = width;
-            ctx.stroke();
-        }
+        ctx.globalAlpha = 0.25;
+        ctx.lineWidth = 7*k;
+        ctx.stroke();
+        ctx.globalAlpha = 0.9;
+        ctx.lineWidth = 2.4*k;
+        ctx.stroke();
     }
     ctx.restore();
+}
+
+// A trail's or a wave's colour as its gradients and its front take it, made once a colour (a motor's, a raider's
+// missile kind's, a shooter's), not each frame; a few in a run, cleared past 64 all the same
+const missile_colors_by_color = new Map();
+
+function missile_colors(color)
+{
+    let out = missile_colors_by_color.get(color);
+    if (!out) {
+        if (missile_colors_by_color.size >= 64) {
+            missile_colors_by_color.clear();
+        }
+        out = {
+            clear: color_with_alpha(color, 0),
+            band: color_with_alpha(color, 0.25),
+            rim: color_with_alpha(color, 0.6),
+            solid: color_with_alpha(color, 1),
+            front: color_mix(color, '#ffffff', 0.6),
+        };
+        missile_colors_by_color.set(color, out);
+    }
+    return out;
 }
 
 // A missile's drawing: a raider's kind's or your engine's when the designer has drawn it, else the stock missile;
 // null without either
 function missile_sprite(v)
 {
-    const name = v.kind ? v.look.art : v.engine ? `weapons/projectile-missile-${v.engine + 1}` : 'weapons/projectile-missile';
+    const name = v.kind ? v.look.art : v.engine ? missile_engine_art[v.engine] : 'weapons/projectile-missile';
     return sprite(name) ? name : sprite('weapons/projectile-missile') ? 'weapons/projectile-missile' : null;
+}
+
+// The drawing of each motor past the first, its name made once, not per missile and frame
+const missile_engine_art = missile_engines.map((v, i) => `weapons/projectile-missile-${i + 1}`);
+
+// The flames of a missile's drawing at its size, worked out once a drawing and size: a few drawings at a few sizes
+const missile_flames_by_name = new Map();
+
+function missile_flames(name, size)
+{
+    let by_size = missile_flames_by_name.get(name);
+    if (!by_size) {
+        by_size = new Map();
+        missile_flames_by_name.set(name, by_size);
+    }
+    let out = by_size.get(size);
+    if (!out) {
+        out = sprite_anchors_box(name, size).flames.main;
+        by_size.set(size, out);
+    }
+    return out;
 }
 
 // One missile its size across its canvas, its band in the shooter's colour, its flame from the tail mark while the
@@ -449,7 +531,7 @@ function missile_draw(v, color)
     const name = missile_sprite(v);
     const size = v.size;
     const lit = (v.age >= v.kick) && (v.age < v.fuel);
-    const flames = name ? sprite_anchors_box(name, size).flames.main : [{x: -size*0.38, y: 0, dx: -size*0.3, dy: 0, width: size*0.12}];
+    const flames = name ? missile_flames(name, size) : [{x: -size*0.38, y: 0, dx: -size*0.3, dy: 0, width: size*0.12}];
     ctx.save();
     ctx.translate(v.x, v.y);
     ctx.rotate(angle);
