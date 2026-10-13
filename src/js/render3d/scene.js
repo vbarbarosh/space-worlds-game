@@ -52,6 +52,9 @@ const render3d_floor_y = -45;
 const render3d_blast_lights = 4;
 const render3d_blast_glow = 0.45;
 const render3d_blast_reach = 4.5;
+// A thing has its model only while it is this near the view, beyond its own size: a hull's height is drawn up the
+// screen and its shadow falls down and to the right, each well within this, so one just out of view still shows them
+const render3d_margin = 200;
 
 function render3d_start()
 {
@@ -272,7 +275,8 @@ function render3d_flash(group, on)
     });
 }
 
-// Matches the scene to the game: what is gone is removed, what is new gets its model, everything moves where it is
+// Matches the scene to the game: what is gone or far out of view is removed, what comes near gets its model,
+// everything near moves where it is
 function render3d_sync()
 {
     if (render3d.world !== campaign.world) {
@@ -282,6 +286,9 @@ function render3d_sync()
     const look = world_looks[campaign.world];
     const rock = new render3d.three.Color(look.material).multiplyScalar(0.62).getStyle();
     for (const v of ore_nodes) {
+        if (!in_view(v, v.r*2.2 + render3d_margin)) {
+            continue;
+        }
         const variant = Math.abs(Math.floor(v.angle*11)) % 7;
         const model = render3d_model(v, () => render3d_rock_model(variant, rock, v.resource ? ore_color(v) : null));
         model.group.position.set(v.x, 0, v.y);
@@ -290,10 +297,14 @@ function render3d_sync()
         render3d_flash(model.group, v.flash > 0);
     }
     for (const enemy of enemies) {
+        const length = enemy_sprite(enemy).length;
+        if (!in_view(enemy, length + render3d_margin)) {
+            continue;
+        }
         const color = enemy.color || pink;
         const model = render3d_model(enemy, () => render3d_raider_model(enemy.type, color, !!enemy.elite));
         const angle = ((enemy.type === 'lancer') && (enemy.charge_time > 0)) ? enemy.charge_angle : enemy.angle;
-        render3d_ship_place(model, enemy.x, enemy.y, angle, enemy_sprite(enemy).length, enemy.flash > 0);
+        render3d_ship_place(model, enemy.x, enemy.y, angle, length, enemy.flash > 0);
     }
     if (player && (state !== 'dead') && !teleport_active()) {
         const model = render3d_model(player, render3d_player_model);
@@ -309,6 +320,8 @@ function render3d_sync()
         }
     }
     const station_model = render3d.station;
+    // its panels reach out to 0.65 of its size
+    station_model.visible = in_view(station, station_size*0.7 + render3d_margin);
     station_model.position.set(station.x, -10, station.y);
     station_model.scale.set(station_size*0.97, station_size*0.4, station_size*0.97);
     station_model.getObjectByName('ring').rotation.y = -clock*0.04;
