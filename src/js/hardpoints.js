@@ -1,7 +1,7 @@
-// Hardpoints (campaign): every ship has gun mounts of three sizes, light, medium and heavy, listed in its `mounts`.
-// Each mount carries its own gun, of its size or smaller, and fires on its own, so a ship with more mounts hits
-// harder; a big gun needs a big ship. campaign.fleet.loadouts[ship id] lists the gun on each mount. The arcade keeps
-// one gun of any size, fired from both turrets in turn, as before.
+// Hardpoints: every ship has gun mounts of three sizes, light, medium and heavy, listed in its `mounts`. Each mount
+// carries its own gun, of its size or smaller, and fires on its own, so a ship with more mounts hits harder; a big gun
+// needs a big ship. A gun arms one mount: a second mount takes a second gun, bought again (guns_owned), in the
+// campaign as in the arcade. campaign.fleet.loadouts[ship id] lists the gun on each mount, null for an empty one.
 const gun_sizes = ['light', 'medium', 'heavy'];
 // A gun's turret drawing across, in game units, by its mount: the mounts are 6, 8 and 12 across, and a gun's base
 // (about 31 of its 64 canvas) covers 85% of its mount, leaving the mount's ring showing
@@ -17,31 +17,14 @@ function ship_mounts(ship = current_ship())
     return ship.mounts || ['light'];
 }
 
-// The gun on each of the ship's mounts: the one you put there, while you own it and it fits; otherwise the best that
-// fits
+// The gun on each of the ship's mounts: a mount fires only a gun bought for it, so each gun you own goes on one mount;
+// the one you put there while it fits, then the best of the rest that fit, and a mount with none left stays empty
+// (null). Before, in the campaign, one gun bought armed every mount of its size, and a second rail cost nothing.
 function ship_loadout(ship = current_ship())
 {
-    if (arcade.active) {
-        return arcade_loadout(ship);
-    }
     const f = ensure_career();
     f.loadouts = f.loadouts || {};
-    const saved = f.loadouts[ship.id] || [];
-    const out = ship_mounts(ship).map(function (size, i) {
-        const v = weapon_by_id(saved[i]);
-        return (v && f.weapons.includes(v.id) && gun_fits(v, size)) ? v.id : best_gun_for(size);
-    });
-    f.loadouts[ship.id] = out;
-    return out;
-}
-
-// The arcade's loadout: a mount fires only a gun bought for it, so each gun you own goes on one mount; the one you put
-// there while it fits, then the best of the rest that fit, and a mount with none left stays empty (null)
-function arcade_loadout(ship = current_ship())
-{
-    const f = ensure_career();
-    f.loadouts = f.loadouts || {};
-    const left = {...arcade_guns_owned()};
+    const left = {...guns_owned()};
     const saved = f.loadouts[ship.id] || [];
     const mounts = ship_mounts(ship);
     const out = mounts.map(function (size, i) {
@@ -66,15 +49,45 @@ function arcade_loadout(ship = current_ship())
     return out;
 }
 
-// How many of each gun the arcade's run has bought: one each, unless bought again for another mount; the cannon is
-// the start gun
-function arcade_guns_owned()
+// How many of each gun you own: one each, unless bought again for another mount; the cannon is the start gun. A
+// campaign save from before a gun armed one mount has no count: it is given as many of each gun as its ships carried
+// then (guns_kept), so every mount it had armed stays armed and nothing it paid for goes
+function guns_owned()
 {
     const f = ensure_career();
     if (!f.gun_count) {
-        f.gun_count = Object.fromEntries(f.weapons.map(v => [v, 1]));
+        f.gun_count = arcade.active ? Object.fromEntries(f.weapons.map(v => [v, 1])) : guns_kept(f);
+    }
+    // a gun you own is one at least (the dev panel adds guns by name)
+    for (const id of f.weapons) {
+        f.gun_count[id] = Math.max(1, f.gun_count[id] || 0);
     }
     return f.gun_count;
+}
+
+// The guns a campaign save from before carried: each gun as many times as the ship of yours that carried it most,
+// mounts filled as they were then (the gun put there while it fitted, else the best that fitted)
+function guns_kept(f)
+{
+    const out = Object.fromEntries(f.weapons.map(v => [v, 1]));
+    for (const id of f.ships) {
+        const ship = ship_catalog.find(v => v.id === id);
+        if (!ship) {
+            continue;
+        }
+        const saved = f.loadouts?.[id] || [];
+        const carried = {};
+        const mounts = ship_mounts(ship);
+        for (let i = 0; i < mounts.length; ++i) {
+            const v = weapon_by_id(saved[i]);
+            const gun = (v && f.weapons.includes(v.id) && gun_fits(v, mounts[i])) ? v.id : best_gun_for(mounts[i]);
+            carried[gun] = (carried[gun] || 0) + 1;
+        }
+        for (const [gun, n] of Object.entries(carried)) {
+            out[gun] = Math.max(out[gun] || 0, n);
+        }
+    }
+    return out;
 }
 
 // The best gun you own for a mount: the biggest that fits, then the strongest
@@ -86,12 +99,58 @@ function best_gun_for(size)
     return (owned[0] || weapon_catalog[0]).id;
 }
 
+// The campaign's price of one more of a gun you own: its price, the start cannon's 120 (the arcade's for it)
+function gun_copy_price(v)
+{
+    return v.price || 120;
+}
+
+// Buys one more of a gun you own for an empty mount it fits (the ARSENAL's Buy another)
+function buy_gun_copy(id)
+{
+    const v = weapon_by_id(id);
+    const price = gun_copy_price(v);
+    if ((state !== 'upgrade') || !v || !ensure_career().weapons.includes(id) || !mounts_empty_for(v).length || (salvage < price)) {
+        return;
+    }
+    salvage -= price;
+    guns_owned()[id] = (guns_owned()[id] || 0) + 1;
+    ship_loadout();
+    player.gun_cd = [];
+    save_checkpoint('dock');
+    render_station();
+    sfx('upgrade');
+}
+
+// The empty mounts of a ship that the gun fits, by index
+function mounts_empty_for(v, ship = current_ship())
+{
+    const loadout = ship_loadout(ship);
+    const mounts = ship_mounts(ship);
+    const out = [];
+    for (let i = 0; i < mounts.length; ++i) {
+        if (!loadout[i] && gun_fits(v, mounts[i])) {
+            out.push(i);
+        }
+    }
+    return out;
+}
+
+// A ship's mounts as words with how many are armed: 2 MEDIUM + 1 HEAVY · 1 EMPTY
+function mounts_armed_text(ship)
+{
+    const empty = ship_loadout(ship).filter(v => !v).length;
+    return `${mounts_text(ship)}${empty ? ` · ${empty} EMPTY` : ''}`;
+}
+
 // The guns of the current ship, mount by mount, in the campaign and the arcade alike; an empty arcade mount is null
 function mounted_weapons()
 {
     return ship_loadout().map(weapon_by_id);
 }
 
+// A gun you own put on a mount; with every one of it already on other mounts, it moves from the first of them, which
+// takes the best gun left over, or stays empty
 function set_mount_gun(index, id)
 {
     const f = ensure_career();
@@ -100,37 +159,35 @@ function set_mount_gun(index, id)
     if ((state !== 'upgrade') || !v || !f.weapons.includes(id) || !size || !gun_fits(v, size)) {
         return;
     }
-    ship_loadout();
-    f.loadouts[current_ship().id][index] = id;
+    const loadout = ship_loadout();
+    const others = [];
+    for (let i = 0; i < loadout.length; ++i) {
+        if ((loadout[i] === id) && (i !== index)) {
+            others.push(i);
+        }
+    }
+    if (others.length && (others.length >= guns_owned()[id])) {
+        loadout[others[0]] = null;
+    }
+    loadout[index] = id;
     player.gun_cd = [];
     save_checkpoint('dock');
     render_station();
     sfx('upgrade');
 }
 
-// A gun just bought goes on the first mount it fits whose gun is weaker
-function mount_new_gun(id)
+// A new gun on a mount it fits that does not carry it: an empty one first, else the weakest gun there (with
+// weaker_only, only a gun weaker than it), which stays yours for another mount or ship
+function mount_gun_anywhere(id, weaker_only = false)
 {
-    const v = weapon_by_id(id);
     const loadout = ship_loadout();
-    const mounts = ship_mounts();
-    for (let i = 0; i < mounts.length; ++i) {
-        const now = weapon_by_id(loadout[i]);
-        if (gun_fits(v, mounts[i]) && (v.rating > now.rating)) {
-            loadout[i] = id;
-            return true;
-        }
+    // an empty mount it fits took it already as the loadout was made
+    if (loadout.filter(v => v === id).length >= guns_owned()[id]) {
+        return true;
     }
-    return false;
-}
-
-// The arcade's new gun on a mount it fits that does not carry it: an empty one first, else the weakest gun there,
-// which stays yours for another mount or ship
-function mount_gun_anywhere(id)
-{
-    const loadout = ship_loadout();
     const mounts = ship_mounts();
-    const free = mounts.map((size, i) => i).filter(v => gun_fits(weapon_by_id(id), mounts[v]) && (loadout[v] !== id));
+    const rating = weapon_by_id(id).rating;
+    const free = mounts.map((size, i) => i).filter(v => gun_fits(weapon_by_id(id), mounts[v]) && (loadout[v] !== id) && (!weaker_only || !loadout[v] || (weapon_by_id(loadout[v]).rating < rating)));
     free.sort((a, b) => (weapon_by_id(loadout[a])?.rating ?? -1) - (weapon_by_id(loadout[b])?.rating ?? -1));
     if (!free.length) {
         return false;
@@ -145,7 +202,7 @@ function guns_rating()
 {
     const f = ensure_career();
     const guns = mounted_weapons().filter(Boolean);
-    return Math.max(...guns.map(v => v.rating + (f.weapon_levels[v.id] || 1) - 1)) + (guns.length - 1)*2;
+    return guns.length ? Math.max(...guns.map(v => v.rating + (f.weapon_levels[v.id] || 1) - 1)) + (guns.length - 1)*2 : 0;
 }
 
 function weapon_by_id(id)
@@ -284,18 +341,30 @@ function render_arsenal(parent)
     canvas.width = 760;
     canvas.height = 440;
     left.append(canvas);
+    const owned = guns_owned();
     for (let i = 0; i < mounts.length; ++i) {
         const row = document.createElement('div');
-        row.className = 'mount-row';
+        // an empty mount says so, in red, and its picker offers the guns you own that would fit it
+        row.className = loadout[i] ? 'mount-row' : 'mount-row is-empty';
         row.innerHTML = `<span class="mount-number">${i + 1}</span>${ui_size(mounts[i])}`;
         const label = document.createElement('label');
         label.className = 'select';
         const select = document.createElement('select');
+        if (!loadout[i]) {
+            const option = document.createElement('option');
+            option.value = '';
+            option.textContent = 'Empty';
+            option.selected = true;
+            option.disabled = true;
+            select.append(option);
+        }
         for (const v of weapon_catalog) {
             if (f.weapons.includes(v.id) && gun_fits(v, mounts[i])) {
                 const option = document.createElement('option');
+                const elsewhere = loadout.filter((id, j) => (id === v.id) && (j !== i)).length;
                 option.value = v.id;
-                option.textContent = `${v.name} · T${f.weapon_levels[v.id] || 1}`;
+                // a gun whose every copy is on another mount moves from there
+                option.textContent = `${v.name} · T${f.weapon_levels[v.id] || 1}${((v.id !== loadout[i]) && (elsewhere >= owned[v.id])) ? ' · from another mount' : ''}`;
                 option.selected = v.id === loadout[i];
                 select.append(option);
             }
@@ -303,19 +372,21 @@ function render_arsenal(parent)
         select.addEventListener('change', () => set_mount_gun(i, select.value));
         label.append(select);
         row.append(label);
-        row.insertAdjacentHTML('beforeend', gun_icon_html(weapon_by_id(loadout[i]), 22));
+        row.insertAdjacentHTML('beforeend', loadout[i] ? gun_icon_html(weapon_by_id(loadout[i]), 22) : '<span class="mount-empty" title="No gun on this mount">—</span>');
         left.append(row);
     }
     const note = document.createElement('p');
     note.className = 'small arsenal-note';
-    note.innerHTML = 'A mount takes a gun of its size or smaller. Bigger guns need a bigger ship: ';
+    note.innerHTML = 'A mount takes a gun of its size or smaller, and each gun arms one mount. Bigger guns need a bigger ship: ';
     note.append(ui_button({label: 'Hangar', key: '5', kind: 'ghost', size: 'sm', on: () => station_tab_open('hangar')}));
     left.append(note);
     const right = document.createElement('div');
     right.className = 'arsenal-guns';
     const head = document.createElement('div');
     head.className = 'arsenal-guns-head';
-    head.innerHTML = `<h3 class="h-section">Guns <span class="eyebrow eyebrow--muted">${f.weapons.length} owned · pick one on a mount to fit it</span></h3>`;
+    const copies = Object.values(owned).reduce((a, b) => a + b, 0);
+    const empty = loadout.filter(v => !v).length;
+    head.innerHTML = `<h3 class="h-section">Guns <span class="eyebrow eyebrow--muted">${copies} owned · ${empty ? `<span class="t-red">${empty} mount${(empty > 1) ? 's' : ''} empty</span>` : 'pick one on a mount to fit it'}</span></h3>`;
     const seg = document.createElement('div');
     seg.className = 'seg';
     for (const size of ['all', ...gun_sizes]) {
@@ -346,18 +417,28 @@ function arsenal_gun_card(v)
 {
     const f = ensure_career();
     const owned = f.weapons.includes(v.id);
+    const count = owned ? guns_owned()[v.id] : 0;
     const level = f.weapon_levels[v.id] || 1;
     const on = ship_loadout().map((id, i) => ((id === v.id) ? i + 1 : 0)).filter(Boolean);
+    // an empty mount this gun fits: one more of it arms it
+    const empty = owned ? mounts_empty_for(v) : [];
     const locked = !owned && (pilot_rank() < v.rank);
     const fits = gun_fits_ship(v);
     const cost = gun_tier_cost(v, level);
-    let note = owned ? (on.length ? `Mount${(on.length > 1) ? 's' : ''} ${on.join(', ')}` : fits ? 'Owned · not mounted' : `Needs a ${v.size} mount`) : '';
+    let note = owned ? (on.length ? `Mount${(on.length > 1) ? 's' : ''} ${on.join(', ')}${(count > on.length) ? ` · ${count - on.length} spare` : ''}` : fits ? 'Owned · not mounted' : `Needs a ${v.size} mount`) : '';
     let action = null;
     if (locked) {
         note = `<span class="badge badge--locked">${ui_lock_svg}Rank ${rank_names[v.rank]}</span>`;
     }
     else if (owned) {
         action = ui_button({label: (level >= 5) ? 'Max tier' : 'Upgrade', price: (level >= 5) ? null : cost, size: 'sm', disabled: (level >= 5) || (salvage < cost), on: () => upgrade_weapon(v.id)});
+        if (empty.length) {
+            const price = gun_copy_price(v);
+            const actions = document.createElement('span');
+            actions.className = 'card-actions';
+            actions.append(ui_button({label: 'Buy another', price, size: 'sm', kind: 'ghost', title: `Arms mount ${empty[0] + 1}; the tier is the same for every one of this gun`, disabled: salvage < price, on: () => buy_gun_copy(v.id)}), action);
+            action = actions;
+        }
     }
     else {
         if (salvage < v.price) {
@@ -374,7 +455,7 @@ function arsenal_gun_card(v)
     const share = gun_armour_share(v, world);
     const through = `<span class="${(share < gate_armour_share) ? 't-red' : ''}" title="Of each hit at your tier and Hotter plasma, what passes the armour of ${worlds[world].name} (${Math.round(world_armour(world)*100)}%)">${Math.round(share*100)}%</span>`;
     return ui_card({
-        tags: `${ui_size(v.size)}${owned ? ui_tier(level) : ''}${on.length ? ui_badge(`Equipped${(on.length > 1) ? ` ×${on.length}` : ''}`, 'cyan') : ''}`,
+        tags: `${ui_size(v.size)}${owned ? ui_tier(level) : ''}${on.length ? ui_badge(`Equipped${(on.length > 1) ? ` ×${on.length}` : ''}`, 'cyan') : ''}${(count > 1) ? ui_badge(`Own ×${count}`) : ''}`,
         title: v.name,
         stats: [['DMG', damage], ['RATE', `${v.interval.toFixed(2)}s`], ['RANGE', `${(weapon_range(v)/1000).toFixed(1)} km`], ['ARMOUR', through]],
         note,
@@ -442,14 +523,19 @@ function render_arsenal_ship(canvas)
     for (let i = 0; i < points.length; ++i) {
         const x = cx + points[i].y*k + ((points[i].y < 0) ? -46 : 46);
         const y = cy - points[i].x*k - 30;
-        draw.fillStyle = '#6cf8ec';
-        draw.shadowColor = '#6cf8ec';
+        // an empty mount's number is a hollow red ring
+        const color = guns[i] ? '#6cf8ec' : '#ff4d5e';
+        draw.fillStyle = guns[i] ? color : '#0b1222';
+        draw.strokeStyle = color;
+        draw.lineWidth = 3;
+        draw.shadowColor = color;
         draw.shadowBlur = 12;
         draw.beginPath();
         draw.arc(x, y, 18, 0, Math.PI*2);
         draw.fill();
+        draw.stroke();
         draw.shadowBlur = 0;
-        draw.fillStyle = '#032421';
+        draw.fillStyle = guns[i] ? '#032421' : color;
         draw.fillText(String(i + 1), x, y + 1);
     }
 }

@@ -696,7 +696,7 @@ function arcade_weapon_take(weapon)
 {
     const fleet = ensure_career();
     const tier = weapon_level();
-    const owned = arcade_guns_owned();
+    const owned = guns_owned();
     if ((owned[weapon.id] || 0) <= mounts_carrying(weapon)) {
         owned[weapon.id] = (owned[weapon.id] || 0) + 1;
     }
@@ -810,7 +810,7 @@ function arcade_depot_items()
     // weakest gun there making way, which stays yours, spare, and goes on again for free. A gun no mount of your ship
     // fits says which ships take it.
     const mine = current_weapon();
-    const owned = arcade_guns_owned();
+    const owned = guns_owned();
     const mounts = ship_mounts();
     for (const weapon of weapon_catalog) {
         const carried = mounts_carrying(weapon);

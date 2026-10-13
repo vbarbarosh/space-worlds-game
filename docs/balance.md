@@ -285,14 +285,23 @@ below). That gives, in the campaign at NORMAL:
   (`arcade_weapon_take`).
 - A gun fits a mount of its size or larger (`gun_fits` in
   `src/js/hardpoints.js`), and every mount fires its own gun, in the campaign
-  and the arcade alike. In the arcade a mount fires only a gun bought for it
-  (`arcade_loadout`, `arcade_guns_owned`): the cannon you start with is one
-  gun, and a second mount needs a second gun, the same or another. A gun
-  bought goes on a mount it fits, an empty one first, else the weakest gun
-  there making way, which stays yours, spare, and goes back on for free
-  (`mount_gun_anywhere`). A gun no mount of your ship fits names the ships
-  that take it; a mount with no gun left stays empty.
-- Arcade gun price: 120 + 45 × the gun's `rating`.
+  and the arcade alike. A mount fires only a gun bought for it
+  (`ship_loadout`, `guns_owned`): the cannon you start with is one gun, and a
+  second mount needs a second gun, the same or another. A gun bought goes on
+  a mount it fits, an empty one first, else the weakest gun there making way
+  (in the campaign only a weaker one), which stays yours, spare, and goes
+  back on for free (`mount_gun_anywhere`). A gun no mount of your ship fits
+  names the ships that take it; a mount with no gun left stays empty, and
+  the ARSENAL draws it red, with Buy another on the cards of the guns that
+  fit it; the HANGAR counts a ship's empty mounts. A tier is one for every
+  one of a gun.
+- Before, in the campaign, one gun bought armed every mount of its size: the
+  cruiser with one rail and one ion gun fired four guns. A campaign save from
+  then gets as many of each gun as its ships carried (`guns_kept`), so every
+  mount it had armed stays armed.
+- Arcade gun price: 120 + 45 × the gun's `rating`. Campaign: a gun's price,
+  and the same again for each more of it (`gun_copy_price`; the start
+  cannon 120).
 
 ## Modules and supplies
 
@@ -368,7 +377,7 @@ before rocks and the Relic processor.
 |---|---|---|
 | Repair | Full repair 60 | free on docking |
 | Ships | half the campaign price, rounded to 10 (`arcade_ship_price`): 180, 430, 530, 1150, 2800 | the price above, gated by rank |
-| Guns | 120 + 45 × rating, no rank | the price above, gated by rank |
+| Guns | 120 + 45 × rating, no rank | the price above, gated by rank; each more of a gun the same (the cannon 120) |
 | Gun tier | free, one per world cleared | (130 + 22% of price) × tier × 1.5 |
 | Modules, supplies | the tables above | the tables above |
 | Builder drone, outposts, transport | none | see below |

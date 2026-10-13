@@ -29,6 +29,7 @@ function dev_weapon_set(id)
         }
         fleet.weapon_id = id;
         fleet.weapon_levels[id] = dev_scenario.tier;
+        mount_gun_anywhere(id);
         update_hud();
     }
     dev_panel_refresh();

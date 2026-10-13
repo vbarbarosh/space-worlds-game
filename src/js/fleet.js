@@ -173,7 +173,7 @@ function current_weapon()
         const f = ensure_career();
         return weapon_catalog.find(v => v.id === f.weapon_id) || weapon_catalog[0];
     }
-    return mounted_weapons().slice().sort((a, b) => (gun_sizes.indexOf(b.size) - gun_sizes.indexOf(a.size)) || (b.rating - a.rating))[0];
+    return mounted_weapons().filter(Boolean).sort((a, b) => (gun_sizes.indexOf(b.size) - gun_sizes.indexOf(a.size)) || (b.rating - a.rating))[0];
 }
 
 // Your guns in words: Pulse cannon ×2 + Lance railgun
@@ -242,8 +242,11 @@ function fleet_purchase(id, kind)
         owned.push(id);
         if (kind !== 'ship') {
             f.weapon_levels[id] = 1;
-            if (!arcade.active && !mount_new_gun(id)) {
+            if (!arcade.active && !gun_fits_ship(v)) {
                 show_toast('NO MOUNT FITS IT YET', `${v.size.toUpperCase()} GUN · ${ships_for_gun_text(v)}`, 4);
+            }
+            else if (!arcade.active && !mount_gun_anywhere(id, true)) {
+                show_toast('BOUGHT · SPARE', 'YOUR MOUNTS CARRY BETTER GUNS · PICK IT ON A MOUNT TO FIT IT', 4);
             }
         }
     }

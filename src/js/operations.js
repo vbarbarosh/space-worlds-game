@@ -1006,7 +1006,7 @@ function render_station()
                 parent,
                 `${v.name} / ${v.role}`,
                 v.description,
-                `HULL ${v.hull} · SHIELD +${v.shield} · SPEED ${Math.round(v.speed*100)}% · CARGO ${v.cargo} · GUNS ${mounts_text(v)}`,
+                `HULL ${v.hull} · SHIELD +${v.shield} · SPEED ${Math.round(v.speed*100)}% · CARGO ${v.cargo} · GUNS ${owned ? mounts_armed_text(v) : mounts_text(v)}`,
                 action,
                 on_select,
                 selected || held || locked || oversize || (!owned && (salvage < v.price)),
