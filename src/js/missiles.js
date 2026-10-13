@@ -306,11 +306,14 @@ function missile_waves_update(dt)
         if (w.depth >= missile_chain_depth) {
             continue;
         }
-        for (const b of [...bullets, ...hostile]) {
-            if (b.missile && (b.life > 0) && !w.hit.has(b) && (distance(w, b) <= w.r)) {
-                w.hit.add(b);
-                if (missile_wave_damage(w, distance(w, b)) >= b.hp) {
-                    missile_detonate(b, w.depth + 1);
+        // both lists as they are, not a copy of them: setting a missile off only adds a wave and a blast
+        for (const items of [bullets, hostile]) {
+            for (const b of items) {
+                if (b.missile && (b.life > 0) && !w.hit.has(b) && (distance(w, b) <= w.r)) {
+                    w.hit.add(b);
+                    if (missile_wave_damage(w, distance(w, b)) >= b.hp) {
+                        missile_detonate(b, w.depth + 1);
+                    }
                 }
             }
         }
