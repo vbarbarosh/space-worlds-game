@@ -6,7 +6,7 @@ const world_haven = {
         wave: 1,
         color: '#19324a',
         accent: '#6cf8ec',
-        links: [1, 2, 8],
+        links: [1, 2],
         armor: 0,
         shield: 0,
         weapon: 'plasma',

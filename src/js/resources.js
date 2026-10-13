@@ -1,6 +1,6 @@
 // Each world mines a resource of its own besides plain ore; rich rocks hold it, several units each.
 // value: what a unit is worth; a market pays 60% of it at home and 30% more for each tier of threat farther away
-// (world_tier: Feltmere's berries sell at Haven as a near world's).
+// (world_tier).
 const resources = [
     {key: 'iron', name: 'Haven iron', world: 0, color: '#ff7a59', value: 16},
     {key: 'resin', name: 'Spore resin', world: 1, color: '#7cf29a', value: 20},
@@ -10,7 +10,6 @@ const resources = [
     {key: 'helium', name: 'Helium-3 ice', world: 5, color: '#bff4ff', value: 40},
     {key: 'plasma', name: 'Plasma ore', world: 6, color: '#ff4f7a', value: 48},
     {key: 'void', name: 'Void matter', world: 7, color: '#c46bff', value: 60},
-    {key: 'berries', name: 'Felt berries', world: 8, color: '#d8435a', value: 22},
 ];
 commodities.push(...resources);
 

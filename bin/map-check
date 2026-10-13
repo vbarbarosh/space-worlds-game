@@ -5,10 +5,9 @@ const path = require('node:path');
 const {chromium} = require('playwright');
 
 const page_file = path.join(__dirname, '..', 'build', 'dev.html');
-// The campaign's nine worlds; the arcade runs through the first eight (Feltmere is the campaign's alone)
 const modes = [
-    {value: '', label: 'campaign', worlds: 9},
-    {value: '&screen=arcade', label: 'arcade', worlds: 8},
+    {value: '', label: 'campaign'},
+    {value: '&screen=arcade', label: 'arcade'},
 ];
 // The rules of docs/placement.md, in metres
 const rules = {
@@ -29,7 +28,7 @@ const rules = {
 };
 const usage = `usage: bin/map-check
 
-    Opens every world of build/dev.html in the campaign and every world of the arcade's run, reads the map the game generated
+    Opens every world of build/dev.html in the campaign and in the arcade, reads the map the game generated
     (window.dev_state) and checks it against docs/placement.md: R's docking and jumping ranges and the portals'
     rings never touch, gates face the worlds they lead to and stand far out, portal pairs span a real distance and
     keep apart from each other and the station, no gravity well or solid lies on any of them; the campaign's race
@@ -50,7 +49,7 @@ async function main()
         const page = await browser.newPage({viewport: {width: 1280, height: 720}});
         page.on('pageerror', v => failures.push(`page error: ${v.message}`));
         for (const mode of modes) {
-            for (let world = 0; world < mode.worlds; ++world) {
+            for (let world = 0; world < 8; ++world) {
                 await page.goto(`file://${page_file}?world=${world}${mode.value}`);
                 await page.waitForFunction(v => window.dev_state?.().player && (window.dev_state().arcade === v), !!mode.value);
                 const map = await page.evaluate(() => window.dev_state());

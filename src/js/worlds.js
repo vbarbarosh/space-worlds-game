@@ -24,9 +24,9 @@ const sectors = [
         hazard: true,
     },
 ];
-const world_defs = [world_haven, world_verdant, world_dustfall, world_ion_reach, world_obsidian, world_cryosphere, world_nova_forge, world_eclipse, world_felt];
+const world_defs = [world_haven, world_verdant, world_dustfall, world_ion_reach, world_obsidian, world_cryosphere, world_nova_forge, world_eclipse];
 const worlds = world_defs.map(v => v.world);
-// The arcade runs through the first eight worlds, Haven to Eclipse; Feltmere (8) is the campaign's alone
+// The arcade runs through the eight worlds, Haven to Eclipse
 const arcade_worlds = 8;
 const commodities = [
     {key: 'ore', name: 'Refined ore'},

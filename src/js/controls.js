@@ -78,13 +78,9 @@ function toggle_pause()
         set_hidden(el.pause_overlay, false);
         document.getElementById('pause_layout').classList.remove('is-controls');
 
-        document.getElementById('pause_checkpoint').textContent = tryout.active ? 'A try-out of Feltmere · not saved' : checkpoint_notice;
-        document.getElementById('restart_pause').textContent = arcade.active ? 'Restart arcade' : tryout.active ? 'Restart the try-out' : 'Restart campaign';
-        document.getElementById('restart_pause_note').textContent = arcade.active
-            ? 'Start the arcade again from world 1.'
-            : tryout.active
-                ? 'Feltmere again from the Camper Dock. A try-out is not saved; your campaign stays as it is.'
-                : 'Start the campaign again from Haven. Your saved games stay.';
+        document.getElementById('pause_checkpoint').textContent = checkpoint_notice;
+        document.getElementById('restart_pause').textContent = arcade.active ? 'Restart arcade' : 'Restart campaign';
+        document.getElementById('restart_pause_note').textContent = arcade.active ? 'Start the arcade again from world 1.' : 'Start the campaign again from Haven. Your saved games stay.';
         set_pause_icon(true);
         document.getElementById('resume_button').focus();
     }
@@ -124,9 +120,6 @@ for (const id of ['restart_button', 'restart_pause']) {
         set_pause_icon(false);
         if (arcade.active) {
             arcade_start();
-        }
-        else if (tryout.active) {
-            tryout_start();
         }
         else {
             reset_run();

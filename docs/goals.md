@@ -78,7 +78,7 @@ at most 12, and n = level − 1.
 | Two of the world's own | in the table below | always |
 | Sealed dispatch to a neighbour | courier to it (intercepted), defend 40 + 5n there | always |
 | Supply run: a good to a neighbour | trade: sell 5 + level (at most 12) of this world's cheapest good at the neighbour that pays most for it (intercepted); offered when that pays at least 8 more | always |
-| Ring race: the world's sprint, slalom or loop | race: 5 to 7 rings against 3 or 4 rivals ([Ring races](#ring-races)) | always, in every world, Feltmere too |
+| Ring race: the world's sprint, slalom or loop | race: 5 to 7 rings against 3 or 4 rivals ([Ring races](#ring-races)) | always, in every world |
 | Commander bounty | scan 16 + n, hunt 6 + n, elite | rank Pathfinder |
 | Frontier expedition n | scan 22 + n here; defend 70 + 6n, elite, recover 20 in a neighbour | rank Ace |
 | Side missions | from their file | in their world, until done |
@@ -152,10 +152,9 @@ a course of rings off the station and rivals to beat through it.
   (sprint, slalom, loop), one offered at a time by the board. Each keeps
   clear of everything R or a ring acts on ([placement.md](placement.md#race-courses)).
   A ring a drifting rock comes into (Verdant's current) moves off it.
-- **The rivals:** 3 in Haven, Feltmere and Verdant, 4 from Dustfall on, from
-  the slowest to the best, each with a name, a hull from the ships' drawings
-  in its colour (Feltmere lets in the felt rocket alone, so its racers fly
-  felt rockets, a ring of their colour under each). A rival's cruise is
+- **The rivals:** 3 in Haven and Verdant, 4 from Dustfall on, from the
+  slowest to the best, each with a name, a hull from the ships' drawings in
+  its colour. A rival's cruise is
   285 m/s × the world's speed × (1 + 0.06 tier + 0.01 (level − 1)) ×
   (0.9 + 0.3 skill), its turn and thrust the world's own scaled by its
   skill; it aims at its own line through each ring, slows for the turn after

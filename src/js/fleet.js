@@ -1,5 +1,5 @@
 // Fleet, weapon payloads and persistent multi-stage operations.
-const ship_defs = [ship_scout, ship_courier, ship_interceptor, ship_miner, ship_gunship, ship_cruiser, ship_rocket];
+const ship_defs = [ship_scout, ship_courier, ship_interceptor, ship_miner, ship_gunship, ship_cruiser];
 const ship_catalog = ship_defs.map(v => v.ship);
 const hull_profiles = Object.fromEntries(ship_defs.map(v => [v.ship.id, v.hull_profile]));
 for (const v of ship_catalog) {
@@ -122,10 +122,6 @@ function ensure_career()
         campaign.xp = (campaign.completed || 0)*70;
     }
     campaign.reputation = campaign.reputation || worlds.map(() => 0);
-    // a save from before Feltmere has one less
-    while (campaign.reputation.length < worlds.length) {
-        campaign.reputation.push(0);
-    }
     campaign.expedition = campaign.expedition || 1;
     return f;
 }
@@ -206,13 +202,6 @@ function weapon_level()
     return f.weapon_levels[f.weapon_id] || 1;
 }
 
-// While in a world that lets in one ship alone (Feltmere) and you fly it, you stay in it: another is bought or flown elsewhere
-function fleet_ship_held(v)
-{
-    const only = expedition_conditions[campaign.world].only;
-    return !arcade.active && !!only && (v.id !== only) && (current_ship().id === only);
-}
-
 function fleet_purchase(id, kind)
 {
     if (state !== 'upgrade') {
@@ -223,11 +212,6 @@ function fleet_purchase(id, kind)
     const v = list.find(v => v.id === id);
     const owned = (kind === 'ship') ? f.ships : f.weapons;
     if (!v || (pilot_rank() < v.rank)) {
-        return;
-    }
-    // a world that lets in one ship alone (Feltmere) keeps you in it while you are there
-    if ((kind === 'ship') && fleet_ship_held(v)) {
-        show_toast('ONLY ONE SHIP FLIES HERE', `${worlds[campaign.world].name.toUpperCase()} LETS IN THE ${current_ship().name.toUpperCase()} ALONE · SWITCH IN ANOTHER WORLD`, 4);
         return;
     }
     if ((kind === 'ship') && (cargo_count() > v.cargo)) {

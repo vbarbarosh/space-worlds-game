@@ -8,7 +8,7 @@ const sprite_cache = new Map();
 // Every ship's drawn length in metres, on one scale with the station (station_size): fighters 40-50, the warships up to
 // 120, a flagship 300, the haulers 340-400. Raiders and flagships are a factor of their hit radius.
 const sprite_sizes = {
-    ships: {interceptor: 40, scout: 46, rocket: 50, courier: 56, miner: 72, gunship: 86, cruiser: 120},
+    ships: {interceptor: 40, scout: 46, courier: 56, miner: 72, gunship: 86, cruiser: 120},
     raider: 2.9,
     flagship: 3.53,
     freighter: 400,
@@ -27,7 +27,7 @@ function sprite(name)
     if (cached !== undefined) {
         return cached;
     }
-    const text = sprite_text(name);
+    const text = name.includes('/') ? name.split('/').reduce((v, k) => v?.[k], sprite_svgs) : sprite_svgs['3d'][name];
     if (typeof text !== 'string') {
         sprite_cache.set(name, null);
         return null;
@@ -39,8 +39,7 @@ function sprite(name)
     if (w !== h) {
         svg.setAttribute('viewBox', `${left - (box - w)/2} ${top - (box - h)/2} ${box} ${box}`);
     }
-    // a world's own raiders and flagship (worlds/felt/enemy-chaser, worlds/felt/flagship) point their nose up as ships do
-    const turned = !name.includes('/') || /^(weapons|drones)\/|^worlds\/[^/]+\/(enemy-|flagship)/.test(name);
+    const turned = !name.includes('/') || /^(weapons|drones)\//.test(name);
     // A drawing's point as a fraction of the canvas from its centre, in the game's frame
     function at(x, y) {
         const cx = left + w/2;
@@ -224,23 +223,6 @@ function sprite_flames(draw, flames, power, color, flicker = 0)
     }
 }
 
-// The SVG text of a sprite's name, undefined for none. An elite with no drawing of its own (worlds/felt/enemy-chaser-elite)
-// is its plain drawing with a gold rim, where the plain one keeps its picture in a group #base
-function sprite_text(name)
-{
-    const text = name.includes('/') ? name.split('/').reduce((v, k) => v?.[k], sprite_svgs) : sprite_svgs['3d'][name];
-    if ((typeof text === 'string') || !name.endsWith('-elite')) {
-        return text;
-    }
-    const plain = sprite_text(name.slice(0, -'-elite'.length));
-    if ((typeof plain !== 'string') || !plain.includes('<g id="base">')) {
-        return undefined;
-    }
-    const rim =
-        `<defs><filter id="elite-rim" x="-10%" y="-10%" width="120%" height="120%"><feMorphology in="SourceAlpha" operator="dilate" radius="5" result="grown"/><feFlood flood-color="${gold}"/><feComposite in2="grown" operator="in" result="rim"/><feMerge><feMergeNode in="rim"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>`;
-    return plain.replace('<g id="base">', `${rim}<g id="base" filter="url(#elite-rim)">`);
-}
-
 // The current world's drawing of an object (worlds/haven/station), or null where the world has none yet, so the
 // caller draws today's look
 function world_art(name)
@@ -249,10 +231,10 @@ function world_art(name)
     return sprite(path) ? path : null;
 }
 
-// A world's name as a file name, the current world's by default: haven, ion-reach; a world with a `slug` its own (felt)
+// A world's name as a file name, the current world's by default: haven, ion-reach
 function world_slug(id = campaign.world)
 {
-    return worlds[id].slug || worlds[id].name.toLowerCase().replace(/\s+/g, '-');
+    return worlds[id].name.toLowerCase().replace(/\s+/g, '-');
 }
 
 // The sprite of a player ship class, and its length: the size follows the class's radius
@@ -261,33 +243,14 @@ function ship_sprite(v)
     return {name: `ship-${v.id}`, length: sprite_sizes.ships[v.id] || v.radius*2.8};
 }
 
-// The names of the raiders' drawings by world, then by type: [plain, elite]; found once a world
-const enemy_sprite_names = new Map();
-
-// The sprite of a raider: its type, elite or not, the world's own drawing where it has one (worlds/felt/enemy-chaser);
-// the flagship of the world it serves
+// The sprite of a raider: its type, elite or not; the flagship of the world it serves
 function enemy_sprite(enemy)
 {
-    let names = enemy_sprite_names.get(campaign.world);
-    if (!names) {
-        names = {};
-        enemy_sprite_names.set(campaign.world, names);
+    if (enemy.type === 'boss') {
+        const name = `flagship-${world_slug()}`;
+        return {name: sprite(name) ? name : 'flagship', length: enemy.r*sprite_sizes.flagship};
     }
-    const key = enemy.split ? 'split' : enemy.type;
-    let pair = names[key];
-    if (!pair) {
-        if (enemy.type === 'boss') {
-            const name = world_art('flagship') || (sprite(`flagship-${world_slug()}`) ? `flagship-${world_slug()}` : 'flagship');
-            pair = [name, name];
-        }
-        else {
-            // a splitter's halves where the world draws them (Feltmere's small ladybugs), else the shards they are
-            const type = (key === 'split') ? (world_art('enemy-split') ? 'split' : 'shard') : enemy.type;
-            pair = [`enemy-${type}`, `enemy-${type}-elite`].map(v => world_art(v) || v);
-        }
-        names[key] = pair;
-    }
-    return {name: pair[enemy.elite ? 1 : 0], length: enemy.r*((enemy.type === 'boss') ? sprite_sizes.flagship : sprite_sizes.raider)};
+    return {name: `enemy-${enemy.type}${enemy.elite ? '-elite' : ''}`, length: enemy.r*sprite_sizes.raider};
 }
 
 // The radius of the rings around your ship (shield, invincibility, pulse ready): clear of its hull

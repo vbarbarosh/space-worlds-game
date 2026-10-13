@@ -31,17 +31,10 @@ and an armour share and shield that every raider there carries.
 | Cryosphere | 11 | 35% | 140 | scatter | 10 / 5 / 0% |
 | Nova Forge | 13 | 60% | 90 | missile | 12 / 5 / 80% |
 | Eclipse | 15 | 65% | 200 | rail | 15 / 6 / 90% |
-| Feltmere | 2 | 0 | 0 | plasma | the Felt Rocket alone (0 / 0 / 0%) |
 
-- Feltmere is the campaign's ninth world, off Haven, and the arcade never
-  goes there. Its gate lets in the Felt Rocket alone (`expedition.only`,
-  `world_ship_lock` in `src/js/campaign.js`). While you are there in the
-  rocket, its hangar keeps you in it (`fleet_ship_held` in `src/js/fleet.js`);
-  leaving is open in any ship.
 - A world's place in the order of threat is `world_tier` (`(wave - 1)/2`):
-  Haven 0 to Eclipse 7, Feltmere 0.5. The raiders' tier, contract rewards,
-  resource prices and the threat shown read it, never the world's place in
-  the list.
+  Haven 0 to Eclipse 7. The raiders' tier, contract rewards, resource prices
+  and the threat shown read it, never the world's place in the list.
 
 - Where: `world.wave`, `world.armor`, `world.shield`, `world.weapon`,
   `world.attack`, `world.defense` and `expedition.required` in each world file.
@@ -218,20 +211,13 @@ below). That gives, in the campaign at NORMAL:
 | Mule Prospector | Pathfinder | 1050 | 190 | 25 | ×0.8 | 150 | medium | 35% |
 | Bastion Gunship | Vanguard | 2300 | 250 | 70 | ×0.88 | 65 | 2 medium, heavy | 55% |
 | Aurora Cruiser | Commander | 5600 | 340 | 130 | ×0.78 | 120 | 2 medium, 2 heavy | 75% |
-| Felt Rocket | Courier | 400 | 130 | 15 | ×1.1 | 60 | 2 light | 10% |
-
-- The Felt Rocket is the only ship Feltmere lets in: an all-rounder between
-  the scout and the courier, a little tougher than both, with less cargo than
-  the courier and the strongest turbo of the light hulls (×1.15, 10 s). It
-  costs a little more than the courier, so you take it as a choice and not by
-  the way.
 
 - Where: one file per ship in `src/js/ships/`; `ship` is the catalog entry,
   `hull_profile` the radiation, traction, braking, cooling, turbo and extra
   turbo seconds (`endurance`).
 - The Mule Prospector mines 2.5 times faster (`mining: 2.5`) and its drone bay
   holds four drones, other ships two (`drone_bay` in `src/js/drones.js`).
-- All seven ships deal ×1 damage today (`damage: 1`).
+- All six ships deal ×1 damage today (`damage: 1`).
 - Shield: the ship's own + 25 per Shield capacitor level (`shield_max` in
   `src/js/helpers.js`). It recharges after 5 seconds unhit at
   (5 + 2 per capacitor level) a second, times the world's shield rule
@@ -446,7 +432,6 @@ before rocks and the Relic processor.
   | Cryosphere, the Frost Crystal | glides round you | ice plates turning round it stop your shots (4 of 6); a spiral of shards; icicles bursting round you; a frost nova that slows you | 5 plates turning faster, a three-arm spiral, more icicles | 2.6 s after the nova, the plates drawn in |
   | Nova Forge, the Furnace | lumbers in to 320 m | a sweeping flame from its vents that heats your guns; embers that leave burning slag; missiles; a flare | twin flames, more slag | 2.6 s after the flare |
   | Eclipse, the Eclipse Eye | hovers at 560 m; jumps | an eye beam turning after you at 0.4 rad/s, draining your pulse; a fan of rail lanes; a singularity pulling you in | two beams, wider fans, more jumps | 4.5 s while it holds the singularity |
-  | Feltmere, the Wool Stag (campaign only) | orbits you at 400 m | pins flicked from its mandibles; woollen pom-poms that burst when you fly close; a horn butt down a drawn lane | wider pins, a ring of buttons with one gap, three ladybugs (chasers) | 2.6 s after a butt |
 
 - Arcade elites have a trick of their world, every 5 to 7 s while you are
   within 750 m, of the same kinds (`elite_tricks`): Haven a three-bolt

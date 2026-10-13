@@ -28,7 +28,6 @@ const race_names = [
     'Vex Marlow', 'Juno Kade', 'Tamsin Rook', 'Idris Vane', 'Kestrel Moon', 'Ash Okoro', 'Mara Quill', 'Sol Ferro',
     'Nyx Arden', 'Rhea Stoll', 'Lio Brand', 'Odette Lune', 'Bram Toller', 'Ines Halloway',
 ];
-const race_felt_names = ['Button', 'Pom Pom', 'Bramble', 'Thimble', 'Marigold', 'Tuft', 'Purl', 'Bobbin'];
 // Rival hulls from the ships' drawings, each painted in its rival's colour
 const race_hulls = ['ship-interceptor', 'ship-scout', 'ship-courier', 'guard-patrol', 'ship-gunship', 'ship-miner'];
 const race_colors = ['#ff8a3d', '#b48cff', '#5fd27a', '#ff5f8a', '#4fc3ff'];
@@ -245,18 +244,17 @@ function race_spot_score(a, b)
 }
 
 // The rivals of a race: three in the first worlds, four from Dustfall on, from the slowest to the best, each with a
-// name, a hull and a colour; Feltmere lets in the felt rocket alone, so its racers fly felt rockets
+// name, a hull and a colour
 function race_rivals_make(id, variant, level)
 {
     const count = (world_tier(id) < 2) ? 3 : 4;
     const random = race_random((id + 3)*3571 + variant*613 + level*31);
-    const felt = expedition_conditions[id].only === 'rocket';
-    const names = (felt ? race_felt_names : race_names).slice();
+    const names = race_names.slice();
     const hulls = race_hulls.slice();
     const out = [];
     for (let i = 0; i < count; ++i) {
         const name = names.splice(Math.floor(random()*names.length), 1)[0];
-        const hull = felt ? 'ship-rocket' : hulls.splice(Math.floor(random()*hulls.length), 1)[0];
+        const hull = hulls.splice(Math.floor(random()*hulls.length), 1)[0];
         const skill = clamp(i/(count - 1) + (random() - 0.5)*0.1, 0, 1);
         out.push({name, hull, color: race_colors[i], skill: Math.round(skill*100)/100});
     }
@@ -1369,17 +1367,6 @@ function race_render_rivals()
             ctx.restore();
         }
         render_surface_ship(v.x, v.y, v.angle, v.alpha, false, (v.flash > 0) ? v.drawing_hit : v.drawing);
-        if (v.hull === 'ship-rocket') {
-            // the felt rocket keeps its own wool: its rival's colour is the ring under it
-            ctx.save();
-            ctx.globalAlpha = 0.7*v.alpha;
-            ctx.strokeStyle = v.color;
-            ctx.lineWidth = 3;
-            ctx.beginPath();
-            ctx.arc(v.x, v.y, v.length*0.62, 0, Math.PI*2);
-            ctx.stroke();
-            ctx.restore();
-        }
         ctx.save();
         ctx.globalAlpha = v.alpha;
         const y = v.y + v.length*0.55 + 16/zoom;

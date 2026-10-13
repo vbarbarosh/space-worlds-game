@@ -32,15 +32,8 @@ function armour_rating(id, damage_level = upgrades.damage)
     return guns.length ? Math.max(...guns.map(v => gun_armour_share(v, id, damage_level))) : 0;
 }
 
-// The ship a world lets in alone (expedition.only: Feltmere, the felt rocket), while you fly another; null otherwise
-function world_ship_lock(id)
-{
-    const only = expedition_conditions[id].only;
-    return (only && (current_ship().id !== only)) ? ship_catalog.find(v => v.id === only) : null;
-}
-
-// A world's place in the order of threat, as its threat level (wave) gives it: Haven 0 to Eclipse 7, Feltmere 0.5. The
-// raiders' tier, prices and rewards read it, never the world's place in the list
+// A world's place in the order of threat, as its threat level (wave) gives it: Haven 0 to Eclipse 7. The raiders' tier,
+// prices and rewards read it, never the world's place in the list
 function world_tier(id)
 {
     return (worlds[id].wave - 1)/2;
@@ -49,7 +42,6 @@ function world_tier(id)
 function allowed_world(id)
 {
     return (
-        !world_ship_lock(id) &&
         (attack_rating() >= worlds[id].attack) &&
         (defense_rating() >= worlds[id].defense) &&
         (radiation_protection() + 0.001 >= expedition_conditions[id].required) &&
@@ -147,6 +139,10 @@ function guide_base_reset_run(resume = false)
     if (!saved) {
         dock_station();
     }
+    // a save brought back from Feltmere says once what changed (checkpoint_without_feltmere); the save just made drops it
+    if (saved?.news) {
+        show_toast('FELTMERE IS CLOSED', saved.news, 8);
+    }
 }
 
 function store_world()
@@ -169,8 +165,8 @@ function visual_base_generate_map()
     current_sector().mix = w.mix;
     station = {x: world.w/2, y: world.h/2};
     // A gate faces the world it leads to, as the galaxy chart draws it, 60% of the way to the map's edge
-    // (docs/placement.md). The arcade's maps keep only the gates of its own run: Feltmere's is the campaign's alone
-    world_gates = w.links.filter(v => !arcade.active || (v < arcade_worlds)).map(function (destination) {
+    // (docs/placement.md)
+    world_gates = w.links.map(function (destination) {
         const a = galaxy_bearing(campaign.world, destination);
         const edge = Math.min(world.w/2/Math.abs(Math.cos(a)), world.h/2/Math.abs(Math.sin(a)));
         return {

@@ -46,13 +46,6 @@ body.in-game[data-world='7'] {
     --world-panel: #22122f;
 }
 
-/* Feltmere: campfire orange on plum wool */
-body.in-game[data-world='8'] {
-    --world-accent: #ffb46b;
-    --world-border: #ffb46b44;
-    --world-panel: #2e1a2c;
-}
-
 body.in-game .dock,
 body.in-game .navigation-panel,
 body.in-game .inventory-panel {

@@ -23,7 +23,6 @@ const dev_screen_options = [
     {value: 'map-worlds', label: 'Map: worlds and lanes'},
     {value: 'pause', label: 'Pause'},
     {value: 'menu', label: 'Main menu'},
-    {value: 'menu-felt', label: 'Main menu: Feltmere\'s try-out open'},
 ];
 const dev_screen = new URLSearchParams(location.search).get('screen');
 // read at load: starting the scene rewrites the URL
@@ -55,11 +54,6 @@ function dev_screen_open()
     }
     if (dev_screen === 'menu') {
         menu_open();
-        return;
-    }
-    if (dev_screen === 'menu-felt') {
-        menu_open();
-        menu_scene('felt');
         return;
     }
     if (dev_screen === 'arcade') {

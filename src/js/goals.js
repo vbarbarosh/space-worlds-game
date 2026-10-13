@@ -5,7 +5,7 @@
 const goal_kinds = {
     explorer: {
         title: 'Explorer',
-        pitch: 'See all nine worlds as fast as you can. The plan takes the nearest world you have not seen; at each gate the guide lists the modules (or the ship) it needs, with BUY buttons at the station.',
+        pitch: 'See all eight worlds as fast as you can. The plan takes the nearest world you have not seen; at each gate the guide lists the modules it needs, with BUY buttons at the station.',
         reward: 1500,
         steps: explorer_steps,
     },
@@ -29,9 +29,7 @@ function explorer_steps()
         const id = left.shift();
         const text = allowed_world(id)
             ? `Your ship is ready for ${worlds[id].name}. Follow the guide through the gates.`
-            : world_ship_lock(id)
-                ? `${requirements(id)}. Dock and open HANGAR.`
-                : `${requirements(id)}. Dock, and the guide lists the modules to buy, each with its BUY button.`;
+            : `${requirements(id)}. Dock, and the guide lists the modules to buy, each with its BUY button.`;
         out.push({title: `Reach ${worlds[id].name}`, text, done: false, target: {world: id}});
         from = id;
     }

@@ -95,12 +95,6 @@ addEventListener('keydown', function (event) {
 });
 sync_mode_note();
 
-// The ships the arcade sells: all but those a world outside its run keeps for itself (Feltmere's felt rocket)
-function arcade_ship_catalog()
-{
-    return ship_catalog.filter(v => !expedition_conditions.some((e, i) => (i >= arcade_worlds) && (e.only === v.id)));
-}
-
 // A run from world 1, or (from: an arcade save) resumed at the start of the world it was saved in
 function arcade_start(world = 0, from = null)
 {
@@ -821,7 +815,7 @@ function arcade_depot_items()
         const room = carried < mounts.filter(v => gun_fits(weapon, v)).length;
         const spare = (owned[weapon.id] || 0) > carried;
         const where = (mounts.length > 1) ? `On ${carried} of your ${mounts.length} mounts.` : 'On your one mount.';
-        const line = !fits ? `Needs a ${weapon.size} mount: ${arcade_ship_catalog().filter(v => gun_fits_ship(weapon, v)).map(v => v.name).join(', ')}.` : carried ? (room ? `${where} Buy another for one more mount.` : `${where} Every gun grows a tier with every world you clear.`) : spare ? `Yours, spare. ${weapon.line}` : weapon.line;
+        const line = !fits ? `Needs a ${weapon.size} mount: ${ship_catalog.filter(v => gun_fits_ship(weapon, v)).map(v => v.name).join(', ')}.` : carried ? (room ? `${where} Buy another for one more mount.` : `${where} Every gun grows a tier with every world you clear.`) : spare ? `Yours, spare. ${weapon.line}` : weapon.line;
         out.push({
             kind: 'weapon', id: weapon.id, section: 'weapons', title: carried ? `${weapon.name} T${weapon_level()}${(carried > 1) ? ` ×${carried}` : ''}` : weapon.name,
             line,
@@ -834,7 +828,7 @@ function arcade_depot_items()
     }
     // the ships in the catalog's order, their hull, shield and speed against yours; a ship bought stays yours too
     const flying = current_ship();
-    for (const ship of arcade_ship_catalog()) {
+    for (const ship of ship_catalog) {
         const now = ship.id === flying.id;
         const have = ensure_career().ships.includes(ship.id);
         out.push({

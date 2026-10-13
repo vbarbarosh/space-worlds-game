@@ -15,11 +15,27 @@ function saves_read()
 {
     try {
         const v = JSON.parse(localStorage.getItem('pulse_drift_saves_v1'));
-        return Array.isArray(v) ? v : [];
+        return Array.isArray(v) ? v.map(saves_slot_without_feltmere) : [];
     }
     catch {
         return [];
     }
+}
+
+// A slot saved while Feltmere was in the game, its campaign brought back to the eight worlds and its line naming where
+// and in what it is now (checkpoint_without_feltmere)
+function saves_slot_without_feltmere(slot)
+{
+    if (!slot?.checkpoint) {
+        return slot;
+    }
+    checkpoint_without_feltmere(slot.checkpoint);
+    if (slot.checkpoint.news) {
+        slot.world = worlds[slot.checkpoint.campaign.world]?.name || slot.world;
+        slot.ship = ship_catalog.find(v => v.id === slot.checkpoint.campaign.fleet?.ship_id)?.name || slot.ship;
+        slot.salvage = Number.isFinite(slot.checkpoint.salvage) ? slot.checkpoint.salvage : slot.salvage;
+    }
+    return slot;
 }
 
 function saves_write(slots)
@@ -122,8 +138,7 @@ function on_saves_key(event)
 function saves_render()
 {
     const slots = saves_read();
-    // a try-out is not saved (src/js/tryout.js)
-    const can_save = (saves_return === 'pause') && !!player && (player.hp > 0) && !tryout.active;
+    const can_save = (saves_return === 'pause') && !!player && (player.hp > 0);
     const list = document.getElementById('save_slots');
     list.replaceChildren();
     for (let i = 0; i < save_slot_count; ++i) {
@@ -146,9 +161,7 @@ function saves_render()
     if (saves_return === 'pause') {
         document.getElementById('saves_note').textContent = arcade.active
             ? 'An arcade save keeps your score, salvage and gear; loading it starts its world again from the first wave.'
-            : tryout.active
-                ? 'A try-out of Feltmere is not saved. Load a game here, or go back to the main menu: your campaign is as you left it.'
-                : 'The game saves itself as you play, and Continue in the main menu picks it up. A slot keeps a copy you can come back to. Times are Chisinau time.';
+            : 'The game saves itself as you play, and Continue in the main menu picks it up. A slot keeps a copy you can come back to. Times are Chisinau time.';
     }
 }
 
@@ -160,9 +173,6 @@ function save_time(ms)
 // The campaign as the autosave would keep it, into slot i
 function save_to_slot(i)
 {
-    if (tryout.active) {
-        return;
-    }
     const slots = saves_read();
     if (arcade.active) {
         // an arcade run: its snapshot, loaded at the start of the world it was saved in

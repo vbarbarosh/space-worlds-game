@@ -306,7 +306,7 @@ function sync_mission_card()
     const m = focused_contract();
     const threat = hud_threat();
     const id = campaign.world;
-    // the threat by the world's tier, of eight: Feltmere is as calm as Haven
+    // the threat by the world's tier, of eight
     const threat_level = Math.floor(world_tier(id)) + 1;
     const pips = Math.ceil((threat_level/arcade_worlds)*5);
     hud_html(document.getElementById('mc_where'), `${ui_world_badge(id)}<span class="threat" title="Threat ${threat_level} of ${arcade_worlds}">${[0, 1, 2, 3, 4].map(v => `<b class="${(v < pips) ? 'on' : ''}"></b>`).join('')}</span>`);

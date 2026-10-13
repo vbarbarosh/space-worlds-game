@@ -241,8 +241,6 @@ function base_spawn_enemy(type)
         core_kill: false,
         arcade_scaled: false,
         elite: false,
-        // one of a splitter's two halves (base_damage_enemy), drawn as its world draws them (enemy_sprite)
-        split: false,
         marksman: false,
         drop_on_death: null,
         overdrive: false,
@@ -393,7 +391,6 @@ function base_damage_enemy(enemy, damage)
             for (let i = 0; i < 2; ++i) {
                 spawn_enemy('shard');
                 const child = enemies[enemies.length - 1];
-                child.split = true;
                 child.x = enemy.x + rand(-15, 15);
                 child.y = enemy.y + rand(-15, 15);
             }

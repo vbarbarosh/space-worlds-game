@@ -872,8 +872,7 @@ function play_log_kit_check()
         play_log_event('kit', {...kit, salvage});
     }
     const run = play_log_run();
-    const ships = ship_catalog.filter(v => !expedition_conditions.some(vv => vv.only === v.id));
-    const top = ships.reduce((a, b) => (b.price > a.price) ? b : a, ships[0]);
+    const top = ship_catalog.reduce((a, b) => (b.price > a.price) ? b : a, ship_catalog[0]);
     const milestones = [
         ['top ship', ensure_career().ships.includes(top.id)],
         ['all modules at cap', kit.modules_below_cap.every(v => v.endsWith('(needs a launcher)'))],

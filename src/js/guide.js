@@ -43,11 +43,6 @@ function preparation_plan(id)
 {
     const levels = {...upgrades};
     const out = [];
-    // a world that lets in one ship alone asks for that ship before anything else
-    const only = world_ship_lock(id);
-    if (only) {
-        out.push({key: 'ship', title: `${only.name} (HANGAR)`, name: only.name, level: 1, price: ensure_career().ships.includes(only.id) ? 0 : only.price, group: 'defense'});
-    }
     let weapons = attack_rating();
     let defense = defense_rating();
     const weights = {damage: 1, rate: 1, spread: 3, drone: 2, homing: 1, armor: 1, shield: 1};
@@ -205,11 +200,11 @@ function expedition_base_guide_context()
         out.purchases = purchases;
         out.action = (effective_state === 'upgrade') ? 'Open modules' : 'Fly to station';
         out.instruction =
-            `Prepare for ${worlds[blocked].name}: ${purchases.map(v => `${v.title}${['gun', 'ship'].includes(v.key) ? '' : ` Lv ${v.level}`}`).join(', ')}. Dock at ${worlds[campaign.world].station} and use ${(purchases[0]?.key === 'ship') ? 'HANGAR' : 'OUTFITTER'}.`;
+            `Prepare for ${worlds[blocked].name}: ${purchases.map(v => `${v.title}${(v.key === 'gun') ? '' : ` Lv ${v.level}`}`).join(', ')}. Dock at ${worlds[campaign.world].station} and use OUTFITTER.`;
         out.plan.push({
             title: `Prepare your ship for ${worlds[blocked].name}`,
             text:
-                `${requirements(blocked)}. Suggested purchases: ${purchases.map(v => `${v.title}${['gun', 'ship'].includes(v.key) ? '' : ` Lv ${v.level}`} (◆ ${v.price})`).join(', ')}. Total ◆ ${cost}; you have ◆ ${salvage}.${(salvage < cost) ? ' Earn salvage from local mining contracts, mine ore and sell it at the CARGO MARKET.' : ''}`,
+                `${requirements(blocked)}. Suggested purchases: ${purchases.map(v => `${v.title}${(v.key === 'gun') ? '' : ` Lv ${v.level}`} (◆ ${v.price})`).join(', ')}. Total ◆ ${cost}; you have ◆ ${salvage}.${(salvage < cost) ? ' Earn salvage from local mining contracts, mine ore and sell it at the CARGO MARKET.' : ''}`,
             done: false,
         });
     }
