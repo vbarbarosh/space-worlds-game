@@ -27,7 +27,7 @@ built from [docs/](docs/README.md) (Settings → Pages → Source: GitHub Action
 turns it on). The rules the game keeps everywhere (what is solid, and the
 like) are in [docs/principles.md](docs/principles.md).
 
-Two modes:
+Three modes:
 
 - **Arcade**: one run through the eight worlds, three waves each, the world's
   flagship in the third. Raiders come in squadrons; elites lead some of them,
@@ -43,6 +43,11 @@ Two modes:
   grows a tier, a cleared screen shows the world's numbers, and the depot opens before the next world. Score, combo and a best score (salvage left at the end scores 10 points each); no
   stations or contracts. A save keeps the score, salvage and gear, and loading
   it starts its world again from the first wave.
+- **Races**: ring races alone, at Easy, Normal or Hard, course after course
+  from Haven through the eight worlds; the start ship, no raiders, the rocks
+  as solid as ever. After each: your place and time, then race again, the
+  next course or the menu. Nothing is saved; the play log records each race
+  ([docs/goals.md](docs/goals.md#the-races-mode)).
 - **Campaign**: the stations, contracts, trading and story chapters; see
   [docs/scenario/](docs/scenario/README.md). Ranks license ships and guns, and
   each world reached opens more ships, guns and module levels, as in the arcade
@@ -62,10 +67,11 @@ Two modes:
     bin/build-docs   docs/ as a website in build/docs, with the game from
                      bin/build in play/; published to GitHub Pages on every
                      push to main (.github/workflows/docs.yml)
-    bin/perf         frame times, garbage and drawing costs over 47 scenes
+    bin/perf         frame times, garbage and drawing costs over 49 scenes
                      (every world calm and in a fight, zoom 100% and 50%,
                      the arcade from Ion Reach on, campaigns of 10, 50 and
-                     100 structures, a ring race in Haven and Eclipse), at
+                     100 structures, a ring race and drifting debris close
+                     by in Haven and Eclipse), at
                      any window size, pixel ratio and difficulty; see
                      docs/performance-2026-10-05.md
     bin/playtest     a bot plays arcade runs on a virtual clock (about a
@@ -94,8 +100,10 @@ map-plan, ...; the list is in src/js/dev/screen.js) opens that screen with the
 panel folded. `&screen=race` starts a ring race at its start line
 (`race-mid` mid-race, `race-finish` over the line; `&race_place=1|2|3|last`,
 `&race_long=1`, `&race_left=1`, `&race_raiders=1` for its edge states), e.g.
-`dev.html?world=0&screen=race`. `&screen=menu` shows the menu with the scene's
-game to continue; `&row=arcade` (or `load`, `settings`, `controls`) opens that
+`dev.html?world=0&screen=race`; `&screen=race-results` shows the Races mode's
+results (`&race_level=easy|normal|hard`, `&race_place=1|last`,
+`&race_end=wrecked|forfeit`, `&race_crashes=n`). `&screen=menu` shows the menu with the scene's
+game to continue; `&row=arcade` (or `races`, `load`, `settings`, `controls`) opens that
 row, `&slots=1` adds six saved slots (the Load row, and its scene with
 `&row=load`), `&save=none` a first launch with no game to continue.
 `&kit=start` leaves you only the start ship and gun (and the ones in the

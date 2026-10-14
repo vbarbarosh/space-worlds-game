@@ -50,6 +50,7 @@ function menu_open()
 {
     play_log_session_end('back to the main menu');
     arcade_stop();
+    race_mode_stop();
     stop_turbo();
     keys.clear();
     state = 'menu';
@@ -79,8 +80,8 @@ function toggle_pause()
         document.getElementById('pause_layout').classList.remove('is-controls');
 
         document.getElementById('pause_checkpoint').textContent = checkpoint_notice;
-        document.getElementById('restart_pause').textContent = arcade.active ? 'Restart arcade' : 'Restart campaign';
-        document.getElementById('restart_pause_note').textContent = arcade.active ? 'Start the arcade again from world 1.' : 'Start the campaign again from Haven. Your saved games stay.';
+        document.getElementById('restart_pause').textContent = race_mode.active ? 'Restart race' : arcade.active ? 'Restart arcade' : 'Restart campaign';
+        document.getElementById('restart_pause_note').textContent = race_mode.active ? 'Back to the start line of this course.' : arcade.active ? 'Start the arcade again from world 1.' : 'Start the campaign again from Haven. Your saved games stay.';
         set_pause_icon(true);
         document.getElementById('resume_button').focus();
     }
@@ -118,7 +119,10 @@ document.getElementById('resume_button').addEventListener('click', toggle_pause)
 for (const id of ['restart_button', 'restart_pause']) {
     document.getElementById(id).addEventListener('click', function () {
         set_pause_icon(false);
-        if (arcade.active) {
+        if (race_mode.active) {
+            race_mode_start(race_mode.level, race_mode.world);
+        }
+        else if (arcade.active) {
             arcade_start();
         }
         else {

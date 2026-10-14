@@ -144,7 +144,8 @@ A contract at every station, in every world (`race_offer` in `src/js/race.js`):
 a course of rings off the station and rivals to beat through it.
 
 - **The course:** a start line 1.5 to 2 km from the station, then
-  5 + ⌊tier/3⌋ rings (5 in Haven to 7 in Eclipse), each 1 to 1.7 km from the
+  7 + ⌊tier/2⌋ rings (7 in Haven to 10 in Eclipse; five, 15 s for a good
+  pilot, was too short a race), each 1.15 to 1.9 km from the
   one before and turned 30° to 75° off its line, mostly to the other side, so
   the line between them needs steering; it is laid out among the rocks of the
   fields nearest the station where they are. A ring is 120 m across its
@@ -160,14 +161,25 @@ a course of rings off the station and rivals to beat through it.
   skill; it aims at its own line through each ring, slows for the turn after
   it as much as its thrust needs, lights a turbo of 2 to 2.8 × its cruise for
   1.5 to 4 s on a long straight, steers round rocks, bumps you and the others,
-  and can miss a ring and loop back for it. Rivals never shoot. Raiders may go
+  and can miss a ring and loop back for it. When rocks lie across its way to
+  the next ring (a mining field across the leg) it goes round them by a point
+  beside the first one, planned again each second (`race_plan`); it keeps to
+  its own lane through a ring (its side of the start line) and steers past a
+  racer just ahead rather than into its tail; it takes a bend no faster than
+  its thrust can turn it within three ring radii (Cryosphere's ice). Rivals never shoot. Raiders may go
   for them (two raiders in five pick a rival near them over you), and their
   shots and rams hurt them (120 hull + 25 a tier); a rival with its hull gone
   is out. Your shots pass through them.
 - **The start:** fly into your place on the line (the guide marks it); the
   rivals stand in theirs, and the count runs 3, 2, 1 over three lights, then
-  green. A raider within 1.1 km of the line holds the start until it is
-  cleared. You are held in your place during the count.
+  green. You are held in your place during the count. From the moment you
+  take your place on the line to the finish no patrol, hunt wave or raid
+  comes (`race_calm`), and a raider within 1.6 km of the course or you turns
+  away, holds its fire and is gone once out of sight (`race_keep_off`);
+  flying past a start line pauses nothing, and a hunt elsewhere keeps its
+  waves. Only a raider already within 1.1 km of the line when you take your
+  place holds the start, until it is shot or for 20 s of hold at most; then
+  it pulls back.
 - **The finish:** your place is one more than the rivals over the line before
   you. The prize is the contract's reward for first at par time × the place's
   share (1, 0.7, 0.5, 0.35; the last always 0.2) × par ÷ your time (0.75 to
@@ -186,6 +198,33 @@ a course of rings off the station and rivals to beat through it.
   distance, the clock), the standings stand in a small board under the
   minimap, and near the course the minimap shows the course instead of the
   world.
+
+## The Races mode
+
+The main menu's Races (R): ring races alone, at Easy, Normal or Hard (1 2 3),
+course after course from Haven (`src/js/race_mode.js`). Each race is a run of
+its own, as the arcade's: nothing is saved, the campaign's save stays as it
+was. You fly the Wisp Scout with no modules on every difficulty, so the
+difficulty is the rivals and the course. No raider comes, nothing drops, no
+radiation burns; the rocks are as in the campaign (unbreakable, a crash above
+cruise costs hull, and you can die).
+
+| | Easy | Normal | Hard |
+| --- | --- | --- | --- |
+| rivals | 3, skill 0 to 0.45 | 4, skill 0.2 to 0.8 | 4, skill 0.6 to 1 |
+| rival cruise | 0.86 × yours × (0.9 + 0.3 skill) | 0.95 × | 1.03 × |
+| rings | the world's − 1 (6 in Haven, 9 in Eclipse) | + 1 (8 to 11) | + 3 (10 to 12) |
+| legs, turns | 1 ×, gentler (0.8 ×), away from rocks | 1.15 ×, among the rocks | 1.25 ×, sharper (1.2 ×), deep in the rocks |
+| ring radius | 18 m wider | the world's | 14 m tighter |
+| a good pilot (the bot of the tests) | 17 s in Haven to 30 s | 27 to 44 s | 37 to 67 s (Eclipse's turbo takes pulse) |
+
+The rivals' cruise is a share of your ship's in that world, so a world's own
+speed moves both alike. Over the line, your place and time show on a banner;
+3.5 s later the results: your place, time and par, your crashes on rocks and
+the hull they took, the field (times, or the ring a rival is on); then Race
+again (Enter), Next course (N, Eclipse goes back to Haven) or the menu (Esc).
+A wreck or a forfeit shows the same results, you last. The play log records
+each race ([play-log.md](play-log.md), `race` with `mode: race`).
 
 ## What a contract pays
 

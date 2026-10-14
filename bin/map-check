@@ -23,7 +23,7 @@ const rules = {
     zone_apart: 1000, // the combat zone from the station's shelter, gates and portals
     beacon_apart: 1000, // a survey beacon from a gate
     scan: 120, // a survey beacon scans a ship this close
-    race_rings: [5, 7], // a race course's rings, fewest and most
+    race_rings: [7, 10], // a race course's rings, fewest and most
     race_turn: 25, // degrees a race course turns at each ring at least, so its line needs steering
 };
 const usage = `usage: bin/map-check

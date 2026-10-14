@@ -12,8 +12,14 @@ const race_leash_time = 6;
 // The rivals wait on the start line while you are this near it; flying this near your place on it lines you up
 const race_grid_reach = 4000;
 const race_start_reach = 260;
-// A raider this near the start line holds the start
+// A raider this near the start line holds the start: only one already there when you came (race.holders), and for
+// race_hold_limit seconds of hold at most; then it pulls back
 const race_raider_reach = 1100;
+const race_hold_limit = 20;
+// From the moment you take your place on the line to the finish no patrol or wave comes (race_calm), and a raider
+// this near the course or you turns away and leaves (race_keep_off): the race is for racing. Flying past a start line
+// pauses nothing.
+const race_keep_clear = 1600;
 const race_slot_gap = 95;
 // The start line's reach from its middle: five places and a hull beyond the last
 const race_start_r = Math.round(race_slot_gap*2.5 + 60);
@@ -33,16 +39,22 @@ const race_hulls = ['ship-interceptor', 'ship-scout', 'ship-courier', 'guard-pat
 const race_colors = ['#ff8a3d', '#b48cff', '#5fd27a', '#ff5f8a', '#4fc3ff'];
 const race_variants = ['sprint', 'slalom', 'loop'];
 // The race as it is flown now: phase idle (none), grid (rivals on the start line), hold (raiders near the start),
-// countdown, racing, done (you are over the line, the rest still racing), results (all placed, the board shows them)
-const race = {id: null, world: -1, course: null, phase: 'idle', clock: 0, count: 0, racers: [], leash: 0, after: 0, place: 0, prize: 0, banner: 0, nudge: 0, tags: 0, box: null, title: '', ground: null};
+// countdown, racing, done (you are over the line, the rest still racing), results (all placed, the board shows them).
+// placed: you have taken your place on the line (the calm starts then); holders: the raiders at the start line when you
+// took it, the only ones that may hold it; held: the seconds held;
+// crashes and rock_hull: your hits on rocks and drifting debris since green, and the shield and hull they took
+const race = {id: null, world: -1, course: null, phase: 'idle', clock: 0, count: 0, racers: [], leash: 0, after: 0, place: 0, prize: 0, banner: 0, nudge: 0, tags: 0, box: null, title: '', ground: null, placed: false, holders: [], held: 0, crashes: 0, rock_hull: 0};
+// the nearest point of the course to a raider, worked out in place every frame (race_keep_off)
+const race_near = {x: 0, y: 0};
 
 // The rings' numbers as the minimap writes them
-const race_numbers = ['1', '2', '3', '4', '5', '6', '7', '8'];
+const race_numbers = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
 
-// The rings in a world's course, more in the far worlds
+// The rings in a world's course, more in the far worlds: seven in Haven, ten in Eclipse (the author found five too
+// short a race: 15 s)
 function race_rings(id)
 {
-    return 5 + Math.floor(world_tier(id)/3);
+    return 7 + Math.floor(world_tier(id)/2);
 }
 
 // A ring's radius: tighter in the far worlds
@@ -60,6 +72,11 @@ function race_random(seed)
         return s/4294967296;
     };
 }
+
+// A course's shape: rings more or fewer than the world's, a ring's radius wider or tighter, legs longer or shorter,
+// turns sharper or gentler, and how much a leg seeks the rocks (below 0 it keeps clear of them). The campaign's races
+// keep this one; the Races mode has one per difficulty (race_mode_levels).
+const race_shape_campaign = {rings: 0, r: 0, leg: 1.1, turn: 1, rocks: 1};
 
 // The race a station offers: this world's course (one of three, by the board), its rivals, and the prize for the
 // first place at par time as the contract's reward; null where no course fits
@@ -96,11 +113,12 @@ function race_prize(top, place, count, time, par)
 
 // The course: a start line out of the shelter, then rings one to two kilometres apart, each turned off the line
 // before it to the other side, among the rocks where it can; every ring clear of the station, gates, portals,
-// beacons, gravity, rocks and structures (race_spot_clear), every leg clear of gravity, portals and the station
-function race_course_make(id, variant)
+// beacons, gravity, rocks and structures (race_spot_clear), every leg clear of gravity, portals and the station. The
+// shape (race_shape_campaign) scales the numbers, never the dice: the campaign's courses stay as they were.
+function race_course_make(id, variant, shape = race_shape_campaign)
 {
-    const n = race_rings(id);
-    const r = race_ring_r(id);
+    const n = clamp(race_rings(id) + shape.rings, 3, race_numbers.length);
+    const r = race_ring_r(id) + shape.r;
     const random = race_random((id + 1)*7919 + variant*104729);
     const fields = mining_fields.filter(v => ore_nodes.some(vv => (vv.hp > 0) && (vv.field === v.id))).sort((a, b) => distance(a, station) - distance(b, station));
     const toward = fields[0] ? Math.atan2(fields[0].y - station.y, fields[0].x - station.x) : 0;
@@ -120,13 +138,13 @@ function race_course_make(id, variant)
             let best_score = -Infinity;
             for (let t = 0; t < 90; ++t) {
                 // the first ring nearly straight out; then a turn of 30 to 75 degrees, mostly to the other side
-                const turn = (i === 0) ? (random() - 0.5)*0.5 : side*((t < 60) ? 1 : -1)*(0.55 + random()*0.75);
-                const length = 1050 + random()*650;
+                const turn = (i === 0) ? (random() - 0.5)*0.5 : side*((t < 60) ? 1 : -1)*(0.55 + random()*0.75)*shape.turn;
+                const length = (1050 + random()*650)*shape.leg;
                 const p = {x: prev.x + Math.cos(heading + turn)*length, y: prev.y + Math.sin(heading + turn)*length};
                 if (!race_spot_clear(p, r) || !race_leg_clear(prev, p) || [start, ...rings].some(v => distance(v, p) < ((v === start) ? race_start_r : r) + r + 300)) {
                     continue;
                 }
-                const score = race_spot_score(prev, p) + random()*0.6;
+                const score = race_spot_score(prev, p, shape.rocks) + random()*0.6;
                 if (score > best_score) {
                     best = p;
                     best_score = score;
@@ -223,9 +241,9 @@ function race_leg_clear(a, b)
     return segment_distance(station, a, b) > station_size/2 + 250;
 }
 
-// How good a ring is, from the one before: rocks along the leg (to steer round) and round the ring, the nearer the
-// station the better
-function race_spot_score(a, b)
+// How good a ring is, from the one before: rocks along the leg (to steer round) and round the ring, by how much the
+// shape seeks them, the nearer the station the better
+function race_spot_score(a, b, rocks = 1)
 {
     let along = 0;
     let round = 0;
@@ -240,14 +258,13 @@ function race_spot_score(a, b)
             round++;
         }
     }
-    return Math.min(6, along) + Math.min(3, round)*0.5 - Math.max(0, distance(b, station) - 5000)/1000;
+    return (Math.min(6, along) + Math.min(3, round)*0.5)*rocks - Math.max(0, distance(b, station) - 5000)/1000;
 }
 
-// The rivals of a race: three in the first worlds, four from Dustfall on, from the slowest to the best, each with a
-// name, a hull and a colour
-function race_rivals_make(id, variant, level)
+// The rivals of a race: three in the first worlds, four from Dustfall on (or `count`), from the slowest to the best
+// (their skill spread over `skills`, 0 to 1), each with a name, a hull and a colour
+function race_rivals_make(id, variant, level, count = (world_tier(id) < 2) ? 3 : 4, skills = [0, 1])
 {
-    const count = (world_tier(id) < 2) ? 3 : 4;
     const random = race_random((id + 3)*3571 + variant*613 + level*31);
     const names = race_names.slice();
     const hulls = race_hulls.slice();
@@ -255,7 +272,7 @@ function race_rivals_make(id, variant, level)
     for (let i = 0; i < count; ++i) {
         const name = names.splice(Math.floor(random()*names.length), 1)[0];
         const hull = hulls.splice(Math.floor(random()*hulls.length), 1)[0];
-        const skill = clamp(i/(count - 1) + (random() - 0.5)*0.1, 0, 1);
+        const skill = clamp(skills[0] + (skills[1] - skills[0])*(i/(count - 1)) + (random() - 0.5)*0.1, 0, 1);
         out.push({name, hull, color: race_colors[i], skill: Math.round(skill*100)/100});
     }
     return out;
@@ -289,6 +306,9 @@ function race_started()
 // race runs, and it ends
 function race_update(dt)
 {
+    if (race_mode.active) {
+        race_mode_update(dt);
+    }
     const m = race_contract();
     // you left the race's world, or its contract is gone
     if (race.id && (campaign.world !== race.world)) {
@@ -339,15 +359,16 @@ function race_update(dt)
             return;
         }
         const you = race_you();
-        const raiders = race_raiders_near();
         if (race.phase === 'hold') {
-            if (!raiders) {
+            race_hold_time(dt);
+            if (!race_raiders_near()) {
                 race.phase = 'grid';
             }
             return;
         }
         if (distance(player, you.slot) < race_start_reach) {
-            if (raiders) {
+            race_place_taken();
+            if (race_raiders_near()) {
                 race.phase = 'hold';
                 show_toast('START HELD', 'RAIDERS NEAR THE START LINE · CLEAR THEM AND IT GOES', 3);
                 return;
@@ -364,6 +385,7 @@ function race_update(dt)
     if (race.phase === 'countdown') {
         race_idle(dt);
         if (race_raiders_near()) {
+            race_hold_time(dt);
             race.phase = 'hold';
             show_toast('START HELD', 'RAIDERS NEAR THE START LINE · CLEAR THEM AND IT GOES', 3);
             return;
@@ -433,6 +455,11 @@ function race_grid_set(m)
     race.tags = 0;
     race.ground = null;
     race.racers = [];
+    race.placed = false;
+    race.holders = [];
+    race.held = 0;
+    race.crashes = 0;
+    race.rock_hull = 0;
     // the course's bounds, for the minimap
     const xs = [course.start.x, ...course.rings.map(v => v.x)];
     const ys = [course.start.y, ...course.rings.map(v => v.y)];
@@ -446,6 +473,11 @@ function race_grid_set(m)
             continue;
         }
         race.racers.push(race_rival_make(course.rivals[rival++], slot, a, level));
+        // its lane through the rings: its side of the start line, a third of a ring's radius at most
+        race.racers[race.racers.length - 1].lane = clamp(k/(count - 1), -0.5, 0.5)*0.6;
+    }
+    for (const v of race.racers) {
+        v.splits = [];
     }
 }
 
@@ -479,7 +511,7 @@ function race_rival_make(def, slot, angle, level)
         max_hp: hp,
         flash: 0,
         alpha: 0,
-        pace: race_pace(id, k, level),
+        pace: def.pace || race_pace(id, k, level),
         turn: (2.9 + 1.1*k)*clamp(rules.response/10, 0.65, 1.25),
         thrust: rules.thrust*(0.8 + 0.35*k),
         line: 0.2 + 0.4*k,
@@ -492,6 +524,8 @@ function race_rival_make(def, slot, angle, level)
         delay: 0.55 - 0.4*k + rand(0, 0.15),
         stuck: 0,
         rammed: 0,
+        plan: 0,
+        via: null,
         best: Infinity,
         since: 0,
         recover: 0,
@@ -517,11 +551,104 @@ function race_you()
     return race.racers.find(v => v.you);
 }
 
-// A raider near the start line holds the start
+// A raider near the start line holds the start: one of those already there when you came, while it has not pulled back
 function race_raiders_near()
 {
     const start = race.course.start;
-    return enemies.some(v => (v.hp > 0) && (distance(v, start) < race_raider_reach));
+    return race.holders.some(v => (v.hp > 0) && !v.race_leave && (distance(v, start) < race_raider_reach));
+}
+
+// You are in your place on the line: from now no patrol or wave comes (race_calm); the raiders at the line now are the
+// only ones that may hold the start
+function race_place_taken()
+{
+    if (race.placed) {
+        return;
+    }
+    race.placed = true;
+    race.holders = enemies.filter(v => (v.hp > 0) && (distance(v, race.course.start) < race_raider_reach));
+    race.held = 0;
+}
+
+// The hold's clock: past race_hold_limit seconds the raiders holding the start pull back, and it goes
+function race_hold_time(dt)
+{
+    race.held += dt;
+    if ((race.held < race_hold_limit) || !race_raiders_near()) {
+        return;
+    }
+    for (const v of race.holders) {
+        v.race_leave = true;
+    }
+    show_toast('RAIDERS PULL BACK', 'THE START LINE IS CLEAR', 2.5);
+}
+
+// The race keeps the raiders off: from the moment you take your place on the line to the finish
+function race_calm()
+{
+    return race.placed && ((race.phase === 'grid') || (race.phase === 'hold') || (race.phase === 'countdown') || (race.phase === 'racing'));
+}
+
+// Where a raider goes while a race is on: null when it may go on as it was (one holding the start, a flagship, one busy
+// far off); otherwise it turns away from the nearest point of the course, holds its fire, and is gone once out of
+// sight and clear of the course. Asked for every raider every frame: no object made on the way.
+function race_keep_off(v, prey)
+{
+    if (!race_calm() || (v.type === 'boss')) {
+        return null;
+    }
+    if (!v.race_leave && race.holders.includes(v)) {
+        return null;
+    }
+    const off = race_nearest(v);
+    const near = (off < race_keep_clear) || (distance(v, player) < race_keep_clear);
+    if (!near && !v.race_leave && prey && !prey.rival) {
+        return null;
+    }
+    v.race_leave = true;
+    const sight = Math.max(W, H)/zoom*0.6 + 200;
+    if ((off > race_keep_clear) && (distance(v, player) > sight)) {
+        v.hp = 0;
+    }
+    const dx = v.x - race_near.x;
+    const dy = v.y - race_near.y;
+    const d = Math.sqrt(dx*dx + dy*dy) || 1;
+    race_near.x = v.x + (dx/d)*1000;
+    race_near.y = v.y + (dy/d)*1000;
+    return race_near;
+}
+
+// How far a point is from the course's line, its nearest point on it left in race_near
+function race_nearest(p)
+{
+    const course = race.course;
+    let best = Infinity;
+    let from = course.start;
+    for (const to of course.rings) {
+        const dx = to.x - from.x;
+        const dy = to.y - from.y;
+        const k = clamp(((p.x - from.x)*dx + (p.y - from.y)*dy)/Math.max(1, dx*dx + dy*dy), 0, 1);
+        const x = from.x + dx*k;
+        const y = from.y + dy*k;
+        const d = Math.sqrt((p.x - x)*(p.x - x) + (p.y - y)*(p.y - y));
+        if (d < best) {
+            best = d;
+            race_near.x = x;
+            race_near.y = y;
+        }
+        from = to;
+    }
+    return best;
+}
+
+// A hit on your hull or shield while racing: one on a rock or drifting debris counts as a crash
+function race_crash_note(cause, amount)
+{
+    if ((race.phase !== 'racing') || ((cause !== 'rock') && (cause !== 'debris'))) {
+        return;
+    }
+    race.crashes += 1;
+    race.rock_hull += amount;
 }
 
 // On the start line: the rivals idle in their places, their noses to the first ring
@@ -626,9 +753,11 @@ function race_pass(v, from)
         return false;
     }
     v.next++;
+    v.splits.push(Math.round(race.clock*10)/10);
     race_ring_effect(ring, v);
     if (v.next >= rings.length) {
         v.time = race.clock;
+        v.turbo = 0;
     }
     return true;
 }
@@ -657,6 +786,11 @@ function race_you_finish(m)
     race.prize = race_prize(race.course.top, place, count, you.time, race.course.par);
     race.phase = 'done';
     race.after = race_after;
+    if (race_mode.active) {
+        m.race_live = false;
+        race_mode_finished(place, count, you.time);
+        return;
+    }
     m.reward = race.prize;
     m.race_live = false;
     m.race_result = {place, count, time: Math.round(you.time*10)/10};
@@ -698,6 +832,10 @@ function race_forfeit(why)
         m.race_live = false;
         m.progress = 0;
     }
+    if (race_mode.active) {
+        race_mode_forfeit(why);
+        return;
+    }
     play_log_race_forfeit(why);
     show_toast('RACE FORFEIT', `${why.toUpperCase()} · THE START LINE WAITS FOR ANOTHER TRY`, 3.5, 'danger');
     race_reset();
@@ -711,6 +849,8 @@ function race_reset()
     race.course = null;
     race.phase = 'idle';
     race.racers = [];
+    race.placed = false;
+    race.holders = [];
     race.leash = 0;
 }
 
@@ -758,8 +898,14 @@ function race_rival_update(v, dt)
     if (race.clock < v.delay) {
         return;
     }
-    // no nearer to its ring for three seconds (pinned on a rock, circling it): straight for the ring's middle a while,
-    // round nothing, slower
+    // its way to the ring: a new one each second (Verdant's rocks drift), and at once on a new ring or past the point
+    // it went round the rocks by
+    v.plan -= dt;
+    if ((v.plan <= 0) || (v.via && race_via_passed(v))) {
+        race_plan(v);
+    }
+    // no nearer to its ring for three seconds (pinned on a rock, circling it): a new way round, and if it was on its
+    // way round already, straight for the ring's middle a while, round nothing, slower
     const ring_d = distance(v, rings[v.next]);
     if (ring_d < v.best - 30) {
         v.best = ring_d;
@@ -767,12 +913,13 @@ function race_rival_update(v, dt)
     }
     v.since += dt;
     if (v.since > 3) {
-        v.recover = 2;
+        v.recover = v.via ? 0 : 2;
         v.since = 0;
         v.best = ring_d;
+        race_plan(v, true);
     }
     v.recover = Math.max(0, v.recover - dt);
-    const aim = (v.recover > 0) ? rings[v.next] : race_aim(v, speed, v.aim);
+    const aim = (v.recover > 0) ? rings[v.next] : v.via || race_aim(v, speed, v.aim);
     const dx = aim.x - v.x;
     const dy = aim.y - v.y;
     const d = Math.sqrt(dx*dx + dy*dy);
@@ -788,6 +935,9 @@ function race_rival_update(v, dt)
     if (after) {
         const bend = Math.abs(race_angle_between(Math.atan2(ring.y - v.y, ring.x - v.x), Math.atan2(after.y - ring.y, after.x - ring.x)));
         corner = v.pace*clamp(1 - (bend/Math.PI)*v.caution, 0.35, 1);
+        // and no faster than its thrust can bend its way by that much within three ring radii: on Cryosphere's ice,
+        // the boldest rivals came in too fast, missed the ring and looped back for it, and finished last
+        corner = Math.min(corner, Math.sqrt((race.course.r*3*v.thrust)/Math.max(0.2, 2*Math.sin(bend/2))));
     }
     const brake = Math.sqrt(corner*corner + 2*v.thrust*0.7*Math.max(0, ring_d - race.course.r*0.5));
     race_rival_turbo(v, off, brake, dt);
@@ -813,7 +963,78 @@ function race_rival_update(v, dt)
         v.best = Infinity;
         v.since = 0;
         v.recover = 0;
+        v.plan = 0;
     }
+}
+
+// Sideways from the rock that blocks a rival's way, the points tried to go round it by, nearest first
+const race_detours = [200, -200, 400, -400, 650, -650, 950, -950, 1300, -1300];
+
+// A rival's way to its next ring (v.via): none while the straight line to it is clear of rocks and structures with a
+// hull's room; otherwise the nearest point beside the first rock across it from which the ring is clear too, so a
+// field of rocks across the leg is flown round, not into. `wide`: pinned already, the room asked is doubled.
+function race_plan(v, wide = false)
+{
+    const ring = race.course.rings[v.next];
+    v.plan = 1;
+    v.via = null;
+    if (!ring) {
+        return;
+    }
+    const room = v.r*(wide ? 2 : 1) + 14;
+    const k = race_path_block(v.x, v.y, ring.x, ring.y, room);
+    if (k < 0) {
+        return;
+    }
+    const n = bodies_numbers;
+    const dx = ring.x - v.x;
+    const dy = ring.y - v.y;
+    const d = Math.sqrt(dx*dx + dy*dy) || 1;
+    for (const side of race_detours) {
+        const x = n.sx[k] - (dy/d)*side;
+        const y = n.sy[k] + (dx/d)*side;
+        if ((x < 60) || (y < 60) || (x > world.w - 60) || (y > world.h - 60)) {
+            continue;
+        }
+        if ((race_path_block(v.x, v.y, x, y, room) < 0) && (race_path_block(x, y, ring.x, ring.y, room) < 0)) {
+            v.via = {x, y};
+            return;
+        }
+    }
+}
+
+// The first solid (bodies_numbers' index) the line from (ax, ay) to (bx, by) passes within `room` of its edge, the
+// nearest to its start; -1 when it is clear
+function race_path_block(ax, ay, bx, by, room)
+{
+    const n = bodies_numbers;
+    const dx = bx - ax;
+    const dy = by - ay;
+    const length2 = Math.max(1, dx*dx + dy*dy);
+    let best = -1;
+    let best_along = Infinity;
+    for (let k = 0, end = n.statics; k < end; ++k) {
+        const px = n.sx[k] - ax;
+        const py = n.sy[k] - ay;
+        const t = clamp((px*dx + py*dy)/length2, 0, 1);
+        const ex = px - dx*t;
+        const ey = py - dy*t;
+        const reach = n.sr[k] + room;
+        if (((ex*ex + ey*ey) < reach*reach) && (t < best_along)) {
+            best = k;
+            best_along = t;
+        }
+    }
+    return best;
+}
+
+// A rival is past the point it went round the rocks by: near it, or beyond it toward the ring
+function race_via_passed(v)
+{
+    const ring = race.course.rings[v.next];
+    const dx = v.via.x - v.x;
+    const dy = v.via.y - v.y;
+    return ((dx*dx + dy*dy) < 110*110) || (ring && ((dx*(ring.x - v.via.x) + dy*(ring.y - v.via.y)) < 0));
 }
 
 // The signed angle from a to b, in (-π, π]
@@ -846,6 +1067,12 @@ function race_aim(v, speed, out)
         out.x += (nx/nl)*cut;
         out.y += (ny/nl)*cut;
     }
+    // its lane: each rival keeps to its own part of the ring (by its place on the start line), so the pack spreads
+    // across it instead of flying one line
+    if (v.lane) {
+        out.x += -((ring.y - v.y)/il)*v.lane*race.course.r;
+        out.y += ((ring.x - v.x)/il)*v.lane*race.course.r;
+    }
     const reach = Math.max(120, speed*v.look);
     const d = distance(v, out);
     if (d < reach) {
@@ -876,6 +1103,24 @@ function race_avoid(v, heading, speed, d)
         const side = px*uy - py*ux;
         if ((along > 0) && (along < reach) && (Math.abs(side) < clearance)) {
             push += ((side >= 0) ? 1 : -1)*(1 - along/reach);
+        }
+    }
+    // a rival also steers past the racers just ahead of it, you among them, rather than into their tail: before, the
+    // pack flew one line and leaned on each other ring after ring (seconds of contact a race, ten in Cryosphere)
+    if (v.rival) {
+        const near = 90 + speed*0.35;
+        for (const o of race.racers) {
+            if ((o === v) || o.out) {
+                continue;
+            }
+            const px = o.x - v.x;
+            const py = o.y - v.y;
+            const along = px*ux + py*uy;
+            const side = px*uy - py*ux;
+            const clearance = v.r + (o.r || 14) + 18;
+            if ((along > 0) && (along < near) && (Math.abs(side) < clearance)) {
+                push += ((side >= 0) ? 1 : -1)*0.7*(1 - along/near);
+            }
         }
     }
     return heading + clamp(push, -1, 1)*1.1;
@@ -1342,8 +1587,8 @@ function race_start_draw(course, live)
     ctx.restore();
 }
 
-// The rivals, each in its colour with its place and name under it, a bar once raiders have hurt it, a long flame on
-// its turbo
+// The rivals, each in its colour with its place and name under it, a bar once raiders have hurt it, its engine's
+// flame behind it (race_rival_plume)
 function race_render_rivals()
 {
     if (!race.course) {
@@ -1353,19 +1598,7 @@ function race_render_rivals()
         if (v.you || v.out || (v.alpha <= 0.02) || !in_view(v, v.length + 60)) {
             continue;
         }
-        if (v.turbo > 0) {
-            ctx.save();
-            ctx.globalCompositeOperation = 'lighter';
-            ctx.strokeStyle = v.color;
-            ctx.globalAlpha = 0.5*v.alpha;
-            ctx.lineWidth = v.length*0.22;
-            ctx.lineCap = 'round';
-            ctx.beginPath();
-            ctx.moveTo(v.x - Math.cos(v.angle)*v.length*0.45, v.y - Math.sin(v.angle)*v.length*0.45);
-            ctx.lineTo(v.x - Math.cos(v.angle)*v.length*1.6, v.y - Math.sin(v.angle)*v.length*1.6);
-            ctx.stroke();
-            ctx.restore();
-        }
+        race_rival_plume(v);
         render_surface_ship(v.x, v.y, v.angle, v.alpha, false, (v.flash > 0) ? v.drawing_hit : v.drawing);
         ctx.save();
         ctx.globalAlpha = v.alpha;
@@ -1384,6 +1617,39 @@ function race_render_rivals()
         }
         ctx.restore();
     }
+}
+
+// A rival's engine: a flame tapering to nothing behind the hull, white at the nozzle and its colour after, as your
+// ship's is (render_engine_plumes); short as it cruises, long on its turbo, none while it stands. Its gradient runs
+// along a flame one unit long, made once per rival and scaled to the flame's size.
+function race_rival_plume(v)
+{
+    const speed = Math.sqrt(v.vx*v.vx + v.vy*v.vy);
+    const power = (v.turbo > 0) ? 1 : clamp(speed/v.pace, 0, 1)*0.4;
+    if (power < 0.05) {
+        return;
+    }
+    if (!v.plume) {
+        v.plume = ctx.createLinearGradient(0, 0, 1, 0);
+        v.plume.addColorStop(0, '#f1faffee');
+        v.plume.addColorStop(0.18, `${v.color}cc`);
+        v.plume.addColorStop(0.6, `${v.color}44`);
+        v.plume.addColorStop(1, `${v.color}00`);
+    }
+    ctx.save();
+    ctx.translate(v.x, v.y);
+    ctx.rotate(v.angle + Math.PI);
+    ctx.translate(v.length*0.4, 0);
+    ctx.scale(v.length*(0.3 + 1.2*power), v.length*(0.05 + 0.04*power));
+    ctx.globalAlpha = v.alpha*(0.55 + 0.45*power);
+    ctx.fillStyle = v.plume;
+    ctx.beginPath();
+    ctx.moveTo(0, -1);
+    ctx.bezierCurveTo(0.2, -1, 0.7, -0.4, 1, 0);
+    ctx.bezierCurveTo(0.7, 0.4, 0.2, 1, 0, 1);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
 }
 
 // The minimap while a race is near: the course fills it, not the world, with the rocks round it, the rings (the next
@@ -1603,5 +1869,5 @@ function race_board_sync()
     hud_html(document.getElementById('race_board_rows'), rows.join(''));
     const foot = document.getElementById('race_board_foot');
     set_hidden(foot, !over);
-    hud_text(foot, over ? `◆ ${ui_number(race.prize)} · dock to collect` : '');
+    hud_text(foot, !over ? '' : race_mode.active ? `${race_time_text(race_you().time ?? race.clock)} · par ${race_time_text(race.course.par)}` : `◆ ${ui_number(race.prize)} · dock to collect`);
 }

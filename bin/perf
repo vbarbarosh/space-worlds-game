@@ -27,6 +27,11 @@ for (const buildings of [10, 50, 100]) {
 for (const world of [0, 7]) {
     scenes.push({value: `race-w${world}`, kind: 'race', world, zoom: 1});
 }
+// Six drifting pieces round you as they turn, in Haven and in Eclipse, you still among them (a race course through
+// them showed one piece's turned draw costing 10 ms a frame)
+for (const world of [0, 7]) {
+    scenes.push({value: `debris-w${world}`, kind: 'debris', world, zoom: 1});
+}
 // The passes of render() timed one by one; in layers mode the canvas is flushed around each, so its raster counts too
 const layer_names = [
     'draw_background', 'render_map', 'render_gravity_fields', 'base_render_navigation_objects', 'render_world_fields',
@@ -545,6 +550,9 @@ function page_scene(scene)
         if (scene.kind === 'race') {
             race_begin();
         }
+        if (scene.kind === 'debris') {
+            debris_gather();
+        }
     }
     zoom = scene.zoom;
     zoom_target = null;
@@ -563,8 +571,11 @@ function page_scene(scene)
         if (scene.kind !== 'arcade') {
             patrol_timer = 60;
         }
-        const a = (scene.kind === 'race') ? race_heading() : t*0.35;
         keys.clear();
+        if (scene.kind === 'debris') {
+            return;
+        }
+        const a = (scene.kind === 'race') ? race_heading() : t*0.35;
         if (Math.cos(a) > 0.38) {
             keys.add('KeyD');
         }
@@ -622,6 +633,22 @@ function page_scene(scene)
             v.alpha = 1;
         }
         race_go(m);
+    }
+    // You at the combat zone, out of sight of the station; the six drifting pieces nearest, set still round you a third
+    // of the window's height away; they keep turning
+    function debris_gather() {
+        player.x = combat_zone.x;
+        player.y = combat_zone.y;
+        player.vx = 0;
+        player.vy = 0;
+        const near = drifting_debris.slice().sort((a, b) => distance(a, player) - distance(b, player)).slice(0, 6);
+        const reach = Math.min(W, H)*0.32/scene.zoom;
+        for (let i = 0; i < near.length; ++i) {
+            near[i].x = player.x + Math.cos(i*Math.PI/3)*reach;
+            near[i].y = player.y + Math.sin(i*Math.PI/3)*reach;
+            near[i].vx = 0;
+            near[i].vy = 0;
+        }
     }
     // In a race your keys point at your next ring (the last one once you are over the line)
     function race_heading() {

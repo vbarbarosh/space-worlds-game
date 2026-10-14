@@ -61,7 +61,7 @@ ships. "Modes" is arcade, campaign or both.
   lights, and numbered gold rings to fly through in order, the next one lit,
   the passed ones faded, the last chequered (the finish).
 - Background: ships and shots pass through them. Campaign, while a race
-  contract waits in the world. Where: `src/js/race.js`;
+  contract waits in the world, and the Races mode. Where: `src/js/race.js`;
   [placement.md](placement.md#race-courses).
 
 ### Combat zone
@@ -176,9 +176,11 @@ ships. "Modes" is arcade, campaign or both.
 ### A ring race's rivals
 
 - The ships you race in a ring race: three or four, each a name, a hull and
-  a colour; they fly the course's rings by a ship's rules, bump, and turbo.
+  a colour; they fly the course's rings by a ship's rules, bump, and turbo,
+  an engine's flame behind each in its colour, long on its turbo.
 - Solid; raiders' shots and rams damage them (a bar once hit), your shots
-  pass through, and they never shoot. Campaign. Where: `src/js/race.js`.
+  pass through, and they never shoot. Campaign and the Races mode. Where:
+  `src/js/race.js`.
 
 ### The convoy's freighter
 

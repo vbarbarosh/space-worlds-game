@@ -59,10 +59,10 @@ shows a health bar (its armour or energy, and how much is left as it is hit).
   - **The transport line's ship** (campaign): a bar always shown; raiders
     damage it; it is not solid, and your shots pass through.
   - **The survey robot** (campaign): a bar always shown; raiders damage it.
-  - **A ring race's rivals** (campaign): solid (they bounce off rocks and
-    bump you and each other), raiders' shots and rams damage them, a bar once
-    hit; your shots pass through them, and they never shoot
-    (`src/js/race.js`).
+  - **A ring race's rivals** (campaign and the Races mode): solid (they
+    bounce off rocks and bump you and each other), raiders' shots and rams
+    damage them, a bar once hit; your shots pass through them, and they never
+    shoot (`src/js/race.js`).
 - Open question: should ore rocks be shot apart in the campaign as they are
   in the arcade, and if a rock both holds ore and can break, does it show two
   bars (hull and reserve) or one? Not decided yet.

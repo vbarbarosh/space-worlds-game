@@ -298,9 +298,13 @@ function generate_drifting_debris()
 const radiation_alerts = [50, 25, 10, 0];
 let radiation_briefed_world = null;
 
-// Dose per second here, 0 beside the station or in a world without a field
+// Dose per second here, 0 beside the station, in a world without a field, or in the Races mode (its ship has no
+// lining, and a race is not a test of one)
 function radiation_rate()
 {
+    if (race_mode.active) {
+        return 0;
+    }
     const c = expedition_conditions[campaign.world];
     const radiation = arcade.active ? c.radiation*arcade_radiation : c.radiation;
     return (distance(player, station) < station_shelter) ? 0 : radiation*(1 - radiation_protection())*2.5;
@@ -415,6 +419,10 @@ function drifting_debris_hit(piece, damage)
     drifting_debris = drifting_debris.filter(v => v !== piece);
 }
 
+// A drifting piece's turn as drawn: to the nearest degree, so its still copies (sprite_draw_still) are made once a
+// degree, not every frame
+const debris_turn_step = Math.PI/180;
+
 function render_drifting_debris()
 {
     ctx.save();
@@ -423,9 +431,13 @@ function render_drifting_debris()
         if (!in_view(drifting_debri, drifting_debri.r + 20)) {
             continue;
         }
-        // The designer's drifting rocks and wrecks, with the same hazard rim: these hit hard
+        // The designer's drifting rocks and wrecks, with the same hazard rim: these hit hard. A piece turns slowly (a
+        // quarter turn a second at most), so it is drawn through the still copies (sprite_draw_still) at its turn to
+        // the nearest degree: a copy is made when it has turned a degree, and copied to the screen unturned between;
+        // a turned and scaled draw each frame cost the software canvas up to 10 ms a piece at 1920 × 1080
         const art = world_art(`${(drifting_debri.kind === 'asteroid') ? 'debris-rock' : 'debris-wreck'}-${(i % 2) + 1}`);
-        if (art && sprite_draw_box(art, null, drifting_debri.r*2.6, drifting_debri.x, drifting_debri.y, drifting_debri.angle)) {
+        const turn = Math.round(drifting_debri.angle/debris_turn_step)*debris_turn_step;
+        if (art && sprite_draw_still(art, null, drifting_debri.r*2.6, drifting_debri.x, drifting_debri.y, turn)) {
             ctx.strokeStyle = '#ff7a5c66';
             ctx.lineWidth = 2;
             ctx.beginPath();

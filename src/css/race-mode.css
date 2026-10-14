@@ -1,0 +1,139 @@
+/* The Races mode (js/race_mode.js): no station, gate, map or saves to use while racing, no score, salvage or combo to
+   read (the world stays); the pause panel keeps Resume, Restart race, the settings and the menu */
+body.race-mode #nav_button,
+body.race-mode #dock_button,
+body.race-mode .navigation-status,
+body.race-mode .mission-route,
+body.race-mode .mission-instruction,
+body.race-mode #guide_plan,
+body.race-mode #guide_action,
+body.race-mode #pause_saves_button,
+body.race-mode #pause_last_save,
+body.race-mode #hud > .r:has(#score),
+body.race-mode #hud > .r.is-money,
+body.race-mode #combo_box {
+    display: none;
+}
+
+/* the results: the place as the title, the time and crashes under it, the field as the HUD's board lists it */
+.ui .race-result .race-result-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin: 0;
+    padding: 8px 10px;
+    list-style: none;
+    border: 1px solid var(--line-1);
+    border-radius: var(--r-md);
+    background: var(--space-1);
+}
+
+.ui .race-result .race-result-rows li {
+    display: grid;
+    grid-template-columns: 16px 9px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font: 600 14px/1.3 var(--font-ui);
+    color: var(--text-2);
+}
+
+.ui .race-result .race-result-rows li.is-you {
+    background: var(--cyan-dim);
+    color: var(--cyan);
+}
+
+.ui .race-result .race-result-rows b {
+    font: 700 13px/1 var(--font-mono);
+    text-align: right;
+}
+
+.ui .race-result .race-result-rows i {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--c);
+    box-shadow: 0 0 6px var(--c);
+}
+
+.ui .race-result .race-result-rows .nm {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ui .race-result .race-result-rows .rg {
+    font: 600 13px/1 var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.ui .race-result #race_next_name {
+    font-weight: inherit;
+}
+
+/* a short window: the field tighter, so the three buttons stay in it */
+@container screen (max-height: 640px) {
+    .ui .race-result .race-result-rows {
+        padding: 4px 8px;
+    }
+
+    .ui .race-result .race-result-rows li {
+        padding: 2px 8px;
+        font-size: 13px;
+    }
+
+    .ui .race-result .btn-menu {
+        height: 40px;
+    }
+}
+
+/* the menu's Races scene: a course of gold rings winding through the rocks, the rings lighting one after another */
+.ui .s-races svg {
+    position: absolute;
+    inset: 0;
+}
+
+.ui .s-races .rock {
+    fill: #3a3f4a;
+    stroke: #59606d;
+    stroke-width: 2;
+}
+
+.ui .s-races .line {
+    fill: none;
+    stroke: #ffcc4d;
+    stroke-opacity: 0.35;
+    stroke-width: 3;
+    stroke-dasharray: 10 12;
+}
+
+.ui .s-races .hoop {
+    fill: none;
+    stroke: #ffcc4d;
+    stroke-width: 6;
+    opacity: 0.45;
+}
+
+.ui .s-races.on .hoop {
+    animation: race-hoop 4.8s var(--d) infinite;
+}
+
+.ui .s-races .flag {
+    fill: #f4f1e8;
+    font: 700 26px/1 var(--font-mono);
+}
+
+@keyframes race-hoop {
+    0%, 100% { opacity: 0.45; stroke-width: 6; }
+    8% { opacity: 1; stroke-width: 10; }
+    30% { opacity: 0.45; stroke-width: 6; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ui .s-races.on .hoop {
+        animation: none;
+    }
+}

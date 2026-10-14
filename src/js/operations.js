@@ -935,7 +935,7 @@ function stage_description(v, m, index)
         return 'Approach the marked flagship zone and destroy the warship. Prepare your ship and weapon tier before jumping.';
     }
     if (v.type === 'race') {
-        return `Fly to the start line off ${worlds[v.world].station} and into your place: the rivals line up beside you and the count runs (a raider near the line holds it). Then through the ${v.target} rings in order, the last one the finish. Your place and the time set the prize: first pays most, and every second under par pays more. Flying ${race_leash/1000} km off the course for ${race_leash_time} s, docking or a jump forfeits; the start line waits for another try.`;
+        return `Fly to the start line off ${worlds[v.world].station} and into your place: the rivals line up beside you and the count runs (no raider comes while you race; one already at the line holds it until it is shot or pulls back). Then through the ${v.target} rings in order, the last one the finish. Your place and the time set the prize: first pays most, and every second under par pays more. Flying ${race_leash/1000} km off the course for ${race_leash_time} s, docking or a jump forfeits; the start line waits for another try.`;
     }
     if (v.type === 'lure') {
         return 'Fly to the marked black hole and the Leviathan comes for you. Guns cannot hurt it. Keep ahead of it and lead it across the pull: your ship climbs out, its thrust cannot, and the core takes it. Keep clear of the core yourself.';

@@ -239,7 +239,7 @@ function play_log_persist()
 // kept in the save (campaign.log_run): the same game goes on in the same session, another one starts a new session
 function play_log_run_start(resume)
 {
-    const mode = arcade.active ? 'arcade' : 'campaign';
+    const mode = arcade.active ? 'arcade' : race_mode.active ? 'race' : 'campaign';
     const fresh = !campaign.log_run;
     if (fresh) {
         campaign.log_run = play_log_id_make();
@@ -266,6 +266,10 @@ function play_log_run_start(resume)
 
 function play_log_run_how(resume)
 {
+    // the Races mode: each race starts as a run of its own; the first since the menu is new
+    if (race_mode.active) {
+        return play_log_session ? 'next race' : 'new';
+    }
     if (arcade.active ? (run_time === 0) : !resume) {
         return 'new';
     }
@@ -287,7 +291,8 @@ function play_log_session_start(mode, how)
         id: play_log_id_make(),
         mode,
         run: campaign.log_run,
-        difficulty,
+        // the Races mode's own: easy, normal or hard
+        difficulty: race_mode.active ? race_mode.level : difficulty,
         game: {version: build_info.version, built: build_info.time},
         started: new Date().toISOString(),
         ended: null,
@@ -837,6 +842,38 @@ function play_log_race(m, result)
     if (play_log_session) {
         play_log_event('race', {title: m.title, world: worlds[campaign.world].name, place: result.place, of: result.count, time: result.time, par: race.course?.par ? Math.round(race.course.par*10)/10 : null, prize: m.reward});
     }
+}
+
+// A race of the Races mode at its end (over the line, wrecked or forfeit): the difficulty and course, your place and
+// time, par, your crashes and the shield and hull rocks took, and every racer's times at each ring (splits, seconds
+// since green), so the places along the way can be read back
+function play_log_race_mode(result)
+{
+    if (!play_log_session || !race.course) {
+        return;
+    }
+    const you = race_you();
+    play_log_event('race', {
+        mode: 'race',
+        level: race_mode.level,
+        world: worlds[campaign.world].name,
+        title: race_contract()?.title || null,
+        end: result.end,
+        why: result.why || null,
+        place: result.place || null,
+        of: race.racers.length,
+        time: (you.time === null) ? null : Math.round(you.time*10)/10,
+        at: Math.round(race.clock*10)/10,
+        par: Math.round(race.course.par*10)/10,
+        rings: race.course.rings.length,
+        km: Math.round(race.course.length/100)/10,
+        reached: you.next,
+        crashes: race.crashes,
+        rock_hull: Math.round(race.rock_hull),
+        hull_left: Math.max(0, Math.round(player.hp)),
+        racers: race.racers.map(v => ({name: v.you ? 'You' : v.name, skill: v.you ? null : v.skill, time: (v.time === null) ? null : Math.round(v.time*10)/10, next: v.next, out: v.out, splits: v.splits})),
+    });
+    play_log_persist();
 }
 
 function play_log_race_forfeit(why)

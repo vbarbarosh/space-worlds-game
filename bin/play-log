@@ -5,13 +5,14 @@ const fs = require('node:fs');
 const path = require('node:path');
 const zlib = require('node:zlib');
 
-const usage = `usage: bin/play-log <file.json|file.json.gz> [--charts=dir] [--mode=campaign|arcade]
+const usage = `usage: bin/play-log <file.json|file.json.gz> [--charts=dir] [--mode=campaign|arcade|race]
 
     Reads a play log saved from the game's pause panel (Download play log; docs/play-log.md) and prints how the
     games went: the sessions, each game (run) across its sessions, time, income and spending per world, income by
     source and spending by kind, the kit as it changed, salvage on hand over time, when the top ship and every module
-    were bought and what the salvage did after, combat per world, deaths, contracts, flagships, races, the arcade's
-    worlds and the frame rate; then notes on what stands out.
+    were bought and what the salvage did after, combat per world, deaths, contracts, flagships, races (the
+    campaign's, and the Races mode's: place, time, crashes and your place at each ring), the arcade's worlds and the
+    frame rate; then notes on what stands out.
 
     --charts=dir also draws the economy, combat and frame rate as PNGs in dir (Chromium, through playwright).
     --mode keeps one mode's sessions.`;
@@ -332,9 +333,70 @@ function report_flagships(sessions)
 function report_races(sessions)
 {
     const events = sessions.flatMap(v => v.events);
-    const rows = events.filter(v => v.type === 'race').map(v => [v.title, v.world, `${v.place} of ${v.of}`, `${v.time} s`, (v.par === null) ? '-' : `${v.par} s`, format_number(v.prize)]);
+    const rows = events.filter(v => (v.type === 'race') && (v.mode !== 'race')).map(v => [v.title, v.world, `${v.place} of ${v.of}`, `${v.time} s`, (v.par === null) ? '-' : `${v.par} s`, format_number(v.prize)]);
     const forfeits = events.filter(v => v.type === 'race forfeit').map(v => `forfeit in ${v.world}: ${v.why}`);
-    return section('Races', [...(rows.length ? table(['race', 'world', 'place', 'time', 'par', 'prize'], rows) : ['none finished']), ...forfeits]);
+    return [
+        ...section('Races', [...(rows.length ? table(['race', 'world', 'place', 'time', 'par', 'prize'], rows) : ['none finished']), ...forfeits]),
+        ...report_race_mode(sessions),
+    ];
+}
+
+// The Races mode (mode race): each race as it ended, per difficulty a summary, and your place at each ring
+function report_race_mode(sessions)
+{
+    const races = sessions.flatMap(v => v.events.filter(vv => (vv.type === 'race') && (vv.mode === 'race')).map(vv => ({...vv, session: v.id})));
+    if (!races.length) {
+        return [];
+    }
+    const rows = races.map(function (v) {
+        return [
+            format_minute(v.t),
+            v.level,
+            v.world,
+            `${v.rings} · ${v.km} km`,
+            (v.end === 'finished') ? `${v.place} of ${v.of}` : v.end,
+            (v.time === null) ? `- (${v.at} s, ring ${v.reached + 1})` : `${v.time} s`,
+            `${v.par} s`,
+            race_gap(v),
+            `${v.crashes} · ${v.rock_hull} hull`,
+            v.hull_left,
+        ];
+    });
+    const levels = [];
+    for (const [level, list] of group(races, v => v.level)) {
+        const done = list.filter(v => v.end === 'finished');
+        levels.push([level, list.length, done.length, done.filter(v => v.place === 1).length, done.length ? (sum(done.map(v => v.place))/done.length).toFixed(1) : '-', list.filter(v => v.end === 'wrecked').length, list.filter(v => v.end === 'forfeit').length, sum(list.map(v => v.crashes)), done.length ? `${(sum(done.map(v => v.time/v.par))/done.length).toFixed(2)}×` : '-']);
+    }
+    const along = races.map(v => `${format_minute(v.t)} ${v.level} ${v.world}: ${race_places(v).join(' ')}`);
+    return [
+        ...section('Races mode', table(['minute', 'level', 'course', 'rings', 'place', 'time', 'par', 'to the best rival', 'crashes', 'hull left'], rows)),
+        ...section('Races mode by difficulty', table(['level', 'races', 'finished', 'won', 'mean place', 'wrecked', 'forfeit', 'crashes', 'time / par'], levels)),
+        ...section('Races mode: your place at each ring', along),
+    ];
+}
+
+// Your time against the best rival's over the line: + slower, - faster
+function race_gap(race)
+{
+    const you = race.racers.find(v => v.name === 'You');
+    const others = race.racers.filter(v => (v.name !== 'You') && (v.time !== null)).map(v => v.time).sort((a, b) => a - b);
+    if (!you || (you.time === null) || !others.length) {
+        return '-';
+    }
+    const gap = you.time - others[0];
+    return `${(gap > 0) ? '+' : ''}${gap.toFixed(1)} s`;
+}
+
+// Your place as you passed each ring, among those through it before you and those not there yet
+function race_places(race)
+{
+    const you = race.racers.find(v => v.name === 'You');
+    if (!you) {
+        return [];
+    }
+    return you.splits.map(function (t, i) {
+        return 1 + race.racers.filter(v => (v !== you) && (v.splits.length > i) && (v.splits[i] < t)).length;
+    });
 }
 
 function report_arcade(sessions)

@@ -12,6 +12,7 @@ const dev_screen_options = [
     {value: 'race', label: 'Race: lined up, the count'},
     {value: 'race-mid', label: 'Race: mid-race, the standings'},
     {value: 'race-finish', label: 'Race: over the line, the results'},
+    {value: 'race-results', label: 'Races mode: the results'},
     {value: 'station-jobs', label: 'Station: contracts'},
     {value: 'station-arsenal', label: 'Station: arsenal'},
     {value: 'station-outfit', label: 'Station: modules'},
@@ -110,6 +111,10 @@ function dev_screen_open()
         salvage = 375;
         finale.frozen = (dev_screen_time === null) ? null : Number(dev_screen_time);
         arcade_world_clear();
+        return;
+    }
+    if (dev_screen === 'race-results') {
+        dev_race_results_open();
         return;
     }
     if (dev_screen.startsWith('race')) {
@@ -282,6 +287,8 @@ function dev_race_open(screen)
             const enemy = spawn_enemy(type);
             enemy.x = player.x + Math.cos(m.race.start.angle + a)*800;
             enemy.y = player.y + Math.sin(m.race.start.angle + a)*800;
+            // there before you came: they may hold the start (race.holders)
+            race.holders.push(enemy);
         }
     }
     if (screen !== 'race') {
@@ -290,6 +297,42 @@ function dev_race_open(screen)
     }
     update_camera(0, true);
     update_hud();
+}
+
+// The Races mode's results (js/race_mode.js) in this world: &race_level=easy|normal|hard, &race_place=1|2|3|last
+// over the line, or &race_end=wrecked (your hull gone mid-race) or forfeit; &race_crashes=n your crashes on rocks;
+// &race_long=1 a rival with a very long name
+function dev_race_results_open()
+{
+    race_mode.log_run = 'dev';
+    race_mode.saved = {checkpoint, difficulty};
+    race_mode_start(dev_race_params.get('race_level') || 'normal', campaign.world);
+    const m = race_contract();
+    const rivals = race.racers.filter(v => !v.you);
+    for (const v of rivals) {
+        v.alpha = 1;
+    }
+    if (dev_race_params.get('race_long') === '1') {
+        rivals[1].name = 'Maximiliana Wolkenkratzer-Abernathy of the Outer Rim Racing Guild';
+    }
+    race_go(m);
+    race.crashes = Number(dev_race_params.get('race_crashes')) || 0;
+    race.rock_hull = race.crashes*13.4;
+    const end = dev_race_params.get('race_end');
+    if (end === 'wrecked') {
+        dev_race_spread(m, false);
+        player.hp = 0;
+        finish(false);
+    }
+    else if (end === 'forfeit') {
+        dev_race_spread(m, false);
+        race_forfeit('You flew off the course');
+    }
+    else {
+        dev_race_spread(m, true);
+        race_mode_results_open();
+    }
+    update_camera(0, true);
 }
 
 // Everyone along the course: you on the way to ring 3, the best rival a ring ahead, the rest behind; or, at the
@@ -334,7 +377,7 @@ function dev_race_spread(m, finish)
             place(rivals[i], rings.length, 1);
             rivals[i].x += Math.cos(rivals[i].angle)*(220 + 160*i);
             rivals[i].y += Math.sin(rivals[i].angle)*(220 + 160*i);
-            rivals[i].time = race.clock - 3.1 + i*1.4;
+            rivals[i].time = race.clock - 3.1 + i*0.7;
         }
         else {
             place(rivals[i], rings.length - 1, 0.55 - 0.18*(i - ahead));

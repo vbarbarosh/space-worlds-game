@@ -180,6 +180,10 @@ function interact()
         arcade_interact();
         return;
     }
+    // the Races mode has no station or gate to use
+    if (race_mode.active) {
+        return;
+    }
     if (distance(player, station) < station_reach) {
         docking_start(dock_station);
         return;
@@ -298,7 +302,7 @@ let hold_waves = {key: '', n: 0, clock: 0};
 // The contract whose stage you hold now, out of the station's shelter: a hunt here, or mining here with drones out
 function hold_stage()
 {
-    if (arcade.active || (distance(player, station) < station_shelter + 50)) {
+    if (arcade.active || race_calm() || (distance(player, station) < station_shelter + 50)) {
         return null;
     }
     return campaign.contracts.find(v => !v.ready && (v.world === campaign.world) && ((v.type === 'hunt') || ((v.type === 'mining') && drones_out && (drones.length > 0)))) || null;
@@ -352,7 +356,7 @@ function guide_base_update_frontier(dt)
         }
         // Every raider fires its world's gun, Haven's plasma included; the CHILL arcade keeps plasma raiders unarmed,
         // as the arcade was before its modes; shards are pieces and only ram, a convoy's freighter carries no gun
-        const armed = !enemy.unarmed && ((enemy.weapon !== 'plasma') || !arcade.active || arcade_mode().armed);
+        const armed = !enemy.unarmed && !enemy.race_leave && ((enemy.weapon !== 'plasma') || !arcade.active || arcade_mode().armed);
         if ((enemy.type !== 'shooter') && (enemy.type !== 'boss') && (enemy.type !== 'shard') && armed) {
             enemy.gun_cd -= dt;
             // a raider sent for the survey robot shoots at it
@@ -365,7 +369,8 @@ function guide_base_update_frontier(dt)
     }
     patrol_timer -= dt;
     const holding = hold_waves_update(dt);
-    if ((patrol_timer <= 0) && !arcade.active && !holding) {
+    // no patrol while a race is on (race_calm), and none at all in the Races mode
+    if ((patrol_timer <= 0) && !arcade.active && !holding && !race_calm() && !race_mode.active) {
         // patrols come as often and as many as the story's front asks (raider_tier), four at most
         const tier = raider_tier();
         patrol_timer = (tier === 0) ? 11 : Math.max(4.5, 10 - tier*0.6);
@@ -474,6 +479,10 @@ function finish(won)
     play_log_finish(won);
     if (!won && player) {
         explode_ship_death(player.x, player.y, player.r || 18);
+    }
+    if (race_mode.active) {
+        race_mode_died();
+        return;
     }
     el.result_overlay.classList.toggle('after-blast', !won && !!player && full_fx);
     if (arcade.active) {

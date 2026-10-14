@@ -299,7 +299,8 @@ function update(dt, frame_dt = dt)
             ((difficulty === 'chill') ? 1.12 : (difficulty === 'overload') ? 0.86 : 1);
     }
     drop_timer -= dt;
-    if (drop_timer <= 0) {
+    // the Races mode is the course and the rocks: nothing drops on it
+    if ((drop_timer <= 0) && !race_mode.active) {
         drop_timer = 18;
         drop_pickup(player.x + rand(-W*0.35, W*0.35), player.y + rand(-H*0.35, H*0.35), ((player.hp < 65) && repair_drop_allowed()) ? 'health' : 'energy');
     }
@@ -321,7 +322,8 @@ function update(dt, frame_dt = dt)
         v.age += enemy_dt;
         v.flash = Math.max(0, v.flash - dt);
         const prey = (v.escort_raider && escort) ? escort : (v.robot_raider && survey_robot) ? survey_robot : (structure_prey(v) || race_prey(v));
-        const waypoint = prey || (drones.length && drone_prey(v)) || enemy_waypoint(v);
+        // a race on: the raiders turn away from its course and leave (race_keep_off)
+        const waypoint = (race.course && race_keep_off(v, prey)) || prey || (drones.length && drone_prey(v)) || enemy_waypoint(v);
         const a = Math.atan2(waypoint.y - v.y, waypoint.x - v.x);
         const d = distance(v, player);
         let heading = a;
@@ -348,7 +350,7 @@ function update(dt, frame_dt = dt)
         if (v.type === 'shooter') {
             move = (d < 220) ? -0.6 : (d < 320) ? 0.18 : 1;
             v.fire_cd -= enemy_dt;
-            if ((v.fire_cd <= 0) && (v.age > 0.8)) {
+            if ((v.fire_cd <= 0) && (v.age > 0.8) && !v.race_leave) {
                 // you and a race's rivals move fast: the shot leads them
                 enemy_fire(v, ((waypoint === player) || waypoint.rival) ? raider_aim(v, waypoint, 180 + wave*4) : a, 180 + wave*4);
                 v.fire_cd = Math.max(1.2, 2.1 - wave*0.04)*raider_reload(v);

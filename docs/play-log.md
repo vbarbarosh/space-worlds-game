@@ -18,12 +18,13 @@ their own, as they keep saves of their own.
 
 - **Sessions.** A session is one game from its start (new, continue, load) to
   the main menu or the page's close; past an hour of play it goes on in a new
-  session of the same game, which begins with the world and the kit. It carries the mode (`campaign` or
-  `arcade`), the difficulty, the game's version and build time, and how it
+  session of the same game, which begins with the world and the kit. It carries the mode (`campaign`,
+  `arcade` or `race`, the main menu's Races), the difficulty, the game's version and build time, and how it
   began and ended.
 - **Games (runs).** A campaign is one run across all its sessions: its save
   keeps the id (`campaign.log_run`), so a continue next week joins the same
-  run. Each arcade run is a run of its own.
+  run. Each arcade run is a run of its own. In the Races mode the races from
+  the menu back to the menu are one run, each race a `run` event in it.
 - **Records.** One record a minute of play, cut short when you change worlds,
   load, or die, so each record is in one world. A record holds the salvage on
   hand, salvage earned by source and spent by kind, XP by source, kills by
@@ -99,13 +100,13 @@ can come without it. A reader skips fields it does not know.
 | Field | |
 | --- | --- |
 | `id` | the session's id (its start time, UTC, and four letters) |
-| `mode` | `campaign` or `arcade` |
+| `mode` | `campaign`, `arcade` or `race` (the Races mode) |
 | `run` | the game's id: a campaign keeps it in its save across sessions |
-| `difficulty` | `chill`, `normal`, `overload` |
+| `difficulty` | `chill`, `normal`, `overload`; in the Races mode `easy`, `normal`, `hard` |
 | `game` | `version` (package.json) and `built` (bin/build's time) |
 | `started`, `ended`, `end_reason` | `back to the main menu`, `page closed`, `another game started`, `an hour of play: goes on in the next session`, or `not closed: the page went away without notice` (a crash); `ended` is null while it is being played |
 | `played_s` | seconds of play |
-| `start` | `how` (`new`, `continue`, `load`, `after death`, `continued` (the hourly roll), `after the log was cleared`), `world`, `salvage`, `xp`, `rank`, `ship` |
+| `start` | `how` (`new`, `continue`, `load`, `after death`, `next race` (the Races mode), `continued` (the hourly roll), `after the log was cleared`), `world`, `salvage`, `xp`, `rank`, `ship` |
 | `screen`, `browser` | the window's size and pixel ratio, the user agent |
 | `records[]`, `events[]` | below |
 | `dropped` | records and events dropped to keep the size (events: past 5000 a session) |
@@ -163,7 +164,8 @@ Every event has `t` and `type`.
 | `milestone` | `what`: `top ship` (the priciest ship owned), `all modules at cap` (all but those needing a launcher you do not carry), `all guns tier 5`; `salvage` |
 | `contract` | `action` (`taken`, `stage done`, `completed`, `claimed`, `abandoned`), `title`, `kind` (the stage's), `stage`, `stages`, `world`, `reward`, `story`, `secs` (since taken), `stage_secs` (since the stage began), and `xp` when claimed |
 | `boss` | a flagship killed: `name`, `world`, `secs` (from its first hit), `taken` (the damage you took meanwhile) |
-| `race` | `title`, `world`, `place`, `of`, `time` and `par` (seconds), `prize` |
+| `race` | a campaign race over the line: `title`, `world`, `place`, `of`, `time` and `par` (seconds), `prize` |
+| `race` (`mode: race`) | a race of the Races mode at its end: `level` (`easy`, `normal`, `hard`), `world`, `title`, `end` (`finished`, `wrecked`, `forfeit`), `why` (a forfeit's), `place` (null unless finished), `of`, `time` (yours, null unless finished), `at` (the race's clock at its end), `par`, `rings`, `km`, `reached` (rings you passed), `crashes` (hits on rocks and drifting debris), `rock_hull` (the shield and hull they took), `hull_left`, `racers[]`: `name` (`You` for you), `skill` (0 to 1), `time`, `next` (rings passed), `out`, `splits` (seconds since green at each ring passed: the places along the race) |
 | `race forfeit` | `world`, `why` |
 | `wave` | arcade: `world`, `wave` |
 | `world cleared` | arcade: `world`, `secs` in it, `bonus` |
@@ -175,11 +177,14 @@ Every event has `t` and `type`.
     bin/play-log world-explorer-log-2026-10-13-2346.json
     bin/play-log log.json --charts=data/play-log    # PNG charts too
     bin/play-log log.json --mode=campaign
+    bin/play-log log.json --mode=race               # the Races mode only
 
 The report has the sessions and games, per world time, income, spending and
 kills, income by source and spending by kind, salvage on hand over time, the
 kit as it changed, the priciest purchases, when the game was maxed out and what
-the salvage did after, combat per world, deaths, contracts, flagships, races,
+the salvage did after, combat per world, deaths, contracts, flagships, races
+(the Races mode's each with its place, time, par, gap to the best rival,
+crashes and hull left, a summary per difficulty, and your place at each ring),
 the arcade's worlds, the frame rate, and notes on what stands out.
 
 In Python:

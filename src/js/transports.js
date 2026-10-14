@@ -278,7 +278,8 @@ function transport_raids(ship, dt)
         return;
     }
     transport_raid_clock -= dt;
-    if ((transport_raid_clock > 0) || (enemies.length > 14)) {
+    // a race on: the raid waits for its end
+    if ((transport_raid_clock > 0) || (enemies.length > 14) || race_calm()) {
         return;
     }
     transport_raid_clock = rand(120, 180);

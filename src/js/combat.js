@@ -120,7 +120,10 @@ function begin_wave()
     mouse_drive.following = false;
     update_camera(0, true);
     set_hidden(el.bossbar, true);
-    show_world_arrival(worlds[campaign.world].name);
+    // the Races mode names the course on its own banner (race_mode_start)
+    if (!race_mode.active) {
+        show_world_arrival(worlds[campaign.world].name);
+    }
 }
 
 function start_phase()
@@ -426,8 +429,10 @@ function damage_player(amount, blast = false, cause = 'other', by = null)
     player.shield -= absorbed;
     shield_hit_show(player, shield_before);
     damage -= absorbed;
+    const hull_before = player.hp;
     player.hp = Math.max(0, player.hp - damage);
     play_log_hurt(cause, absorbed, damage, by);
+    race_crash_note(cause, absorbed + hull_before - player.hp);
     player.invincible = 0.85;
     shake = 16;
     // a hit on the hull reddens the screen's edge; one the shield took tints it as before

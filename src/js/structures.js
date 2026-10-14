@@ -412,7 +412,8 @@ function structure_raids(dt)
         return;
     }
     structure_raid_clock -= dt;
-    if ((structure_raid_clock > 0) || (enemies.length > 14)) {
+    // a race on: the raid waits for its end
+    if ((structure_raid_clock > 0) || (enemies.length > 14) || race_calm()) {
         return;
     }
     structure_raid_clock = rand(100, 150);

@@ -3,11 +3,12 @@ const dev_base_damage_player = damage_player;
 const dev_base_fatal_gravity = fatal_gravity;
 let dev_readout_time = 0;
 
-damage_player = function (amount, blast) {
+// every argument passed on: the cause and the raider too, for the play log and a race's crashes
+damage_player = function (...args) {
     if (dev_scenario.god) {
         return;
     }
-    dev_base_damage_player(amount, blast);
+    dev_base_damage_player(...args);
 };
 fatal_gravity = function (h) {
     if (dev_scenario.god) {

@@ -1,5 +1,5 @@
 // The main menu, after the designer's main-menu.html: the modes as one family of rows (Continue the big one). A click
-// on Continue, New campaign or Arcade opens the row in place, and only its button (or Enter) plays; Load, Settings and
+// on Continue, New campaign, Arcade or Races opens the row in place, and only its button (or Enter) plays; Load, Settings and
 // Controls show their scene on the right, or in a narrow window as a panel over the rows, with Back (Esc). Starting
 // plays the launch, then the game.
 // The arcade preview per difficulty: seconds between swarms, raiders on the stage at most, the share of elites
@@ -18,7 +18,7 @@ const menu_arcade = {
     kills: 0, spawn: 0, fire: 0, angle: 0, launch: -1, shake: 0, level: menu_arcade_levels.normal, hero: new Image(), images: null,
 };
 let menu_scene_now = '';
-// the row open in place: continue, campaign, arcade, or none once Esc folds it
+// the row open in place: continue, campaign, arcade, races, or none once Esc folds it
 let menu_open_row = '';
 // the scenes that come forward as a panel over the rows in a narrow window, and the row's scene their Back returns to
 const menu_panel_scenes = ['load', 'settings', 'controls'];
@@ -32,13 +32,18 @@ for (const v of document.querySelectorAll('#menu_modes .mode')) {
     v.addEventListener('focus', () => v.matches(':focus-visible') && menu_scene(v.dataset.scene));
     v.addEventListener('click', () => menu_scene(v.dataset.scene));
 }
-for (const v of document.querySelectorAll('#intro .tile')) {
+for (const v of document.querySelectorAll('#intro .tile[data-mode]')) {
     v.addEventListener('click', () => menu_level_sync(v.dataset.mode));
+}
+for (const v of document.querySelectorAll('#intro .tile[data-race-level]')) {
+    v.addEventListener('click', () => race_mode_level_pick(v.dataset.raceLevel));
 }
 document.getElementById('menu_continue_go').addEventListener('click', () => menu_launch('continue'));
 document.getElementById('menu_campaign_go').addEventListener('click', () => menu_launch('campaign'));
 document.getElementById('menu_arcade_go').addEventListener('click', () => menu_launch('arcade'));
 document.getElementById('menu_arcade_back').addEventListener('click', menu_fold);
+document.getElementById('menu_races_go').addEventListener('click', () => menu_launch('races'));
+document.getElementById('menu_races_back').addEventListener('click', menu_fold);
 for (const v of document.querySelectorAll('#intro .scene-back')) {
     v.addEventListener('click', menu_scene_back);
 }
@@ -47,7 +52,8 @@ document.getElementById('menu_volume').addEventListener('click', toggle_audio_se
 addEventListener('keydown', on_menu_key);
 menu_controls_fill();
 
-// C, N, A, L, S and ? pick their row; the arrows move between the rows; 1 2 3 pick a difficulty in the open Arcade;
+// C, N, A, R, L, S and ? pick their row; the arrows move between the rows; 1 2 3 pick a difficulty in the open
+// Arcade or Races;
 // Enter plays the open row; Esc closes Load, Settings or Controls, or folds the open row
 function on_menu_key(event)
 {
@@ -70,8 +76,8 @@ function on_menu_key(event)
         menu_fold();
         return;
     }
-    if ((menu_open_row === 'arcade') && ['1', '2', '3'].includes(event.key)) {
-        document.querySelectorAll('#intro .tile')[Number(event.key) - 1].click();
+    if (['arcade', 'races'].includes(menu_open_row) && ['1', '2', '3'].includes(event.key)) {
+        document.querySelectorAll(`#intro .fold[data-scene="${menu_open_row}"] .tile`)[Number(event.key) - 1].click();
         return;
     }
     if ((event.key === 'Enter') && ((i >= 0) || (document.activeElement === document.body) || document.activeElement.classList.contains('tile'))) {
@@ -94,7 +100,7 @@ function on_menu_key(event)
 
 function menu_scene(name)
 {
-    menu_open_row = ['continue', 'campaign', 'arcade'].includes(name) ? name : '';
+    menu_open_row = ['continue', 'campaign', 'arcade', 'races'].includes(name) ? name : '';
     menu_row_scene = menu_open_row || menu_row_scene;
     // a narrow window shows Load, Settings and Controls as a panel over the rows (menus-ui.css)
     document.getElementById('intro').classList.toggle('has-panel', menu_panel_scenes.includes(name));
@@ -103,8 +109,8 @@ function menu_scene(name)
         v.classList.toggle('open', v.dataset.scene === menu_open_row);
     }
     document.getElementById('menu_modes').classList.toggle('has-open', !!menu_open_row);
-    // short windows hide the other rows while the arcade's tiles are open, so they fit
-    document.getElementById('menu_modes').classList.toggle('arcade-open', menu_open_row === 'arcade');
+    // short windows hide the other rows while the Arcade's or the Races' tiles are open, so they fit
+    document.getElementById('menu_modes').classList.toggle('tiles-open', ['arcade', 'races'].includes(menu_open_row));
     // in a short window the rows scroll: the open one comes into view, its button with it
     document.querySelector('#menu_modes .fold.open')?.scrollIntoView({block: 'nearest'});
     if (name === menu_scene_now) {
@@ -150,7 +156,7 @@ function menu_fold()
     for (const v of document.querySelectorAll('#menu_modes .fold')) {
         v.classList.remove('open');
     }
-    document.getElementById('menu_modes').classList.remove('has-open', 'arcade-open');
+    document.getElementById('menu_modes').classList.remove('has-open', 'tiles-open');
 }
 
 // The launch: the scene zooms, a flash, "Starting · …", then the game
@@ -161,7 +167,7 @@ function menu_launch(mode)
     }
     menu_launching = true;
     menu_arcade.launch = 0;
-    const titles = {continue: document.getElementById('continue_title').textContent, campaign: 'New campaign', arcade: `Arcade · ${menu_arcade.level.name}`};
+    const titles = {continue: document.getElementById('continue_title').textContent, campaign: 'New campaign', arcade: `Arcade · ${menu_arcade.level.name}`, races: `Races · ${race_mode_levels[race_mode.level].name}`};
     document.getElementById('menu_go_title').textContent = titles[mode];
     document.getElementById('intro').classList.add('launching');
     setTimeout(() => menu_start(mode), menu_launch_ms);
@@ -176,6 +182,9 @@ function menu_start(mode)
     else if (mode === 'campaign') {
         arcade_stop();
         reset_run();
+    }
+    else if (mode === 'races') {
+        race_mode_launch();
     }
     else {
         arcade_start();

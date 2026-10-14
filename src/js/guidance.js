@@ -432,8 +432,8 @@ function toggle_navigation()
         canvas.focus();
         return;
     }
-    // the arcade has no map & guide: no routes, contracts or cargo to plan
-    if (!['playing', 'paused', 'upgrade'].includes(state) || arcade.active) {
+    // the arcade and the Races mode have no map & guide: no routes, contracts or cargo to plan
+    if (!['playing', 'paused', 'upgrade'].includes(state) || arcade.active || race_mode.active) {
         return;
     }
     nav_return = state;

@@ -81,7 +81,7 @@ A pair crosses a big distance: fly into one end, leave by the other.
 ## Race courses
 
 A ring race's course (`race_course_make`, `src/js/race.js`): a start line and
-5 to 7 rings. A ring acts on a ship within its radius (85 to 120 m); the
+7 to 10 rings in the campaign (5 to 12 in the Races mode, by its difficulty). A ring acts on a ship within its radius (85 to 120 m); the
 start line on the five places along it (298 m from its middle).
 
 - **The start line and every ring stand out of the station's shelter and

@@ -51,6 +51,11 @@ const screens = [
     {value: 'menu', label: 'main-menu-load', query: '&slots=1&row=load', phone: true},
     {value: 'menu', label: 'main-menu-settings', query: '&row=settings', phone: true},
     {value: 'menu', label: 'main-menu-controls', query: '&row=controls', phone: true},
+    // the Races mode: its row open with the difficulties; its results, last over the line with crashes and a rival's
+    // very long name, then wrecked on a rock
+    {value: 'menu', label: 'main-menu-races', query: '&slots=1&row=races', phone: true},
+    {value: 'race-results', label: 'race-results', query: '&race_place=last&race_crashes=3&race_long=1', phone: true},
+    {value: 'race-results', label: 'race-results-wrecked', query: '&race_end=wrecked&race_crashes=6', phone: true},
 ];
 // The designer's twelve window sizes, from 1440p down to a half-width window and a short strip; then two phones held
 // upright, for the screens marked phone (the HUD and the station are not laid out for a phone yet)
