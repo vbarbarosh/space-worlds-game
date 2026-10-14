@@ -82,7 +82,8 @@ function fly_in_world(dt, dx, dy)
     if (player.turbo_active) {
         player.dash_time = Math.max(0, player.dash_time - dt);
         player.turbo_fuel = player.dash_time;
-        if (campaign.world === 6) {
+        // Nova Forge's turbo heats the engine, but not in a race (dash: the rivals pay no price for theirs)
+        if ((campaign.world === 6) && !race_calm()) {
             player.heat = clamp((player.heat || 0) + dt*Math.max(3, 16 - upgrades.cooling*3 - ship.cooling*8), 0, 100);
             if (player.heat >= 100) {
                 player.overheated = true;
@@ -313,13 +314,15 @@ function dash(held = false)
     if ((state !== 'playing') || player.turbo_active || (player.dash_cd > 0) || (turbo_fuel() < (held ? 1.5 : 0.25))) {
         return;
     }
-    if ((campaign.world === 7) && (player.energy < 12)) {
+    // in a race the world's price of a turbo (Eclipse's pulse, Nova Forge's heat) is waived: the rivals pay neither
+    const racing = race_calm();
+    if (!racing && (campaign.world === 7) && (player.energy < 12)) {
         if (!held) {
             show_toast('TURBO NEEDS 12 PULSE', 'COLLECT ENERGY OR INSTALL A PULSE REACTOR', 2);
         }
         return;
     }
-    if ((campaign.world === 6) && (player.overheated || (player.heat > 85))) {
+    if (!racing && (campaign.world === 6) && (player.overheated || (player.heat > 85))) {
         if (!held) {
             show_toast('ENGINE TOO HOT', 'COOL THE REACTOR BEFORE IGNITION', 2);
         }
@@ -335,7 +338,7 @@ function dash(held = false)
     // campaign as in the arcade (before, the campaign's dash made you untouchable, and a pilot who dashed at every
     // missile took nothing in Dustfall and Nova Forge)
     player.dash_grace = 0.25;
-    if (campaign.world === 7) {
+    if (!racing && (campaign.world === 7)) {
         player.energy -= 12;
     }
     sfx('boost');

@@ -586,7 +586,11 @@ function race_hold_time(dt)
 // The race keeps the raiders off: from the moment you take your place on the line to the finish
 function race_calm()
 {
-    return race.placed && ((race.phase === 'grid') || (race.phase === 'hold') || (race.phase === 'countdown') || (race.phase === 'racing'));
+    // a count running or a race under way has you on the course, placed or not (a dev scene starts mid-race)
+    if ((race.phase === 'countdown') || (race.phase === 'racing')) {
+        return true;
+    }
+    return race.placed && ((race.phase === 'grid') || (race.phase === 'hold'));
 }
 
 // Where a raider goes while a race is on: null when it may go on as it was (one holding the start, a flagship, one busy

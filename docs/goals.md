@@ -180,6 +180,11 @@ a course of rings off the station and rivals to beat through it.
   waves. Only a raider already within 1.1 km of the line when you take your
   place holds the start, until it is shot or for 20 s of hold at most; then
   it pulls back.
+- **A world's price of a turbo is waived in a race:** from your place on the
+  line to the finish, Eclipse's turbo costs no pulse and Nova Forge's does
+  not heat the engine (`dash`, `race_calm`), as the rivals pay neither. A
+  player's log showed it: Normal, 8 of 8 won elsewhere, last twice in Eclipse
+  (80 and 67 s against a par of 34), the pulse gone and no turbo left.
 - **The finish:** your place is one more than the rivals over the line before
   you. The prize is the contract's reward for first at par time × the place's
   share (1, 0.7, 0.5, 0.35; the last always 0.2) × par ÷ your time (0.75 to
@@ -216,7 +221,7 @@ cruise costs hull, and you can die).
 | rings | the world's − 1 (6 in Haven, 9 in Eclipse) | + 1 (8 to 11) | + 3 (10 to 12) |
 | legs, turns | 1 ×, gentler (0.8 ×), away from rocks | 1.15 ×, among the rocks | 1.25 ×, sharper (1.2 ×), deep in the rocks |
 | ring radius | 18 m wider | the world's | 14 m tighter |
-| a good pilot (the bot of the tests) | 17 s in Haven to 30 s | 27 to 44 s | 37 to 67 s (Eclipse's turbo takes pulse) |
+| a good pilot (the bot of the tests) | 17 s in Haven to 30 s | 27 to 44 s | 37 to 67 s (measured while Eclipse's turbo took pulse) |
 
 The rivals' cruise is a share of your ship's in that world, so a world's own
 speed moves both alike. Over the line, your place and time show on a banner;
