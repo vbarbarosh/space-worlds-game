@@ -239,9 +239,13 @@ rides it by itself. Yours is only the turbo: Shift, a held mouse button or a
 finger held anywhere. Off it the ship eases back to cruise; on it, it climbs
 to the turbo's speed (3.2 × cruise for the Scout). A bend holds a ship up to
 a speed, √(grip × its radius): faster, it slides out, and past the edge it
-spins for 1.4 s, a quarter of its speed kept (`race_spin` in the play log).
-Ahead of you the edges of a bend you are too fast for turn amber, and red
-once you must let go now. The rocks on a track are cleared for the race; a
+spins for 0.7 s, a little over half its speed kept, about 1.5 s of a race
+(`race_spin` in the play log; at 2.5 s, the author's log showed one spin
+was last place in a field 2 s wide). A dotted line ahead of you shows where
+the ship flies in the next 1.6 s with the turbo as you hold it now: too fast
+for a bend, it bends out, and a red cross marks where you would spin. The
+edges of a bend you are too fast for turn amber, and red 0.35 s before
+letting go is too late. The rocks on a track are cleared for the race; a
 drifting one passes through. The rivals ride the same track by the same
 rules, each letting go before a bend by its nerve.
 

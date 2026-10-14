@@ -21,14 +21,21 @@ const race_rail_grip_r = 260;
 // On the turbo the speed climbs by this share of cruising speed a second; let go, it falls by this one
 const race_rail_rise = 1.1;
 const race_rail_fall = 1.3;
-// Off the track: the seconds of the spin, and the share of the speed kept
-const race_rail_spin = 1.4;
-const race_rail_spin_keep = 0.25;
+// Off the track: the seconds of the spin, and the share of the speed kept; a spin costs about 1.5 s of a race (the
+// author's log: at 2.5 s, a spin was last place in a field 2 s wide)
+const race_rail_spin = 0.7;
+const race_rail_spin_keep = 0.55;
 // Over the grip, the slide out grows this many times the side force not held: a few per cent too fast already shows,
 // ten throws a ship off
 const race_rail_slide = 3;
 // Your kerbs show the bends this many seconds ahead of you at your speed
 const race_rail_look = 3;
+// A person's reaction: a bend lights red this many seconds before letting go is too late
+const race_rail_react = 0.35;
+// Your path ahead is shown this many seconds on (race_rail_path_ahead); its ride and point worked out in place
+const race_rail_ahead = 1.6;
+const race_rail_ghost = {s: 0, v: 0, d: 0, u: 0, spin: 0, lane: 0, base: 0, top: 0, turbo: false, at: 0};
+const race_rail_ghost_at = {x: 0, y: 0, vx: 0, vy: 0, angle: 0};
 // The view looks this many seconds ahead of you along the track (as far as a third of the screen), easing to it
 const race_rail_lead = 0.7;
 // track: the track of the race on; grip: the side force a bend holds (px/s²); rise and fall: the climb on the turbo
@@ -257,7 +264,7 @@ function race_rail_move(r, dt)
     let spun = false;
     if (r.spin > 0) {
         r.spin -= dt;
-        r.v = Math.max(r.base*0.15, r.v - race_rail.fall*2*dt);
+        r.v = Math.max(r.base*0.5, r.v - race_rail.fall*0.5*dt);
         r.u *= Math.exp(-3*dt);
         if (r.spin <= 0) {
             // back on: steering in from the edge
@@ -440,8 +447,8 @@ function race_rail_reset()
     race_rail.held = false;
 }
 
-// The track under the race: the band, its two edges, red and white kerbs on the bends, and ahead of you the bends you
-// are too fast for now: amber while letting go in time still takes them, red once it must be now
+// The track under the race: the band, its two edges, red and white kerbs on the bends, ahead of you the edges of the
+// bends you are too fast for (amber half a second before red, red once you must let go), and your path ahead
 function race_rail_draw()
 {
     const track = race_rail.track;
@@ -513,9 +520,8 @@ function race_rail_draw()
             ctx.globalAlpha = warn ? 0.95 : 0.8;
             ctx.beginPath();
             for (let i = here; i < ahead; ++i) {
-                const safe = Math.sqrt(race_rail.grip/Math.max(1e-6, Math.abs(track.ks[i])));
-                const red = r.v > race_rail.profile[i];
-                if (!((r.v > safe) || red) || (red !== warn)) {
+                const red = r.v > race_rail_red(i);
+                if ((red !== warn) || (!red && (r.v <= race_rail_amber(i)))) {
                     continue;
                 }
                 ctx.moveTo(track.lx[i], track.ly[i]);
@@ -525,8 +531,62 @@ function race_rail_draw()
             }
             ctx.stroke();
         }
+        ctx.globalAlpha = 1;
+        race_rail_path_ahead(r);
     }
     ctx.restore();
+}
+
+// Your path ahead: where the ship flies in the next race_rail_ahead seconds with the turbo as you hold it now, a dot
+// every tenth of a second, fading; too fast for a bend it bends out with the slide, and where it would spin off a red
+// cross ends it
+function race_rail_path_ahead(r)
+{
+    const p = race_rail_ghost;
+    Object.assign(p, r);
+    const at = race_rail_ghost_at;
+    const k = 1/zoom;
+    const steps = Math.round(race_rail_ahead*30);
+    ctx.save();
+    ctx.fillStyle = cyan;
+    for (let i = 1; i <= steps; ++i) {
+        if (race_rail_move(p, 1/30)) {
+            race_rail_place(p, at);
+            ctx.globalAlpha = 0.95;
+            ctx.strokeStyle = '#ff3b4e';
+            ctx.lineWidth = 4*k;
+            ctx.lineCap = 'round';
+            ctx.beginPath();
+            ctx.moveTo(at.x - 12*k, at.y - 12*k);
+            ctx.lineTo(at.x + 12*k, at.y + 12*k);
+            ctx.moveTo(at.x + 12*k, at.y - 12*k);
+            ctx.lineTo(at.x - 12*k, at.y + 12*k);
+            ctx.stroke();
+            break;
+        }
+        if ((i % 3) !== 0) {
+            continue;
+        }
+        race_rail_place(p, at);
+        ctx.globalAlpha = 0.95*(1 - i/(steps + 10));
+        ctx.beginPath();
+        ctx.arc(at.x, at.y, 6*k, 0, Math.PI*2);
+        ctx.fill();
+    }
+    ctx.restore();
+}
+
+// The speed past which a point lights red: let go now, and a person's reaction later the ship still slows for it in
+// time (race_rail_react)
+function race_rail_red(i)
+{
+    return race_rail.profile[i] - race_rail.fall*race_rail_react;
+}
+
+// The speed past which it lights amber: red comes in about half a second
+function race_rail_amber(i)
+{
+    return race_rail.profile[i] - race_rail.fall*(race_rail_react + 0.5);
 }
 
 // A line along the track's points from one index to another, broken where it leaves the view; adds to the path begun,
