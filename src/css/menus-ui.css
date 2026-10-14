@@ -297,6 +297,26 @@ body:not(.in-game) .ui.hud .hud-top .toolbar {
   /* behind the rows the scene keeps its art, not its words: the arcade's score, its waves and the lines under it */
   .ui .s-arcade .ahud, .ui .s-arcade .wave, .ui .s-arcade .dname, .ui .scene .tag { display: none; }
 }
+/* Load, Settings and Controls: a scene with a head (its name, Back) that, where the scene would be behind the rows,
+   comes forward instead as a panel over them, its list scrolling inside when it outgrows the window */
+.ui .scene-head { display: none; }
+@container screen (max-width: 1100px) {
+  .ui.has-panel .mm-stage { grid-area: auto; z-index: 3; display: flex; align-items: center; justify-content: center; padding: 44px 16px; opacity: 1; pointer-events: auto; background: rgba(3, 7, 14, 0.8); }
+  .ui.has-panel .si { zoom: 1; display: flex; width: min(640px, 100%); height: auto; max-height: 100%; }
+  .ui.has-panel .scene { display: none; }
+  .ui.has-panel .scene.on { position: relative; inset: auto; display: flex; flex-direction: column; gap: 14px; width: 100%; max-height: 100%; padding: 16px 20px 20px; border-radius: 14px; background: var(--space-1); border: 1px solid var(--line-2); box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5); }
+  .ui.has-panel .scene-head { display: flex; align-items: center; gap: 12px; }
+  .ui.has-panel .scene-head h2 { margin: 0 auto 0 0; font: 700 20px/1.2 var(--font-ui); color: var(--text-1); }
+  .ui.has-panel .s-settings .opts, .ui.has-panel .s-controls .menu-keys, .ui.has-panel .s-load .slots, .ui.has-panel .s-load .load-foot { position: static; transform: none; width: auto; }
+  .ui.has-panel .s-settings .opts, .ui.has-panel .s-controls .menu-keys { padding: 0; border: 0; border-radius: 0; background: none; }
+  .ui.has-panel .s-controls .menu-keys, .ui.has-panel .s-load .slots { min-height: 0; overflow-y: auto; scrollbar-width: thin; }
+  .ui.has-panel .s-load .slot { grid-template-columns: 44px minmax(0, 1fr) auto; gap: 12px; padding: 10px 12px; }
+  .ui.has-panel .s-load .slot img { width: 44px; }
+  .ui.has-panel .s-load .load-foot { flex-wrap: wrap; justify-content: flex-end; }
+}
+@container screen (max-width: 640px) {
+  .ui.has-panel .s-controls .keys-list { grid-template-columns: auto minmax(0, 1fr); }
+}
 @container screen (max-width: 820px) { .ui .mm { padding-top: 72px; } }
 @container screen (max-height: 880px) { .ui .si { zoom: 0.78; } }
 @container screen (max-height: 760px) { .ui .si { zoom: 0.7; } .ui .mm-left { gap: 18px; } .ui .mm-title { font-size: clamp(44px, 5cqw, 70px); } }

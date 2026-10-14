@@ -91,9 +91,10 @@ panel folded. `&screen=race` starts a ring race at its start line
 (`race-mid` mid-race, `race-finish` over the line; `&race_place=1|2|3|last`,
 `&race_long=1`, `&race_left=1`, `&race_raiders=1` for its edge states), e.g.
 `dev.html?world=0&screen=race`. `&screen=menu` shows the menu with the scene's
-game to continue; `&row=arcade` opens that row, `&slots=1` shows the Load row
-of a player with saved slots, `&save=none` a first launch with no game to
-continue. It keeps its own storage and never touches the game's save.
+game to continue; `&row=arcade` (or `load`, `settings`, `controls`) opens that
+row, `&slots=1` adds six saved slots (the Load row, and its scene with
+`&row=load`), `&save=none` a first launch with no game to continue. It keeps
+its own storage and never touches the game's save.
 
 The interface is the designer's UI kit (src/css/ui-kit.css): one root,
 `.ui-screen`, is a size container, so every layout rule is an `@container`

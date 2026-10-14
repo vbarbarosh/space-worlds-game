@@ -739,7 +739,7 @@
   .ui .wallet, .ui .meter-mini { padding: 4px 10px; flex-direction: row; align-items: baseline; gap: 8px; } .ui .wallet .readout { font-size: 18px; } .ui .meter-mini .readout { font-size: 15px; }
   .ui .tabs .tab { height: 38px; }
   .ui .panel--modal { overflow: auto; } .ui .panel--modal > * { flex-shrink: 0; } .ui .panel-body { overflow: visible; flex: none; padding-block: 12px; }  /* the whole panel scrolls */
-  .ui .panel-foot { position: sticky; bottom: 0; background: var(--glass-strong); }
+  .ui .panel-foot { position: sticky; bottom: 0; background: var(--space-1); }   /* opaque: the list scrolls under it unseen */
   .ui .modal { height: calc(100% - 16px); }
   .ui .pause-layout { top: 8px; transform: translateX(-50%); max-height: calc(100% - 16px); }
   .ui .pause-layout .panel { padding: 18px 22px !important; gap: 12px !important; }

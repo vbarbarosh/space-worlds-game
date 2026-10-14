@@ -24,16 +24,14 @@ const screens = [
     // the finale held after its results are in
     {value: 'arcade-finale', label: 'arcade-finale', query: '&t=13', phone: true},
     {value: 'station-jobs', label: 'station-contracts'},
-    // known: the arsenal's, the market's and the hangar's lists run on under the foot's glass in a short window, their
-    // buttons under the foot's; not fixed yet, so reported, not failed
-    {value: 'station-arsenal', label: 'station-arsenal', known: 'buttons under the foot'},
+    {value: 'station-arsenal', label: 'station-arsenal'},
     {value: 'station-outfit', label: 'station-modules'},
     // the pause panel's play log at its cap (its longest line), then empty, Download off
     {value: 'pause', label: 'pause-log-full', query: '&play_log=full'},
     {value: 'pause', label: 'pause-log-empty', query: '&play_log=empty'},
     {value: 'station-career', label: 'station-goals'},
-    {value: 'station-market', label: 'station-market', known: 'buttons under the foot'},
-    {value: 'station-hangar', label: 'station-hangar', known: 'buttons under the foot'},
+    {value: 'station-market', label: 'station-market'},
+    {value: 'station-hangar', label: 'station-hangar'},
     {value: 'map-plan', label: 'map-mission-plan'},
     {value: 'map-local', label: 'map-local'},
     // the chart of the worlds and their lanes
@@ -44,6 +42,10 @@ const screens = [
     {value: 'menu', label: 'main-menu', query: '&slots=1', phone: true},
     {value: 'menu', label: 'main-menu-arcade', query: '&slots=1&row=arcade', phone: true},
     {value: 'menu', label: 'main-menu-first', query: '&save=none', phone: true},
+    // Load (six slots, the longest names), Settings and Controls: beside the rows, or a panel over them in a narrow window
+    {value: 'menu', label: 'main-menu-load', query: '&slots=1&row=load', phone: true},
+    {value: 'menu', label: 'main-menu-settings', query: '&row=settings', phone: true},
+    {value: 'menu', label: 'main-menu-controls', query: '&row=controls', phone: true},
 ];
 // The designer's twelve window sizes, from 1440p down to a half-width window and a short strip; then two phones held
 // upright, for the screens marked phone (the HUD and the station are not laid out for a phone yet)
@@ -59,12 +61,12 @@ const selectors = {
         '.hud-toasts > *', '.hud-toasts .toast', '.ui.hud .banners > *', '.ui.hud .race-board', '.hud-bottom .qbar', '.hud-bottom .shipstat', '.hud-bottom .hud-end', '.mm-left',
         '.depot-title', '.depot-stats', '.depot-wallet', '.depot-filters .seg', '.depot-search', '.depot-ship', '.depot-next',
         '.finale-title', '.finale-res'],
-    contained: ['.modal', '.pause-layout', '.mm-left', '.depot-side', '.depot-top', '.depot-filters', '.finale-title h1', '.finale-res'],
+    contained: ['.modal', '.pause-layout', '.mm-left', '.has-panel .scene.on', '.depot-side', '.depot-top', '.depot-filters', '.finale-title h1', '.finale-res'],
     clip: '.btn, .tab, .badge, .key, .qslot, .size, .alert, .seg button, .wallet, .meter-mini',
     boxes: '.card, .toast, .panel',
     // a mark in a corner of a screen (the menu's build stamp) stays inside the window and clear of what the screen shows
     marks: '.build-stamp',
-    marked: '.mm-left > *, .mode, .fold-body',
+    marked: '.mm-left > *, .mode, .fold-body, .has-panel .scene.on',
     // the buttons of the screen on top: whole in the window, not cut by a box round them, clear of each other
     buttons: 'button, .btn',
 };
@@ -105,16 +107,14 @@ async function main()
                 const audit = await page.evaluate(layout_audit, selectors);
                 const failures = [
                     ...audit.overlap.map(v => `overlap ${v}`),
-                    ...(screen.known ? [] : audit.buttons_over.map(v => `overlap ${v}`)),
                     ...audit.offscreen.map(v => `off ${v}`),
                     ...audit.cut.map(v => `cut ${v}`),
                     ...audit.clipped.map(v => `clip ${v}`),
                     ...audit.spill.map(v => `spill ${v}`),
                     ...(audit.hscroll ? ['hscroll'] : []),
                 ];
-                const known = screen.known ? audit.buttons_over.map(v => `${screen.known}: ${v}`) : [];
-                results.push({screen: screen.label, size: `${w}x${h}`, ok: !failures.length, failures, known, min_font: audit.min_font, shot});
-                console.log(`${failures.length ? 'FAIL' : 'ok  '} ${screen.label.padEnd(18)} ${`${w}x${h}`.padEnd(10)} min ${audit.min_font}px${failures.length ? `  ${failures.join(' | ')}` : ''}${known.length ? `  (known ${known.join(' | ')})` : ''}`);
+                results.push({screen: screen.label, size: `${w}x${h}`, ok: !failures.length, failures, min_font: audit.min_font, shot});
+                console.log(`${failures.length ? 'FAIL' : 'ok  '} ${screen.label.padEnd(18)} ${`${w}x${h}`.padEnd(10)} min ${audit.min_font}px${failures.length ? `  ${failures.join(' | ')}` : ''}`);
             }
             await page.close();
         }
@@ -133,7 +133,7 @@ async function main()
 // Runs in the page: what overlaps, leaves the window, is cut or sticks out, and the smallest text on screen
 function layout_audit(selectors)
 {
-    const out = {overlap: [], buttons_over: [], offscreen: [], cut: [], clipped: [], spill: [], hscroll: false, min_font: 99};
+    const out = {overlap: [], offscreen: [], cut: [], clipped: [], spill: [], hscroll: false, min_font: 99};
     const view = {width: innerWidth, height: innerHeight};
     function visible(v) {
         const r = v.getBoundingClientRect();
@@ -147,6 +147,20 @@ function layout_audit(selectors)
     }
     function outside(r) {
         return (r.left < -1) || (r.top < -1) || (r.right > view.width + 1) || (r.bottom > view.height + 1);
+    }
+    // At the point x, y, button v lies under an opaque box that is not its own: one whose background is solid and which
+    // is neither inside v nor round it, nor the other button's (two buttons stacked are a collision)
+    function covered(v, other, x, y) {
+        for (const p of document.elementsFromPoint(x, y)) {
+            if ((p === v) || v.contains(p)) {
+                return false;
+            }
+            const alpha = getComputedStyle(p).backgroundColor.match(/[\d.]+/g)?.[3];
+            if (!p.contains(v) && !other.contains(p) && ((alpha === undefined) ? (getComputedStyle(p).backgroundColor !== 'transparent') : (Number(alpha) >= 0.99))) {
+                return true;
+            }
+        }
+        return false;
     }
     // rect a holds rect b whole
     function holds(a, b) {
@@ -265,9 +279,12 @@ function layout_audit(selectors)
             const b = buttons[j].r;
             const ix = Math.min(a.right, b.right) - Math.max(a.left, b.left);
             const iy = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top);
-            // one wholly on the other is a control set on it (the minimap's Hide on the minimap), not a collision
-            if ((ix > 2) && (iy > 2) && !holds(a, b) && !holds(b, a)) {
-                out.buttons_over.push(`${name(buttons[i].v)} × ${name(buttons[j].v)} (${Math.round(ix)}×${Math.round(iy)}px)`);
+            // one wholly on the other is a control set on it (the minimap's Hide on the minimap), not a collision; one
+            // under an opaque box where they meet (a list scrolled under a solid panel foot) does not show there
+            const x = Math.max(a.left, b.left) + ix/2;
+            const y = Math.max(a.top, b.top) + iy/2;
+            if ((ix > 2) && (iy > 2) && !holds(a, b) && !holds(b, a) && !covered(buttons[i].v, buttons[j].v, x, y) && !covered(buttons[j].v, buttons[i].v, x, y)) {
+                out.overlap.push(`${name(buttons[i].v)} × ${name(buttons[j].v)} (${Math.round(ix)}×${Math.round(iy)}px)`);
             }
         }
     }
@@ -312,7 +329,6 @@ function layout_audit(selectors)
         out.min_font = Math.min(out.min_font, parseFloat(s.fontSize)*(parseFloat(s.zoom) || 1));
     }
     out.overlap = [...new Set(out.overlap)];
-    out.buttons_over = [...new Set(out.buttons_over)];
     out.clipped = [...new Set(out.clipped)].slice(0, 8);
     out.spill = [...new Set(out.spill)].slice(0, 8);
     return out;

@@ -1,6 +1,7 @@
 // The main menu, after the designer's main-menu.html: the modes as one family of rows (Continue the big one). A click
 // on Continue, New campaign or Arcade opens the row in place, and only its button (or Enter) plays; Load, Settings and
-// Controls show their scene on the right. Starting plays the launch, then the game.
+// Controls show their scene on the right, or in a narrow window as a panel over the rows, with Back (Esc). Starting
+// plays the launch, then the game.
 // The arcade preview per difficulty: seconds between swarms, raiders on the stage at most, the share of elites
 const menu_arcade_levels = {
     chill: {spawn: 0.75, max: 7, elite: 0, color: '#7be08a', name: 'Chill'},
@@ -19,6 +20,9 @@ const menu_arcade = {
 let menu_scene_now = '';
 // the row open in place: continue, campaign, arcade, or none once Esc folds it
 let menu_open_row = '';
+// the scenes that come forward as a panel over the rows in a narrow window, and the row's scene their Back returns to
+const menu_panel_scenes = ['load', 'settings', 'controls'];
+let menu_row_scene = '';
 let menu_launching = false;
 // the world and ship of the game to continue, and those the menu's art was last drawn for
 const menu_art = {world: 0, ship_id: 'scout', drawn_world: -1, drawn_ship_id: ''};
@@ -35,13 +39,16 @@ document.getElementById('menu_continue_go').addEventListener('click', () => menu
 document.getElementById('menu_campaign_go').addEventListener('click', () => menu_launch('campaign'));
 document.getElementById('menu_arcade_go').addEventListener('click', () => menu_launch('arcade'));
 document.getElementById('menu_arcade_back').addEventListener('click', menu_fold);
+for (const v of document.querySelectorAll('#intro .scene-back')) {
+    v.addEventListener('click', menu_scene_back);
+}
 document.getElementById('menu_all_saves').addEventListener('click', () => saves_open('menu'));
 document.getElementById('menu_volume').addEventListener('click', toggle_audio_settings);
 addEventListener('keydown', on_menu_key);
 menu_controls_fill();
 
 // C, N, A, L, S and ? pick their row; the arrows move between the rows; 1 2 3 pick a difficulty in the open Arcade;
-// Enter plays the open row; Esc folds it
+// Enter plays the open row; Esc closes Load, Settings or Controls, or folds the open row
 function on_menu_key(event)
 {
     if ((state !== 'menu') || settings_open || menu_launching || event.ctrlKey || event.metaKey || event.altKey || ['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
@@ -53,6 +60,10 @@ function on_menu_key(event)
         event.preventDefault();
         const step = ['ArrowDown', 'ArrowRight'].includes(event.key) ? 1 : -1;
         modes[(Math.max(0, i) + step + modes.length) % modes.length].focus();
+        return;
+    }
+    if ((event.key === 'Escape') && menu_panel_scenes.includes(menu_scene_now)) {
+        menu_scene_back();
         return;
     }
     if ((event.key === 'Escape') && menu_open_row) {
@@ -84,6 +95,9 @@ function on_menu_key(event)
 function menu_scene(name)
 {
     menu_open_row = ['continue', 'campaign', 'arcade'].includes(name) ? name : '';
+    menu_row_scene = menu_open_row || menu_row_scene;
+    // a narrow window shows Load, Settings and Controls as a panel over the rows (menus-ui.css)
+    document.getElementById('intro').classList.toggle('has-panel', menu_panel_scenes.includes(name));
     for (const v of document.querySelectorAll('#menu_modes .fold')) {
         v.classList.toggle('on', v.dataset.scene === name);
         v.classList.toggle('open', v.dataset.scene === menu_open_row);
@@ -117,6 +131,16 @@ function menu_scene(name)
     else {
         menu_arcade_stop();
     }
+}
+
+// Back (Esc) from Load, Settings or Controls: the scene of the row before, and the focus on the row that opened it
+function menu_scene_back()
+{
+    const opener = document.querySelector(`#menu_modes .mode[data-scene="${menu_scene_now}"]`);
+    const continue_shown = !el.continue_row.classList.contains('hidden');
+    const row = ((menu_row_scene === 'continue') && !continue_shown) ? '' : menu_row_scene;
+    menu_scene(row || (continue_shown ? 'continue' : 'campaign'));
+    opener?.focus();
 }
 
 // Esc: the open row closes, its scene stays

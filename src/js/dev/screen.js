@@ -178,17 +178,20 @@ function dev_screen_play_log_set()
 }
 
 // The menu as a player meets it: with a game to continue (the dev scene's own save, the Continue row open) or, with
-// &save=none, a first launch with none (in memory only: the dev page's storage keeps the save); &slots=1 shows the Load
-// row of a player with saved slots (the row only: its scene lists the slots there are); &row=arcade (campaign,
-// continue, load, settings or controls) opens that row, as its click does
+// &save=none, a first launch with none (in memory only: the dev page's storage keeps the save); &slots=1 adds six
+// saved slots, the longest names among them (the Load row, and its scene opened by &row=load); &row=arcade (campaign,
+// continue, load, settings or controls) opens that row, as its click does. The slots are written for the menu's first
+// look and taken back out after it, so the dev page's storage keeps what it had
 function dev_screen_menu_open()
 {
+    const kept = localStorage.getItem('pulse_drift_saves_v1');
+    if (dev_screen_slots === '1') {
+        dev_screen_slots_write();
+        sync_load_button();
+    }
     if (dev_screen_save === 'none') {
         checkpoint = null;
         set_hidden(el.continue_row, true);
-    }
-    if (dev_screen_slots === '1') {
-        set_hidden(document.getElementById('load_button'), false);
     }
     menu_open();
     const mode = document.querySelector(`#menu_modes .mode[data-scene="${dev_screen_row}"]`);
@@ -196,6 +199,26 @@ function dev_screen_menu_open()
         mode.focus();
         menu_scene(dev_screen_row);
     }
+    if (dev_screen_slots === '1') {
+        if (kept === null) {
+            localStorage.removeItem('pulse_drift_saves_v1');
+        }
+        else {
+            localStorage.setItem('pulse_drift_saves_v1', kept);
+        }
+    }
+}
+
+// Six slots made from the dev scene's save: the longest world and ship names, a salvage in the millions, an arcade run
+function dev_screen_slots_write()
+{
+    save_checkpoint();
+    const now = Date.now();
+    const slots = [['Nova Forge', 'Viper Interceptor'], ['Cryosphere', 'Bastion Gunship'], ['Haven', 'Wisp Scout'], ['Obsidian', 'Mule Prospector'], ['Ion Reach', 'Kestrel Courier']].map(function ([world, ship], i) {
+        return {saved_at: now - i*3600e3, world, story: `${12 - i}/${story.length}`, ship, salvage: 1234567 - i*1000, checkpoint: JSON.parse(JSON.stringify(checkpoint))};
+    });
+    slots.push({saved_at: now - 90e3, world: 'Eclipse', story: 'arcade', ship: 'Aurora Cruiser', salvage: 455, arcade: {world: 7, score: 556825}});
+    localStorage.setItem('pulse_drift_saves_v1', JSON.stringify(slots));
 }
 
 // Three raiders 380 m ahead of you
