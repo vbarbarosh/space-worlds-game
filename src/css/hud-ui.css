@@ -746,3 +746,64 @@ body.in-fight .vignette {
         padding: 1px 6px;
     }
 }
+
+/* the quick bar's slots keep their size: a narrow bar scrolls sideways (the kit's narrow rule) rather than squeezing
+   them until their key chips are cut */
+.ui .qbar > * {
+    flex: none;
+}
+
+/* Phones held upright: the top in two rows, the readouts over the toolbar, so every button and its key is on the
+   screen; the bottom in three, zoom over the gauges over the quick bar, which then has the whole width */
+@container screen (max-width: 560px) {
+    .ui.hud {
+        --top-h: 82px;
+    }
+
+    .ui.hud .hud-top {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 8px;
+    }
+
+    .ui.hud .hud-top .readouts {
+        grid-column: 1;
+        grid-row: 1;
+        justify-self: start;
+    }
+
+    .ui.hud .hud-top .toolbar {
+        grid-column: 1;
+        grid-row: 2;
+        justify-self: end;
+    }
+
+    .ui.hud .hud-bottom {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-areas: "e" "s" "q";
+        gap: 8px;
+    }
+
+    .ui.hud .hud-bottom .hud-end {
+        justify-self: end;
+    }
+
+    .ui.hud .hud-bottom .qbar {
+        justify-self: start;
+    }
+
+    /* six slots across a 320 px phone */
+    .ui.hud .qslot {
+        --size: 42px;
+    }
+
+    /* each gauge's value under its name: a third of a phone holds 100 / 100 whole, not beside the name */
+    .ui.hud .shipstat .gauge {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 5px;
+    }
+
+    .ui.hud .shipstat .gauge .val {
+        grid-column: 1;
+        text-align: left;
+    }
+}

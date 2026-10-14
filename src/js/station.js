@@ -376,6 +376,37 @@ const station_tab_keys = ['jobs', 'market', 'intel', 'outfit', 'hangar', 'arsena
 let station_docked_at = 0;
 
 addEventListener('keydown', on_station_key);
+document.getElementById('station_tabs').addEventListener('scroll', station_tabs_fade);
+// a phone turned on its side: the active tab kept in view, the NEXT strip measured again for its one line
+addEventListener('resize', function () {
+    if (state === 'upgrade') {
+        station_tabs_reveal();
+        render_next_strip(document.getElementById('station_briefing'), guide_context());
+    }
+});
+
+// In a narrow window the tabs scroll sideways: the active one is brought into view, in the middle when it can be
+function station_tabs_reveal()
+{
+    const tabs = document.getElementById('station_tabs');
+    const tab = tabs.querySelector('.is-active');
+    if (tab) {
+        const box = tabs.getBoundingClientRect();
+        const r = tab.getBoundingClientRect();
+        if ((r.left < box.left + 28) || (r.right > box.right - 28)) {
+            tabs.scrollLeft += r.left - box.left - (box.width - r.width)/2;
+        }
+    }
+    station_tabs_fade();
+}
+
+// A fade at each end of the tabs that has more to scroll to
+function station_tabs_fade()
+{
+    const tabs = document.getElementById('station_tabs');
+    tabs.classList.toggle('is-scrolled', tabs.scrollLeft > 1);
+    tabs.classList.toggle('is-end', tabs.scrollLeft + tabs.clientWidth >= tabs.scrollWidth - 1);
+}
 
 function station_tab_open(tab)
 {
@@ -429,6 +460,7 @@ function guide_base_render_station()
         b.classList.toggle('is-active', b.dataset.station === station_tab);
     }
     sync_station_tab_counts();
+    station_tabs_reveal();
     document.getElementById('station_cargo').innerHTML = `${cargo_count()}<small>/${cargo_capacity()}</small>`;
     const is_outfit = station_tab === 'outfit';
     set_hidden(el.shop_grid, !is_outfit);
@@ -509,7 +541,8 @@ function sync_sell_all_button()
     const offer = sell_all_offer();
     set_hidden(b, arcade.active);
     b.disabled = !offer.keys.length;
-    b.innerHTML = offer.keys.length ? `<span>Sell all cargo</span><span class="price">${ui_number(offer.total)}</span>` : '<span>Nothing to sell</span>';
+    // a phone drops the word cargo: Sell all and the price
+    b.innerHTML = offer.keys.length ? `<span>Sell all<span class="sell-word"> cargo</span></span><span class="price">${ui_number(offer.total)}</span>` : '<span>Nothing to sell</span>';
 }
 
 function trade_cargo(key, side, requested)

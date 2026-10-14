@@ -41,6 +41,8 @@ const dev_screen_row = new URLSearchParams(location.search).get('row');
 // &contracts=full and &cargo=all: the station's crowded states (dev_screen_station_set)
 const dev_screen_contracts = new URLSearchParams(location.search).get('contracts');
 const dev_screen_cargo = new URLSearchParams(location.search).get('cargo');
+// &station=full: the station's header and NEXT strip at their longest (dev_screen_station_set)
+const dev_screen_station = new URLSearchParams(location.search).get('station');
 // The crowded screen's burst: the news of a busy arrival, danger among it, the same title twice, a long line
 const dev_screen_news = [
     ['DEPOT SHIELDED', 'RAIDERS NEAR THE STATION · CLEAR THEM AND IT OPENS', 'info'],
@@ -235,9 +237,27 @@ function dev_screen_slots_write()
 // The station's crowded states, the mission plan's too. &contracts=full: three contracts taken (a story chapter
 // followed, one with a very long title and paragraph, one finished), a goal followed, and the longest board offered:
 // rank Ace (its bounty and expedition), a side mission with a very long title and paragraph among them. &cargo=all:
-// every one of the eleven goods in the hold
+// every one of the eleven goods in the hold. &station=full: the header and the NEXT strip at their longest: a station
+// name far longer than any world's, the hold full, salvage in the millions, and the guide's longest step (every mining
+// drone lost, sent to the station by its long name) with its button
 function dev_screen_station_set()
 {
+    if (dev_screen_station === 'full') {
+        worlds[campaign.world].station = 'Snowflake research dock and relief yard of the outer ring, berth seven';
+        document.getElementById('station_title').textContent = worlds[campaign.world].station;
+        salvage = 12345678;
+        const dev_base_guide_context = guide_context;
+        guide_context = function () {
+            const name = worlds[campaign.world].station;
+            return {
+                ...dev_base_guide_context(),
+                goal: {...station, label: name},
+                kind: 'prepare',
+                action: 'Open modules',
+                instruction: `Your mining drones are all lost. Dock at ${name} and buy new ones in MODULES, then come back to the field.`,
+            };
+        };
+    }
     if (dev_screen_contracts === 'full') {
         campaign.xp = Math.max(campaign.xp || 0, rank_thresholds[4]);
         const long = {
@@ -268,6 +288,9 @@ function dev_screen_station_set()
         for (const v of commodities) {
             campaign.cargo[v.key] = 1;
         }
+    }
+    if (dev_screen_station === 'full') {
+        campaign.cargo[commodities[0].key] += Math.max(0, cargo_capacity() - cargo_count());
     }
 }
 

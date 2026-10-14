@@ -23,7 +23,9 @@
     margin: 16px 26px 0;
 }
 
+/* its text whole on a wide screen; on a phone one line (--lines), the rest a tap away */
 .ui .next-strip .next-text {
+    --lines: none;
     flex: 1;
     min-width: 0;
     margin: 0;
@@ -579,5 +581,282 @@
         width: auto;
         max-width: 100%;
         max-height: 240px;
+    }
+}
+
+/* Phones. Upright (a window under 560 px wide): the header in two lines, the name with salvage, the ship line with
+   the hold, each chip a picture and its number; the NEXT strip one line, the rest a tap away (ui_text_clamp); the
+   tabs a row that scrolls, the active one kept in view (station_tabs_reveal); the cards one column; the foot's buttons
+   share the width, and Undock takes a row of its own when they do not fit. Sideways (under 460 px tall): the header
+   on one line, the strip one line, the whole panel scrolling under its pinned foot (the kit's short rule). Both:
+   every button at least 40 px for a thumb. */
+@container screen (max-width: 560px) or (max-height: 460px) {
+    .ui .station-panel .panel-head {
+        display: grid;
+        align-items: center;
+        gap: 4px 10px;
+        padding: 10px 14px 0;
+    }
+
+    .ui .station-panel .panel-head .titles,
+    .ui .station-panel .panel-head .end {
+        display: contents;
+    }
+
+    .ui .station-panel .panel-head .titles > .eyebrow {
+        display: none;
+    }
+
+    .ui .station-panel .panel-head .h-panel {
+        grid-area: name;
+        min-width: 0;
+        font-size: 22px;
+        overflow-wrap: anywhere;
+    }
+
+    .ui .station-panel .panel-head .small {
+        grid-area: sub;
+        min-width: 0;
+    }
+
+    .ui .station-panel .panel-head .meter-mini {
+        display: flex;
+        grid-area: cargo;
+    }
+
+    .ui .station-panel .panel-head .wallet {
+        grid-area: wallet;
+    }
+
+    .ui .station-panel .panel-head .meter-mini,
+    .ui .station-panel .panel-head .wallet {
+        flex-direction: row;
+        align-items: center;
+        justify-self: end;
+        gap: 6px;
+        padding: 4px 10px;
+    }
+
+    .ui .station-panel .panel-head .meter-mini .readout {
+        font-size: 15px;
+        white-space: nowrap;
+    }
+
+    .ui .station-panel .panel-head .wallet .readout {
+        font-size: 17px;
+        white-space: nowrap;
+    }
+
+    .ui .station-panel > .next-strip:not(:empty) {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0 10px;
+        min-height: 40px;
+        max-height: 40cqh;
+        margin: 10px 14px 0 !important;
+        padding: 0 4px 0 12px;
+        overflow: auto;
+    }
+
+    /* one line; a tap anywhere on the strip but its button opens the rest (render_next_strip) */
+    .ui .next-strip .next-text {
+        --lines: 1;
+        flex: 1 1 150px;
+        font-size: var(--fs-sm);
+    }
+
+    .ui .next-strip:has(.is-long) {
+        cursor: pointer;
+    }
+
+    /* open, the text takes the strip's width and its button goes under it */
+    .ui .station-panel > .next-strip:has(.is-open) {
+        padding: 10px 10px 6px 12px;
+    }
+
+    .ui .next-strip .next-text.is-open {
+        flex-basis: 100%;
+        padding-top: 6px;
+    }
+
+    .ui .next-strip .btn {
+        margin: 4px 0;
+    }
+
+    .ui .station-panel .tabs {
+        margin-top: 6px;
+        padding: 0 14px;
+    }
+
+    /* a fade at the end that has more tabs, none at the end you reached (station_tabs_fade) */
+    .ui .station-panel .tabs.is-end {
+        mask-image: none;
+    }
+
+    .ui .station-panel .tabs.is-scrolled {
+        mask-image: linear-gradient(90deg, transparent, #000 28px, #000 calc(100% - 28px), transparent);
+    }
+
+    .ui .station-panel .tabs.is-scrolled.is-end {
+        mask-image: linear-gradient(90deg, transparent, #000 28px);
+    }
+
+    .ui .station-panel .tabs .tab {
+        height: 44px;
+        padding: 0 10px;
+    }
+
+    .ui .station-panel .btn,
+    .ui .station-panel .btn-sm {
+        height: 40px;
+    }
+
+    .ui .station-panel .btn-icon {
+        width: 40px;
+    }
+
+    .ui .station-panel .seg button {
+        min-width: 44px;
+        height: 40px;
+        justify-content: center;
+    }
+
+    .ui .station-panel .select select {
+        height: 40px;
+    }
+
+    /* the hangar's ship preview: BOOST held under a thumb */
+    .ui .station-panel .fleet-boost {
+        min-height: 40px;
+        font-size: 11px;
+    }
+
+    .ui .station-panel .panel-body {
+        padding: 12px 14px;
+    }
+
+    .ui .station-panel .panel-foot {
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 8px 14px;
+    }
+
+    .ui .station-panel .panel-foot .btn {
+        height: 44px;
+    }
+
+    .ui .station-panel .panel-foot .btn-icon {
+        width: 44px;
+    }
+}
+
+/* upright: two lines, the name and salvage over the ship line and the hold; a chip's word for a screen reader, a
+   picture for the eye: a crate for the hold, the salvage diamond */
+@container screen (max-width: 560px) {
+    .ui .station-panel .panel-head {
+        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-areas: "name wallet" "sub cargo";
+    }
+
+    .ui .station-panel .panel-head .h-panel {
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        overflow: hidden;
+    }
+
+    .ui .station-panel .panel-head .meter-mini .eyebrow,
+    .ui .station-panel .panel-head .wallet .eyebrow {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
+    }
+
+    .ui .station-panel .panel-head .meter-mini::before {
+        content: "";
+        width: 15px;
+        height: 15px;
+        background: var(--text-3);
+        mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23000' stroke-width='1.6' stroke-linejoin='round'%3E%3Cpath d='M2 5l6-3 6 3v6l-6 3-6-3z'/%3E%3Cpath d='M2 5l6 3 6-3M8 8v6'/%3E%3C/svg%3E") center/contain no-repeat;
+    }
+
+    .ui .station-panel .panel-head .wallet::before {
+        content: "◆";
+        color: var(--gold);
+        font-size: 12px;
+    }
+
+    .ui .station-panel .station-content,
+    .ui .contracts-column.offered,
+    .ui .station-panel .shop-grid,
+    .ui .arsenal-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    /* a section's heading on one line, its eyebrow (the count, the station, what to do) on a line under it */
+    .ui .contracts-column > h3,
+    .ui .arsenal-guns-head .h-section {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+
+    .ui .arsenal-guns-head {
+        flex-wrap: wrap;
+    }
+
+    /* the heading on the left like the others, its filters under it (today's narrow rule stacks it centred) */
+    .ui .station-panel .shop-heading {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .ui .station-panel .shop-heading .seg {
+        max-width: 100%;
+        overflow-x: auto;
+        scrollbar-width: none;
+    }
+
+    .ui #sell_all_button .sell-word {
+        display: none;
+    }
+
+    .ui .station-panel .panel-foot .btn:not(.btn-icon) {
+        flex: 1 1 auto;
+    }
+}
+
+/* sideways: one line, the name, the ship line, the hold and salvage with their words */
+@container screen (max-height: 460px) {
+    .ui .station-panel .panel-head {
+        grid-template-columns: minmax(0, max-content) minmax(120px, 1fr) auto auto;
+        grid-template-areas: "name sub cargo wallet";
+    }
+
+    .ui .station-panel .panel-head .h-panel {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .ui .station-panel .panel-head .small {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .ui .station-panel .shop-heading {
+        min-height: 40px;
+    }
+}
+
+/* sideways in one column: the ship's drawing leaves room for its mounts under it */
+@container screen (max-height: 460px) and (max-width: 1100px) {
+    .ui .arsenal-art {
+        max-height: 150px;
     }
 }

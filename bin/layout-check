@@ -9,9 +9,9 @@ const out_dir = path.join(__dirname, '..', 'data', 'layout-check');
 const page_file = path.join(__dirname, '..', 'build', 'dev.html');
 // Every screen, opened straight from the dev page's URL (src/js/dev/screen.js)
 const screens = [
-    {value: 'flight', label: 'hud-calm'},
-    {value: 'combat', label: 'hud-combat'},
-    {value: 'arcade', label: 'hud-arcade'},
+    {value: 'flight', label: 'hud-calm', phone: true},
+    {value: 'combat', label: 'hud-combat', phone: true},
+    {value: 'arcade', label: 'hud-arcade', phone: true},
     // the world's title, raiders close and a burst of news at once: the news line, the title and the card apart
     {value: 'crowded', label: 'hud-crowded'},
     // a ring race under way: the standings under the minimap, one rival with a very long name
@@ -23,26 +23,29 @@ const screens = [
     {value: 'arcade-cleared', label: 'arcade-cleared'},
     // the finale held after its results are in
     {value: 'arcade-finale', label: 'arcade-finale', query: '&t=13', phone: true},
-    {value: 'station-jobs', label: 'station-contracts'},
+    {value: 'station-jobs', label: 'station-contracts', phone: true},
     // three taken (a story chapter, a very long title and paragraph, a finished one) and the longest board offered
-    {value: 'station-jobs', label: 'station-contracts-full', query: '&contracts=full'},
-    {value: 'station-arsenal', label: 'station-arsenal'},
+    {value: 'station-jobs', label: 'station-contracts-full', query: '&contracts=full', phone: true},
+    {value: 'station-arsenal', label: 'station-arsenal', phone: true},
     // the start kit in Haven: guns for sale beside guns a later world opens, their lock badges
-    {value: 'station-arsenal', label: 'station-arsenal-locked', query: '&kit=start'},
-    {value: 'station-outfit', label: 'station-modules'},
+    {value: 'station-arsenal', label: 'station-arsenal-locked', query: '&kit=start', phone: true},
+    {value: 'station-outfit', label: 'station-modules', phone: true},
     // modules at level 1: their next levels wait for Verdant to Obsidian
-    {value: 'station-outfit', label: 'station-modules-locked', query: '&modules=damage:1,shield:1,armor:1,rate:1,spread:1,turbo_tank:1,magnet:1'},
+    {value: 'station-outfit', label: 'station-modules-locked', query: '&modules=damage:1,shield:1,armor:1,rate:1,spread:1,turbo_tank:1,magnet:1', phone: true},
     // the pause panel's play log at its cap (its longest line), then empty, Download off
     {value: 'pause', label: 'pause-log-full', query: '&play_log=full'},
     {value: 'pause', label: 'pause-log-empty', query: '&play_log=empty'},
-    {value: 'station-career', label: 'station-goals'},
-    {value: 'station-market', label: 'station-market'},
+    {value: 'station-career', label: 'station-goals', phone: true},
+    {value: 'station-market', label: 'station-market', phone: true},
     // all eleven goods in the hold: every card of the market, each with its picture
-    {value: 'station-market', label: 'station-market-all', query: '&cargo=all'},
-    {value: 'station-intel', label: 'station-intel'},
-    {value: 'station-hangar', label: 'station-hangar'},
+    {value: 'station-market', label: 'station-market-all', query: '&cargo=all', phone: true},
+    {value: 'station-intel', label: 'station-intel', phone: true},
+    // the header and the NEXT strip at their longest: a very long station name, the hold full, salvage in the millions,
+    // the guide's longest step with its button; with every good in the hold and the contracts crowded
+    {value: 'station-jobs', label: 'station-header-full', query: '&station=full&cargo=all&contracts=full', phone: true},
+    {value: 'station-hangar', label: 'station-hangar', phone: true},
     // six ships: the one you fly, ships for sale and ships a later world opens, their bars, mounts and chips
-    {value: 'station-hangar', label: 'station-hangar-locked', query: '&kit=start'},
+    {value: 'station-hangar', label: 'station-hangar-locked', query: '&kit=start', phone: true},
     {value: 'map-plan', label: 'map-mission-plan'},
     // three contracts and the goal, each row its picture, one contract's title very long
     {value: 'map-plan', label: 'map-mission-plan-full', query: '&contracts=full'},
@@ -65,13 +68,13 @@ const screens = [
     {value: 'race-results', label: 'race-results', query: '&race_place=last&race_crashes=3&race_long=1', phone: true},
     {value: 'race-results', label: 'race-results-wrecked', query: '&race_end=wrecked&race_crashes=6', phone: true},
 ];
-// The designer's twelve window sizes, from 1440p down to a half-width window and a short strip; then two phones held
-// upright, for the screens marked phone (the HUD and the station are not laid out for a phone yet)
+// The designer's twelve window sizes, from 1440p down to a half-width window and a short strip; then phones, two held
+// upright and one on its side, for the screens marked phone (the crowded HUD, the race and the maps not yet)
 const sizes = [
     [2560, 1440], [1920, 1080], [1600, 900], [1440, 900], [1366, 768], [1280, 720],
     [1024, 768], [943, 980], [800, 600], [640, 720], [1536, 348], [1280, 400],
 ];
-const phone_sizes = [[320, 640], [390, 844]];
+const phone_sizes = [[320, 640], [390, 844], [844, 390]];
 // Blocks that must not overlap each other; the panels and menus that must stay inside the window; controls that must
 // not cut their own text; boxes whose text must not stick out
 const selectors = {
@@ -90,11 +93,11 @@ const selectors = {
 };
 const usage = `usage: bin/layout-check [screen...]
 
-    Opens every screen of build/dev.html at twelve window sizes, and the menu and the arcade's cleared screens
-    at two phone sizes too, and checks the interface holds together: HUD blocks do not overlap, panels stay
-    in the window, every button of the screen on top is whole on screen and clear of the others, no control
-    cuts its own text, no text sticks out of its box, the page never scrolls sideways. Screenshots and
-    report.json go to data/layout-check/.
+    Opens every screen of build/dev.html at twelve window sizes, and the menu, the station, the flight HUD and
+    the arcade's cleared screens at three phone sizes too (two upright, one on its side), and checks the
+    interface holds together: HUD blocks do not overlap, panels stay in the window, every button of the screen
+    on top is whole on screen and clear of the others, no control cuts its own text, no text sticks out of its
+    box, the page never scrolls sideways. Screenshots and report.json go to data/layout-check/.
     Exits 1 on any failure.
 
     screens: ${[...new Set(screens.map(v => v.value))].join(', ')}`;
@@ -118,6 +121,9 @@ async function main()
             const page = await browser.newPage({viewport: {width: w, height: h}});
             for (const screen of chosen.filter(v => !phone || v.phone)) {
                 await page.goto(`file://${page_file}?world=0&screen=${screen.value}${screen.query || ''}`);
+                // the screen is open once the dev panel has folded (its DEV tab shows); a page's first load can take
+                // longer than the wait after it
+                await page.waitForSelector('#dev_open:not(.hidden)', {state: 'attached', timeout: 15000});
                 await page.waitForTimeout(1200);
                 const shot = path.join(out_dir, screen.label, `${w}x${h}.png`);
                 fs.mkdirSync(path.dirname(shot), {recursive: true});

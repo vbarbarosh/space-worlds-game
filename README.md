@@ -59,8 +59,10 @@ Three modes:
     bin/run          build and open build/index.html in the browser
     bin/build        write build/index.html, build/dev.html and build/agent.html
     bin/captain      the agent's game window and its commands (see below)
-    bin/layout-check every screen at twelve window sizes, the menu and the
-                     arcade's cleared screens at two phone sizes too: no HUD
+    bin/layout-check every screen at twelve window sizes, the menu, the
+                     station, the flight HUD and the arcade's cleared
+                     screens at three phone sizes too (two upright, one on
+                     its side): no HUD
                      block over another, no button off the window or over
                      another, no text cut; shots and report.json in
                      data/layout-check/, exit 1 on a failure
@@ -111,7 +113,9 @@ URL), so the HANGAR and ARSENAL show what a later world opens. It keeps
 its own storage and never touches the game's save. `&contracts=full` crowds
 the station's CONTRACTS (three taken, among them a very long title, and the
 longest board offered) and `&cargo=all` puts all eleven goods in the hold for
-the CARGO MARKET; `&screen=station-intel` opens TRADE INTEL.
+the CARGO MARKET; `&station=full` puts the station's header and NEXT strip at
+their longest (a very long station name, the hold full, salvage in the
+millions, the guide's longest step); `&screen=station-intel` opens TRADE INTEL.
 
 The interface is the designer's UI kit (src/css/ui-kit.css): one root,
 `.ui-screen`, is a size container, so every layout rule is an `@container`
