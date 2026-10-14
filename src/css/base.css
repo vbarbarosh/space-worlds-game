@@ -597,6 +597,12 @@ button:active {
     .hint {
         display: none;
     }
+
+    /* a key chip (J, R, Enter, Ctrl) tells a keyboard what to press: a touch screen has none, so it goes, except in
+       the Controls list, where the keys are what it shows */
+    .key:not(.keys-list .key) {
+        display: none;
+    }
 }
 
 @media (max-width: 720px) {
