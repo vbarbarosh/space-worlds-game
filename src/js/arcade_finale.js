@@ -220,8 +220,9 @@ function finale_loop()
 }
 
 // The ring of planets: it sits high and wide during the flight, then shrinks into the emblem under the title; on a
-// short window the emblem moves right, the results take the left. Where the results under the emblem would run off
-// the window, the emblem shrinks into the room between the title (its bottom: top) and the results (their height)
+// short window the emblem moves right, the results take the left, a third of the way down, or higher where they would
+// run off the window (results_top). Where the results under the emblem would run off the window, the emblem shrinks
+// into the room between the title (its bottom: top) and the results (their height)
 function finale_geometry(t, w, h, top = 0, results = 0)
 {
     const k = finale_ease(finale_seg(t, 6.35, 7.4));
@@ -242,7 +243,8 @@ function finale_geometry(t, w, h, top = 0, results = 0)
         const a = Math.PI/2 + (i*2*Math.PI)/arcade_worlds;
         return {x: cx + Math.cos(a)*r*1.18, y: cy + Math.sin(a)*r};
     });
-    return {cx, cy, r, points, short};
+    const results_top = short ? Math.max(top + 12, Math.min(h*0.3, h - 12 - results)) : cy + r*1.45;
+    return {cx, cy, r, points, short, results_top};
 }
 
 function finale_frame(t)
@@ -551,7 +553,7 @@ function finale_place_words(story, g, h, steps)
     }
     title.querySelector('p').style.opacity = finale_seg(story, ...steps.line);
     const results = document.getElementById('finale_res');
-    results.style.top = `${g.short ? h*0.3 : g.cy + g.r*1.45}px`;
+    results.style.top = `${g.results_top}px`;
     results.style.opacity = (story >= steps.results[0]) ? 1 : 0;
     results.style.transform = g.short ? '' : 'translateX(-50%)';
     // each tile rises in its turn; the flagships' row and the best bar's come with their own steps

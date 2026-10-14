@@ -51,9 +51,11 @@ Two modes:
     bin/run          build and open build/index.html in the browser
     bin/build        write build/index.html, build/dev.html and build/agent.html
     bin/captain      the agent's game window and its commands (see below)
-    bin/layout-check every screen at twelve window sizes: no HUD block over
-                     another, nothing off the window, no text cut; shots and
-                     report.json in data/layout-check/, exit 1 on a failure
+    bin/layout-check every screen at twelve window sizes, the menu and the
+                     arcade's cleared screens at two phone sizes too: no HUD
+                     block over another, no button off the window or over
+                     another, no text cut; shots and report.json in
+                     data/layout-check/, exit 1 on a failure
     bin/build-docs   docs/ as a website in build/docs, with the game from
                      bin/build in play/; published to GitHub Pages on every
                      push to main (.github/workflows/docs.yml)
@@ -88,7 +90,10 @@ map-plan, ...; the list is in src/js/dev/screen.js) opens that screen with the
 panel folded. `&screen=race` starts a ring race at its start line
 (`race-mid` mid-race, `race-finish` over the line; `&race_place=1|2|3|last`,
 `&race_long=1`, `&race_left=1`, `&race_raiders=1` for its edge states), e.g.
-`dev.html?world=0&screen=race`. It keeps its own storage and never touches the game's save.
+`dev.html?world=0&screen=race`. `&screen=menu` shows the menu with the scene's
+game to continue; `&row=arcade` opens that row, `&slots=1` shows the Load row
+of a player with saved slots, `&save=none` a first launch with no game to
+continue. It keeps its own storage and never touches the game's save.
 
 The interface is the designer's UI kit (src/css/ui-kit.css): one root,
 `.ui-screen`, is a size container, so every layout rule is an `@container`

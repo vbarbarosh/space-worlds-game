@@ -31,6 +31,11 @@ const dev_screen_modules = new URLSearchParams(location.search).get('modules') |
 const dev_screen_play_log = new URLSearchParams(location.search).get('play_log');
 // &t=7.5 holds the finale (or a world's cleared screen) at one moment
 const dev_screen_time = new URLSearchParams(location.search).get('t');
+// &save=none, &slots=1 and &row=arcade: the menu with no game to continue, with saved slots (its Load row), with a row
+// open (dev_screen_menu_open)
+const dev_screen_save = new URLSearchParams(location.search).get('save');
+const dev_screen_slots = new URLSearchParams(location.search).get('slots');
+const dev_screen_row = new URLSearchParams(location.search).get('row');
 // The crowded screen's burst: the news of a busy arrival, danger among it, the same title twice, a long line
 const dev_screen_news = [
     ['DEPOT SHIELDED', 'RAIDERS NEAR THE STATION · CLEAR THEM AND IT OPENS', 'info'],
@@ -53,7 +58,7 @@ function dev_screen_open()
         dev_panel_collapse_toggle();
     }
     if (dev_screen === 'menu') {
-        menu_open();
+        dev_screen_menu_open();
         return;
     }
     if (dev_screen === 'arcade') {
@@ -169,6 +174,27 @@ function dev_screen_play_log_set()
             play_log_index.played_s += session.played_s;
             play_log_store(session);
         }
+    }
+}
+
+// The menu as a player meets it: with a game to continue (the dev scene's own save, the Continue row open) or, with
+// &save=none, a first launch with none (in memory only: the dev page's storage keeps the save); &slots=1 shows the Load
+// row of a player with saved slots (the row only: its scene lists the slots there are); &row=arcade (campaign,
+// continue, load, settings or controls) opens that row, as its click does
+function dev_screen_menu_open()
+{
+    if (dev_screen_save === 'none') {
+        checkpoint = null;
+        set_hidden(el.continue_row, true);
+    }
+    if (dev_screen_slots === '1') {
+        set_hidden(document.getElementById('load_button'), false);
+    }
+    menu_open();
+    const mode = document.querySelector(`#menu_modes .mode[data-scene="${dev_screen_row}"]`);
+    if (mode && !mode.closest('.hidden')) {
+        mode.focus();
+        menu_scene(dev_screen_row);
     }
 }
 
