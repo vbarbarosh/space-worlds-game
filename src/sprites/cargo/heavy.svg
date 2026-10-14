@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+<defs><linearGradient id="accent-fill" x1="0" y1="0" x2="1" y2="1"><stop id="accent-light" offset="0" stop-color="#c8c0ff"/><stop id="accent-base" offset="0.5" stop-color="#9b8cff"/><stop id="accent-dark" offset="1" stop-color="#5d5499"/></linearGradient></defs>
+<g id="base">
+<path d="M24 16 a8 8 0 0 1 16 0" fill="none" stroke="#070b14" stroke-width="9" stroke-linecap="round"/>
+<path d="M24 16 a8 8 0 0 1 16 0" fill="none" stroke="#a9b3be" stroke-width="4" stroke-linecap="round"/>
+</g>
+<g id="accent">
+<path d="M18 18 h28 l10 38 h-48 z" fill="url(#accent-fill)" stroke="#070b14" stroke-linejoin="round" stroke-linecap="round" stroke-width="4"/>
+<path d="M22 46 h20" stroke="#070b14" stroke-width="3" stroke-linecap="round"/>
+<path d="M24 26 h6" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-opacity="0.7"/>
+</g>
+</svg>

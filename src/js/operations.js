@@ -981,7 +981,6 @@ function render_station()
     sync_sell_all_button();
     const parent = document.getElementById('station_content');
     const rank = pilot_rank();
-    const f = campaign.fleet;
     if ((station_tab === 'hangar') || (station_tab === 'arsenal') || (station_tab === 'career') || (station_tab === 'intel')) {
         parent.replaceChildren();
         set_hidden(el.shop_grid, true);
@@ -992,62 +991,9 @@ function render_station()
     }
     if (station_tab === 'hangar') {
         for (const v of ship_catalog) {
-            const owned = f.ships.includes(v.id);
-            const selected = f.ship_id === v.id;
-            // a ship not yet on sale says where it opens, before the rank it needs
-            const closed = !owned && !tech_open(v.opens);
-            const locked = !owned && (closed || (rank < v.rank));
-            const oversize = cargo_count() > v.cargo;
-            function on_select() {
-                fleet_purchase(v.id, 'ship');
-            }
-            const action = selected
-                ? 'ACTIVE SHIP'
-                : closed
-                    ? tech_lock_text(v.opens).toUpperCase()
-                    : locked
-                        ? `REQUIRES ${rank_names[v.rank].toUpperCase()}`
-                        : oversize
-                            ? 'SELL CARGO TO SWITCH'
-                            : owned
-                                ? 'SWITCH SHIP'
-                                : `BUY · ◆ ${v.price}`;
-            const c = card(
-                parent,
-                `${v.name} / ${v.role}`,
-                v.description,
-                `HULL ${v.hull} · SHIELD +${v.shield} · SPEED ${Math.round(v.speed*100)}% · CARGO ${v.cargo} · GUNS ${owned ? mounts_armed_text(v) : mounts_text(v)}`,
-                action,
-                on_select,
-                selected || locked || oversize || (!owned && (salvage < v.price)),
-                selected ? 'active' : ''
-            );
-            // the kit's button writes its label in sentence case: the world keeps its name
-            const label = closed && c.querySelector('.foot .btn > span');
-            if (label) {
-                label.textContent = tech_lock_text(v.opens);
-            }
-            const art = document.createElement('div');
-            art.className = 'fleet-silhouette';
-            art.innerHTML = ship_svg(v);
-            c.append(art);
-            const note = document.createElement('small');
-            note.textContent =
-                `RAD HULL ${Math.round(v.radiation*100)}% · EQUIPPED ${Math.round(radiation_protection(v)*100)}% · GRAVITY THRUST ×${v.traction} · BRAKES ×${v.braking} · TURBO ${8 + v.endurance + upgrades.turbo_tank*3}s`;
-            const match = expedition_conditions.map((e, i) => ((e.ship === v.id) ? worlds[i].name : null)).filter(Boolean);
-            const usage = document.createElement('p');
-            usage.textContent = `Suited to ${match.join(', ') || 'specialized expeditions'}. Protection and engines differ by hull.`;
-            // on the UI kit, above the card's button, in the kit's small type
-            const foot = c.querySelector('.foot');
-            if (foot) {
-                note.className = 'small card-meta';
-                usage.className = 'small';
-                foot.before(note, usage);
-            }
-            else {
-                c.append(note, usage);
-            }
+            render_hangar_card(parent, v);
         }
+        ui_text_clamp(parent);
     }
     if (station_tab === 'arsenal') {
         render_arsenal(parent);
@@ -1075,6 +1021,94 @@ function render_station()
         el.dock_status.textContent = 'Modules transfer between ships. Equip your ship and weapon before checking world-gate requirements.';
     }
 }
+
+// A ship in the HANGAR, picture first: its live preview, its role as a tag, its name, three lines of text, then
+// hull, shield, speed and cargo as bars against the best ship (green above yours, red below), its mounts by size, its
+// radiation shielding, gravity thrust, brakes and turbo as chips, and the worlds it suits as their badges
+function render_hangar_card(parent, v)
+{
+    const f = campaign.fleet;
+    const owned = f.ships.includes(v.id);
+    const selected = f.ship_id === v.id;
+    // a ship not yet on sale says where it opens, before the rank it needs
+    const closed = !owned && !tech_open(v.opens);
+    const locked = !owned && (closed || (pilot_rank() < v.rank));
+    const oversize = cargo_count() > v.cargo;
+    const action = selected
+        ? 'ACTIVE SHIP'
+        : closed
+            ? tech_lock_text(v.opens).toUpperCase()
+            : locked
+                ? `REQUIRES ${rank_names[v.rank].toUpperCase()}`
+                : oversize
+                    ? 'SELL CARGO TO SWITCH'
+                    : owned
+                        ? 'SWITCH SHIP'
+                        : `BUY · ◆ ${v.price}`;
+    const c = card(parent, v.name, v.description, '', action, () => fleet_purchase(v.id, 'ship'),
+        selected || locked || oversize || (!owned && (salvage < v.price)), selected ? 'active' : '');
+    // the kit's button writes its label in sentence case: the world keeps its name
+    const label = closed && c.querySelector('.foot .btn > span');
+    if (label) {
+        label.textContent = tech_lock_text(v.opens);
+    }
+    const art = document.createElement('div');
+    art.className = 'fleet-silhouette';
+    art.innerHTML = ship_svg(v);
+    c.append(art);
+    const foot = c.querySelector('.foot');
+    // off the kit (no foot) the card keeps its name, text and picture
+    if (!foot) {
+        return;
+    }
+    c.classList.add('hangar-card');
+    c.querySelector('p.small')?.classList.add('clamp');
+    c.querySelector('.h-card').insertAdjacentHTML('beforebegin', `<div class="meta">${ui_badge(v.role)}${selected ? ui_badge('Flying', 'cyan') : owned ? ui_badge('Yours') : ''}</div>`);
+    foot.insertAdjacentHTML('beforebegin', hangar_specs_html(v, owned));
+}
+
+// What a ship is, as pictures and numbers: bars, mounts, chips and the worlds it suits
+function hangar_specs_html(ship, owned)
+{
+    const mine = current_ship();
+    const bars = [
+        ['Hull', ship.hull, mine.hull, String(ship.hull)],
+        ['Shield', ship.shield, mine.shield, `+${ship.shield}`],
+        ['Speed', ship.speed, mine.speed, `${Math.round(ship.speed*100)}%`],
+        ['Cargo', ship.cargo, mine.cargo, String(ship.cargo)],
+    ].map(function ([name, value, now, text]) {
+        const best = Math.max(...ship_catalog.map(v => v[name.toLowerCase()]));
+        const mark = (ship.id === mine.id) ? '' : (value > now) ? ' is-up' : (value < now) ? ' is-down' : '';
+        const width = Math.round((value/best)*100);
+        return `<div class="ship-bar${mark}" title="${name} ${text}: the best ship has ${(name === 'Speed') ? `${Math.round(best*100)}%` : best}"><span class="lbl">${name}</span><span class="track"><b style="width:${width}%"></b></span><span class="val">${text}</span></div>`;
+    }).join('');
+    const sizes = ship_mounts(ship);
+    const mounts = gun_sizes.filter(v => sizes.includes(v)).map(function (size) {
+        return `<span class="ship-mount">${sizes.filter(v => v === size).length}×${ui_size(size)}</span>`;
+    }).join('');
+    const empty = owned ? ship_loadout(ship).filter(v => !v).length : 0;
+    const turbo = 8 + ship.endurance + upgrades.turbo_tank*3;
+    // each chip names itself in words a screen reader and the captain's agent read (the label is hidden on screen)
+    const chips = [
+        ['rad', 'radiation shielding', `${Math.round(radiation_protection(ship)*100)}%`, `Radiation shielding ${Math.round(radiation_protection(ship)*100)}%: ${Math.round(ship.radiation*100)}% from the hull, the rest from your radiation lining`],
+        ['thrust', 'gravity thrust', `×${ship.traction}`, `Gravity thrust ×${ship.traction}: how well it climbs out of a pull`],
+        ['brakes', 'brakes', `×${ship.braking}`, `Brakes ×${ship.braking}`],
+        ['turbo', 'turbo', `${turbo}s`, `Turbo ${turbo} s with your booster reservoir`],
+    ].map(v => `<span class="ship-chip" title="${v[3]}">${hangar_icons[v[0]]}<span class="visually-hidden">${v[1]} </span>${v[2]}</span>`).join('');
+    const suits = expedition_conditions.map((e, i) => ((e.ship === ship.id) ? ui_world_badge(i) : '')).join('');
+    return `<div class="ship-bars">${bars}</div>`
+        + `<div class="ship-row"><span class="eyebrow eyebrow--muted">Guns</span>${mounts}${empty ? `<span class="ship-empty">${empty} empty</span>` : ''}</div>`
+        + `<div class="ship-chips">${chips}</div>`
+        + (suits ? `<div class="ship-row" title="The worlds whose conditions this hull suits"><span class="eyebrow eyebrow--muted">Suits</span>${suits}</div>` : '');
+}
+
+// The HANGAR chips' small icons, in the text's colour: a radiation trefoil, an arrow out of a pull, brakes, a flame
+const hangar_icons = {
+    rad: '<svg aria-hidden="true" viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="8" r="1.6"/><path d="M8 6 L5 1.2 A7 7 0 0 1 11 1.2 Z M9.7 9 L15 9 A7 7 0 0 1 12 14.2 Z M6.3 9 L4 14.2 A7 7 0 0 1 1 9 Z"/></svg>',
+    thrust: '<svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 10 V1.5 M4.5 5 L8 1.5 L11.5 5"/><path d="M1.5 15 A8 5 0 0 1 14.5 15"/></svg>',
+    brakes: '<svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="8" cy="8" r="6"/><path d="M5 5 L11 11"/></svg>',
+    turbo: '<svg aria-hidden="true" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0.8 C9 4 13 6 13 10 A5 5 0 0 1 3 10 C3 7.5 5 6.5 5.5 4.5 C6.5 6 7 7 6.8 8.5 C8.5 7 9 4 8 0.8 Z"/></svg>',
+};
 
 function ship_outline(shape)
 {

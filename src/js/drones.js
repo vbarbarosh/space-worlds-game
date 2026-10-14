@@ -286,6 +286,7 @@ function render_drone_shop_card()
     const capped = owned >= drone_bay();
     const card = document.createElement('div');
     card.className = 'shop-item';
+    card.dataset.icon = ship_parts_clean_url('3d/drone-mining');
     card.innerHTML =
         `<b>⛏ &nbsp;Mining drone · ${drone_tier().mark}</b><span class="item-level">IN BAY ${owned} / ${drone_bay()}</span><p>H / cuts rocks near you and brings the ore to your hold. Raiders hunt drones; replace the lost ones here.</p>`;
     const b = document.createElement('button');
@@ -316,6 +317,7 @@ function render_drone_tier_card(after)
     const now = drone_tier();
     const card = document.createElement('div');
     card.className = 'shop-item';
+    card.dataset.icon = ship_parts_clean_url('3d/drone-mining');
     card.innerHTML = next
         ? `<b>⛏ &nbsp;${next.name} drones · ${next.mark}</b><span class="item-level">YOURS: ${now.name.toUpperCase()} ${now.mark}</span><p>Every drone in the bay: ${Math.round((next.speed/now.speed - 1)*100)}% faster, drills ${next.cut}× as fast as the first drones, ${next.hp} hull, carries ${next.carry} units a trip.</p>`
         : `<b>⛏ &nbsp;${now.name} drones · ${now.mark}</b><span class="item-level">TOP TIER</span><p>Your drones are the best there are: fast, tough, ${now.carry} units a trip.</p>`;

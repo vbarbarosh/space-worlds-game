@@ -57,14 +57,15 @@ function ui_tier(n)
 
 const ui_lock_svg = '<svg viewBox="0 0 16 16" fill="currentColor"><path d="M4.5 7V5a3.5 3.5 0 0 1 7 0v2h-1.8V5a1.7 1.7 0 0 0-3.4 0v2z"/><rect x="3" y="7" width="10" height="7.5" rx="1.6"/></svg>';
 
-// A kit card: tags, title, one line of text, stats, then the foot with a note and the action, in that order.
-// state: '', 'is-equipped', 'is-selected', 'is-goal', 'is-locked' or 'is-done'
-function ui_card({tags = '', title, text = '', stats = [], note = '', action = null, state = '', art = ''})
+// A kit card: a banner picture, tags, title, one line of text, stats, then the foot with a note and the action, in
+// that order; art is a tile beside the title instead. state: '', 'is-equipped', 'is-selected', 'is-goal', 'is-locked'
+// or 'is-done'
+function ui_card({tags = '', title, text = '', stats = [], note = '', action = null, state = '', art = '', banner = ''})
 {
     const c = document.createElement('div');
     c.className = `card${state ? ` ${state}` : ''}`;
     const head = `${tags ? `<div class="meta">${tags}</div>` : ''}<h4 class="h-card">${title}</h4>${text ? `<p class="small" style="margin:0">${text}</p>` : ''}`;
-    c.innerHTML = art ? `<div class="item"><div class="art">${art}</div><div class="txt">${head}</div></div>` : head;
+    c.innerHTML = banner + (art ? `<div class="item"><div class="art">${art}</div><div class="txt">${head}</div></div>` : head);
     if (stats.length) {
         c.insertAdjacentHTML('beforeend', `<dl class="stats">${stats.map(v => `<div><dt>${v[0]}</dt><dd>${v[1]}</dd></div>`).join('')}</dl>`);
     }
@@ -76,6 +77,46 @@ function ui_card({tags = '', title, text = '', stats = [], note = '', action = n
     }
     c.append(foot);
     return c;
+}
+
+// The texts open in full, by their card's title: a render keeps them open
+const ui_clamp_open = new Set();
+
+// The cards' texts with the class clamp show their first lines (--lines, 3 by default); one cut short gets its whole
+// text as a tooltip, and a click (or Enter) opens it in full and closes it again
+function ui_text_clamp(root)
+{
+    for (const p of root.querySelectorAll('.clamp')) {
+        const key = p.closest('.card')?.querySelector('.h-card')?.textContent || p.textContent;
+        const open = ui_clamp_open.has(key);
+        p.classList.toggle('is-open', open);
+        if (!open && (p.scrollHeight <= p.clientHeight + 1)) {
+            continue;
+        }
+        p.classList.add('is-long');
+        p.title = p.textContent;
+        p.tabIndex = 0;
+        p.setAttribute('role', 'button');
+        p.setAttribute('aria-expanded', String(open));
+        function toggle() {
+            const now = !ui_clamp_open.has(key);
+            if (now) {
+                ui_clamp_open.add(key);
+            }
+            else {
+                ui_clamp_open.delete(key);
+            }
+            p.classList.toggle('is-open', now);
+            p.setAttribute('aria-expanded', String(now));
+        }
+        p.addEventListener('click', toggle);
+        p.addEventListener('keydown', function (event) {
+            if ((event.key === 'Enter') || (event.key === ' ')) {
+                event.preventDefault();
+                toggle();
+            }
+        });
+    }
 }
 
 // A kit button from one of today's capitalised labels: BUY · ◆ 350 becomes Buy with a price chip

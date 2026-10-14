@@ -52,6 +52,14 @@
     color: #ffd16e;
 }
 
+/* a good's picture before its name */
+.intel-table .intel-good-picture {
+    width: 22px;
+    height: 22px;
+    margin: -4px 8px -4px 0;
+    vertical-align: middle;
+}
+
 .intel-filter {
     display: flex;
     gap: 9px;

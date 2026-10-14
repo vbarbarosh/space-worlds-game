@@ -578,6 +578,7 @@ function render_builder_shop_card()
     }
     const card = document.createElement('div');
     card.className = 'shop-item';
+    card.dataset.icon = ship_parts_clean_url('drones/builder-drone');
     card.innerHTML = `<b>⚒ &nbsp;Builder drone</b><span class="item-level">${campaign.builder ? 'IN BAY' : 'NOT OWNED'}</span><p>Builds mining outposts and defence platforms where you place them. K opens the build menu in flight.</p>`;
     const b = document.createElement('button');
     b.disabled = !!campaign.builder || (salvage < builder_price);

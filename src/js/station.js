@@ -52,13 +52,15 @@ function expedition_base_guide_base_claim_contract(id)
     sfx('upgrade');
 }
 
-function card(parent, title, text, meta, button_label, action, disabled = false, className = '')
+// art: on the kit, a picture's HTML for the tile beside the title
+function card(parent, title, text, meta, button_label, action, disabled = false, className = '', art = '')
 {
     // inside a screen on the UI kit, the kit's card
     if (parent.closest('.ui')) {
         const c = ui_card({
             title,
             text,
+            art,
             note: '',
             state: (className === 'active') ? 'is-selected' : '',
             action: button_label ? ui_button_from_label(button_label, {size: 'sm', disabled, on: action}) : null,
@@ -92,7 +94,8 @@ function card(parent, title, text, meta, button_label, action, disabled = false,
 }
 
 // The station's contracts on the kit: the ones you carry on the left (with their free slots), the ones offered here
-// on the right; a finished one carries the panel's primary button, Collect reward [C]
+// on the right; a finished one carries the panel's primary button, Collect reward [C]. Each card leads with the
+// picture of its kind, then the title, the text clamped to three lines (ui_text_clamp) and its stages as pictures
 function render_station_contracts(parent)
 {
     parent.classList.add('contracts');
@@ -115,18 +118,15 @@ function render_station_contracts(parent)
             actions.append(ui_button({label: 'Abandon', kind: 'ghost', size: 'sm', on: () => contract_abandon(m)}));
             actions.append(ui_button({label: tracked ? 'Following' : 'Follow', size: 'sm', disabled: tracked, on: () => contract_follow(m)}));
         }
-        taken.append(ui_card({
-            tags: `${ui_world_badge(m.world)}<span class="eyebrow eyebrow--muted" style="margin-left:auto">${m.ready ? 'Complete' : contract_stage_text(m)}</span>`,
+        taken.append(contract_card(m, {
+            label: m.ready ? 'Complete' : contract_stage_text(m),
             title: m.title,
-            text: m.description,
-            note: `<span class="money">${ui_number(m.reward)}</span>`,
             action: actions,
             state: m.ready ? 'is-done' : tracked ? 'is-selected' : '',
         }));
-        taken.lastChild.querySelector('.foot').insertAdjacentHTML('beforebegin', contract_stages_html(m));
     }
     for (let i = campaign.contracts.length; i < 3; ++i) {
-        taken.insertAdjacentHTML('beforeend', '<div class="contract-slot">Free slot</div>');
+        taken.insertAdjacentHTML('beforeend', `<div class="contract-slot"><img src="${contract_picture_url('empty')}" alt=""><span>Free slot</span></div>`);
     }
     const offers = [];
     if ((campaign.story < story.length) && !campaign.contracts.some(v => v.main)) {
@@ -137,14 +137,59 @@ function render_station_contracts(parent)
     }
     for (const m of offers) {
         const dupe = campaign.contracts.some(v => v.title === m.title);
-        offered.append(ui_card({
-            tags: `${ui_world_badge(m.world)}<span class="eyebrow eyebrow--muted" style="margin-left:auto">${m.main ? 'Story' : m.stages ? `${m.stages.length} stage${(m.stages.length === 1) ? '' : 's'}` : m.type}</span>`,
+        offered.append(contract_card(m, {
+            label: m.main ? 'Story' : m.stages ? `${m.stages.length} stage${(m.stages.length === 1) ? '' : 's'}` : m.type,
             title: m.label,
-            text: m.description,
-            note: `<span class="money">${ui_number(m.reward)}</span>`,
             action: ui_button({label: dupe ? 'Taken' : full ? 'No free slot' : 'Accept', size: 'sm', disabled: full || dupe, on: () => accept_contract(m, !!m.main)}),
         }));
     }
+    ui_text_clamp(parent);
+}
+
+// One contract's card: the picture of its kind in its world's colour, the world and the label, the title, the text,
+// the stages, then the reward and the action
+function contract_card(m, {label, title, action, state = ''})
+{
+    const c = ui_card({
+        banner: contract_banner_html(m),
+        tags: `${ui_world_badge(m.world)}<span class="eyebrow eyebrow--muted" style="margin-left:auto">${label}</span>`,
+        title,
+        text: m.description,
+        note: `<span class="money">${ui_number(m.reward)}</span>`,
+        action,
+        state,
+    });
+    c.classList.add('contract-card');
+    c.querySelector('p.small')?.classList.add('clamp');
+    c.querySelector('.foot').insertAdjacentHTML('beforebegin', contract_stages_html(m));
+    return c;
+}
+
+// The kinds of stage, the one that tells a contract apart first: most contracts open with a scan, so the picture is
+// of the stage that names the job (the flagship, the commander, the convoy...), not of the first
+const contract_kind_rank = ['boss', 'lure', 'race', 'elite', 'escort', 'hunt', 'defend', 'mining', 'trade', 'recover', 'courier', 'scan'];
+
+// The kind of work a contract is about: its headline stage by contract_kind_rank; an old story chapter's survey is a
+// scan
+function contract_kind(m)
+{
+    const kinds = (m.stages || [m]).map(v => ((v.type === 'survey') ? 'scan' : v.type));
+    return contract_kind_rank.find(v => kinds.includes(v)) || kinds[0];
+}
+
+// A contract picture (sprites/contracts, one per kind of stage, story's mark and the empty slot) as an image URL
+function contract_picture_url(kind)
+{
+    return ship_parts_url(`contracts/${sprite_svgs.contracts?.[kind] ? kind : 'empty'}`);
+}
+
+// The card's banner: the kind's picture on its world's colour; a story chapter wears the guild's star, a finished
+// contract a tick
+function contract_banner_html(m)
+{
+    const kind = contract_kind(m);
+    const story_mark = m.main ? `<img class="contract-mark" src="${contract_picture_url('story')}" alt="Story chapter" title="Story chapter">` : '';
+    return `<div class="contract-art" style="--world:var(--w-${world_slug(m.world)})"><img class="contract-picture" src="${contract_picture_url(kind)}" alt="${kind}">${story_mark}</div>`;
 }
 
 // A contract's stage, for its card: Stage 2 of 3, or how far along a one-stage one is
@@ -153,16 +198,22 @@ function contract_stage_text(m)
     return m.stages ? `Stage ${m.stage_index + 1} of ${m.stages.length}` : `${format_progress(m.progress)} / ${m.target}`;
 }
 
-// A contract's stages as gold bars: done, the one under way, and those to come
+// A contract's stages in order, each the small picture of its kind over a gold bar: done (its picture dimmed), the one
+// under way, and those to come (all to come on one offered); the stage's title in its tooltip
 function contract_stages_html(m)
 {
-    const count = m.stages ? m.stages.length : 1;
-    const now = m.stages ? m.stage_index : 0;
-    const bars = [];
-    for (let i = 0; i < count; ++i) {
-        bars.push(`<b class="${(m.ready || (i < now)) ? 'done' : (i === now) ? 'now' : ''}"></b>`);
+    const stages = m.stages || [m];
+    const now = (m.stage_index || 0);
+    const taken = campaign.contracts.includes(m);
+    const cells = [];
+    for (let i = 0; i < stages.length; ++i) {
+        const v = stages[i];
+        const kind = (v.type === 'survey') ? 'scan' : v.type;
+        const bar = !taken ? '' : (m.ready || (i < now)) ? 'done' : (i === now) ? 'now' : '';
+        const title = ui_escape(`${i + 1}. ${v.title || m.title} · ${worlds[v.world ?? m.world].name}`);
+        cells.push(`<span class="stage${bar ? ` is-${bar}` : ''}" title="${title}"><img src="${contract_picture_url(kind)}" alt="${kind}"><b class="${bar}"></b></span>`);
     }
-    return `<div class="stages">${bars.join('')}</div>`;
+    return `<div class="stages contract-stages">${cells.join('')}</div>`;
 }
 
 function contract_follow(m)
@@ -409,11 +460,14 @@ function guide_base_render_shop()
     render_drone_shop_card();
     render_builder_shop_card();
     render_transport_shop_card();
-    // on the UI kit every shop card becomes a kit item card
+    // on the UI kit every shop card becomes a kit item card, its picture first and its text three lines
     if (el.shop_grid.closest('.ui')) {
         for (const old of [...el.shop_grid.querySelectorAll('.shop-item')]) {
-            old.replaceWith(ui_shop_item(old));
+            const c = ui_shop_item(old);
+            c.querySelector('p.small')?.classList.add('clamp');
+            old.replaceWith(c);
         }
+        ui_text_clamp(el.shop_grid);
     }
     el.next_sector.innerHTML = station_undock_label;
     el.next_sector.disabled = false;
@@ -506,6 +560,13 @@ function trade_cargo(key, side, requested)
     return amount;
 }
 
+// A good's picture (sprites/cargo, one per commodity, a world's resource in its colour), as an image; class names a size
+function cargo_picture_html(key, className = '')
+{
+    const name = commodities.find(v => v.key === key)?.name || key;
+    return `<img${className ? ` class="${className}"` : ''} src="${ship_parts_url(sprite_svgs.cargo?.[key] ? `cargo/${key}` : 'pickups/pickup-cargo')}" alt="${ui_escape(name)}">`;
+}
+
 // The CARGO MARKET on the UI kit: a card per good with what you hold and the prices, a quantity (×1, ×10, ×50, all)
 // and Buy and Sell with their totals
 function render_market_kit(parent)
@@ -531,9 +592,10 @@ function render_market_kit(parent)
         }
         actions.append(ui_button({label: `Sell ${sell_n}`, price: trade_total(campaign.world, commodity.key, 'sell', sell_n), size: 'sm', kind: (sell_n > 0) ? 'primary' : '', disabled: sell_n < 1, on: () => trade_cargo(commodity.key, 'sell', sell_n)}));
         const c = ui_card({
+            art: cargo_picture_html(commodity.key),
             tags: resource ? `${ui_world_badge(resource.world)}${ui_badge('Resource')}` : (demand > 0) ? ui_badge(`Demand ${demand}`, 'gold') : ui_badge('No demand'),
             title: commodity.name,
-            text: resource ? `Mined, never sold here: ${worlds[resource.world].name} pays 60% of its worth, each world farther away 30% more.` : 'Demand pays +6 a unit until it is filled. TRADE INTEL compares every station.',
+            text: resource ? `Mined, not sold here. Pays more the farther from ${worlds[resource.world].name}.` : 'Demand pays +6 a unit until it is filled.',
             stats: [['CARGO', String(owned)], ...(resource ? [] : [['BUY', `◆ ${price}`]]), ['SELL', `◆ ${sell}`]],
             action: actions,
         });
@@ -549,6 +611,10 @@ function render_market_kit(parent)
             });
             seg.append(b);
         }
+        // the whole rule in the text's tooltip
+        c.querySelector('p.small').title = resource
+            ? `Mined, never sold here: ${worlds[resource.world].name} pays 60% of its worth, each world farther away 30% more.`
+            : 'Demand pays +6 a unit until it is filled. TRADE INTEL compares every station.';
         c.querySelector('.foot').before(seg);
         parent.append(c);
     }

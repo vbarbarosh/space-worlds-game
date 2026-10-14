@@ -18,6 +18,7 @@ const dev_screen_options = [
     {value: 'station-outfit', label: 'Station: modules'},
     {value: 'station-career', label: 'Station: goals'},
     {value: 'station-market', label: 'Station: market'},
+    {value: 'station-intel', label: 'Station: trade intel'},
     {value: 'station-hangar', label: 'Station: hangar'},
     {value: 'map-plan', label: 'Map: mission plan'},
     {value: 'map-local', label: 'Map: world map'},
@@ -37,6 +38,9 @@ const dev_screen_time = new URLSearchParams(location.search).get('t');
 const dev_screen_save = new URLSearchParams(location.search).get('save');
 const dev_screen_slots = new URLSearchParams(location.search).get('slots');
 const dev_screen_row = new URLSearchParams(location.search).get('row');
+// &contracts=full and &cargo=all: the station's crowded states (dev_screen_station_set)
+const dev_screen_contracts = new URLSearchParams(location.search).get('contracts');
+const dev_screen_cargo = new URLSearchParams(location.search).get('cargo');
 // The crowded screen's burst: the news of a busy arrival, danger among it, the same title twice, a long line
 const dev_screen_news = [
     ['DEPOT SHIELDED', 'RAIDERS NEAR THE STATION · CLEAR THEM AND IT OPENS', 'info'],
@@ -139,10 +143,12 @@ function dev_screen_open()
         player.x = station.x;
         player.y = station.y + 120;
         dock_station();
+        dev_screen_station_set();
         station_tab_open(dev_screen.slice('station-'.length));
         return;
     }
     if (dev_screen === 'map-plan') {
+        dev_screen_station_set();
         open_mission_plan();
         return;
     }
@@ -224,6 +230,45 @@ function dev_screen_slots_write()
     });
     slots.push({saved_at: now - 90e3, world: 'Eclipse', story: 'arcade', ship: 'Aurora Cruiser', salvage: 455, arcade: {world: 7, score: 556825}});
     localStorage.setItem('pulse_drift_saves_v1', JSON.stringify(slots));
+}
+
+// The station's crowded states, the mission plan's too. &contracts=full: three contracts taken (a story chapter
+// followed, one with a very long title and paragraph, one finished), a goal followed, and the longest board offered:
+// rank Ace (its bounty and expedition), a side mission with a very long title and paragraph among them. &cargo=all:
+// every one of the eleven goods in the hold
+function dev_screen_station_set()
+{
+    if (dev_screen_contracts === 'full') {
+        campaign.xp = Math.max(campaign.xp || 0, rank_thresholds[4]);
+        const long = {
+            title: 'Escort the relief convoy through the Dustfall storm corridor and back before the Marauders regroup',
+            type: 'escort',
+            world: campaign.world,
+            target: 1,
+            reward: 123456,
+            description: 'A paragraph far longer than any the game writes, to see where it stops: the convoy waits at HAVEN-ANCHORAGE/BERTH-07/FLIGHT-RECORDER-ARCHIVE-UNBROKEN-PATH, its freighters loaded past their marks, their crews nervous, their escort gone; the Marauders know the route, the storm knows the rest, and the guild wants every crate home before the next front closes the lanes for a season or more. Escort the convoy → Hold the relay → Bring it home.',
+            file: 'side-dev-long',
+            stages: [stage('escort', campaign.world, 1, 'Escort the convoy'), stage('defend', campaign.world, 60, 'Hold the relay'), stage('courier', 0, 1, 'Bring it home')],
+        };
+        if (!side_missions.some(v => v.file === long.file)) {
+            side_missions.push(long);
+        }
+        const chapter = contract_copy(story[campaign.story], true);
+        const taken = contract_copy({...long, level: 1});
+        taken.stage_index = 1;
+        sync_stage(taken);
+        const done = contract_copy({...(offered_jobs().find(v => v.type === 'mining') || offered_jobs()[0])});
+        done.ready = true;
+        campaign.contracts = [chapter, taken, done];
+        campaign.tracked_id = chapter.id;
+        // and a goal followed: the mission plan's fourth row
+        campaign.goal = campaign.goal || {id: Object.keys(goal_kinds)[0], step: -1};
+    }
+    if (dev_screen_cargo === 'all') {
+        for (const v of commodities) {
+            campaign.cargo[v.key] = 1;
+        }
+    }
 }
 
 // Three raiders 380 m ahead of you

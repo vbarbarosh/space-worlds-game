@@ -461,7 +461,7 @@ function arsenal_gun_card(v)
     return ui_card({
         tags: `${ui_size(v.size)}${owned ? ui_tier(level) : ''}${on.length ? ui_badge(`Equipped${(on.length > 1) ? ` ×${on.length}` : ''}`, 'cyan') : ''}${(count > 1) ? ui_badge(`Own ×${count}`) : ''}`,
         title: v.name,
-        stats: [['DMG', damage], ['RATE', `${v.interval.toFixed(2)}s`], ['RANGE', `${(weapon_range(v)/1000).toFixed(1)} km`], ['ARMOUR', through]],
+        stats: [['DMG', damage], ['RATE', `${v.interval.toFixed(2)}s`], ['RANGE', `${(weapon_range(v)/1000).toFixed(1)}\u00a0km`], ['ARMOUR', through]],
         note,
         action,
         state: on.length ? 'is-equipped' : locked ? 'is-locked' : '',

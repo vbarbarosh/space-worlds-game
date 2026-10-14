@@ -228,6 +228,11 @@ function render_trade_intel(parent)
                 const value = values[n];
                 const cell = document.createElement('td');
                 cell.textContent = value;
+                // the good's picture before its name
+                if (n === 1) {
+                    cell.className = 'intel-good';
+                    cell.insertAdjacentHTML('afterbegin', cargo_picture_html(commodity.key, 'intel-good-picture'));
+                }
                 if ((n === 4) && ensure_markets()[id].demand[commodity.key]) {
                     cell.className = 'demand';
                 }
@@ -253,7 +258,10 @@ function render_trade_intel(parent)
                 guide_context_cache = null;
                 save_checkpoint();
                 render_trade_intel(parent);
-            }
+            },
+            false,
+            '',
+            cargo_picture_html(t.commodity)
         );
     }
     const cargoHeading = document.createElement('h3');
@@ -280,7 +288,8 @@ function render_trade_intel(parent)
                 'PLAN SALE OF ONBOARD CARGO',
                 () => plan_cargo_sale(c.key, target.id),
                 false,
-                (blocked === undefined) ? '' : 'locked'
+                (blocked === undefined) ? '' : 'locked',
+                cargo_picture_html(c.key)
             );
         }
     }
@@ -302,7 +311,8 @@ function render_trade_intel(parent)
             opportunity.amount ? 'PLAN BUY → SELL' : 'EARN CREDITS / FREE CARGO',
             () => plan_trade(opportunity),
             opportunity.amount === 0,
-            cleared ? '' : 'locked'
+            cleared ? '' : 'locked',
+            cargo_picture_html(opportunity.commodity)
         );
     }
     if (!trade_opportunities().length) {

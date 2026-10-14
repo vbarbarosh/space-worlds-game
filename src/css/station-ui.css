@@ -85,13 +85,110 @@
 }
 
 .ui .contract-slot {
-    display: grid;
-    place-items: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
     min-height: 84px;
     border: 1px dashed var(--line-2);
     border-radius: var(--r-md);
     color: var(--text-3);
     font-size: var(--fs-sm);
+}
+
+.ui .contract-slot img {
+    width: 44px;
+    height: 44px;
+    opacity: 0.7;
+}
+
+/* a contract's card leads with the picture of its kind, as a banner across its top in its world's colour */
+.ui .contract-art {
+    position: relative;
+    display: grid;
+    place-items: center;
+    height: 104px;
+    margin: -16px -16px 0;
+    border-bottom: 1px solid color-mix(in srgb, var(--world) 30%, var(--line-1));
+    border-radius: var(--r-md) var(--r-md) 0 0;
+    background:
+        radial-gradient(ellipse 60% 85% at 50% 55%, color-mix(in srgb, var(--world) 26%, transparent), transparent 75%),
+        radial-gradient(circle at 40% 35%, #1a3150, #0a1422);
+    overflow: hidden;
+}
+
+.ui .contract-picture {
+    width: 88px;
+    height: 88px;
+}
+
+/* a story chapter's star, top right of the picture */
+.ui .contract-mark {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 30px;
+    height: 30px;
+}
+
+/* a finished contract: a green tick over its picture */
+.ui .card.is-done .contract-art::after {
+    content: "";
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--green) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 8.5l3 3 6-7' fill='none' stroke='%23070b14' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/18px no-repeat;
+    box-shadow: 0 0 0 3px #070b14;
+}
+
+/* a card's text after its picture: its first lines (--lines), the rest a click (or the tooltip) away (ui_text_clamp) */
+.ui .clamp {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: var(--lines, 3);
+    overflow: hidden;
+    overflow-wrap: anywhere;
+}
+
+.ui .clamp.is-long {
+    cursor: pointer;
+}
+
+.ui .clamp.is-open {
+    display: block;
+}
+
+.ui .card .h-card {
+    overflow-wrap: anywhere;
+}
+
+/* the stages in order: each its small picture over its bar */
+.ui .contract-stages {
+    gap: 6px;
+}
+
+.ui .contract-stages .stage {
+    display: grid;
+    flex: 1;
+    gap: 4px;
+    justify-items: center;
+    min-width: 0;
+}
+
+.ui .contract-stages .stage img {
+    width: 30px;
+    height: 30px;
+}
+
+.ui .contract-stages .stage b {
+    width: 100%;
+}
+
+.ui .contract-stages .stage.is-done img {
+    opacity: 0.45;
 }
 
 .ui .station-panel .shop-heading {
@@ -263,6 +360,11 @@
     grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
+/* a gun's numbers on one line each: 1.3 km never splits */
+.ui .arsenal-grid .stats dd {
+    white-space: nowrap;
+}
+
 /* GOALS: the goal you follow on the left, career, reputation and the other goals on the right */
 .ui .station-panel .station-content.goals {
     grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
@@ -336,6 +438,122 @@
     color: var(--cyan);
 }
 
+/* HANGAR: a ship's numbers as pictures: bars against the best ship, mounts by size, small icon chips, world badges */
+.ui .ship-bars {
+    display: grid;
+    gap: 6px;
+}
+
+.ui .ship-bar {
+    display: grid;
+    grid-template-columns: 54px minmax(0, 1fr) 46px;
+    align-items: center;
+    gap: 10px;
+}
+
+.ui .ship-bar .lbl {
+    font: 600 11px/1 var(--font-mono);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-3);
+}
+
+.ui .ship-bar .track {
+    height: 6px;
+    border-radius: 3px;
+    background: var(--line-1);
+    overflow: hidden;
+}
+
+.ui .ship-bar .track b {
+    display: block;
+    height: 100%;
+    border-radius: 3px;
+    background: var(--cyan);
+}
+
+.ui .ship-bar.is-up .track b {
+    background: var(--green);
+}
+
+.ui .ship-bar.is-down .track b {
+    background: var(--red);
+}
+
+.ui .ship-bar .val {
+    font: 600 13px/1 var(--font-mono);
+    color: var(--text-1);
+    text-align: right;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+.ui .ship-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+}
+
+.ui .ship-row > .eyebrow {
+    width: 54px;
+    margin-right: 4px;
+}
+
+.ui .ship-mount {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font: 600 12px/1 var(--font-mono);
+    color: var(--text-2);
+    white-space: nowrap;
+}
+
+.ui .ship-empty {
+    font: 600 11px/1 var(--font-mono);
+    color: var(--red-2);
+    white-space: nowrap;
+}
+
+/* the four chips in a row of their own, each a quarter: none wraps under the others */
+.ui .ship-chips {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
+}
+
+.ui .ship-chip {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    min-width: 0;
+    padding: 4px 4px;
+    border: 1px solid var(--line-1);
+    border-radius: 6px;
+    background: var(--space-1);
+    font: 600 12px/1 var(--font-mono);
+    color: var(--text-1);
+    white-space: nowrap;
+}
+
+/* words for a screen reader and the captain's agent, not drawn */
+.ui .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+.ui .ship-chip svg {
+    width: 14px;
+    height: 14px;
+    color: var(--cyan);
+}
+
 /* the bodies follow the kit's split layouts: the arsenal's ship column narrows at 1280, every two-column body stacks
    into one at 1100, and the ship's drawing then keeps to a stage of its own height */
 @container screen (max-width: 1280px) {
@@ -349,6 +567,11 @@
     .ui .station-panel .station-content.arsenal,
     .ui .station-panel .station-content.goals {
         grid-template-columns: minmax(0, 1fr);
+    }
+
+    /* one column: the free slots stay short, so the offers start within the first screen */
+    .ui .contract-slot {
+        min-height: 56px;
     }
 
     .ui .arsenal-art {

@@ -108,7 +108,10 @@ row, `&slots=1` adds six saved slots (the Load row, and its scene with
 `&row=load`), `&save=none` a first launch with no game to continue.
 `&kit=start` leaves you only the start ship and gun (and the ones in the
 URL), so the HANGAR and ARSENAL show what a later world opens. It keeps
-its own storage and never touches the game's save.
+its own storage and never touches the game's save. `&contracts=full` crowds
+the station's CONTRACTS (three taken, among them a very long title, and the
+longest board offered) and `&cargo=all` puts all eleven goods in the hold for
+the CARGO MARKET; `&screen=station-intel` opens TRADE INTEL.
 
 The interface is the designer's UI kit (src/css/ui-kit.css): one root,
 `.ui-screen`, is a size container, so every layout rule is an `@container`

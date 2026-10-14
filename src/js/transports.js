@@ -398,6 +398,7 @@ function render_transport_shop_card()
     const status = !line ? 'NOT OWNED' : (transport?.down > 0) ? `LOST · NEW ONE IN ${Math.ceil(transport.down)} s` : `IN SERVICE · ${line.count}/${transport_hold} ABOARD · ◆ ${line.earned || 0} EARNED`;
     const card = document.createElement('div');
     card.className = 'shop-item';
+    card.dataset.icon = ship_parts_clean_url('3d/transport-heavy');
     card.innerHTML = `<b>Transport line · ${here}</b><span class="item-level">${status}</span><p>A heavy armed freighter for ${here}: from the station to each of your outposts here, it loads their ore and sells it at the station. Two heavy turrets; raiders hunt it on the road.</p>`;
     const b = document.createElement('button');
     b.disabled = !!line || (salvage < transport_price);

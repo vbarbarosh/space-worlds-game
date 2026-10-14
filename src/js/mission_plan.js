@@ -25,7 +25,7 @@ function render_mission_plan(parent)
     parent.append(split);
 }
 
-// Each thing to do: what, from where (goal or contract), the world, the distance when it is in this world, and how to
+// Each thing to do: its picture, what, from where (goal or contract), the world, the distance when it is in this world, and how to
 // start on it
 function mission_plan_steps()
 {
@@ -37,6 +37,8 @@ function mission_plan_steps()
         out.push({
             title: step.title,
             text: `Goal · ${g.kind.title} ${g.index + 1}/${g.steps.length}`,
+            // the goal's picture, as on GOALS
+            picture: ship_parts_url(`map/${(campaign.goal?.id === 'explorer') ? 'world-gate' : 'outpost'}`),
             world,
             point: (world === campaign.world) ? step.target?.point || null : null,
             current: !campaign.tracked_id,
@@ -48,9 +50,12 @@ function mission_plan_steps()
         const stage = m.stages?.[m.stage_index];
         const world = m.ready ? campaign.world : stage?.world ?? m.world;
         const stages = m.stages ? ` · stage ${Math.min(m.stage_index + 1, m.stages.length)}/${m.stages.length}` : '';
+        const kind = ((stage || m).type === 'survey') ? 'scan' : (stage || m).type;
         out.push({
             title: m.ready ? 'Collect the reward' : stage?.title || m.title,
             text: `Contract · ${m.title}${m.ready ? ' · complete' : stages}`,
+            // the stage's picture, as in the contract card's stage row; a finished one is collected at the station
+            picture: m.ready ? ship_parts_url('map/station') : contract_picture_url(kind),
             world,
             point: m.ready ? station : (world === campaign.world) ? operation_point(m) : null,
             current: campaign.tracked_id === m.id,
@@ -76,9 +81,11 @@ function mission_plan_row(v, i)
     out.className = `plan-step${v.current ? ' is-current' : ''}`;
     const [value, unit] = (v.distance === null) ? ['', ''] : hud_distance(v.distance);
     const where = (v.distance === null) ? `<span class="small">${worlds[v.world].name}</span>` : `<span class="mono">${value} ${unit}</span>`;
-    out.innerHTML = `<span class="plan-n">${i + 1}</span><div class="plan-text"><b></b><span class="small"></span></div><div class="plan-where">${ui_world_badge(v.world)}${where}</div>`;
+    out.innerHTML = `<span class="plan-n">${i + 1}</span><img class="plan-picture" src="${v.picture}" alt=""><div class="plan-text"><b></b><span class="small"></span></div><div class="plan-where">${ui_world_badge(v.world)}${where}</div>`;
     out.querySelector('b').textContent = v.title;
     out.querySelector('.plan-text .small').textContent = v.text;
+    // a line cut short reads whole in the tooltip
+    out.querySelector('.plan-text').title = `${v.title}\n${v.text}`;
     out.append(ui_button({label: v.action, kind: v.current ? 'primary' : '', size: 'sm', on: () => mission_plan_go(v.on)}));
     return out;
 }

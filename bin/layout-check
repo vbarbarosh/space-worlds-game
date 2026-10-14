@@ -24,6 +24,8 @@ const screens = [
     // the finale held after its results are in
     {value: 'arcade-finale', label: 'arcade-finale', query: '&t=13', phone: true},
     {value: 'station-jobs', label: 'station-contracts'},
+    // three taken (a story chapter, a very long title and paragraph, a finished one) and the longest board offered
+    {value: 'station-jobs', label: 'station-contracts-full', query: '&contracts=full'},
     {value: 'station-arsenal', label: 'station-arsenal'},
     // the start kit in Haven: guns for sale beside guns a later world opens, their lock badges
     {value: 'station-arsenal', label: 'station-arsenal-locked', query: '&kit=start'},
@@ -35,9 +37,15 @@ const screens = [
     {value: 'pause', label: 'pause-log-empty', query: '&play_log=empty'},
     {value: 'station-career', label: 'station-goals'},
     {value: 'station-market', label: 'station-market'},
+    // all eleven goods in the hold: every card of the market, each with its picture
+    {value: 'station-market', label: 'station-market-all', query: '&cargo=all'},
+    {value: 'station-intel', label: 'station-intel'},
     {value: 'station-hangar', label: 'station-hangar'},
+    // six ships: the one you fly, ships for sale and ships a later world opens, their bars, mounts and chips
     {value: 'station-hangar', label: 'station-hangar-locked', query: '&kit=start'},
     {value: 'map-plan', label: 'map-mission-plan'},
+    // three contracts and the goal, each row its picture, one contract's title very long
+    {value: 'map-plan', label: 'map-mission-plan-full', query: '&contracts=full'},
     {value: 'map-local', label: 'map-local'},
     // the chart of the worlds and their lanes
     {value: 'map-worlds', label: 'map-worlds'},
