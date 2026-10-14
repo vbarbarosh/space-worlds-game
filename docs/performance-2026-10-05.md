@@ -316,11 +316,57 @@ Eclipse sky are the changes that hold in every run.
   garbage collector's. A check on the 4K machine itself would be Chrome's
   Performance panel over a fight at 50% in Eclipse.
 
+## 14 October: the canvas's raster
+
+A player's log (Chrome on Linux, a 1536 × 794 window at 250%, so the canvas
+at the 1.7 cap, 3.5 million pixels) showed 45 fps in the arcade's late worlds
+on Overload while `work_ms` said 1.8 ms a frame; at 125% the same player had
+60 fps. `work_ms` times the script in `frame()`, and a canvas call only
+records the drawing: the raster runs after the frame, on the main thread for
+a software canvas. The play log now also keeps `paint_ms`, the main thread's
+time from the end of `frame()` until a message posted then arrives
+(docs/play-log.md); in a headless test it took nearly all of the frame.
+`bin/perf --mode=raster` flushes the canvas at each frame's end and reports
+the frame with its raster; `--size`, `--dpr` and `--difficulty` play the
+player's window (the arcade scenes now start at Ion Reach).
+
+What cost the most, by `--mode=layers` at 1536 × 794 ×2.5 on Overload: the
+sky layer scaled from half resolution to the canvas each frame (20–35 ms),
+the scenery's sprites turned and scaled each frame (15–28 ms; a turned copy
+costs the software canvas 5–15 times an unscaled one), Nova Forge's planet
+scaled (up to 25 ms), the depot shield's lattice under its clip (up to
+16 ms at 50%). What changed, each to the nearest device pixel and otherwise
+the same drawing:
+
+- `render_cache.js`: the sky layer is scaled to device pixels once over the
+  window and a 128 px margin, and copied unscaled each frame; drawn again
+  when the parallax takes the window past the margin.
+- `sprites.js` `sprite_draw_still()`: a sprite that keeps its turn and size
+  (scenery, planets, the outer moon, the station's and gates' bodies, the
+  black hole, rocks, structures) is turned and scaled once into a copy and
+  copied unscaled; a spin layer still turns each frame. While the zoom moves,
+  and for a copy over 8 million pixels, it is drawn as before. The copies
+  share a budget of 16 million pixels, the least recently drawn going first.
+- `depot_shield.js`: the lattice's cells clear of the rim are stroked before
+  the clip, the cells the rim cuts under it (the cells never touch).
+- `physics.js`: Nova Forge's glow fills the circle its gradient reaches, not
+  the square round it.
+
+The canvases of all 47 scenes at ×2 differ only by that rounding: edges move
+by at most half a device pixel (up to 210 of 255 on a sharp edge, under 1% of
+the pixels by more than 8 in most scenes); the HUD's text is the same in
+all. Frame with its raster, p50 at ×2.5, before → after: arcade Ion Reach
+85 → 53 ms, Nova Forge 102 → 64, Eclipse at 50% 89 → 51, calm Nova Forge
+39 → 23; at ×1.25 the arcade's 47–70 → 32–45. Left as it was: the pulse and
+EMP fronts (gradient rings, 12–20 ms while one crosses the screen), the
+explosions, the dynamic sprites (raiders, debris, pickups turn every frame).
+
 ## Running it
 
     bin/build
     bin/perf                                 every scene, frames, ×2
     bin/perf --dpr=1 fight-w7-z50            one scene at ×1
+    bin/perf --size=1536x794 --dpr=2.5 --difficulty=overload --mode=raster arcade-w6-z100
     bin/perf --mode=layers --wrap=render_pulse_wave fight-w3-z50
     bin/perf --mode=shots --label=before     screenshots, then after a change:
     bin/perf --mode=shots --label=after

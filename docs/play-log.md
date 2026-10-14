@@ -82,7 +82,7 @@ can come without it. A reader skips fields it does not know.
 | `dealt`, `taken`, `taken_by` | hull and shield points |
 | `hull_low` | the lowest hull in the record, 0 to 1 of the ship's hull |
 | `fps` | frames a second in flight |
-| `frame_ms`, `work_ms` | milliseconds: the time between frames, and the time a frame's work took |
+| `frame_ms`, `work_ms`, `paint_ms` | milliseconds: the time between frames, the time a frame's work took, and the browser's time after it |
 
 ### summary
 
@@ -119,7 +119,7 @@ can come without it. A reader skips fields it does not know.
      "taken":{"shield":0,"hull":53},"taken_by":{"shot":53},"raider_shots":28,"hits_on_you":4,
      "dashes":3,"pulses":1,"supplies":{"emp":1},"deaths":0,"hull_low":0.41,
      "fps":59.8,"frame_ms":{"avg":16.7,"max":34,"over_33":1,"over_50":0,"over_100":0},
-     "work_ms":{"avg":3.1,"max":12.4}}
+     "work_ms":{"avg":3.1,"max":12.4},"paint_ms":{"avg":4.2,"max":15.8}}
 
 | Field | |
 | --- | --- |
@@ -140,7 +140,8 @@ can come without it. A reader skips fields it does not know.
 | `hits_on_you` | shots that hit you |
 | `dashes`, `pulses`, `supplies` | turbo ignitions, pulses released, supplies used by key (`medkit`, `emp`, `stasis`) |
 | `deaths`, `hull_low` | deaths in it; the lowest hull |
-| `fps`, `frame_ms`, `work_ms` | in flight only; frames over 33, 50 and 100 ms are counted |
+| `fps`, `frame_ms`, `work_ms` | in flight only; frames over 33, 50 and 100 ms are counted; `work_ms` is the game's own script in `frame()`: update, the canvas calls that record the drawing, the HUD |
+| `paint_ms` | in flight only: from the end of `frame()` until the main thread is free again (a message posted then arrives): the browser's style, layout and paint, and on a software canvas the canvas's raster, which `work_ms` does not see. Whatever is left of `frame_ms` is waiting: for the screen's refresh, or for the graphics card. Missing in logs from before version 0.2.6 |
 | `partial` | true on the last record of the session being played when the file was saved |
 
 `unlogged` is salvage or XP that moved without passing a hook the log knows (a

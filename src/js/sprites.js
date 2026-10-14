@@ -174,7 +174,7 @@ function sprite_draw_box(name, color, size, x, y, angle, alpha = 1, spin = 0, dr
         return false;
     }
     const t = draw.getTransform();
-    const px = Math.min(v.box*2, 1024, Math.max(32, 2**Math.ceil(Math.log2(size*Math.sqrt(t.a*t.a + t.b*t.b)*1.5))));
+    const px = sprite_raster_px(v, size, t);
     const raster = sprite_raster(name, color, px);
     const ring = v.spin ? sprite_raster(name, color, px, 'spin') : null;
     if (!raster || (v.spin && !ring)) {
@@ -191,6 +191,148 @@ function sprite_draw_box(name, color, size, x, y, angle, alpha = 1, spin = 0, dr
     }
     draw.restore();
     return true;
+}
+
+// The raster's side for a sprite drawn `size` game units wide under the transform t: a power of two half again as
+// many pixels as it covers on the screen
+function sprite_raster_px(v, size, t)
+{
+    return Math.min(v.box*2, 1024, Math.max(32, 2**Math.ceil(Math.log2(size*Math.sqrt(t.a*t.a + t.b*t.b)*1.5))));
+}
+
+// A sprite that keeps its turn and size while the camera moves (scenery, a planet, the station's body, a gate's
+// frame), drawn as sprite_draw_box draws it. Turned and scaled once into a copy as the screen shows it, then copied
+// to the nearest device pixel each frame: a turned or scaled copy costs the software canvas 5-15 times an unscaled
+// one. Its spin layer turns, so it is drawn as before. While the zoom moves, the copies would be made every frame,
+// so it is sprite_draw_box.
+function sprite_draw_still(name, color, size, x, y, angle, alpha = 1, spin = 0)
+{
+    const v = sprite(name);
+    if (!v || (zoom_target !== null)) {
+        return sprite_draw_box(name, color, size, x, y, angle, alpha, spin);
+    }
+    const t = ctx.getTransform();
+    const px = sprite_raster_px(v, size, t);
+    const raster = sprite_raster(name, color, px);
+    const ring = v.spin ? sprite_raster(name, color, px, 'spin') : null;
+    if (!raster || (v.spin && !ring)) {
+        return false;
+    }
+    const copy = sprite_still_copy(raster, size, angle, t);
+    if (!copy) {
+        return sprite_draw_box(name, color, size, x, y, angle, alpha, spin);
+    }
+    // the centre on the nearest device pixel (the copy's sides are even), the spin layer turning on it too
+    const cx = Math.round(t.a*x + t.c*y + t.e);
+    const cy = Math.round(t.b*x + t.d*y + t.f);
+    ctx.save();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.globalAlpha = alpha;
+    ctx.drawImage(copy.canvas, cx - copy.canvas.width/2, cy - copy.canvas.height/2);
+    if (ring) {
+        ctx.setTransform(t.a, t.b, t.c, t.d, cx, cy);
+        ctx.rotate(angle);
+        ctx.rotate(spin);
+        ctx.drawImage(ring, -size/2, -size/2, size, size);
+    }
+    ctx.restore();
+    return true;
+}
+
+// A square canvas `size` units wide centred at x, y, unturned (the outer moon), through the copies of
+// sprite_draw_still; false while the zoom moves or when it is too big for a copy, and the caller draws it
+function image_draw_still(image, size, x, y, alpha)
+{
+    if (zoom_target !== null) {
+        return false;
+    }
+    const t = ctx.getTransform();
+    const copy = sprite_still_copy(image, size, 0, t);
+    if (!copy) {
+        return false;
+    }
+    ctx.save();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.globalAlpha = alpha;
+    ctx.drawImage(copy.canvas, Math.round(t.a*x + t.c*y + t.e) - copy.canvas.width/2, Math.round(t.b*x + t.d*y + t.f) - copy.canvas.height/2);
+    ctx.restore();
+    return true;
+}
+
+// The copies of sprite_draw_still by raster: each for one turn, size and screen scale, centred on its canvas; all of
+// them within a budget of device pixels (64 MB), the least recently drawn going first. None for a sprite of more than
+// half of it (Nova Forge's planet at zoom 100% is 7.8 million, zoomed in it would be four times that): null, it is
+// drawn as before.
+const sprite_still_copies = new Map();
+const sprite_still_budget = 16e6;
+let sprite_still_pixels = 0;
+
+function sprite_still_copy(raster, size, angle, t)
+{
+    const cos = Math.cos(angle);
+    const sin = Math.sin(angle);
+    // the transform's turn and scale, then the sprite's turn: what drawImage would map the raster through
+    const a = t.a*cos + t.c*sin;
+    const b = t.b*cos + t.d*sin;
+    const c = t.c*cos - t.a*sin;
+    const d = t.d*cos - t.b*sin;
+    let list = sprite_still_copies.get(raster);
+    if (!list) {
+        list = [];
+        sprite_still_copies.set(raster, list);
+    }
+    for (let i = 0, end = list.length; i < end; ++i) {
+        const v = list[i];
+        if ((v.size === size) && (v.a === a) && (v.b === b) && (v.c === c) && (v.d === d)) {
+            v.used = clock;
+            return v;
+        }
+    }
+    // even sides, a pixel clear of the drawing all round, so its centre is on a pixel corner
+    const w = 2*Math.ceil(((Math.abs(a) + Math.abs(c))*size)/2) + 2;
+    const h = 2*Math.ceil(((Math.abs(b) + Math.abs(d))*size)/2) + 2;
+    if (w*h > sprite_still_budget/2) {
+        return null;
+    }
+    const canvas = document.createElement('canvas');
+    canvas.width = w;
+    canvas.height = h;
+    const draw = canvas.getContext('2d');
+    draw.setTransform(a, b, c, d, w/2, h/2);
+    draw.drawImage(raster, -size/2, -size/2, size, size);
+    const out = {canvas, size, a, b, c, d, used: clock};
+    list.push(out);
+    sprite_still_pixels += w*h;
+    if (sprite_still_pixels > sprite_still_budget) {
+        sprite_still_evict();
+    }
+    return out;
+}
+
+// The copies not drawn this frame, the oldest first, until three quarters of the budget are left
+function sprite_still_evict()
+{
+    const all = [];
+    for (const list of sprite_still_copies.values()) {
+        all.push(...list);
+    }
+    all.sort((p, q) => p.used - q.used);
+    for (const v of all) {
+        if ((sprite_still_pixels <= sprite_still_budget*0.75) || (v.used === clock)) {
+            break;
+        }
+        for (const [raster, list] of sprite_still_copies) {
+            const i = list.indexOf(v);
+            if (i >= 0) {
+                list.splice(i, 1);
+                if (!list.length) {
+                    sprite_still_copies.delete(raster);
+                }
+                break;
+            }
+        }
+        sprite_still_pixels -= v.canvas.width*v.canvas.height;
+    }
 }
 
 // Flames along a sprite's anchors of one kind, on `draw` in the ship's frame (the caller has turned the context):

@@ -57,12 +57,55 @@ function render_nebula_layer(id, sky)
     const drift = full_fx ? Math.sin(clock*0.025)*18 : 0;
     const x = v.left - camera.x*0.018 + drift;
     const y = v.top - camera.y*0.012;
-    // past the layer the sky is the glow's last colour
-    if ((x > 0) || (y > 0) || (x + v.w < W) || (y + v.h < H)) {
-        ctx.fillStyle = '#02040a';
-        ctx.fillRect(0, 0, W, H);
+    const t = ctx.getTransform();
+    if (t.b || t.c) {
+        // past the layer the sky is the glow's last colour
+        if ((x > 0) || (y > 0) || (x + v.w < W) || (y + v.h < H)) {
+            ctx.fillStyle = '#02040a';
+            ctx.fillRect(0, 0, W, H);
+        }
+        ctx.drawImage(v.layer, x, y, v.w, v.h);
+        return;
     }
-    ctx.drawImage(v.layer, x, y, v.w, v.h);
+    // the layer's corner on the nearest device pixel, and the copy of the window round it
+    const left = Math.round(t.a*x + t.e);
+    const top = Math.round(t.d*y + t.f);
+    const copy = nebula_copy_for(v, t, -left, -top);
+    ctx.save();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.drawImage(copy.canvas, left + copy.u, top + copy.v);
+    ctx.restore();
+}
+
+// The sky layer scaled to device pixels once, as the screen shows it, over the window and a margin round it, on the
+// glow's last colour as the sky is past the layer: copied to the nearest device pixel each frame, as an unscaled copy
+// costs the software canvas a third of a scaled one. The parallax moves it a fraction of a pixel a frame; it is drawn
+// again when it takes the window past the margin. u, v: the copy's corner from the layer's, in device pixels.
+let nebula_copy = null;
+
+function nebula_copy_for(layer, t, u, v)
+{
+    const c = nebula_copy;
+    const w = canvas.width;
+    const h = canvas.height;
+    if (c && (c.layer === layer) && (c.a === t.a) && (c.d === t.d) && (u >= c.u) && (v >= c.v) && (u + w <= c.u + c.canvas.width) && (v + h <= c.v + c.canvas.height)) {
+        return c;
+    }
+    const margin = 128;
+    const out = (c && (c.canvas.width === w + margin*2) && (c.canvas.height === h + margin*2)) ? c : {canvas: document.createElement('canvas')};
+    out.canvas.width = w + margin*2;
+    out.canvas.height = h + margin*2;
+    out.layer = layer;
+    out.a = t.a;
+    out.d = t.d;
+    out.u = u - margin;
+    out.v = v - margin;
+    const draw = out.canvas.getContext('2d', {alpha: false});
+    draw.fillStyle = '#02040a';
+    draw.fillRect(0, 0, out.canvas.width, out.canvas.height);
+    draw.drawImage(layer.layer, -out.u, -out.v, t.a*layer.w, t.d*layer.h);
+    nebula_copy = out;
+    return out;
 }
 
 // The sky layer's box: what the parallax can bring into view and the glow and clouds colour, on the old pixel grid.

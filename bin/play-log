@@ -353,9 +353,17 @@ function report_performance(sessions)
         }
         const minutes = sum(records.map(v => v.flight_s))/60;
         const worst = records.slice().sort((a, b) => a.fps - b.fps)[0];
-        rows.push([mode, format_minutes(minutes), median(records.map(v => v.fps)).toFixed(1), `${worst.fps} (${worst.world}, ${format_minute(worst.t)})`, format_rate(sum(records.map(v => v.frame_ms.over_33)), minutes), format_rate(sum(records.map(v => v.frame_ms.over_50)), minutes), format_rate(sum(records.map(v => v.frame_ms.over_100)), minutes), `${median(records.map(v => v.work_ms.avg)).toFixed(2)} ms`, `${Math.max(...records.map(v => v.work_ms.max))} ms`]);
+        rows.push([mode, format_minutes(minutes), median(records.map(v => v.fps)).toFixed(1), `${worst.fps} (${worst.world}, ${format_minute(worst.t)})`, format_rate(sum(records.map(v => v.frame_ms.over_33)), minutes), format_rate(sum(records.map(v => v.frame_ms.over_50)), minutes), format_rate(sum(records.map(v => v.frame_ms.over_100)), minutes), `${median(records.map(v => v.work_ms.avg)).toFixed(2)} ms`, `${Math.max(...records.map(v => v.work_ms.max))} ms`, paint_median(records)]);
     }
-    return section('Frame rate (in flight)', rows.length ? table(['mode', 'flight', 'median fps', 'worst minute', 'frames >33 ms/min', '>50 ms/min', '>100 ms/min', 'median work', 'longest frame work'], rows) : ['none']);
+    return section('Frame rate (in flight)', rows.length ? table(['mode', 'flight', 'median fps', 'worst minute', 'frames >33 ms/min', '>50 ms/min', '>100 ms/min', 'median work', 'longest frame work', 'median paint'], rows) : ['none']);
+}
+
+// The browser's time after a frame's work (paint_ms), the median of the records that have it: logs from before 0.2.6
+// do not
+function paint_median(records)
+{
+    const list = records.filter(v => Number.isFinite(v.paint_ms?.avg)).map(v => v.paint_ms.avg);
+    return list.length ? `${median(list).toFixed(2)} ms` : '–';
 }
 
 // What stands out, for a person to judge: the balance questions the log was made for

@@ -83,26 +83,16 @@ function depot_shield_draw()
     ctx.beginPath();
     ctx.arc(0, 0, r, 0, Math.PI*2);
     ctx.fill();
-    // the hex lattice, clipped to the dome, drifting slowly
-    ctx.save();
-    ctx.clip();
+    // the hex lattice, clipped to the dome, drifting slowly: the cells clear of the rim first, with no clip, as a
+    // clip makes the software canvas mask every stroke under it; then the ones the rim cuts. The cells never touch.
     ctx.strokeStyle = `rgba(108, 248, 236, ${0.09*k*(0.8 + 0.2*Math.sin(clock*3))})`;
     ctx.lineWidth = 2;
-    const cell = 70;
-    const drift = (clock*12) % (cell*1.5);
-    for (let y = -r - cell; y < r + cell; y += cell*0.866) {
-        const row = Math.round(y/(cell*0.866));
-        for (let x = -r - cell*1.5 + drift; x < r + cell; x += cell*1.5) {
-            const cx = x + ((row % 2) ? cell*0.75 : 0);
-            ctx.beginPath();
-            for (let i = 0; i < 6; ++i) {
-                const a = (i*Math.PI)/3;
-                ctx.lineTo(cx + Math.cos(a)*cell*0.5, y + Math.sin(a)*cell*0.5);
-            }
-            ctx.closePath();
-            ctx.stroke();
-        }
-    }
+    depot_shield_lattice(r, false);
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(0, 0, r, 0, Math.PI*2);
+    ctx.clip();
+    depot_shield_lattice(r, true);
     ctx.restore();
     if (full_fx && !ring_glow(0, 0, r, 4, 24, '#6cf8ec', 0.75*k)) {
         ctx.shadowColor = '#6cf8ec';
@@ -123,4 +113,29 @@ function depot_shield_draw()
         ctx.stroke();
     }
     ctx.restore();
+}
+
+// The cells of the dome's lattice of radius r: the ones the rim cuts (rim) or the ones clear of it, by their corners,
+// half the stroke and three device pixels at zoom 50%
+function depot_shield_lattice(r, rim)
+{
+    const cell = 70;
+    const drift = (clock*12) % (cell*1.5);
+    const clear = r - cell*0.5 - 1 - 3/zoom;
+    for (let y = -r - cell; y < r + cell; y += cell*0.866) {
+        const row = Math.round(y/(cell*0.866));
+        for (let x = -r - cell*1.5 + drift; x < r + cell; x += cell*1.5) {
+            const cx = x + ((row % 2) ? cell*0.75 : 0);
+            if ((cx*cx + y*y < clear*clear) === rim) {
+                continue;
+            }
+            ctx.beginPath();
+            for (let i = 0; i < 6; ++i) {
+                const a = (i*Math.PI)/3;
+                ctx.lineTo(cx + Math.cos(a)*cell*0.5, y + Math.sin(a)*cell*0.5);
+            }
+            ctx.closePath();
+            ctx.stroke();
+        }
+    }
 }

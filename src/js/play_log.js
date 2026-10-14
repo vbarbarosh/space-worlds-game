@@ -30,6 +30,11 @@ let play_log_last_by = null;
 let play_log_state_seen = '';
 let play_log_trash = null;
 let play_log_problem = '';
+// The browser's part of a frame in flight, after frame() returns: a message posted then arrives once the main thread
+// is free again, past the style, layout and paint, and on a software canvas the canvas's raster, which work_ms does
+// not see (paint_ms)
+const play_log_after = new MessageChannel();
+let play_log_after_t0 = 0;
 
 play_log_close_unfinished();
 document.getElementById('play_log_download').addEventListener('click', export_play_log);
@@ -390,6 +395,9 @@ function play_log_tally_reset()
     v.over_100 = 0;
     v.work_ms = 0;
     v.work_max = 0;
+    v.paint_frames = 0;
+    v.paint_ms = 0;
+    v.paint_max = 0;
 }
 
 // The record of what was counted since the last; null when nothing was. Salvage or XP that moved past the hooks
@@ -446,6 +454,7 @@ function play_log_record_make(partial)
         fps,
         frame_ms: {avg: v.frames ? Math.round((v.frame_ms/v.frames)*10)/10 : null, max: Math.round(v.frame_max), over_33: v.over_33, over_50: v.over_50, over_100: v.over_100},
         work_ms: {avg: v.frames ? Math.round((v.work_ms/v.frames)*100)/100 : null, max: Math.round(v.work_max*10)/10},
+        paint_ms: {avg: v.paint_frames ? Math.round((v.paint_ms/v.paint_frames)*100)/100 : null, max: Math.round(v.paint_max*10)/10},
         ...(partial ? {partial: true} : {}),
     };
 }
@@ -472,6 +481,15 @@ function play_log_record_close()
     play_log_xp_expected = play_log_xp_now() || 0;
     play_log_tally_reset();
 }
+
+// The message play_log_frame posted at the end of a frame in flight: the browser has drawn it
+play_log_after.port1.onmessage = function () {
+    const v = play_log_tally;
+    const ms = performance.now() - play_log_after_t0;
+    v.paint_frames += 1;
+    v.paint_ms += ms;
+    v.paint_max = Math.max(v.paint_max, ms);
+};
 
 // Each frame (frame() in js/boot.js): interval is the time since the last frame, work the time this one took, in ms.
 // Only play counts: flight, and the station, depot, map and inventory screens; not the pause, menus or results
@@ -505,6 +523,8 @@ function play_log_frame(interval, work)
             v.over_100 += (interval > 100) ? 1 : 0;
             v.work_ms += work;
             v.work_max = Math.max(v.work_max, work);
+            play_log_after_t0 = performance.now();
+            play_log_after.port2.postMessage(0);
         }
     }
     else {

@@ -453,7 +453,7 @@ function render_structures()
         ctx.globalAlpha = 0.35 + v.built*0.65;
         // The designer's outpost turns its drill ring while its drones are out; the platform carries the heavy turret
         const working = (v.kind === 'outpost') && outpost_busy(v);
-        const drawn = sprite_draw_box((v.kind === 'outpost') ? 'structures/mining-outpost' : 'structures/defence-platform', null, k.size*1.1, v.x, v.y, 0, ctx.globalAlpha, working ? clock*1.2 : 0);
+        const drawn = sprite_draw_still((v.kind === 'outpost') ? 'structures/mining-outpost' : 'structures/defence-platform', null, k.size*1.1, v.x, v.y, 0, ctx.globalAlpha, working ? clock*1.2 : 0);
         if (!drawn) {
             polygon(v.x, v.y, k.size*0.42, (v.kind === 'outpost') ? 6 : 8, 0, gold, '#2b2210');
         }

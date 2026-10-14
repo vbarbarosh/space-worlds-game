@@ -77,7 +77,7 @@ function render_celestial_body(body)
     }
     // The designer's planet: its disc as wide as today's, a little see-through so it stays in the background
     const art = body.primary && world_art(`planet-${world_slug()}`);
-    if (art && sprite_draw_box(art, null, diam*0.913, px, py, 0, 0.85)) {
+    if (art && sprite_draw_still(art, null, diam*0.913, px, py, 0, 0.85)) {
         return;
     }
     const sky = ensure_world_visuals(body.texture);
@@ -104,8 +104,11 @@ function render_celestial_body(body)
         g.addColorStop(0, '#ffac5833');
         g.addColorStop(0.4, '#ff552b17');
         g.addColorStop(1, '#ff552b00');
+        // past the gradient's end it is clear: the circle it reaches, not its square (a fifth of a screen less to fill)
         ctx.fillStyle = g;
-        ctx.fillRect(px - radius*1.8, py - radius*1.8, radius*3.6, radius*3.6);
+        ctx.beginPath();
+        ctx.arc(px, py, radius*1.8, 0, Math.PI*2);
+        ctx.fill();
         ctx.strokeStyle = '#ffb77018';
         for (let i = 0; i < 9; ++i) {
             ctx.lineWidth = 2;
@@ -114,8 +117,11 @@ function render_celestial_body(body)
             ctx.stroke();
         }
     }
-    ctx.globalAlpha = body.primary ? ((id === 6) ? 0.64 : (id === 7) ? 0.95 : 0.7) : 0.4;
-    ctx.drawImage(sky.texture, px - diam/2, py - diam/2, diam, diam);
+    const alpha = body.primary ? ((id === 6) ? 0.64 : (id === 7) ? 0.95 : 0.7) : 0.4;
+    if (!image_draw_still(sky.texture, diam, px, py, alpha)) {
+        ctx.globalAlpha = alpha;
+        ctx.drawImage(sky.texture, px - diam/2, py - diam/2, diam, diam);
+    }
     ctx.restore();
 }
 

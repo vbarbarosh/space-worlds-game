@@ -477,7 +477,7 @@ function render_map()
             continue;
         }
         const art = world_art(`scenery-${(i % 3) + 1}`);
-        if (art && sprite_draw_box(art, null, size, v.x, v.y, v.angle, alpha)) {
+        if (art && sprite_draw_still(art, null, size, v.x, v.y, v.angle, alpha)) {
             continue;
         }
         const asset = scenery_surface(campaign.world, i % 7);
@@ -499,7 +499,7 @@ function render_world_ore(v)
     const variant = Math.abs(Math.floor(v.angle*11)) % 7;
     // The designer's asteroids: a rich one shows veins of the world's resource in its colour, and flashes when hit
     const art = world_art(v.resource ? `asteroid-rich-${(variant % 3) + 1}` : `asteroid-${(variant % 4) + 1}`);
-    if (art && sprite_draw_box(art, v.resource ? ore_color(v) : null, v.r*2.5, v.x, v.y, v.angle)) {
+    if (art && sprite_draw_still(art, v.resource ? ore_color(v) : null, v.r*2.5, v.x, v.y, v.angle)) {
         if (v.flash > 0) {
             ctx.save();
             ctx.globalCompositeOperation = 'lighter';
@@ -687,7 +687,7 @@ function render_world_station()
     ctx.setLineDash([]);
     // The designer's station turns its habitat ring slowly; its berths reach the edge, so the name goes below them
     const art = world_art('station');
-    const drawn = art && sprite_draw_box(art, w.accent, box, station.x, station.y, 0, 1, clock*0.04);
+    const drawn = art && sprite_draw_still(art, w.accent, box, station.x, station.y, 0, 1, clock*0.04);
     if (!drawn) {
         ctx.drawImage(asset.layer, station.x - box/2, station.y - box/2, box, box);
     }
@@ -703,7 +703,7 @@ function render_gate_shell(v, world_gate)
     // The designer's gates, in the colour of where they lead; the inner ring turns, a jump gate's lights run backwards
     const art = world_art(world_gate ? 'world-gate' : 'jump-gate');
     teleport_warm(v, world_gate);
-    if (art && sprite_draw_box(art, v.color, radius*2.9, v.x, v.y, 0, 1, clock*(world_gate ? 0.15 : -0.25) + teleport_gate_spin(v))) {
+    if (art && sprite_draw_still(art, v.color, radius*2.9, v.x, v.y, 0, 1, clock*(world_gate ? 0.15 : -0.25) + teleport_gate_spin(v))) {
         return true;
     }
     const asset = surface_asset(`gate:${v.color}`, 192, function (draw) {
@@ -756,7 +756,7 @@ function render_singularity_surface(v)
     const size = v.core*7.2;
     // The designer's black hole, its core as wide as the fatal core, its accretion disk turning
     const art = world_art('black-hole');
-    const drawn = art && sprite_draw_box(art, null, v.core*5.3, v.x, v.y, 0, 1, clock*0.35 + v.phase);
+    const drawn = art && sprite_draw_still(art, null, v.core*5.3, v.x, v.y, 0, 1, clock*0.35 + v.phase);
     if (!drawn) {
         ctx.drawImage(asset.layer, v.x - size/2, v.y - size/2, size, size);
     }

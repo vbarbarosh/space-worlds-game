@@ -59,10 +59,11 @@ Two modes:
     bin/build-docs   docs/ as a website in build/docs, with the game from
                      bin/build in play/; published to GitHub Pages on every
                      push to main (.github/workflows/docs.yml)
-    bin/perf         frame times, garbage and drawing costs over 43 scenes
+    bin/perf         frame times, garbage and drawing costs over 47 scenes
                      (every world calm and in a fight, zoom 100% and 50%,
-                     the arcade, campaigns of 10, 50 and 100 structures,
-                     a ring race in Haven and Eclipse); see
+                     the arcade from Ion Reach on, campaigns of 10, 50 and
+                     100 structures, a ring race in Haven and Eclipse), at
+                     any window size, pixel ratio and difficulty; see
                      docs/performance-2026-10-05.md
     bin/playtest     a bot plays arcade runs on a virtual clock (about a
                      minute each) and counts per world and wave the hull

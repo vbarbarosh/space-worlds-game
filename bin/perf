@@ -6,7 +6,7 @@ const path = require('node:path');
 const {chromium} = require('playwright');
 
 const data_dir = path.join(__dirname, '..', 'data', 'perf');
-// Every world in calm flight and in a heavy fight, and the arcade's last worlds in their third wave, at both zooms; a
+// Every world in calm flight and in a heavy fight, and the arcade's worlds from Ion Reach on in their third wave, at both zooms; a
 // mature campaign of 10, 50 and 100 structures in Haven, as many in the other worlds, raiders on them; and a ring race
 // in Haven and in Eclipse
 const scenes = [];
@@ -15,7 +15,7 @@ for (const zoom of [1, 0.5]) {
         scenes.push({value: `calm-w${world}-z${zoom*100}`, kind: 'calm', world, zoom});
         scenes.push({value: `fight-w${world}-z${zoom*100}`, kind: 'fight', world, zoom});
     }
-    for (const world of [5, 6, 7]) {
+    for (const world of [3, 4, 5, 6, 7]) {
         scenes.push({value: `arcade-w${world}-z${zoom*100}`, kind: 'arcade', world, zoom});
     }
 }
@@ -36,11 +36,11 @@ const layer_names = [
     'render_hazards', 'render_teleport', 'render_screen_controls', 'render_minimap', 'render_target_brackets',
     'render_world_labels', 'render_radiation_edge', 'race_render_course', 'race_render_rivals',
 ];
-const modes = ['frames', 'split', 'layers', 'profile', 'shots'];
-const usage = `usage: bin/perf [--dpr=2] [--mode=frames] [--label=name] [--frames=300] [--page=build/index.html] [--gpu] [--wrap=name,...] [scene...]
+const modes = ['frames', 'raster', 'split', 'layers', 'profile', 'shots'];
+const usage = `usage: bin/perf [--dpr=2] [--size=1920x1080] [--difficulty=normal] [--mode=frames] [--label=name] [--frames=300] [--page=build/index.html] [--gpu] [--wrap=name,...] [scene...]
        bin/perf --compare=label,label
 
-    Plays scenes of build/index.html (a copy with a measuring hook, in data/perf/) in Chromium at 1920 × 1080,
+    Plays scenes of build/index.html (a copy with a measuring hook, in data/perf/) in Chromium at 1920 × 1080 (--size),
     on a virtual clock of 60 frames a second and a seeded Math.random, so a scene is the same on every run.
     Each scene is fast-forwarded 240 frames and drawn 60 more, then measured. Results go to data/perf/<label>/report.json.
     Exits 1 when a page throws.
@@ -48,11 +48,16 @@ const usage = `usage: bin/perf [--dpr=2] [--mode=frames] [--label=name] [--frame
     modes:
         frames   the main thread's time per frame (update, render, HUD), long frames, GC and allocations
         split    the same, with the time of each render pass
+        raster   each frame with the canvas flushed at its end: the frame's whole time with the canvas's raster
+                 (software canvas), which frames mode leaves to the browser after the frame
         layers   each render pass with the canvas flushed around it, so its raster counts (software canvas)
         profile  a CPU and an allocation profile of each scene: the top functions
         shots    a screenshot of each scene after 240 frames and 60 drawn (--frames), the page and the canvas alone,
                  and the HUD's text, for comparing the look before and after a change
 
+    --size is the window in CSS pixels, e.g. --size=1536x794 --dpr=2.5 for a laptop at 250% (the game caps the canvas
+    at 1.7 device pixels a CSS pixel).
+    --difficulty plays the scenes at chill, normal or overload (the arcade's squadrons grow with it).
     --wrap times more of the game's functions in split and layers modes.
     --gpu draws the canvas on Chromium's GPU path, SwiftShader standing in for a graphics card (slow).
     --page measures another copy of the page, e.g. a build kept from before a change.
@@ -69,7 +74,9 @@ async function main()
     const mode = options.mode || 'frames';
     const dpr = Number(options.dpr || 2);
     const measured = Number(options.frames || 300);
-    if (Object.keys(options).some(v => !['dpr', 'mode', 'label', 'frames', 'page', 'gpu', 'wrap', 'compare'].includes(v))) {
+    const size = (options.size || '1920x1080').split('x').map(Number);
+    const difficulty = options.difficulty || 'normal';
+    if (Object.keys(options).some(v => !['dpr', 'size', 'difficulty', 'mode', 'label', 'frames', 'page', 'gpu', 'wrap', 'compare'].includes(v))) {
         console.log(usage);
         process.exit(2);
     }
@@ -77,7 +84,8 @@ async function main()
         await shots_compare(...options.compare.split(','));
         return;
     }
-    if (!modes.includes(mode) || names.some(v => !scenes.some(vv => vv.value === v))) {
+    const bad_size = (size.length !== 2) || size.some(v => !(v >= 200));
+    if (!modes.includes(mode) || bad_size || !['chill', 'normal', 'overload'].includes(difficulty) || names.some(v => !scenes.some(vv => vv.value === v))) {
         console.log(usage);
         process.exit(2);
     }
@@ -94,7 +102,7 @@ async function main()
     const errors = [];
     try {
         fs.writeFileSync(hooked, `${html.slice(0, at)}window.__t = function (code) { return eval(code); };\n${html.slice(at)}`);
-        const context = await browser.newContext({viewport: {width: 1920, height: 1080}, deviceScaleFactor: dpr});
+        const context = await browser.newContext({viewport: {width: size[0], height: size[1]}, deviceScaleFactor: dpr});
         for (const scene of chosen) {
             const page = await context.newPage();
             page.on('pageerror', function (v) {
@@ -107,7 +115,7 @@ async function main()
             const names = [...layer_names, ...(options.wrap ? options.wrap.split(',') : [])];
             await page.evaluate(v => window.__t(v), `(${page_install})(${JSON.stringify({mode, layer_names: names})})`);
             await page.waitForFunction(() => window.__perf.ready, null, {polling: 50});
-            await page.evaluate(v => window.__t(v), `(${page_scene})(${JSON.stringify(scene)})`);
+            await page.evaluate(v => window.__t(v), `(${page_scene})(${JSON.stringify({...scene, difficulty})})`);
             const result = await scene_measure(page, scene, mode, ((mode === 'shots') && !options.frames) ? 60 : measured, out_dir);
             results.push(result);
             console.log(scene_line(result));
@@ -179,6 +187,12 @@ async function scene_measure(page, scene, mode, measured, out_dir)
         out.cpu = cpu_top(cpu, 30);
         out.alloc = alloc_top(heap, 30);
     }
+    if (mode === 'raster') {
+        const js = frames.map(v => v.js);
+        out.frame = {mean: mean(js), p50: percentile(js, 0.5), p95: percentile(js, 0.95), p99: percentile(js, 0.99), max: Math.max(...js)};
+        out.long = {over17: js.filter(v => v > 1000/60).length, over33: js.filter(v => v > 1000/30).length};
+        out.each = js.map(v => Math.round(v*100)/100);
+    }
     if ((mode === 'split') || (mode === 'layers')) {
         out.total = frames.reduce((a, b) => a + b.js, 0)/frames.length;
         out.layers = Object.fromEntries(Object.entries(acc).sort((a, b) => b[1] - a[1]).map(v => [v[0], v[1]/frames.length]));
@@ -220,6 +234,9 @@ function scene_line(result)
 {
     if (result.shot) {
         return `${result.scene.padEnd(16)} ${result.shot}`;
+    }
+    if (result.mode === 'raster') {
+        return `${result.scene.padEnd(16)} frame with raster p50 ${result.frame.p50.toFixed(1).padStart(5)} p95 ${result.frame.p95.toFixed(1).padStart(5)} p99 ${result.frame.p99.toFixed(1).padStart(5)} max ${result.frame.max.toFixed(1).padStart(5)} ms · >16.7 ${String(result.long.over17).padStart(3)} >33 ${String(result.long.over33).padStart(3)}`;
     }
     if (result.frame) {
         return `${result.scene.padEnd(16)} frame p50 ${result.frame.p50.toFixed(1).padStart(5)} p95 ${result.frame.p95.toFixed(1).padStart(5)} p99 ${result.frame.p99.toFixed(1).padStart(5)} max ${result.frame.max.toFixed(1).padStart(5)} ms · >16.7 ${String(result.long.over17).padStart(3)} >33 ${String(result.long.over33).padStart(3)} · update ${result.update.toFixed(1)} render ${result.render.toFixed(1)} hud ${result.hud.toFixed(2)} · gc ${result.gc.count} ${result.gc.ms.toFixed(0)} ms · ${result.alloc_kb.toFixed(0)} KB/frame · raster+all ${result.task.toFixed(0)} ms · in play ${result.playing}/${result.frames}`;
@@ -362,6 +379,7 @@ function page_install(options)
     const P = {acc: {}, calls: {}, frames: [], stack: [], ff: 0, left: 0, drive: null, ready: false};
     window.__perf = P;
     const flush = options.mode === 'layers';
+    const flush_frame = flush || (options.mode === 'raster');
     const names = ['update', 'render', 'update_hud', ...((options.mode === 'split') || flush ? options.layer_names : [])];
     function wrap(name, f) {
         return function (...args) {
@@ -428,7 +446,7 @@ function page_install(options)
         const hud0 = P.acc['all:update_hud'] || 0;
         P.drive?.();
         base_frame(window.__vt);
-        if (flush) {
+        if (flush_frame) {
             ctx.getImageData(0, 0, 1, 1);
         }
         P.frames.push({
@@ -472,7 +490,7 @@ function page_scene(scene)
     time = 0;
     ui_timer = 0;
     explosion_seed = 1;
-    difficulty = 'normal';
+    difficulty = scene.difficulty;
     if (scene.kind === 'arcade') {
         arcade_start(scene.world);
     }
