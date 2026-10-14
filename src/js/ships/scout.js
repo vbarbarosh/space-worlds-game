@@ -5,6 +5,7 @@ const ship_scout = {
         role: 'Exploration',
         price: 0,
         rank: 0,
+        opens: 0,
         hull: 100,
         shield: 0,
         speed: 1,

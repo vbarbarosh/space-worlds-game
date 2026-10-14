@@ -11,6 +11,7 @@ const weapon_catalog = [
         size: 'light',
         name: 'Pulse cannon',
         rank: 0,
+        opens: 0,
         price: 0,
         rating: 0,
         damage: 14,
@@ -26,6 +27,7 @@ const weapon_catalog = [
         size: 'light',
         name: 'Shard shotgun',
         rank: 1,
+        opens: 0,
         price: 220,
         rating: 2,
         damage: 13,
@@ -41,6 +43,7 @@ const weapon_catalog = [
         size: 'medium',
         name: 'Ion disruptor',
         rank: 2,
+        opens: 1,
         price: 550,
         rating: 4,
         damage: 24,
@@ -56,6 +59,7 @@ const weapon_catalog = [
         size: 'heavy',
         name: 'Lance railgun',
         rank: 3,
+        opens: 3,
         price: 1100,
         rating: 6,
         damage: 75,
@@ -71,6 +75,7 @@ const weapon_catalog = [
         size: 'medium',
         name: 'Seeker launcher',
         rank: 3,
+        opens: 3,
         price: 1400,
         rating: 6,
         damage: 60,
@@ -88,6 +93,7 @@ const weapon_catalog = [
         size: 'medium',
         name: 'Flux beam',
         rank: 4,
+        opens: 4,
         price: 2600,
         rating: 9,
         damage: 19,
@@ -99,6 +105,8 @@ const weapon_catalog = [
         line: 'A beam that ignores 40% armour.',
     },
 ];
+// A gun goes on sale in the world its `opens` names (src/js/tech.js): the cannon and the shotgun in Haven, the ion gun in
+// Verdant, the railgun and the Seeker in Ion Reach, before Obsidian's armour asks for one of them, the beam in Obsidian.
 // Licences follow the story (docs/balance.md): Vanguard (the gunship, the rail and the Seeker) with chapter 4, before
 // Obsidian's armour; Ace (the beam) with chapter 6; Commander (the cruiser) as act I ends; Admiral and Legend in act II
 const rank_thresholds = [0, 120, 420, 1100, 2400, 4200, 7000, 10500];
@@ -211,7 +219,8 @@ function fleet_purchase(id, kind)
     const list = (kind === 'ship') ? ship_catalog : weapon_catalog;
     const v = list.find(v => v.id === id);
     const owned = (kind === 'ship') ? f.ships : f.weapons;
-    if (!v || (pilot_rank() < v.rank)) {
+    // one you own stays yours to fly or fit; a new one waits for its rank and its world
+    if (!v || (!owned.includes(id) && ((pilot_rank() < v.rank) || !tech_open(v.opens)))) {
         return;
     }
     if ((kind === 'ship') && (cargo_count() > v.cargo)) {

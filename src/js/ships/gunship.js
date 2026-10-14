@@ -5,6 +5,7 @@ const ship_gunship = {
         role: 'Heavy assault',
         price: 2300,
         rank: 3,
+        opens: 3,
         hull: 250,
         shield: 70,
         speed: 0.88,

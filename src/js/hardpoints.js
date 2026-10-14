@@ -105,12 +105,12 @@ function gun_copy_price(v)
     return v.price || 120;
 }
 
-// Buys one more of a gun you own for an empty mount it fits (the ARSENAL's Buy another)
+// Buys one more of a gun you own for an empty mount it fits (the ARSENAL's Buy another), once its world has opened it
 function buy_gun_copy(id)
 {
     const v = weapon_by_id(id);
     const price = gun_copy_price(v);
-    if ((state !== 'upgrade') || !v || !ensure_career().weapons.includes(id) || !mounts_empty_for(v).length || (salvage < price)) {
+    if ((state !== 'upgrade') || !v || !tech_open(v.opens) || !ensure_career().weapons.includes(id) || !mounts_empty_for(v).length || (salvage < price)) {
         return;
     }
     salvage -= price;
@@ -423,17 +423,20 @@ function arsenal_gun_card(v)
     const on = ship_loadout().map((id, i) => ((id === v.id) ? i + 1 : 0)).filter(Boolean);
     // an empty mount this gun fits: one more of it arms it
     const empty = owned ? mounts_empty_for(v) : [];
-    const locked = !owned && (pilot_rank() < v.rank);
+    // a gun not yet on sale says where it opens, before the rank it needs
+    const closed = !tech_open(v.opens);
+    const locked = !owned && (closed || (pilot_rank() < v.rank));
     const fits = gun_fits_ship(v);
     const cost = gun_tier_cost(v, level);
     let note = owned ? (on.length ? `Mount${(on.length > 1) ? 's' : ''} ${on.join(', ')}${(count > on.length) ? ` · ${count - on.length} spare` : ''}` : fits ? 'Owned · not mounted' : `Needs a ${v.size} mount`) : '';
     let action = null;
     if (locked) {
-        note = `<span class="badge badge--locked">${ui_lock_svg}Rank ${rank_names[v.rank]}</span>`;
+        note = `<span class="badge badge--locked">${ui_lock_svg}${closed ? tech_lock_text(v.opens) : `Rank ${rank_names[v.rank]}`}</span>`;
     }
     else if (owned) {
         action = ui_button({label: (level >= 5) ? 'Max tier' : 'Upgrade', price: (level >= 5) ? null : cost, size: 'sm', disabled: (level >= 5) || (salvage < cost), on: () => upgrade_weapon(v.id)});
-        if (empty.length) {
+        // one more of a gun a save kept from before its world opened waits for that world
+        if (empty.length && !closed) {
             const price = gun_copy_price(v);
             const actions = document.createElement('span');
             actions.className = 'card-actions';

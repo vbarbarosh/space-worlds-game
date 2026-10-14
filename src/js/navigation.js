@@ -246,12 +246,15 @@ function guide_base_update_jump(dt)
         if (jump.world !== undefined) {
             drones_recall_now();
             store_world();
+            const reached = world_reached();
             campaign.world = jump.world;
             play_log_world_enter(arcade.active ? 'next world' : 'gate');
             wave = worlds[campaign.world].wave;
             if (!campaign.visited.includes(campaign.world)) {
                 campaign.visited.push(campaign.world);
             }
+            // a world further than any before says what it opens
+            tech_news(reached);
             enemies = [];
             hazards = [];
             begin_wave();

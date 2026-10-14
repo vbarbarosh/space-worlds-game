@@ -20,6 +20,9 @@ const upgrade_options = [
         description: 'Add 25 regenerating shield. Recharges after 5 safe seconds.',
         cap: 3,
         cost: 44,
+        // where each level opens (src/js/tech.js): a step ahead of the share of the worlds, as the gates' defence asks for
+        // two levels to Ion Reach (from Verdant) and three to Cryosphere and Nova Forge (from Obsidian)
+        opens: [0, 1, 4],
         group: 'defense',
         shelf: 'defence',
         line: 'A shield bubble soaks up hits.',
@@ -144,7 +147,21 @@ const upgrade_options = [
     {key: 'damage', icon: '↗', title: 'Hotter plasma', description: '+36% of your gun\'s damage on every shot, each level. Break heavy hulls faster.', cap: 5, cost: 38, group: 'weapon', shelf: 'shots', line: 'Every shot hits harder.', tags: 'damage dmg power hot урон'},
     {key: 'rate', icon: '≋', title: 'Rapid resonance', description: '15% faster firing per level. Keep the pressure on.', cap: 3, cost: 45, group: 'weapon', shelf: 'shots', line: 'Your gun fires faster.', tags: 'fire rate speed faster скорострельность'},
     {key: 'speed', icon: '➤', title: 'Slipstream', description: '15% more movement speed per level.', cap: 3, cost: 30, group: 'utility', shelf: 'flight', line: 'Faster cruising speed.', tags: 'speed fast cruise скорость'},
-    {key: 'armor', icon: '◇', title: 'Phase armor', description: '12% less incoming damage per level.', cap: 3, cost: 46, group: 'defense', shelf: 'defence', line: 'Hull plates: every hit does less damage.', tags: 'armor armour plates hull tank defence броня', part: 'plate'},
+    {
+        key: 'armor',
+        icon: '◇',
+        title: 'Phase armor',
+        description: '12% less incoming damage per level.',
+        cap: 3,
+        cost: 46,
+        // as the Shield capacitor's, for the gates' defence
+        opens: [0, 1, 4],
+        group: 'defense',
+        shelf: 'defence',
+        line: 'Hull plates: every hit does less damage.',
+        tags: 'armor armour plates hull tank defence броня',
+        part: 'plate',
+    },
     {
         key: 'seeker',
         icon: '⌖',
@@ -328,7 +345,7 @@ function shop_buy(v)
     const is_supply = supplies[v.key] !== undefined;
     const level = is_supply ? supplies[v.key] : upgrades[v.key];
     const price = is_supply ? v.cost : module_cost(v);
-    if ((state !== 'upgrade') || !dock_free_chosen || (salvage < price) || (level >= v.cap) || module_needs_gun(v)) {
+    if ((state !== 'upgrade') || !dock_free_chosen || (salvage < price) || (level >= v.cap) || module_needs_gun(v) || (!is_supply && (module_next_locked(v) !== null))) {
         return false;
     }
     salvage -= price;
@@ -368,8 +385,13 @@ function base_render_shop()
             `<b>${v.icon} &nbsp;${v.title}</b><span class="item-level">${is_supply ? `IN CARGO ${level} / ${v.cap}` : `LEVEL ${level} / ${v.cap}`}</span><p>${v.description}</p>`;
         const b = document.createElement('button');
         const needs = module_needs_gun(v);
-        b.disabled = !dock_free_chosen || capped || (salvage < price) || needs;
-        b.textContent = capped ? 'FULLY STOCKED' : needs ? `NEEDS ${weapon_by_id(v.needs).name}` : `${is_supply ? 'BUY' : 'INSTALL'} · ◆ ${price}`;
+        // a level a later world opens says where (ui_shop_item makes it the kit's lock badge)
+        const closed = is_supply ? null : module_next_locked(v);
+        b.disabled = !dock_free_chosen || capped || (salvage < price) || needs || (closed !== null);
+        b.textContent = capped ? 'FULLY STOCKED' : needs ? `NEEDS ${weapon_by_id(v.needs).name}` : (closed !== null) ? tech_lock_text(closed) : `${is_supply ? 'BUY' : 'INSTALL'} · ◆ ${price}`;
+        if (closed !== null) {
+            b.dataset.opens = tech_world_name(closed);
+        }
         b.addEventListener('click', () => shop_buy(v));
         card.append(b);
         el.shop_grid.append(card);
@@ -406,7 +428,7 @@ function choose_upgrade(restored = false)
         salvage += reward;
         dock_free_chosen = false;
         dock_message = `Choose your free module above. Sector bonus: ◆ ${reward}.`;
-        const options = upgrade_options.filter(v => (upgrades[v.key] < v.cap) && !module_needs_gun(v));
+        const options = upgrade_options.filter(v => (upgrades[v.key] < v.cap) && !module_needs_gun(v) && (module_next_locked(v) === null));
         for (let i = options.length - 1; i > 0; --i) {
             const j = Math.floor(Math.random()*(i + 1));
             [options[i], options[j]] = [options[j], options[i]];

@@ -994,20 +994,24 @@ function render_station()
         for (const v of ship_catalog) {
             const owned = f.ships.includes(v.id);
             const selected = f.ship_id === v.id;
-            const locked = rank < v.rank;
+            // a ship not yet on sale says where it opens, before the rank it needs
+            const closed = !owned && !tech_open(v.opens);
+            const locked = !owned && (closed || (rank < v.rank));
             const oversize = cargo_count() > v.cargo;
             function on_select() {
                 fleet_purchase(v.id, 'ship');
             }
             const action = selected
                 ? 'ACTIVE SHIP'
-                : locked
-                    ? `REQUIRES ${rank_names[v.rank].toUpperCase()}`
-                    : oversize
-                        ? 'SELL CARGO TO SWITCH'
-                        : owned
-                            ? 'SWITCH SHIP'
-                            : `BUY · ◆ ${v.price}`;
+                : closed
+                    ? tech_lock_text(v.opens).toUpperCase()
+                    : locked
+                        ? `REQUIRES ${rank_names[v.rank].toUpperCase()}`
+                        : oversize
+                            ? 'SELL CARGO TO SWITCH'
+                            : owned
+                                ? 'SWITCH SHIP'
+                                : `BUY · ◆ ${v.price}`;
             const c = card(
                 parent,
                 `${v.name} / ${v.role}`,
@@ -1018,6 +1022,11 @@ function render_station()
                 selected || locked || oversize || (!owned && (salvage < v.price)),
                 selected ? 'active' : ''
             );
+            // the kit's button writes its label in sentence case: the world keeps its name
+            const label = closed && c.querySelector('.foot .btn > span');
+            if (label) {
+                label.textContent = tech_lock_text(v.opens);
+            }
             const art = document.createElement('div');
             art.className = 'fleet-silhouette';
             art.innerHTML = ship_svg(v);

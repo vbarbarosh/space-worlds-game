@@ -38,12 +38,15 @@ Two modes:
   of its own: its own attacks, each shown before it lands, its own way of
   moving, a second half below 50%, and moments its hull is exposed; it calls
   escorts at 66% and 33%. A ship that explodes hurts what is close to it. The salvage you collect buys
-  repairs, weapons, ships, supplies and modules at the station's depot (R). A cleared world pays a fixed bonus, the weapon
+  repairs, weapons, ships, supplies and modules at the station's depot (R); each world opens more of them, and
+  what is not open yet says where it opens. A cleared world pays a fixed bonus, the weapon
   grows a tier, a cleared screen shows the world's numbers, and the depot opens before the next world. Score, combo and a best score (salvage left at the end scores 10 points each); no
   stations or contracts. A save keeps the score, salvage and gear, and loading
   it starts its world again from the first wave.
 - **Campaign**: the stations, contracts, trading and story chapters; see
-  [docs/scenario/](docs/scenario/README.md).
+  [docs/scenario/](docs/scenario/README.md). Ranks license ships and guns, and
+  each world reached opens more ships, guns and module levels, as in the arcade
+  ([docs/balance.md](docs/balance.md), What each world opens).
 
 ## Commands
 
@@ -94,7 +97,9 @@ panel folded. `&screen=race` starts a ring race at its start line
 `dev.html?world=0&screen=race`. `&screen=menu` shows the menu with the scene's
 game to continue; `&row=arcade` (or `load`, `settings`, `controls`) opens that
 row, `&slots=1` adds six saved slots (the Load row, and its scene with
-`&row=load`), `&save=none` a first launch with no game to continue. It keeps
+`&row=load`), `&save=none` a first launch with no game to continue.
+`&kit=start` leaves you only the start ship and gun (and the ones in the
+URL), so the HANGAR and ARSENAL show what a later world opens. It keeps
 its own storage and never touches the game's save.
 
 The interface is the designer's UI kit (src/css/ui-kit.css): one root,

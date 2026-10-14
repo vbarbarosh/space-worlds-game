@@ -5,6 +5,7 @@ const ship_courier = {
         role: 'Trading / delivery',
         price: 350,
         rank: 1,
+        opens: 0,
         hull: 120,
         shield: 20,
         speed: 1.2,

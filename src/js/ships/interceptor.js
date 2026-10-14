@@ -5,6 +5,7 @@ const ship_interceptor = {
         role: 'Combat / evasion',
         price: 850,
         rank: 2,
+        opens: 1,
         hull: 85,
         shield: 45,
         speed: 1.5,

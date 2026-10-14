@@ -304,7 +304,11 @@ function render_station_goals(parent)
     career.className = 'goal-panel';
     const career_head = `<div class="career-head"><div><h3 class="h-section">${rank_names[rank]}</h3>${next ? `<p class="small">next: ${rank_names[rank + 1]}</p>` : ''}</div><span class="readout">${ui_number(campaign.xp)}${next ? `<small> / ${ui_number(next)} XP</small>` : ''}</span></div>`;
     const career_bar = next ? ui_progress_html(10, Math.floor(((campaign.xp - from)/(next - from))*10), '') : '';
-    const career_text = (rank < 5) ? `Earn ${ui_number(Math.max(0, rank_thresholds[5] - campaign.xp))} XP to license the Aurora Cruiser. The hangar and arsenal show what each rank unlocks.` : 'Every ship and gun is yours to fly.';
+    const career_text = (rank < 5)
+        ? `Earn ${ui_number(Math.max(0, rank_thresholds[5] - campaign.xp))} XP to license the Aurora Cruiser. The hangar and arsenal show what each rank unlocks, and each new world opens more.`
+        : tech_open(Math.max(...ship_catalog.map(v => v.opens), ...weapon_catalog.map(v => v.opens)))
+            ? 'Every ship and gun is yours to fly.'
+            : 'Every licence is yours; new worlds open more ships and guns.';
     const reputation = campaign.visited.map(v => `<span>${worlds[v].name}</span><span class="b"><i style="width:${Math.min(100, (campaign.reputation[v]/8)*100)}%;background:var(--w-${world_slug(v)})"></i></span><span class="v">${(campaign.reputation[v] >= 8) ? 'trusted' : (campaign.reputation[v] >= 3) ? 'known' : '–'}</span>`).join('');
     career.innerHTML = `<span class="eyebrow eyebrow--muted">Pilot career</span>${career_head}${career_bar}<p class="small">${career_text}</p><span class="eyebrow eyebrow--muted">Reputation</span><div class="bars">${reputation}</div>`;
     right.append(career);

@@ -764,6 +764,11 @@ function arcade_depot_fill()
     name.style.color = `var(--w-${world_slug(shown)})`;
     document.getElementById('arcade_depot_next').textContent = `${arcade_waves} waves · flagship`;
     document.getElementById('cleared_rules').innerHTML = world_rules[shown].summary.split(' · ').map(v => ui_badge(ui_sentence(v))).join('');
+    // what the next world opens, on sale here from now on (src/js/tech.js)
+    const opened = (next === null) ? [] : tech_opened(world_tier(here), world_tier(next));
+    const fresh = document.getElementById('arcade_depot_new');
+    fresh.innerHTML = opened.length ? `<b>New on sale</b> ${opened.map(ui_escape).join(', ')}` : '';
+    set_hidden(fresh, !opened.length);
     document.getElementById('arcade_depot_launch').innerHTML = `<span>${(next === null) ? 'Back to the fight' : `Launch to ${worlds[next].name}`}</span><span class="key">Enter</span>`;
     const tabs = [{value: 'all', label: 'All'}, {value: 'repairs', label: 'Repairs'}, {value: 'weapons', label: 'Weapons'}, {value: 'ships', label: 'Ships'}, ...module_shelves];
     document.getElementById('arcade_depot_tabs').innerHTML = tabs.map(v => `<button type="button" class="${(v.value === arcade_depot_view.tab) ? 'is-active' : ''}" data-tab="${v.value}">${module_shelves.includes(v) ? `<i class="depot-dot depot-dot--${v.value}"></i>` : ''}${v.label}</button>`).join('');
@@ -773,7 +778,7 @@ function arcade_depot_fill()
 
 // What the depot sells, as items of one shape: kind and id, the section it shows under, title, line, the words a
 // search finds it by, icon, key, chips, level pips, price (null: nothing to buy), why it cannot be bought (Full, Max,
-// Equipped) and what buying it does
+// Equipped, or the world that opens it: locked) and what buying it does
 function arcade_depot_items()
 {
     const out = [];
@@ -816,11 +821,14 @@ function arcade_depot_items()
         const spare = (owned[weapon.id] || 0) > carried;
         const where = (mounts.length > 1) ? `On ${carried} of your ${mounts.length} mounts.` : 'On your one mount.';
         const line = !fits ? `Needs a ${weapon.size} mount: ${ship_catalog.filter(v => gun_fits_ship(weapon, v)).map(v => v.name).join(', ')}.` : carried ? (room ? `${where} Buy another for one more mount.` : `${where} Every gun grows a tier with every world you clear.`) : spare ? `Yours, spare. ${weapon.line}` : weapon.line;
+        // a gun, or one more of it, waits for the world that opens it, said before whether a mount fits it; one you have
+        // spare goes back on
+        const closed = !spare && !(carried && !room) && !tech_open(weapon.opens);
         out.push({
             kind: 'weapon', id: weapon.id, section: 'weapons', title: carried ? `${weapon.name} T${weapon_level()}${(carried > 1) ? ` ×${carried}` : ''}` : weapon.name,
             line,
             tags: `weapon gun оружие пушка ${weapon.tags || ''}`, icon: ship_parts_clean_url(`weapons/turret-${weapon.id}`), chips: arcade_weapon_chips(weapon, mine),
-            price: (!fits || !room) ? null : spare ? 0 : 120 + weapon.rating*45, done: !fits ? 'No mount fits' : !room ? 'Equipped' : '', owned: carried > 0, label: spare ? 'Equip' : carried ? 'Buy another' : 'Buy',
+            price: (!fits || !room || closed) ? null : spare ? 0 : 120 + weapon.rating*45, done: closed ? tech_lock_text(weapon.opens) : !fits ? 'No mount fits' : !room ? 'Equipped' : '', locked: closed, owned: carried > 0, label: spare ? 'Equip' : carried ? 'Buy another' : 'Buy',
             buy: function () {
                 arcade_weapon_take(weapon);
             },
@@ -831,10 +839,11 @@ function arcade_depot_items()
     for (const ship of ship_catalog) {
         const now = ship.id === flying.id;
         const have = ensure_career().ships.includes(ship.id);
+        const closed = !have && !tech_open(ship.opens);
         out.push({
             kind: 'ship', id: ship.id, section: 'ships', title: ship.name, line: now ? 'Your ship.' : have ? `Yours. ${ship.role}.` : `${ship.role}.`,
             tags: `ship hull ${ship.role.toLowerCase()} корабль`, icon: ship_parts_clean_url(`3d/ship-${ship.id}`), chips: arcade_ship_chips(ship, flying),
-            price: now ? null : have ? 0 : Math.round((ship.price*arcade_ship_price)/10)*10, done: now ? 'Flying' : '', owned: now, label: have ? 'Fly' : 'Buy',
+            price: (now || closed) ? null : have ? 0 : Math.round((ship.price*arcade_ship_price)/10)*10, done: now ? 'Flying' : closed ? tech_lock_text(ship.opens) : '', locked: closed, owned: now, label: have ? 'Fly' : 'Buy',
             buy: function () {
                 arcade_ship_take(ship);
             },
@@ -843,10 +852,11 @@ function arcade_depot_items()
     for (const shelf of module_shelves) {
         for (const option of upgrade_options.filter(v => v.shelf === shelf.value)) {
             const level = upgrades[option.key];
+            const closed = module_next_locked(option);
             out.push({
                 kind: 'module', id: option.key, section: shelf.value, title: option.title, line: option.line, tags: option.tags, icon: module_icon(option),
                 part: option.part, pips: [level, option.cap], price: module_cost(option), label: level ? 'Upgrade' : 'Buy',
-                done: (level >= option.cap) ? 'Max' : module_needs_gun(option) ? 'Needs launcher' : '',
+                done: (level >= option.cap) ? 'Max' : module_needs_gun(option) ? 'Needs launcher' : (closed !== null) ? tech_lock_text(closed) : '', locked: (closed !== null) && !module_needs_gun(option),
                 buy: function () {
                     grant_upgrade(option);
                 },
@@ -880,15 +890,18 @@ function arcade_depot_render_list()
 }
 
 // One item: icon, title (its key, ON SHIP for a module you will see on the ship), line, chips or level pips, and Buy
-// with the price, "Need n" in the button when the salvage is short
+// with the price, "Need n" in the button when the salvage is short; one a later world opens, the lock and that world
 function arcade_depot_item_html(item, words)
 {
     const short = (item.price !== null) && !item.done && (salvage < item.price);
-    const classes = ['depot-it', short && 'is-short', item.done && !item.owned && 'is-done', item.owned && 'is-owned'].filter(Boolean).join(' ');
+    const classes = ['depot-it', short && 'is-short', item.done && !item.owned && (item.locked ? 'is-locked' : 'is-done'), item.owned && 'is-owned'].filter(Boolean).join(' ');
     const chips = (item.chips || []).map(v => `<span class="depot-chip${v[2] ? ` is-${v[2]}` : ''}"><i>${v[0]}</i>${v[1]}</span>`).join('');
     const pips = item.pips ? `<span class="depot-pips${(item.pips[1] > 3) ? ' is-many' : ''}">${Array.from({length: item.pips[1]}, (_, i) => `<i${(i < item.pips[0]) ? ' class="on"' : ''}></i>`).join('')}</span>` : '';
     let action = '';
-    if (item.done) {
+    if (item.locked) {
+        action = ui_badge(`${ui_lock_svg}${item.done}`, 'locked');
+    }
+    else if (item.done) {
         action = ui_badge(item.done, item.owned ? 'cyan' : '');
     }
     else if (item.price !== null) {

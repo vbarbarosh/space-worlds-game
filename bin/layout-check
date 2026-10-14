@@ -25,13 +25,18 @@ const screens = [
     {value: 'arcade-finale', label: 'arcade-finale', query: '&t=13', phone: true},
     {value: 'station-jobs', label: 'station-contracts'},
     {value: 'station-arsenal', label: 'station-arsenal'},
+    // the start kit in Haven: guns for sale beside guns a later world opens, their lock badges
+    {value: 'station-arsenal', label: 'station-arsenal-locked', query: '&kit=start'},
     {value: 'station-outfit', label: 'station-modules'},
+    // modules at level 1: their next levels wait for Verdant to Obsidian
+    {value: 'station-outfit', label: 'station-modules-locked', query: '&modules=damage:1,shield:1,armor:1,rate:1,spread:1,turbo_tank:1,magnet:1'},
     // the pause panel's play log at its cap (its longest line), then empty, Download off
     {value: 'pause', label: 'pause-log-full', query: '&play_log=full'},
     {value: 'pause', label: 'pause-log-empty', query: '&play_log=empty'},
     {value: 'station-career', label: 'station-goals'},
     {value: 'station-market', label: 'station-market'},
     {value: 'station-hangar', label: 'station-hangar'},
+    {value: 'station-hangar', label: 'station-hangar-locked', query: '&kit=start'},
     {value: 'map-plan', label: 'map-mission-plan'},
     {value: 'map-local', label: 'map-local'},
     // the chart of the worlds and their lanes

@@ -33,6 +33,9 @@ function dev_scenario_from_url()
         difficulty: ['chill', 'normal', 'overload'].includes(params.get('difficulty')) ? params.get('difficulty') : 'normal',
         speed: [0.1, 0.25, 1, 2, 4].includes(Number(params.get('speed'))) ? Number(params.get('speed')) : 1,
         tab: params.get('tab') || 'scenario',
+        // kit=start: you own only the ship and the gun chosen (and the start ones), so the hangar and the arsenal show
+        // what is for sale and what a later world opens; else every ship and gun is yours
+        kit: (params.get('kit') === 'start') ? 'start' : 'all',
         god: flag('god', true),
         energy: flag('energy', false),
         spawns: flag('spawns', false),
@@ -51,6 +54,9 @@ function dev_scenario_save()
     params.set('difficulty', dev_scenario.difficulty);
     params.set('speed', dev_scenario.speed);
     params.set('tab', dev_scenario.tab);
+    if (dev_scenario.kit === 'start') {
+        params.set('kit', 'start');
+    }
     params.set('god', dev_scenario.god ? '1' : '0');
     params.set('energy', dev_scenario.energy ? '1' : '0');
     params.set('spawns', dev_scenario.spawns ? '1' : '0');
@@ -95,9 +101,9 @@ function dev_scenario_start()
             xp: 99999,
             fleet: {
                 ship_id: dev_scenario.ship,
-                ships: ship_catalog.map(v => v.id),
+                ships: (dev_scenario.kit === 'start') ? [...new Set(['scout', dev_scenario.ship])] : ship_catalog.map(v => v.id),
                 weapon_id: dev_scenario.weapon,
-                weapons: weapon_catalog.map(v => v.id),
+                weapons: (dev_scenario.kit === 'start') ? [...new Set(['plasma', dev_scenario.weapon])] : weapon_catalog.map(v => v.id),
                 weapon_levels,
             },
         },

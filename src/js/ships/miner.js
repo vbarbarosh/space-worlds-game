@@ -5,6 +5,7 @@ const ship_miner = {
         role: 'Mining / salvage',
         price: 1050,
         rank: 2,
+        opens: 2,
         hull: 190,
         shield: 25,
         speed: 0.8,

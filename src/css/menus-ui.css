@@ -918,6 +918,29 @@ body:not(.in-game) .ui.hud .hud-top .toolbar {
     opacity: 0.6;
 }
 
+/* the next world's news in the depot: what it opens, on sale from now on */
+.ui .depot-new {
+    margin: 0;
+    color: var(--text-2);
+}
+
+.ui .depot-new b {
+    margin-right: 6px;
+    color: var(--gold);
+}
+
+/* a later world opens it: faded as a rank-locked card, the lock badge in full */
+.ui .depot-it.is-locked {
+    background: rgba(12, 24, 40, 0.55);
+}
+
+.ui .depot-it.is-locked .ic,
+.ui .depot-it.is-locked b,
+.ui .depot-it.is-locked p,
+.ui .depot-it.is-locked .row > :not(.badge) {
+    opacity: 0.5;
+}
+
 .ui .depot-it.is-owned {
     border-color: rgba(108, 248, 236, 0.45);
 }
@@ -1192,7 +1215,8 @@ body:not(.in-game) .ui.hud .hud-top .toolbar {
         padding: 10px;
     }
 
-    .ui .depot-next .depot-chips {
+    .ui .depot-next .depot-chips,
+    .ui .depot-next .depot-new {
         display: none;
     }
 
@@ -1253,7 +1277,8 @@ body:not(.in-game) .ui.hud .hud-top .toolbar {
     }
 
     .ui .depot-next-world,
-    .ui .depot-chips {
+    .ui .depot-chips,
+    .ui .depot-new {
         display: none;
     }
 }

@@ -47,8 +47,9 @@ function preparation_plan(id)
     let defense = defense_rating();
     const weights = {damage: 1, rate: 1, spread: 3, drone: 2, homing: 1, armor: 1, shield: 1};
     for (let i = 0; (i < 30) && ((weapons < worlds[id].attack) || (defense < worlds[id].defense)); ++i) {
+        // only the levels on sale now: a later world opens the rest (src/js/tech.js)
         const candidates = upgrade_options.filter(
-            v => weights[v.key] && (levels[v.key] < v.cap) && (['armor', 'shield'].includes(v.key) ? defense < worlds[id].defense : weapons < worlds[id].attack)
+            v => weights[v.key] && (levels[v.key] < module_open_cap(v)) && (['armor', 'shield'].includes(v.key) ? defense < worlds[id].defense : weapons < worlds[id].attack)
         );
         candidates.sort(function (a, b) {
             const need_a = ['armor', 'shield'].includes(a.key) ? worlds[id].defense - defense : worlds[id].attack - weapons;
@@ -80,8 +81,9 @@ function preparation_plan(id)
         }
     }
     const needed = expedition_conditions[id].required;
-    while ((radiation_protection(current_ship(), levels.radshield) + 0.001 < needed) && (levels.radshield < 4)) {
-        const v = upgrade_options.find(v => v.key === 'radshield');
+    const lining = upgrade_options.find(v => v.key === 'radshield');
+    while ((radiation_protection(current_ship(), levels.radshield) + 0.001 < needed) && (levels.radshield < module_open_cap(lining))) {
+        const v = lining;
         const price = Math.round(v.cost*(1 + levels.radshield*0.48));
         levels.radshield++;
         out.push({key: v.key, title: v.title, level: levels.radshield, price, group: 'defense'});
@@ -90,7 +92,7 @@ function preparation_plan(id)
     if (armour_rating(id, levels.damage) + 0.001 < gate_armour_share) {
         const hotter = upgrade_options.find(v => v.key === 'damage');
         let level = levels.damage;
-        while ((armour_rating(id, level) + 0.001 < gate_armour_share) && (level < Math.min(hotter.cap, levels.damage + 2))) {
+        while ((armour_rating(id, level) + 0.001 < gate_armour_share) && (level < Math.min(module_open_cap(hotter), levels.damage + 2))) {
             level++;
         }
         if (armour_rating(id, level) + 0.001 >= gate_armour_share) {
@@ -100,7 +102,8 @@ function preparation_plan(id)
         }
         else {
             const f = ensure_career();
-            const fit = weapon_catalog.filter(v => gun_armour_share(v, id, levels.damage) + 0.001 >= gate_armour_share).sort((a, b) => a.price - b.price);
+            // a gun you own, or one on sale now
+            const fit = weapon_catalog.filter(v => (f.weapons.includes(v.id) || tech_open(v.opens)) && (gun_armour_share(v, id, levels.damage) + 0.001 >= gate_armour_share)).sort((a, b) => a.price - b.price);
             const gun = fit.find(v => gun_fits_ship(v)) || fit[0];
             if (gun) {
                 const needs = [!f.weapons.includes(gun.id) && (pilot_rank() < gun.rank) ? rank_names[gun.rank] : '', gun_fits_ship(gun) ? '' : `a ${gun.size} mount`].filter(Boolean);
@@ -114,8 +117,9 @@ function preparation_plan(id)
             }
         }
     }
-    if (radiation_protection(current_ship(), levels.radshield) + 0.001 < needed) {
-        const hull = ship_catalog.find(v => radiation_protection(v, levels.radshield) + 0.001 >= needed);
+    // a hull you own, or one on sale now
+    const hull = ship_catalog.find(v => (ensure_career().ships.includes(v.id) || tech_open(v.opens)) && (radiation_protection(v, levels.radshield) + 0.001 >= needed));
+    if (hull && (radiation_protection(current_ship(), levels.radshield) + 0.001 < needed)) {
         out.push({
             key: 'hull',
             title: `Protected hull: ${hull.name} (HANGAR; ${rank_names[hull.rank]})`,

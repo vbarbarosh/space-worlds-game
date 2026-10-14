@@ -14,14 +14,18 @@ const usage = `usage: bin/playtest [--mode=normal] [--seeds=1,2,3] [--label=name
 
     How it flies: it holds 320 m from the nearest raider and circles it, steps aside from shots coming at it, picks
     up salvage when fewer than three raiders are close, keeps off the radiation at the edge. The pulse at three
-    raiders within 380 m, a dash past a missile within 220 m, the EMP at six within 550 m or below a third of its hull, stasis at eight, a repair kit
-    below half. At the depot: a repair below 75% hull, two repair kits, then modules by value for the price (Prism,
-    Hotter plasma, Rapid resonance, Phase armor, Shield capacitor, drones, nanites, the pulse), a sturdier ship once
-    they are bought, then the rest that helps in a fight (reactor, cooling,
-    evasion, the missile modules, dash, speed, stabilizer), EMPs up to three. Guns fire by themselves.
+    raiders within 380 m, a dash past a missile within 220 m, the EMP at six within 550 m or below a third of its
+    hull, stasis at eight, a repair kit below half. At the depot: a repair below 75% hull, two repair kits, then
+    modules by value for the price (Prism, Hotter plasma, Rapid resonance, Phase armor, Shield capacitor, drones,
+    nanites, the pulse); once they are bought, a sturdier ship on sale with no fewer mounts and one more of its gun
+    for each empty mount, then the rest that helps in a fight (reactor, cooling, evasion, the missile modules, dash,
+    speed, stabilizer), then the rest of the shop (magnet, relic processor, booster reservoir, radiation lining);
+    EMPs up to three. Guns fire by themselves.
 
     A death starts the world again from its first wave, as loading an arcade save does; three deaths in one world
-    end the run. Results go to data/playtest/<label>/<mode>-<seed>.json, and a table per run is printed.
+    end the run. The run says when the shop ran out (the Aurora Cruiser owned and every module at its cap, a
+    launcher's modules only with the launcher): the minute and the world. Results go to
+    data/playtest/<label>/<mode>-<seed>.json, and a table per run is printed.
 
     --minutes stops a run that takes longer than that on the wall clock, and says so.
     --gun buys that gun (plasma, scatter, ion, rail, missile, beam) at the first depot that can pay for it after a
@@ -84,13 +88,16 @@ async function main()
 // A run as a table: a row per world, then the run's end
 function run_table(run)
 {
-    const lines = [`${run.mode} seed ${run.seed}: ${run.won ? 'won' : run.cut ? 'cut (time)' : 'lost'} · ${run.deaths} deaths · ${Math.round(run.run_time)} s · score ${run.score} · salvage left ${run.salvage_left} · ${run.wall_seconds} s on the clock`];
-    lines.push('world        hull lost (w1/w2/w3)   all dmg  kills  off-screen  salvage at depot  deaths  time  ship and guns  most from');
+    const maxed = run.maxed ? `shop ran out at ${(run.maxed.run_time/60).toFixed(1)} min in ${run.maxed.world}` : 'shop never ran out';
+    const lines = [`${run.mode} seed ${run.seed}: ${run.won ? 'won' : run.cut ? 'cut (time)' : 'lost'} · ${run.deaths} deaths · ${Math.round(run.run_time)} s · score ${run.score} · salvage left ${run.salvage_left} · ${maxed} · ${run.wall_seconds} s on the clock`];
+    lines.push('world        hull lost (w1/w2/w3)   all dmg  kills  off-screen  salvage at depot  left after  deaths  time  ship and guns  most from');
     for (const world of run.worlds) {
         const hull = world.waves.map(v => Math.round(v.hull)).join(' / ');
         const all = Math.round(world.waves.reduce((sum, v) => sum + v.hull + v.shield, 0));
         const sources = Object.entries(world.sources).sort((a, b) => b[1] - a[1]).slice(0, 2).map(v => `${v[0]} ${Math.round(v[1])}`).join(', ');
-        lines.push(`${world.name.padEnd(12)} ${hull.padEnd(22)} ${String(all).padStart(7)}  ${String(world.kills).padStart(5)}  ${String(world.off_screen).padStart(10)}  ${String(world.salvage_at_depot ?? '-').padStart(16)}  ${String(world.deaths).padStart(6)}  ${Math.round(world.time)} s  ${world.ship}: ${world.guns.join('+')}  ${sources}`);
+        // left after: the module levels and ships still to buy, and the salvage kept, after the depot
+        const left = (world.levels_left === undefined) ? '-' : `${world.levels_left}+${world.ships_left} ◆${world.salvage_after_depot}`;
+        lines.push(`${world.name.padEnd(12)} ${hull.padEnd(22)} ${String(all).padStart(7)}  ${String(world.kills).padStart(5)}  ${String(world.off_screen).padStart(10)}  ${String(world.salvage_at_depot ?? '-').padStart(16)}  ${left.padStart(10)}  ${String(world.deaths).padStart(6)}  ${Math.round(world.time)} s  ${world.ship}: ${world.guns.join('+')}  ${sources}`);
     }
     return lines.join('\n');
 }
@@ -124,11 +131,20 @@ function page_bot(options)
     time = 0;
     ui_timer = 0;
     difficulty = options.mode;
-    const B = {done: false, deaths: 0, worlds: [], world: null, snapshot: null, won: false};
+    const B = {done: false, deaths: 0, worlds: [], world: null, snapshot: null, won: false, maxed: null};
     window.__bot = B;
     const priorities = ['spread', 'damage', 'rate', 'armor', 'shield', 'drone', 'nanites', 'pulse'];
     // what a player buys once the fight's core is bought and the ship is sturdier: the rest that helps in a fight
     const extras = ['reactor', 'cooling', 'evasive', 'homing', 'seeker', 'warhead', 'motor', 'dash', 'speed', 'stabilizer'];
+    // and then the rest of the shop, so the salvage left at the end is what nothing could buy
+    const rest = ['magnet', 'salvager', 'turbo_tank', 'radshield'];
+    // the shop ran out: the top ship, every module at its cap (a launcher's modules only with the launcher)
+    function maxed_check() {
+        const done = ensure_career().ships.includes('cruiser') && upgrade_options.every(v => (upgrades[v.key] >= v.cap) || module_needs_gun(v));
+        if (done && !B.maxed) {
+            B.maxed = {run_time, world: worlds[campaign.world].name};
+        }
+    }
     function world_entry() {
         const current = B.worlds[B.worlds.length - 1];
         if (current && (current.world === campaign.world)) {
@@ -292,17 +308,30 @@ function page_bot(options)
         buy_in_order(priorities);
         const left = arcade_depot_items().filter(v => (v.kind === 'module') && priorities.includes(v.id) && !v.done);
         if (!left.length) {
-            const sturdier = ship_catalog.filter(v => (v.hull > current_ship().hull) && (!options.gun || gun_fits_ship(weapon_by_id(options.gun), v))).sort((a, b) => a.hull - b.hull)[0];
+            // the next sturdier ship the depot sells (one a later world opens waits for it) with no fewer mounts
+            const on_sale = arcade_depot_items().filter(v => (v.kind === 'ship') && !v.done && (v.price !== null)).map(v => v.id);
+            const sturdier = ship_catalog.filter(v => (v.hull > current_ship().hull) && (v.mounts.length >= current_ship().mounts.length) && on_sale.includes(v.id) && (!options.gun || gun_fits_ship(weapon_by_id(options.gun), v))).sort((a, b) => a.hull - b.hull)[0];
             if (sturdier) {
                 buy('ship', sturdier.id);
             }
+            // each empty mount gets one more of its gun, as the depot's Buy another offers
+            while (buy('weapon', current_weapon().id)) {
+                continue;
+            }
             if (!sturdier || (current_ship().hull >= sturdier.hull)) {
                 buy_in_order(extras);
+                buy_in_order(rest);
             }
         }
         while ((supplies.emp < 3) && buy('supply', 'emp')) {
             continue;
         }
+        maxed_check();
+        // what is left to buy after this depot: module levels (a launcher's only with the launcher) and ships
+        const entry = world_entry();
+        entry.levels_left = upgrade_options.filter(v => !module_needs_gun(v)).reduce((n, v) => n + v.cap - upgrades[v.key], 0);
+        entry.ships_left = ship_catalog.filter(v => !ensure_career().ships.includes(v.id)).length;
+        entry.salvage_after_depot = salvage;
         arcade_depot_close();
     }
     function step() {
@@ -339,7 +368,7 @@ function page_bot(options)
         }
     }
     B.report = function () {
-        return {mode: options.mode, seed: options.seed, gun: options.gun, done: B.done, won: B.won, deaths: B.deaths, run_time, score, salvage_left: salvage, worlds: B.worlds};
+        return {mode: options.mode, seed: options.seed, gun: options.gun, done: B.done, won: B.won, deaths: B.deaths, run_time, score, salvage_left: salvage, maxed: B.maxed, kit: {ship: current_ship().id, guns: mounted_weapons().map(v => (v ? v.id : 'empty')), upgrades: {...upgrades}}, worlds: B.worlds};
     };
     const base_frame = frame;
     frame = function () {

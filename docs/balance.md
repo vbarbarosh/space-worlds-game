@@ -203,18 +203,19 @@ below). That gives, in the campaign at NORMAL:
 
 ## Your ship
 
-| Ship | Rank | Price | Hull | Shield | Speed | Cargo | Mounts | Radiation |
-|---|---|---|---|---|---|---|---|---|
-| Wisp Scout | Cadet | 0 | 100 | 0 | ×1 | 40 | light | 0% |
-| Kestrel Courier | Courier | 350 | 120 | 20 | ×1.2 | 100 | 2 light | 12% |
-| Viper Interceptor | Pathfinder | 850 | 85 | 45 | ×1.5 | 25 | 2 medium | 4% |
-| Mule Prospector | Pathfinder | 1050 | 190 | 25 | ×0.8 | 150 | medium | 35% |
-| Bastion Gunship | Vanguard | 2300 | 250 | 70 | ×0.88 | 65 | 2 medium, heavy | 55% |
-| Aurora Cruiser | Commander | 5600 | 340 | 130 | ×0.78 | 120 | 2 medium, 2 heavy | 75% |
+| Ship | Opens in | Rank | Price | Hull | Shield | Speed | Cargo | Mounts | Radiation |
+|---|---|---|---|---|---|---|---|---|---|
+| Wisp Scout | Haven | Cadet | 0 | 100 | 0 | ×1 | 40 | light | 0% |
+| Kestrel Courier | Haven | Courier | 350 | 120 | 20 | ×1.2 | 100 | 2 light | 12% |
+| Viper Interceptor | Verdant | Pathfinder | 850 | 85 | 45 | ×1.5 | 25 | 2 medium | 4% |
+| Mule Prospector | Dustfall | Pathfinder | 1050 | 190 | 25 | ×0.8 | 150 | medium | 35% |
+| Bastion Gunship | Ion Reach | Vanguard | 2300 | 250 | 70 | ×0.88 | 65 | 2 medium, heavy | 55% |
+| Aurora Cruiser | Cryosphere | Commander | 5600 | 340 | 130 | ×0.78 | 120 | 2 medium, 2 heavy | 75% |
 
-- Where: one file per ship in `src/js/ships/`; `ship` is the catalog entry,
-  `hull_profile` the radiation, traction, braking, cooling, turbo and extra
-  turbo seconds (`endurance`).
+- Where: one file per ship in `src/js/ships/`; `ship` is the catalog entry
+  (`opens`: the world it goes on sale in, below), `hull_profile` the
+  radiation, traction, braking, cooling, turbo and extra turbo seconds
+  (`endurance`).
 - The Mule Prospector mines 2.5 times faster (`mining: 2.5`) and its drone bay
   holds four drones, other ships two (`drone_bay` in `src/js/drones.js`).
 - All six ships deal ×1 damage today (`damage: 1`).
@@ -232,16 +233,16 @@ below). That gives, in the campaign at NORMAL:
 
 ## Weapons
 
-| Gun | Size | Rank | Price | Damage | Interval | Arcade price | Special |
-|---|---|---|---|---|---|---|---|
-| Pulse cannon | light | 0 | 0 | 14 | 0.19 s | (start gun) | Prism: two bolts more a level; Guided plasma |
-| Shard shotgun | light | 1 | 220 | 13 ×5 | 0.5 s | 210 | five pellets; Prism: two more a level |
-| Ion disruptor | medium | 2 | 550 | 24 | 0.3 s | 300 | triple shield damage, slows to 55% for 3 s; Prism: two bolts more a level |
-| Lance railgun | heavy | 3 | 1100 | 75 | 0.65 s | 390 | ignores 75% of armour; Prism: the slug goes through a raider more a level |
-| Seeker launcher | medium | 3 | 1400 | 60 | 0.9 s | 390 | homing missiles; fuse 18; a blast wave of 100 m (Shaped warhead up to 175); Prism: a missile more a salvo |
-| Flux beam | medium | 4 | 2600 | 19 | 0.105 s | 525 | ignores 40% of armour, 1.8 pulse a lance; Prism: a lance more a level |
+| Gun | Size | Opens in | Rank | Price | Damage | Interval | Arcade price | Special |
+|---|---|---|---|---|---|---|---|---|
+| Pulse cannon | light | Haven | 0 | 0 | 14 | 0.19 s | (start gun) | Prism: two bolts more a level; Guided plasma |
+| Shard shotgun | light | Haven | 1 | 220 | 13 ×5 | 0.5 s | 210 | five pellets; Prism: two more a level |
+| Ion disruptor | medium | Verdant | 2 | 550 | 24 | 0.3 s | 300 | triple shield damage, slows to 55% for 3 s; Prism: two bolts more a level |
+| Lance railgun | heavy | Ion Reach | 3 | 1100 | 75 | 0.65 s | 390 | ignores 75% of armour; Prism: the slug goes through a raider more a level |
+| Seeker launcher | medium | Ion Reach | 3 | 1400 | 60 | 0.9 s | 390 | homing missiles; fuse 18; a blast wave of 100 m (Shaped warhead up to 175); Prism: a missile more a salvo |
+| Flux beam | medium | Obsidian | 4 | 2600 | 19 | 0.105 s | 525 | ignores 40% of armour, 1.8 pulse a lance; Prism: a lance more a level |
 
-- Where: `weapon_catalog` in `src/js/fleet.js`; the specials in
+- Where: `weapon_catalog` in `src/js/fleet.js` (`opens`, below); the specials in
   `hit_with_weapon` and `fire_equipped_weapon`.
 - The ARSENAL's gun cards show ARMOUR: the share of one hit, at the tier you
   own and your Hotter plasma, that passes the armour of the world the guide
@@ -294,27 +295,31 @@ below). That gives, in the campaign at NORMAL:
 A module level costs its base price × (1 + 0.48 per level you have)
 (`module_cost` in `src/js/upgrades.js`). Modules move between ships.
 
-| Module | Levels | Base price | Per level (code) |
-|---|---|---|---|
-| Artifact magnet | 7 | 32 | reach 45 + 110 per level (starts at 1) |
-| Orbit drones | 3 | 65 | one more drone |
-| Shield capacitor | 3 | 44 | +25 shield, faster recharge |
-| Repair nanites | 3 | 60 | 0.35 hull a second after 5 s unhit |
-| Guided plasma | 2 | 55 | plasma and ion bolts turn toward targets |
-| Pulse reactor | 3 | 42 | 1.5 pulse a second |
-| Relic processor | 3 | 35 | +25% salvage from artifacts |
-| Turbo drive | 3 | 70 | turbo speed + 0.65 on a ×3.2 base; dash cooldown −0.9 s |
-| Booster reservoir | 4 | 65 | +3 s of turbo |
-| Radiation lining | 4 | 90 | +20% radiation protection |
-| Vector stabilizers | 3 | 60 | steering +15%, braking +40% |
-| Evasive thrusters | 3 | 70 | steers round obstacles |
-| Reactor cooling | 3 | 75 | dash cooldown −0.35 s; Cryosphere shield recharge |
-| Prism cannon | 2 | 75 | more a shot, by the gun (Weapons, above) |
-| Hotter plasma | 5 | 38 | +36% of the gun's damage a shot |
-| Rapid resonance | 3 | 45 | fire interval −12% |
-| Slipstream | 3 | 30 | cruise speed +15% |
-| Phase armor | 3 | 46 | −12% damage taken (−15% in Obsidian) |
-| Pulse amplifier | 3 | 42 | pulse reach +80, damage +60 (flagship +120) |
+| Module | Levels | Opens (level by level) | Base price | Per level (code) |
+|---|---|---|---|---|
+| Artifact magnet | 7 | H V D I C N E | 32 | reach 45 + 110 per level (starts at 1) |
+| Orbit drones | 3 | H I C | 65 | one more drone |
+| Shield capacitor | 3 | H V O | 44 | +25 shield, faster recharge |
+| Repair nanites | 3 | H I C | 60 | 0.35 hull a second after 5 s unhit |
+| Guided plasma | 2 | H O | 55 | plasma and ion bolts turn toward targets |
+| Pulse reactor | 3 | H I C | 42 | 1.5 pulse a second |
+| Relic processor | 3 | H I C | 35 | +25% salvage from artifacts |
+| Turbo drive | 3 | H I C | 70 | turbo speed + 0.65 on a ×3.2 base; dash cooldown −0.9 s |
+| Booster reservoir | 4 | H D O N | 65 | +3 s of turbo |
+| Radiation lining | 4 | H D O N | 90 | +20% radiation protection |
+| Vector stabilizers | 3 | H I C | 60 | steering +15%, braking +40% |
+| Evasive thrusters | 3 | H I C | 70 | steers round obstacles |
+| Reactor cooling | 3 | H I C | 75 | dash cooldown −0.35 s; Cryosphere shield recharge |
+| Prism cannon | 2 | H O | 75 | more a shot, by the gun (Weapons, above) |
+| Hotter plasma | 5 | H D I C N | 38 | +36% of the gun's damage a shot |
+| Rapid resonance | 3 | H I C | 45 | fire interval −12% |
+| Slipstream | 3 | H I C | 30 | cruise speed +15% |
+| Phase armor | 3 | H V O | 46 | −12% damage taken (−15% in Obsidian) |
+| Pulse amplifier | 3 | H I C | 42 | pulse reach +80, damage +60 (flagship +120) |
+| Seeker head, Rocket motor, Shaped warhead | 3 each | H I C | 55, 50, 60 | the Seeker launcher's missiles; on sale with the launcher |
+
+H Haven, V Verdant, D Dustfall, I Ion Reach, O Obsidian, C Cryosphere, N Nova
+Forge, E Eclipse: see What each world opens, below.
 
 | Supply | Key | Price | Effect | Carry |
 |---|---|---|---|---|
@@ -331,6 +336,89 @@ A module level costs its base price × (1 + 0.48 per level you have)
   amplifier; a kill blows up 0.05–0.14 s later and sends a chain ring: 110 m,
   28 damage, ×0.82 a step, 3 steps, ×1.35 from a tank, elite or flagship
   (`src/js/pulse.js`). A kill gives 4 energy + the amplifier level.
+
+## What each world opens
+
+Every ship, gun and module level goes on sale in a world of its own, and
+reaching that world opens it at every shop from then on, in the arcade and the
+campaign alike (`src/js/tech.js`). The world reached (`world_reached`) is in
+the arcade the run's world, and from a world's cleared screen on the next one,
+as its depot is the way into it; in the campaign the furthest world visited
+(`campaign.visited`) or that a chapter claimed took the pilot to, so an old
+save opens what its trips earned. What a save already owns beyond that stays its own and flies
+or fires as before; only buying it, or one more of it, waits. In the campaign
+the rank still licenses ships and guns on top; the arcade's free gun tier for
+each world cleared stays.
+
+- Ships and guns: `opens` on each ship (`src/js/ships/`) and gun
+  (`weapon_catalog`), a world tier.
+- Module levels: level L of a module with M levels opens at world
+  round((L − 1)/M × 8) (`module_level_opens`): 2 levels Haven, Obsidian; 3
+  levels Haven, Ion Reach, Cryosphere; 4 Haven, Dustfall, Obsidian, Nova
+  Forge; 5 Haven, Dustfall, Ion Reach, Cryosphere, Nova Forge; 7 one a world
+  from Haven to Eclipse, Obsidian skipped. Phase armor and the Shield
+  capacitor name their own (`opens: [0, 1, 4]`): Haven, Verdant, Obsidian. With
+  the formula's Ion Reach and Cryosphere, the gate to Ion Reach (defence 3,
+  from Verdant or Dustfall) and those to Cryosphere and Nova Forge (defence 5,
+  from Obsidian) would let in only a pilot flying the Viper or the Bastion.
+
+| World | Opens |
+|---|---|
+| Haven | Wisp Scout, Kestrel Courier, Pulse cannon, Shard shotgun, level 1 of every module (22) |
+| Verdant | Viper Interceptor, Ion disruptor, 3 module levels (magnet 2, Phase armor 2, Shield capacitor 2) |
+| Dustfall | Mule Prospector, 4 module levels (magnet 3, Hotter plasma 2, Booster reservoir 2, Radiation lining 2) |
+| Ion Reach | Bastion Gunship, Lance railgun, Seeker launcher, 16 module levels (level 2 of the 14 three-level modules, magnet 4, Hotter plasma 3) |
+| Obsidian | Flux beam, 6 module levels (Prism 2, Guided plasma 2, Phase armor 3, Shield capacitor 3, Booster reservoir 3, Radiation lining 3) |
+| Cryosphere | Aurora Cruiser, 16 module levels (level 3 of the 14 three-level modules, magnet 5, Hotter plasma 4) |
+| Nova Forge | 4 module levels (magnet 6, Hotter plasma 5, Booster reservoir 4, Radiation lining 4) |
+| Eclipse | magnet 7 |
+
+- What a world opens is said once: in the arcade's depot before it, under the
+  next world's rules (New on sale Bastion Gunship, Lance railgun, Seeker
+  launcher, 16 module levels); in the campaign by a toast as you first arrive
+  (Now on sale · ... · at every station). An item not yet open shows its
+  world in a lock badge where a rank-locked gun shows its rank (Opens in Ion
+  Reach), and cannot be bought.
+- Why the arcade opens a world at the depot before it, not on arrival: its
+  depot between worlds is where a run shops. Opened on arrival, what a world
+  opens is bought only after it is cleared, and Ion Reach (the first raider
+  shields, a flagship of 18 900) became a wall: `bin/playtest`'s bot died
+  three times there in two seeds of three (NORMAL), where it had cleared it
+  with no death before.
+- The campaign's story still works (checked by hand against the gates'
+  needs, `allowed_world`): each gate is met with what the world before it
+  opens. The Obsidian gate's gun that bites (the Seeker or the rail) opens in
+  Ion Reach, where chapter 4 brings its Vanguard licence; Nova Forge's 80%
+  radiation from Obsidian asks for a hull with 20% of its own (the Mule or the
+  Bastion) as Radiation lining 4 opens in Nova Forge itself. The guide's plan
+  (`preparation_plan` in `src/js/guide.js`) names only what is on sale: module
+  levels up to what is open, a gun or a protected hull you own or that is open.
+
+- Measured (`bin/playtest`'s bot, NORMAL, seeds 1 to 3, before and after;
+  the bot now arms each empty mount with one more of its gun, keeps its
+  mounts when it buys a sturdier ship, and buys the rest of the shop once the
+  fight's core is bought):
+
+  | | before | after |
+  |---|---|---|
+  | runs won, deaths | 1 of 3; 0, 3, 3 (all in Eclipse) | 3 of 3; 0, 0, 0 |
+  | run, s | 616, 619, 574 | 720, 509, 634 |
+  | Ion Reach, s | 79, 76, 88 | 102, 67, 80 |
+  | Obsidian, Cryosphere, s | 67 and 69, 71 and 58, 50 and 70 | 137 and 115, 59 and 48, 54 and 89 |
+  | Nova Forge, Eclipse, s | 69 and 50, 128 and 172, 61 and 176 | 76 and 57, 48 and 50, 59 and 61 |
+  | left after the Cryosphere depot (levels + ships, salvage kept) | 29 + 3, 2339; 32 + 3, 1231; 34 + 3, 2678 | 32 + 3, 2589; 15 + 2, 12; 28 + 3, 2118 |
+  | the shop ran out | never | seed 2 at the Nova Forge depot (7.7 min), the others never |
+  | salvage left at the end | 861, 607, 605 | 1353, 3469, 854 |
+
+  The bot is a poorer shopper than the play logs' pilots (it saves for the
+  next ship and never maxed out before), so it shows the shape, not the
+  pilots' pace: nothing can run out before the depot ahead of Eclipse, and it
+  did there once. Its deaths went because what a world locks pushes it to a
+  two-gun ship sooner, and the later worlds still take it about a minute.
+  OVERLOAD: the bot dies three times in Haven in every seed, before and after
+  (Haven's shop is the same), so it cannot say whether OVERLOAD got easier;
+  its raider growth (`arcade_modes.overload.growth`) stays 0. The campaign
+  has no bot in `bin/playtest`; its gates were checked by hand (above).
 
 ## Salvage in
 
@@ -362,10 +450,10 @@ before rocks and the Relic processor.
 | What | Arcade | Campaign |
 |---|---|---|
 | Repair | Full repair 60 | free on docking |
-| Ships | half the campaign price, rounded to 10 (`arcade_ship_price`): 180, 430, 530, 1150, 2800 | the price above, gated by rank |
-| Guns | 120 + 45 × rating, no rank | the price above, gated by rank; each more of a gun the same (the cannon 120) |
+| Ships | half the campaign price, rounded to 10 (`arcade_ship_price`): 180, 430, 530, 1150, 2800; from the world that opens it | the price above, gated by rank and by the world that opens it |
+| Guns | 120 + 45 × rating, no rank; from the world that opens it | the price above, gated by rank and by the world that opens it; each more of a gun the same (the cannon 120) |
 | Gun tier | free, one per world cleared | (130 + 22% of price) × tier × 1.5 |
-| Modules, supplies | the tables above | the tables above |
+| Modules, supplies | the tables above; a module level from the world that opens it | the same |
 | Builder drone, outposts, transport | none | see below |
 
 - Campaign extras: builder drone 150 (`builder_price`), mining outpost 120 and
@@ -618,7 +706,9 @@ NORMAL in numbers:
 |---|---|---|---|---|---|---|---|---|
 | XP | 0 | 120 | 420 | 1100 | 2400 | 4200 | 7000 | 10500 |
 
-- Where: `rank_thresholds`, `rank_names` in `src/js/fleet.js`.
+- Where: `rank_thresholds`, `rank_names` in `src/js/fleet.js`. The world
+  that opens a ship or gun is a second condition (What each world opens,
+  above); in the story both come together.
 - The licences follow the story. A story pilot (the campaign bot, below)
   reaches Courier with chapter 1, Pathfinder with chapter 2, Vanguard
   (gunship, Lance railgun, Seeker) with chapter 4, before Obsidian's 50%

@@ -97,9 +97,11 @@ function ui_progress_html(count, done, label)
 }
 
 // One of today's shop cards (.shop-item: a glyph and title, a level line, a description, a button) as a kit item
-// card. The button element itself moves over, restyled, so its handler stays; the guide's data-key goes too.
+// card. The button element itself moves over, restyled, so its handler stays; the guide's data-key goes too. A level
+// a later world opens (the button's data-opens) shows as a locked card, its world in the lock badge, as a gun's rank.
 function ui_shop_item(old)
 {
+    const opens = old.querySelector('button[data-opens]')?.dataset.opens;
     const heading = old.querySelector('b')?.textContent || '';
     const glyph = /^\S+\s+/.test(heading) && !/^[A-Za-z]/.test(heading) ? heading.split(/\s+/)[0] : '';
     const title = glyph ? heading.slice(glyph.length).trim() : heading.trim();
@@ -110,12 +112,13 @@ function ui_shop_item(old)
         title,
         text: old.querySelector('p')?.textContent || '',
         art: icon ? `<img src="${icon}" alt="">` : glyph ? `<span class="glyph">${glyph}</span>` : '',
-        state: old.classList.contains('wanted') ? 'is-goal' : '',
+        state: opens ? 'is-locked' : old.classList.contains('wanted') ? 'is-goal' : '',
+        note: opens ? `<span class="badge badge--locked">${ui_lock_svg}Opens in ${opens}</span>` : '',
     });
     delete old.dataset.icon;
     delete old.dataset.part;
     const foot = c.querySelector('.foot');
-    for (const b of old.querySelectorAll('button')) {
+    for (const b of old.querySelectorAll('button:not([data-opens])')) {
         ui_kit_button(b);
         foot.append(b);
     }

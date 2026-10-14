@@ -5,6 +5,7 @@ const ship_cruiser = {
         role: 'Expedition flagship',
         price: 5600,
         rank: 5,
+        opens: 5,
         hull: 340,
         shield: 130,
         speed: 0.78,
