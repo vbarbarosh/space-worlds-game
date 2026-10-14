@@ -90,7 +90,142 @@ body.race-mode #combo_box {
     }
 }
 
-/* the menu's Races scene: a course of gold rings winding through the rocks, the rings lighting one after another */
+/* the menu's Races row: Steer or Turbo as two cards, a picture first, over the difficulty tiles */
+.ui .race-kinds {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin-bottom: 6px;
+}
+
+.ui .race-kind {
+    all: unset;
+    box-sizing: border-box;
+    cursor: pointer;
+    display: grid;
+    grid-template-columns: 72px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    padding: 8px 10px;
+    border-radius: 10px;
+    background: rgba(4, 8, 15, 0.55);
+    border: 1px solid var(--line-2);
+}
+
+.ui .race-kind svg {
+    width: 72px;
+    height: 36px;
+}
+
+.ui .race-kind span {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+}
+
+.ui .race-kind b {
+    font: 700 15px/1 var(--font-ui);
+    color: var(--text-1);
+}
+
+.ui .race-kind small {
+    overflow: hidden;
+    font: 400 12.5px/1.3 var(--font-ui);
+    color: var(--text-2);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ui .race-kind:hover,
+.ui .race-kind.selected {
+    border-color: #ffcc4d;
+    box-shadow: 0 0 0 1px #ffcc4d, 0 0 22px rgba(255, 204, 77, 0.25);
+    background: rgba(10, 24, 40, 0.95);
+}
+
+.ui .race-kind:focus-visible {
+    outline: 2px solid #ffcc4d;
+    outline-offset: 2px;
+}
+
+.ui .race-kind-note {
+    margin: 0 0 8px;
+}
+
+/* the Races row open in a window under 900 px: the kind cards one line and no line under them (the start's banner says
+   how a Turbo race is flown), the difficulty tiles without their line (the one under them says what the picked one
+   does), so Load, Settings and Controls stay in the window at 1280x720 and 800x600 */
+@container screen (max-height: 900px) {
+    .ui .modes.tiles-open .race-kind {
+        grid-template-columns: 52px minmax(0, 1fr) auto;
+        padding: 6px 10px;
+    }
+
+    .ui .modes.tiles-open .race-kind svg {
+        width: 52px;
+        height: 26px;
+    }
+
+    .ui .modes.tiles-open .race-kind small,
+    .ui .modes.tiles-open .race-kind-note,
+    .ui .modes.tiles-open .fold[data-scene='races'] .tile small {
+        display: none;
+    }
+}
+
+/* a phone: the picture and the name, the line under it and the key left out */
+@media (max-width: 600px) {
+    .ui .race-kind {
+        grid-template-columns: 52px minmax(0, 1fr);
+        gap: 8px;
+    }
+
+    .ui .race-kind svg {
+        width: 52px;
+        height: 26px;
+    }
+
+    .ui .race-kind small,
+    .ui .race-kind .key {
+        display: none;
+    }
+}
+
+/* the menu's Races scene: a course of gold rings winding through the rocks, the rings lighting one after another; for
+   Turbo, a track under them */
+.ui .s-races .rail,
+.ui .s-races .rail-cover,
+.ui .s-races .rail-edge {
+    display: none;
+    fill: none;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+}
+
+/* the track's band over a cover of the scene's own dark, its kerbs the red and white dashes left showing either side */
+.ui .s-races .rail {
+    stroke: rgba(120, 170, 220, 0.1);
+    stroke-width: 66;
+}
+
+.ui .s-races .rail-cover {
+    stroke: #0b1830;
+    stroke-width: 66;
+}
+
+.ui .s-races .rail-edge {
+    stroke: #e8414f;
+    stroke-width: 74;
+    stroke-dasharray: 10 10;
+}
+
+#intro[data-race-kind='turbo'] .s-races .rail,
+#intro[data-race-kind='turbo'] .s-races .rail-cover,
+#intro[data-race-kind='turbo'] .s-races .rail-edge {
+    display: inline;
+}
 .ui .s-races svg {
     position: absolute;
     inset: 0;

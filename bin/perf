@@ -27,6 +27,11 @@ for (const buildings of [10, 50, 100]) {
 for (const world of [0, 7]) {
     scenes.push({value: `race-w${world}`, kind: 'race', world, zoom: 1});
 }
+// A Turbo race of the Races mode under way in Haven and in Eclipse: the track, its kerbs and the bends lit ahead, the
+// rivals riding it, the turbo held and let go
+for (const world of [0, 7]) {
+    scenes.push({value: `turbo-w${world}`, kind: 'turbo', world, zoom: 1});
+}
 // Six drifting pieces round you as they turn, in Haven and in Eclipse, you still among them (a race course through
 // them showed one piece's turned draw costing 10 ms a frame)
 for (const world of [0, 7]) {
@@ -550,6 +555,9 @@ function page_scene(scene)
         if (scene.kind === 'race') {
             race_begin();
         }
+        if (scene.kind === 'turbo') {
+            turbo_begin();
+        }
         if (scene.kind === 'debris') {
             debris_gather();
         }
@@ -572,6 +580,10 @@ function page_scene(scene)
             patrol_timer = 60;
         }
         keys.clear();
+        if (scene.kind === 'turbo') {
+            race_rail.held = (t % 2.5) < 1.5;
+            return;
+        }
         if (scene.kind === 'debris') {
             return;
         }
@@ -633,6 +645,17 @@ function page_scene(scene)
             v.alpha = 1;
         }
         race_go(m);
+    }
+    // The Races mode's Turbo race at Normal in the scene's world, under way
+    function turbo_begin() {
+        race_mode.kind = 'turbo';
+        race_mode.log_run = 'perf';
+        race_mode.saved = {checkpoint, difficulty};
+        race_mode_start('normal', scene.world);
+        for (const v of race.racers) {
+            v.alpha = 1;
+        }
+        race_go(race_contract());
     }
     // You at the combat zone, out of sight of the station; the six drifting pieces nearest, set still round you a third
     // of the window's height away; they keep turning

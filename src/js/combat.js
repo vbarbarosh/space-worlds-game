@@ -418,7 +418,8 @@ function base_damage_enemy(enemy, damage)
 // and by, what hit you and the shot or raider that did, go to the play log (play_log_hurt)
 function damage_player(amount, blast = false, cause = 'other', by = null)
 {
-    if ((player.invincible > 0) || ((player.dash_grace > 0) && !blast) || (state !== 'playing')) {
+    // on a Turbo race's track the ship cannot steer round a drifting rock, so none costs it anything
+    if ((player.invincible > 0) || ((player.dash_grace > 0) && !blast) || (state !== 'playing') || race_rail_riding()) {
         return;
     }
     const multiplier = (difficulty === 'chill') ? 0.65 : (difficulty === 'overload') ? 1.2 : 1;

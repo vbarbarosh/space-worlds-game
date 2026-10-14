@@ -114,8 +114,9 @@ function race_prize(top, place, count, time, par)
 // The course: a start line out of the shelter, then rings one to two kilometres apart, each turned off the line
 // before it to the other side, among the rocks where it can; every ring clear of the station, gates, portals,
 // beacons, gravity, rocks and structures (race_spot_clear), every leg clear of gravity, portals and the station. The
-// shape (race_shape_campaign) scales the numbers, never the dice: the campaign's courses stay as they were.
-function race_course_make(id, variant, shape = race_shape_campaign)
+// shape (race_shape_campaign) scales the numbers, never the dice: the campaign's courses stay as they were. accept, when
+// given, may turn a course down, and the next try is made (the Turbo kind's track must be clear edge to edge).
+function race_course_make(id, variant, shape = race_shape_campaign, accept = null)
 {
     const n = clamp(race_rings(id) + shape.rings, 3, race_numbers.length);
     const r = race_ring_r(id) + shape.r;
@@ -161,7 +162,7 @@ function race_course_make(id, variant, shape = race_shape_campaign)
         if (rings.length === n) {
             const length = [start, ...rings].reduce((sum, v, i, list) => sum + (i ? distance(list[i - 1], v) : 0), 0);
             const angle = Math.atan2(rings[0].y - start.y, rings[0].x - start.x);
-            return {
+            const out = {
                 start: {x: Math.round(start.x), y: Math.round(start.y), angle},
                 start_r: race_start_r,
                 rings: rings.map(v => ({x: Math.round(v.x), y: Math.round(v.y)})),
@@ -169,6 +170,9 @@ function race_course_make(id, variant, shape = race_shape_campaign)
                 length: Math.round(length),
                 par: race_par(id, length, n),
             };
+            if (!accept || accept(out)) {
+                return out;
+            }
         }
     }
     return null;
@@ -188,8 +192,9 @@ function race_pace(id, skill, level = 1)
 }
 
 // A point of the course is clear: inside the map, out of the station's shelter, 150 m beyond the reach of every gate,
-// portal and beacon, out of every gravity pull, and a ship's width clear of rocks, drifting debris and structures
-function race_spot_clear(p, r)
+// portal and beacon, out of every gravity pull, and a ship's width clear of rocks, drifting debris and structures (with
+// rocks false, of structures only: the Turbo race clears the rocks off its track)
+function race_spot_clear(p, r, rocks = true)
 {
     const margin = 150;
     const ship = race_ship_width();
@@ -214,10 +219,10 @@ function race_spot_clear(p, r)
     if (black_holes.some(v => distance(p, v) < gravity_reach(v) + r + 100)) {
         return false;
     }
-    if (ore_nodes.some(v => (v.hp > 0) && (distance(p, v) < v.r + r + ship))) {
+    if (rocks && ore_nodes.some(v => (v.hp > 0) && (distance(p, v) < v.r + r + ship))) {
         return false;
     }
-    if (drifting_debris.some(v => distance(p, v) < v.r + r + ship)) {
+    if (rocks && drifting_debris.some(v => distance(p, v) < v.r + r + ship)) {
         return false;
     }
     return !structures_here().some(v => distance(p, v) < structure_kinds[v.kind].size*0.5 + r + ship);
@@ -406,6 +411,11 @@ function race_update(dt)
     }
     // racing
     race.clock += dt;
+    if (race_rail_on()) {
+        race_rail_update(m, dt);
+        race_tags(dt);
+        return;
+    }
     race_you_update(m, dt);
     for (const v of race.racers) {
         if (!v.you && !v.out) {
@@ -814,12 +824,17 @@ function race_after_update(dt)
     const you = race_you();
     you.x = player.x;
     you.y = player.y;
-    for (const v of race.racers) {
-        if (!v.you && !v.out) {
-            race_rival_update(v, dt);
-        }
+    if (race_rail_on()) {
+        race_rail_rivals(dt);
     }
-    race_collide();
+    else {
+        for (const v of race.racers) {
+            if (!v.you && !v.out) {
+                race_rival_update(v, dt);
+            }
+        }
+        race_collide();
+    }
     race_tags(dt);
     const racing = race.racers.some(v => !v.you && !v.out && (v.time === null));
     if (!racing || (race.after <= 0)) {
@@ -1409,8 +1424,186 @@ function race_guide(c, m)
     c.action = 'Fly to the start line';
 }
 
+// The pennants' colours along a course, in turn; the few by the start and the finish are chequered instead
+const race_flag_colors = ['#ffcc4d', ...race_colors, '#f4f1e8'];
+// A course's flags (or a Turbo track's), made once for each and made again when the rocks or the structures here
+// change; the course is the save's own object, so they are kept beside it, never on it
+const race_flags_kept = new WeakMap();
+// The pennant being drawn: its way back along the course, its way out from it, its wave now, and whether it is
+// chequered; set in place for each one (race_flag_path)
+const race_flag_frame = {fx: 0, fy: 0, nx: 0, ny: 0, wave: 0, chequer: false};
+
+// Flags along both sides of a line (a list of {x, y}), for looks: offset px out from it, about every gap px of its
+// length, the two sides staggered by half a gap. Each is {x, y, side (-1 on the left of the way, 1 on the right),
+// angle (the line's heading there), color (a pennant's colour, or 'chequer' within two and a half gaps of either
+// end; the two sides of a stretch share one), phase (its wave's own start)}. A spot nearer another part of the line
+// than the offset (the inside of a turn, a leg crossing back), within half a gap of a flag already placed (the
+// outside of a turn), or not clear of rocks, structures, gates and the station (race_spot_clear) has no flag.
+// The list comes sorted by colour, so a colour is set once for all its flags (race_flags_draw).
+function race_flags_along(points, offset, gap)
+{
+    const spots = [];
+    let total = 0;
+    for (let i = 1; i < points.length; ++i) {
+        total += distance(points[i - 1], points[i]);
+    }
+    for (const side of [-1, 1]) {
+        let s = (side < 0) ? 0 : gap/2;
+        let base = 0;
+        let count = 0;
+        for (let i = 1; i < points.length; ++i) {
+            const a = points[i - 1];
+            const b = points[i];
+            const length = distance(a, b);
+            const angle = Math.atan2(b.y - a.y, b.x - a.x);
+            const nx = Math.cos(angle + side*Math.PI/2);
+            const ny = Math.sin(angle + side*Math.PI/2);
+            for (; s <= base + length; s += gap) {
+                const t = length ? (s - base)/length : 0;
+                const p = {x: Math.round(a.x + (b.x - a.x)*t + nx*offset), y: Math.round(a.y + (b.y - a.y)*t + ny*offset)};
+                let near = spots.some(v => distance(v, p) < gap/2);
+                for (let j = 1; (j < points.length) && !near; ++j) {
+                    near = segment_distance(p, points[j - 1], points[j]) < offset*0.9;
+                }
+                if (near || !race_spot_clear(p, 40)) {
+                    continue;
+                }
+                // the two sides of a stretch in one colour, the next stretch in the next
+                const chequer = (s < gap*2.5) || (total - s < gap*2.5);
+                const color = chequer ? 'chequer' : race_flag_colors[Math.floor(s/gap) % race_flag_colors.length];
+                spots.push({...p, side, angle, color, phase: (count*2.3 + ((side > 0) ? 1.1 : 0)) % (Math.PI*2)});
+                count++;
+            }
+            base += length;
+        }
+    }
+    const order = [...race_flag_colors, 'chequer'];
+    return spots.sort((a, b) => order.indexOf(a.color) - order.indexOf(b.color));
+}
+
+// A course's flags: along a ring course's legs from the start line to the finish ring, 70 px beyond a ring's reach
+// out; in a Turbo race along its track's edges instead (race_track_line), 30 px out from them; none on the start line
+// or round a ring. Kept by the course, or by the track while one is ridden
+function race_course_flags(course)
+{
+    const track = race_rail_on() ? race_rail.track : null;
+    const here = structures_here();
+    const kept = race_flags_kept.get(track || course);
+    if (kept && (kept.here === here) && (kept.ore === ore_nodes)) {
+        return kept.flags;
+    }
+    const points = track ? race_track_line(track) : [course.start, ...course.rings];
+    const offset = track ? track.w + 30 : course.r + 70;
+    const flags = race_flags_along(points, offset, 320).filter(function (flag) {
+        if (distance(flag, course.start) < course.start_r + 40) {
+            return false;
+        }
+        return !course.rings.some(v => distance(flag, v) < course.r + 110);
+    });
+    race_flags_kept.set(track || course, {here, ore: ore_nodes, flags});
+    return flags;
+}
+
+// A Turbo track's centre line as race_flags_along takes it: from the start line to as far past the finish ring as the
+// track is drawn (race_rail_draw), a point every two of its steps
+function race_track_line(track)
+{
+    const out = [];
+    const to = Math.min(track.n - 1, Math.round((track.rings[track.rings.length - 1] + 900)/race_rail_step));
+    for (let i = Math.round(track.start/race_rail_step); i <= to; i += 2) {
+        out.push({x: track.xs[i], y: track.ys[i]});
+    }
+    return out;
+}
+
+// The flags in view (race_flags_along), faded a little under the rings: a thin pole out from the course and a
+// pennant at its end blown back along the way, its tip swaying (still without full effects); the chequered ones white
+// with black squares. Each flag is a path of its own: one path a colour for flags across the screen drew no faster
+function race_flags_draw(flags)
+{
+    const sway = full_fx ? 1 : 0;
+    let color = '';
+    ctx.save();
+    ctx.globalAlpha = 0.85;
+    ctx.strokeStyle = '#c3ccd8';
+    ctx.lineWidth = 2;
+    for (const v of flags) {
+        if (!in_view(v, 80)) {
+            continue;
+        }
+        const nx = Math.cos(v.angle + v.side*Math.PI/2);
+        const ny = Math.sin(v.angle + v.side*Math.PI/2);
+        ctx.beginPath();
+        ctx.moveTo(v.x, v.y);
+        ctx.lineTo(v.x + nx*34, v.y + ny*34);
+        ctx.stroke();
+        if (v.color !== color) {
+            color = v.color;
+            ctx.fillStyle = (color === 'chequer') ? '#f4f1e8' : color;
+        }
+        ctx.beginPath();
+        race_flag_path(v, sway, 0, 1, 0, 1);
+        ctx.fill();
+        if (color === 'chequer') {
+            // the black squares, two rows of four, every other one
+            ctx.fillStyle = '#10141a';
+            ctx.beginPath();
+            for (let i = 0; i < 4; ++i) {
+                const row = i % 2;
+                race_flag_path(v, sway, i/4, (i + 1)/4, row/2, (row + 1)/2);
+            }
+            ctx.fill();
+            color = '';
+        }
+    }
+    ctx.restore();
+}
+
+// A pennant's part as a path, from u0 to u1 of its length (0 at the pole, 1 at the end) and v0 to v1 of its height
+// (0 at the pole's end, 1 down the pole): a chequered flag is a cloth 26 by 14 px, a pennant a triangle as long
+// narrowing to its tip; the free end swings across by up to 5 px with the wave
+function race_flag_path(v, sway, u0, u1, v0, v1)
+{
+    const f = race_flag_frame;
+    f.fx = -Math.cos(v.angle);
+    f.fy = -Math.sin(v.angle);
+    f.nx = Math.cos(v.angle + v.side*Math.PI/2);
+    f.ny = Math.sin(v.angle + v.side*Math.PI/2);
+    f.wave = sway*Math.sin(clock*4 + v.phase)*5;
+    f.chequer = (v.color === 'chequer');
+    ctx.moveTo(race_flag_x(v, u0, v0), race_flag_y(v, u0, v0));
+    ctx.lineTo(race_flag_x(v, u1, v0), race_flag_y(v, u1, v0));
+    ctx.lineTo(race_flag_x(v, u1, v1), race_flag_y(v, u1, v1));
+    ctx.lineTo(race_flag_x(v, u0, v1), race_flag_y(v, u0, v1));
+    ctx.closePath();
+}
+
+// A point of a pennant's cloth (race_flag_path): u along it, w across it from the pole's end; how far along it is
+// and how far out from the course
+function race_flag_along(u)
+{
+    return u*26;
+}
+
+function race_flag_across(u, w)
+{
+    const f = race_flag_frame;
+    const narrow = f.chequer ? w : 0.5 + (w - 0.5)*(1 - u);
+    return 34 - narrow*(f.chequer ? 14 : 13) + f.wave*u*u;
+}
+
+function race_flag_x(v, u, w)
+{
+    return v.x + race_flag_frame.fx*race_flag_along(u) + race_flag_frame.nx*race_flag_across(u, w);
+}
+
+function race_flag_y(v, u, w)
+{
+    return v.y + race_flag_frame.fy*race_flag_along(u) + race_flag_frame.ny*race_flag_across(u, w);
+}
+
 // The rings, the start line and the line between them, while a race contract waits in this world: the next ring lit
-// and turning, the ones after it plain, the ones passed faded; the finish ring chequered
+// and turning, the ones after it plain, the ones passed faded; the finish ring chequered; flags along the sides
 function race_render_course()
 {
     const m = race_contract();
@@ -1423,19 +1616,22 @@ function race_render_course()
     const live = (race.phase !== 'idle') && (race.phase !== 'grid') && (race.phase !== 'hold');
     const rings = course.rings;
     ctx.save();
-    // the line, faint, ring to ring
-    ctx.strokeStyle = gold;
-    ctx.globalAlpha = 0.16;
-    ctx.lineWidth = 2/zoom;
-    ctx.setLineDash([18/zoom, 22/zoom]);
-    ctx.beginPath();
-    ctx.moveTo(course.start.x, course.start.y);
-    for (const v of rings) {
-        ctx.lineTo(v.x, v.y);
+    // the line, faint, ring to ring; a Turbo race has its track instead (race_rail_draw)
+    if (!race_rail_on()) {
+        ctx.strokeStyle = gold;
+        ctx.globalAlpha = 0.16;
+        ctx.lineWidth = 2/zoom;
+        ctx.setLineDash([18/zoom, 22/zoom]);
+        ctx.beginPath();
+        ctx.moveTo(course.start.x, course.start.y);
+        for (const v of rings) {
+            ctx.lineTo(v.x, v.y);
+        }
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.globalAlpha = 1;
     }
-    ctx.stroke();
-    ctx.setLineDash([]);
-    ctx.globalAlpha = 1;
+    race_flags_draw(race_course_flags(course));
     for (let i = rings.length - 1; i >= 0; --i) {
         if (!in_view(rings[i], course.r + 120)) {
             continue;

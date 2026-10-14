@@ -27,6 +27,19 @@ window.dev_state = function () {
         cargo: {...campaign.cargo}, drones: {owned: drones_owned(), out: drones_out, flying: drones.map(v => ({x: Math.round(v.x), y: Math.round(v.y), state: v.state, hp: v.hp}))}, salvage, kills, xp: campaign.xp, turbo: !!player?.turbo_active, energy: player ? Math.round(player.energy*10)/10 : null, heat: player ? Math.round((player.heat || 0)*10)/10 : null, bullets: bullets.length, canisters: pickups.filter(v => v.type === 'cargo').map(v => ({x: Math.round(v.x), y: Math.round(v.y), key: v.key, amount: v.amount}))};
 };
 
+// The Races mode's Turbo tracks of this world, one a difficulty (bin/map-check): the share of its width the track of
+// the course it takes keeps clear of structures, gates, beacons and pulls, 0.6 asked (race_mode_contract), or null
+window.dev_turbo_tracks = function () {
+    const kind = race_mode.kind;
+    race_mode.kind = 'turbo';
+    const out = Object.keys(race_rail_levels).map(function (level) {
+        const course = race_mode_contract(campaign.world, level).race;
+        return {level, rings: course.rings.length, room: [0.6, 0.3, 0].find(v => race_rail_fits(course, level, v)) ?? null};
+    });
+    race_mode.kind = kind;
+    return out;
+};
+
 dev_panel_init();
 
 function dev_panel_init()

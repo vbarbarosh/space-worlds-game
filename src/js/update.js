@@ -134,7 +134,7 @@ function update(dt, frame_dt = dt)
     // Turbo burns while its input is held and fuel lasts; let go and it stops and recharges at once.
     const mouse_turbo = mouse_drive.following && (mouse_drive.turbo_since >= 0) && (clock - mouse_drive.turbo_since > 0.15);
     const braking = keys.has('KeyB') || (player.brake_time > 0);
-    const turbo_input = keys.has('ShiftLeft') || keys.has('ShiftRight') || touch_boost_hold || mouse_turbo;
+    const turbo_input = keys.has('ShiftLeft') || keys.has('ShiftRight') || touch_boost_hold || mouse_turbo || race_rail.held;
     // Closing on a clicked point, turbo stays out so the ship can brake; a held input relights only once let go and pressed again.
     const click_arrival =
         mouse_drive.active && !mouse_drive.following && !mouse_drive.held &&
@@ -213,9 +213,15 @@ function update(dt, frame_dt = dt)
         dy /= k;
     }
     player.evading = Math.max(0, (player.evading || 0) - dt);
-    fly_in_world(dt, dx, dy);
-    player.x = clamp(player.x + player.vx*dt, 24, world.w - 24);
-    player.y = clamp(player.y + player.vy*dt, 24, world.h - 24);
+    // on a Turbo race's track the ship rides by itself (js/race_rail.js)
+    if (race_rail_riding()) {
+        race_rail_fly(dt);
+    }
+    else {
+        fly_in_world(dt, dx, dy);
+        player.x = clamp(player.x + player.vx*dt, 24, world.w - 24);
+        player.y = clamp(player.y + player.vy*dt, 24, world.h - 24);
+    }
     docking_update(dt);
     race_hold(dt);
     if (!update_player_navigation(dt, previous_player)) {

@@ -90,6 +90,12 @@ canvas.addEventListener('pointerdown', function (event) {
     }
     start_audio();
     const p = pointer_position(event);
+    // on a Turbo race's track any press, a mouse button or a finger, is the turbo while it is held
+    if (race_rail_riding()) {
+        canvas.setPointerCapture(event.pointerId);
+        race_rail_press();
+        return;
+    }
     if ((event.pointerType === 'touch') && (event.clientX < width*0.65) && !joystick.active) {
         joystick.active = true;
         joystick.id = event.pointerId;
@@ -168,6 +174,7 @@ function pointer_double_click(p)
 function release_pointer(event)
 {
     waypoint_draw_end();
+    race_rail.held = false;
     if (event.pointerType !== 'touch') {
         mouse_drive.turbo_since = -1;
         mouse_drive.held = false;

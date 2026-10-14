@@ -38,6 +38,9 @@ for (const v of document.querySelectorAll('#intro .tile[data-mode]')) {
 for (const v of document.querySelectorAll('#intro .tile[data-race-level]')) {
     v.addEventListener('click', () => race_mode_level_pick(v.dataset.raceLevel));
 }
+for (const v of document.querySelectorAll('#intro [data-race-kind]')) {
+    v.addEventListener('click', () => race_mode_kind_pick(v.dataset.raceKind));
+}
 document.getElementById('menu_continue_go').addEventListener('click', () => menu_launch('continue'));
 document.getElementById('menu_campaign_go').addEventListener('click', () => menu_launch('campaign'));
 document.getElementById('menu_arcade_go').addEventListener('click', () => menu_launch('arcade'));
@@ -74,6 +77,11 @@ function on_menu_key(event)
     }
     if ((event.key === 'Escape') && menu_open_row) {
         menu_fold();
+        return;
+    }
+    // T turns the Races row's kind, Steer or Turbo
+    if ((menu_open_row === 'races') && (event.key.toLowerCase() === 't')) {
+        race_mode_kind_pick((race_mode.kind === 'turbo') ? 'steer' : 'turbo');
         return;
     }
     if (['arcade', 'races'].includes(menu_open_row) && ['1', '2', '3'].includes(event.key)) {
@@ -167,7 +175,7 @@ function menu_launch(mode)
     }
     menu_launching = true;
     menu_arcade.launch = 0;
-    const titles = {continue: document.getElementById('continue_title').textContent, campaign: 'New campaign', arcade: `Arcade · ${menu_arcade.level.name}`, races: `Races · ${race_mode_levels[race_mode.level].name}`};
+    const titles = {continue: document.getElementById('continue_title').textContent, campaign: 'New campaign', arcade: `Arcade · ${menu_arcade.level.name}`, races: `Races · ${race_mode_kinds[race_mode.kind].name} · ${race_mode_levels[race_mode.level].name}`};
     document.getElementById('menu_go_title').textContent = titles[mode];
     document.getElementById('intro').classList.add('launching');
     setTimeout(() => menu_start(mode), menu_launch_ms);

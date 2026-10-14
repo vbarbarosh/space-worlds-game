@@ -33,7 +33,8 @@ const usage = `usage: bin/map-check
     rings never touch, gates face the worlds they lead to and stand far out, portal pairs span a real distance and
     keep apart from each other and the station, no gravity well or solid lies on any of them; the campaign's race
     courses (js/race.js) keep their rings and start line out of every range, rock and pull, their legs off gravity,
-    portals and the station, and turn at each ring. Exits 1 on any failure.`;
+    portals and the station, and turn at each ring; the Races mode's Turbo track of each difficulty (js/race_rail.js)
+    keeps its width clear of structures, gates, beacons and pulls. Exits 1 on any failure.`;
 
 cli(main);
 
@@ -54,6 +55,10 @@ async function main()
                 await page.waitForFunction(v => window.dev_state?.().player && (window.dev_state().arcade === v), !!mode.value);
                 const map = await page.evaluate(() => window.dev_state());
                 const found = check_map(map);
+                if (!map.arcade) {
+                    const tracks = await page.evaluate(() => window.dev_turbo_tracks());
+                    found.push(...tracks.filter(v => v.room !== 0.6).map(v => `turbo track (${v.level}): clear across ${(v.room === null) ? 'none' : v.room} of its width, need 0.6`));
+                }
                 const title = `${mode.label} ${world + 1} ${map.world_name}`;
                 console.log(`${found.length ? 'FAIL' : 'ok  '} ${title.padEnd(22)} ${map.gates.length} gates, ${map.portals.length} portals${map.arcade ? '' : `, ${map.races.filter(Boolean).length} race courses`}${found.length ? `\n     ${found.join('\n     ')}` : ''}`);
                 failures.push(...found.map(v => `${title}: ${v}`));

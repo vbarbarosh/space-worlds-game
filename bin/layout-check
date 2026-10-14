@@ -65,6 +65,9 @@ const screens = [
     // the Races mode: its row open with the difficulties; its results, last over the line with crashes and a rival's
     // very long name, then wrecked on a rock
     {value: 'menu', label: 'main-menu-races', query: '&slots=1&row=races', phone: true},
+    // with Turbo picked: its card lit, its longer line under the cards, the track in the scene; its results with spins
+    {value: 'menu', label: 'main-menu-races-turbo', query: '&slots=1&row=races&race_kind=turbo', phone: true},
+    {value: 'race-results', label: 'race-results-turbo', query: '&race_kind=turbo&race_place=last&race_crashes=3&race_long=1', phone: true},
     {value: 'race-results', label: 'race-results', query: '&race_place=last&race_crashes=3&race_long=1', phone: true},
     {value: 'race-results', label: 'race-results-wrecked', query: '&race_end=wrecked&race_crashes=6', phone: true},
 ];

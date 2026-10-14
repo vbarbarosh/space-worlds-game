@@ -13,6 +13,8 @@ const dev_screen_options = [
     {value: 'race-mid', label: 'Race: mid-race, the standings'},
     {value: 'race-finish', label: 'Race: over the line, the results'},
     {value: 'race-results', label: 'Races mode: the results'},
+    {value: 'races-turbo', label: 'Races mode, Turbo: lined up, the count'},
+    {value: 'races-turbo-mid', label: 'Races mode, Turbo: on the turbo into a bend'},
     {value: 'station-jobs', label: 'Station: contracts'},
     {value: 'station-arsenal', label: 'Station: arsenal'},
     {value: 'station-outfit', label: 'Station: modules'},
@@ -119,6 +121,10 @@ function dev_screen_open()
         arcade_world_clear();
         return;
     }
+    if (dev_screen.startsWith('races-turbo')) {
+        dev_races_turbo_open(dev_screen);
+        return;
+    }
     if (dev_screen === 'race-results') {
         dev_race_results_open();
         return;
@@ -207,6 +213,10 @@ function dev_screen_menu_open()
         set_hidden(el.continue_row, true);
     }
     menu_open();
+    // &race_kind=turbo: the Races row with Turbo picked
+    if (dev_race_params.get('race_kind')) {
+        race_mode_kind_pick(dev_race_params.get('race_kind'));
+    }
     const mode = document.querySelector(`#menu_modes .mode[data-scene="${dev_screen_row}"]`);
     if (mode && !mode.closest('.hidden')) {
         mode.focus();
@@ -374,6 +384,7 @@ function dev_race_results_open()
 {
     race_mode.log_run = 'dev';
     race_mode.saved = {checkpoint, difficulty};
+    race_mode.kind = (dev_race_params.get('race_kind') === 'turbo') ? 'turbo' : 'steer';
     race_mode_start(dev_race_params.get('race_level') || 'normal', campaign.world);
     const m = race_contract();
     const rivals = race.racers.filter(v => !v.you);
@@ -461,4 +472,53 @@ function dev_race_spread(m, finish)
     player.vx = you.vx*0.6;
     player.vy = you.vy*0.6;
     race_you_finish(m);
+}
+
+// The Races mode's Turbo race from the URL (js/race_rail.js): you on the start line, the count about to run
+// (races-turbo), or on the turbo two seconds before the course's tightest bend, its kerbs lit ahead of you, the rivals
+// along the track round you (races-turbo-mid); &race_level=easy|normal|hard
+function dev_races_turbo_open(screen)
+{
+    race_mode.log_run = 'dev';
+    race_mode.saved = {checkpoint, difficulty};
+    race_mode.kind = 'turbo';
+    race_mode_start(dev_race_params.get('race_level') || 'normal', campaign.world);
+    const m = race_contract();
+    for (const v of race.racers) {
+        v.alpha = 1;
+    }
+    if (screen === 'races-turbo') {
+        update_camera(0, true);
+        return;
+    }
+    race_go(m);
+    const track = race_rail.track;
+    const rings = track.rings;
+    let tight = Math.round(rings[1]/race_rail_step);
+    for (let i = tight; i < Math.round(rings[rings.length - 2]/race_rail_step); ++i) {
+        if (Math.abs(track.ks[i]) > Math.abs(track.ks[tight])) {
+            tight = i;
+        }
+    }
+    const r = race_rail.you;
+    r.v = r.top*0.85;
+    r.s = Math.max(track.start, tight*race_rail_step - r.v*2);
+    race_rail.held = true;
+    dash();
+    race.clock = m.race.par*0.45;
+    const gaps = [520, -260, -640, 180];
+    let k = 0;
+    for (const racer of race.racers) {
+        const ride = racer.you ? r : racer.ride;
+        if (!racer.you) {
+            ride.s = clamp(r.s + gaps[k++ % gaps.length], track.start, rings[rings.length - 1] - 10);
+            ride.v = ride.base*1.4;
+            ride.d = ride.lane;
+        }
+        racer.next = rings.filter(v => v <= ride.s).length;
+        racer.splits = rings.slice(0, racer.next).map((v, i) => Math.round(race.clock*((i + 1)/(racer.next + 1))*10)/10);
+        race_rail_place(ride, racer.you ? player : racer);
+    }
+    m.progress = race_you().next;
+    update_camera(0, true);
 }

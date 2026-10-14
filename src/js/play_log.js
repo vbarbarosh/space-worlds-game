@@ -855,6 +855,7 @@ function play_log_race_mode(result)
     const you = race_you();
     play_log_event('race', {
         mode: 'race',
+        kind: race_mode.kind,
         level: race_mode.level,
         world: worlds[campaign.world].name,
         title: race_contract()?.title || null,

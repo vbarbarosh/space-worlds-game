@@ -7,6 +7,8 @@
 // Nova Forge's heats the reactor); the rocks stay as they are (unbreakable, a crash costs speed and hull, you can
 // die). Over the line, a wreck or a forfeit: the results, then Race again, Next course (the next world, Eclipse back
 // to Haven) or the menu.
+// Two kinds of race: Steer, the ring race flown by hand, and Turbo, the same course as a track the ship rides by
+// itself, yours only the turbo (js/race_rail.js).
 // A difficulty: its rivals (how many, the spread of their skill, their pace against your cruising speed) and its
 // course's shape (race_shape_campaign: rings more or fewer than the world's, a ring wider or tighter, legs longer,
 // turns sharper, how much the legs seek the rocks)
@@ -28,18 +30,24 @@ const race_mode_levels = {
     },
 };
 const race_mode_ship = 'scout';
+// The kinds, as the menu and the banners name them
+const race_mode_kinds = {
+    steer: {name: 'Steer', note: 'Fly through the rings yourself, round the rocks.'},
+    turbo: {name: 'Turbo', note: 'The ship steers itself: hold the turbo, let go before the bends.'},
+};
 // Seconds from your finish to the results: the banner and the flash of the line, the rivals behind still flying in
 const race_mode_results_in = 3.5;
-// active: a race of this mode is flown; level and world: the difficulty and the course's world; log_run: the play
-// log's id for the races since the menu; saved: the campaign's checkpoint and difficulty, put back after; result: the
-// last race's end for the results; results_in: the seconds left before they show
-const race_mode = {active: false, level: 'normal', world: 0, log_run: null, saved: null, result: null, results_in: 0};
+// active: a race of this mode is flown; kind: steer or turbo; level and world: the difficulty and the course's world;
+// log_run: the play log's id for the races since the menu; saved: the campaign's checkpoint and difficulty, put back
+// after; result: the last race's end for the results; results_in: the seconds left before they show
+const race_mode = {active: false, kind: 'steer', level: 'normal', world: 0, log_run: null, saved: null, result: null, results_in: 0};
 
 document.getElementById('race_again').addEventListener('click', () => race_mode_start(race_mode.level, race_mode.world));
 document.getElementById('race_next').addEventListener('click', () => race_mode_start(race_mode.level, (race_mode.world + 1) % worlds.length));
 document.getElementById('race_menu').addEventListener('click', menu_open);
 addEventListener('keydown', on_race_result_key);
 race_mode_level_pick(race_mode.level);
+race_mode_kind_pick(race_mode.kind);
 
 // On the results: Enter races again, N goes to the next course, Esc to the menu
 function on_race_result_key(event)
@@ -109,7 +117,11 @@ function race_mode_start(level, world)
     const m = race_mode_contract(world, level);
     campaign.contracts = [m];
     campaign.tracked_id = m.id;
+    race_rail_reset();
     race_grid_set(m);
+    if (race_mode.kind === 'turbo') {
+        race_rail_begin(level);
+    }
     const you = race_you();
     player.x = you.slot.x;
     player.y = you.slot.y;
@@ -118,19 +130,28 @@ function race_mode_start(level, world)
     player.angle = m.race.start.angle;
     update_camera(0, true);
     const n = m.race.rings.length;
-    show_banner('world', `Races · ${race_mode_levels[level].name} · course ${world + 1} of ${worlds.length}`, worlds[world].name, `${n} rings · ${(m.race.length/1000).toFixed(1)} km · ${m.race.rivals.length} rivals`, 3);
+    const how = (race_mode.kind === 'turbo') ? 'hold Shift or the mouse for the turbo' : `${m.race.rivals.length} rivals`;
+    show_banner('world', `Races · ${race_mode_kinds[race_mode.kind].name} · ${race_mode_levels[level].name} · course ${world + 1} of ${worlds.length}`, worlds[world].name, `${n} rings · ${(m.race.length/1000).toFixed(1)} km · ${how}`, 3);
     update_hud();
 }
 
 // The race of a world at a difficulty: the course of the difficulty's own variant in its shape (the next variants,
-// then the campaign's shape, where a world has no room for it), and its rivals paced against your ship
+// then the campaign's shape, where a world has no room for it), and its rivals paced against your ship. A Turbo race
+// takes a course whose track is clear edge to edge; where none is, clear across half its width, then along its middle
+// (Haven's courses at Normal and Hard), and only then the course the Steer race would take.
 function race_mode_contract(world, level)
 {
     const def = race_mode_levels[level];
     const variant = Object.keys(race_mode_levels).indexOf(level);
+    const rooms = (race_mode.kind === 'turbo') ? [0.6, 0.3, 0, null] : [null];
     let course = null;
-    for (let i = 0; !course && (i < race_variants.length*2); ++i) {
-        course = race_course_make(world, (variant + i) % race_variants.length, (i < race_variants.length) ? def.shape : race_shape_campaign);
+    for (let i = 0; !course && (i < race_variants.length*2*rooms.length); ++i) {
+        const j = i % (race_variants.length*2);
+        const room = rooms[Math.floor(i/(race_variants.length*2))];
+        const accept = (room === null) ? null : function (v) {
+            return race_rail_fits(v, level, room);
+        };
+        course = race_course_make(world, (variant + j) % race_variants.length, (j < race_variants.length) ? def.shape : race_shape_campaign, accept);
     }
     const rivals = race_rivals_make(world, variant, 1, def.rivals, def.skill);
     const cruise = cruise_speed(world, ship_catalog.find(v => v.id === race_mode_ship));
@@ -139,7 +160,7 @@ function race_mode_contract(world, level)
     }
     const n = course.rings.length;
     return contract_copy({
-        title: `Ring race: ${worlds[world].name} · ${def.name}`,
+        title: `${(race_mode.kind === 'turbo') ? 'Turbo race' : 'Ring race'}: ${worlds[world].name} · ${def.name}`,
         description: `${n} rings through the rocks off ${worlds[world].station}, ${(course.length/1000).toFixed(1)} km, against ${rivals.map(v => v.name).join(', ')}.`,
         race: {...course, variant, rivals, top: 0},
         stages: [stage('race', world, n, `Race ${n} rings against ${rivals.length} rivals`)],
@@ -206,9 +227,11 @@ function race_mode_results_open(next_state = 'race_results')
     for (const v of [el.loadout, el.inventory_button, el.mission, el.pause_button, el.touch_buttons, el.bossbar]) {
         set_hidden(v, true);
     }
-    const crashes = race.crashes ? `${race.crashes} ${(race.crashes === 1) ? 'crash' : 'crashes'} · ${Math.round(race.rock_hull)} hull to rocks` : 'No crashes';
+    const crashes = (race_mode.kind === 'turbo')
+        ? (race.crashes ? `${race.crashes} ${(race.crashes === 1) ? 'spin' : 'spins'} off the track` : 'Never off the track')
+        : race.crashes ? `${race.crashes} ${(race.crashes === 1) ? 'crash' : 'crashes'} · ${Math.round(race.rock_hull)} hull to rocks` : 'No crashes';
     const eyebrow = document.getElementById('race_result_eyebrow');
-    eyebrow.textContent = `Races · ${def.name} · ${worlds[race_mode.world].name}`;
+    eyebrow.textContent = `Races · ${race_mode_kinds[race_mode.kind].name} · ${def.name} · ${worlds[race_mode.world].name}`;
     eyebrow.classList.toggle('eyebrow--red', r.end !== 'finished');
     eyebrow.classList.toggle('eyebrow--gold', r.end === 'finished');
     document.getElementById('race_result_title').textContent = (r.end === 'finished') ? `${race_ordinal(r.place)} of ${r.count}` : (r.end === 'wrecked') ? 'Wrecked' : 'Forfeit';
@@ -239,6 +262,7 @@ function race_mode_stop()
     document.body.classList.remove('race-mode');
     set_hidden(document.getElementById('race_result'), true);
     race_reset();
+    race_rail_reset();
     if (race_mode.saved) {
         checkpoint = race_mode.saved.checkpoint;
         difficulty = race_mode.saved.difficulty;
@@ -258,4 +282,16 @@ function race_mode_level_pick(level)
         v.classList.toggle('selected', v.dataset.raceLevel === race_mode.level);
     }
     document.getElementById('races_note').textContent = race_mode_levels[race_mode.level].note;
+}
+
+// The menu's Races row: Steer or Turbo picked, its card lit, its line under the cards, the scene's picture its own
+function race_mode_kind_pick(kind)
+{
+    race_mode.kind = race_mode_kinds[kind] ? kind : 'steer';
+    for (const v of document.querySelectorAll('#intro [data-race-kind]')) {
+        v.classList.toggle('selected', v.dataset.raceKind === race_mode.kind);
+        v.setAttribute('aria-pressed', String(v.dataset.raceKind === race_mode.kind));
+    }
+    document.getElementById('races_kind_note').textContent = race_mode_kinds[race_mode.kind].note;
+    document.getElementById('intro').dataset.raceKind = race_mode.kind;
 }

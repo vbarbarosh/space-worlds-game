@@ -227,6 +227,7 @@ function render()
     ctx.translate(-camera.x, -camera.y);
     render_map();
     render_navigation_objects();
+    race_rail_draw();
     race_render_course();
     ctx.save();
     ctx.globalCompositeOperation = 'lighter';

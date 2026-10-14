@@ -231,6 +231,29 @@ again (Enter), Next course (N, Eclipse goes back to Haven) or the menu (Esc).
 A wreck or a forfeit shows the same results, you last. The play log records
 each race ([play-log.md](play-log.md), `race` with `mode: race`).
 
+### Turbo
+
+The row's second kind (T switches; `src/js/race_rail.js`): the same course
+as a track, a smooth line through the start and the rings, and the ship
+rides it by itself. Yours is only the turbo: Shift, a held mouse button or a
+finger held anywhere. Off it the ship eases back to cruise; on it, it climbs
+to the turbo's speed (3.2 × cruise for the Scout). A bend holds a ship up to
+a speed, √(grip × its radius): faster, it slides out, and past the edge it
+spins for 1.4 s, a quarter of its speed kept (`race_spin` in the play log).
+Ahead of you the edges of a bend you are too fast for turn amber, and red
+once you must let go now. The rocks on a track are cleared for the race; a
+drifting one passes through. The rivals ride the same track by the same
+rules, each letting go before a bend by its nerve.
+
+| | Easy | Normal | Hard |
+| --- | --- | --- | --- |
+| track width | 400 m | 330 m | 270 m |
+| grip | 1.25 × | 1 × (cruise holds a 260 m radius) | 0.85 × |
+| rivals' turbo | 0.86 × yours | 0.95 × | 1 × |
+| rivals' nerve | 0.1 short of the limit more | 0.03 more | 0.03 more |
+| a pilot who looks every quarter second (the bot of the tests) | wins by 1.5 to 3 s | first to third, within a second | 0.5 to 3 s behind the best |
+| the turbo held all the way | last | last | last |
+
 ## What a contract pays
 
 On collecting (`guide_base_claim_contract` in `src/js/operations.js` and

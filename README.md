@@ -45,7 +45,9 @@ Three modes:
   it starts its world again from the first wave.
 - **Races**: ring races alone, at Easy, Normal or Hard, course after course
   from Haven through the eight worlds; the start ship, no raiders, the rocks
-  as solid as ever. After each: your place and time, then race again, the
+  as solid as ever. Two kinds: Steer, flown by hand, and Turbo, where the
+  ship rides a track by itself and you only press and let go of the turbo
+  (too fast in a bend, it spins off). After each: your place and time, then race again, the
   next course or the menu. Nothing is saved; the play log records each race
   ([docs/goals.md](docs/goals.md#the-races-mode)).
 - **Campaign**: the stations, contracts, trading and story chapters; see
@@ -104,7 +106,9 @@ panel folded. `&screen=race` starts a ring race at its start line
 `&race_long=1`, `&race_left=1`, `&race_raiders=1` for its edge states), e.g.
 `dev.html?world=0&screen=race`; `&screen=race-results` shows the Races mode's
 results (`&race_level=easy|normal|hard`, `&race_place=1|last`,
-`&race_end=wrecked|forfeit`, `&race_crashes=n`). `&screen=menu` shows the menu with the scene's
+`&race_end=wrecked|forfeit`, `&race_crashes=n`, `&race_kind=turbo`);
+`&screen=races-turbo` lines up a Turbo race, `races-turbo-mid` puts you on
+the turbo two seconds before its tightest bend. `&screen=menu` shows the menu with the scene's
 game to continue; `&row=arcade` (or `races`, `load`, `settings`, `controls`) opens that
 row, `&slots=1` adds six saved slots (the Load row, and its scene with
 `&row=load`), `&save=none` a first launch with no game to continue.
