@@ -300,9 +300,17 @@ function map_things(every_layer = false)
         add('contracts', beacons[i], 'beacon', null, `SCAN BEACON ${i + 1}`, {target: {...beacons[i], label: `SCAN BEACON ${i + 1}`}});
     }
     for (const v of enemies) {
-        if (v.hp > 0) {
-            add('danger', v, 'raiders', null, '', {small: true});
+        if (v.hp <= 0) {
+            continue;
         }
+        // the radar's contacts show bigger, charted or not (`blip`); none counts toward the layer's total (`small`)
+        if (radar_sees(v)) {
+            if (every_layer || map_layer('danger')) {
+                out.push({layer: 'danger', x: v.x, y: v.y, icon: 'raiders', tint: null, label: '', small: true, blip: true});
+            }
+            continue;
+        }
+        add('danger', v, 'raiders', null, '', {small: true});
     }
     arcade_event_marks(add);
     return out;
@@ -489,7 +497,7 @@ function render_chart_local(map)
         if ((p.x < -20) || (p.x > 980) || (p.y < -20) || (p.y > 640)) {
             continue;
         }
-        map_icon(draw, v.icon, p.x, p.y, v.small ? 14 : 28, v.tint, v.angle || 0);
+        map_icon(draw, v.icon, p.x, p.y, v.blip ? 22 : v.small ? 14 : 28, v.tint, v.angle || 0);
         if (v.label) {
             label(v, v.label, v.short ? (v.tint || cyan) : map_label_colors[v.layer], v.short ? 20 : 24);
         }
@@ -574,7 +582,10 @@ function render_minimap()
     ctx.rect(0, 0, w, mh);
     ctx.clip();
     ctx.drawImage(minimap_ground.canvas, 0, 0, w, mh);
-    // dust blinds it: the ground under a haze and the event's name, nothing on it
+    function point(v) {
+        return {x: v.x*sx, y: v.y*sy};
+    }
+    // dust blinds it: the ground under a haze and the event's name, nothing on it but what the radar sees
     if (arcade_event_blind()) {
         ctx.fillStyle = '#3a2f22e6';
         ctx.fillRect(0, 0, w, mh);
@@ -582,12 +593,15 @@ function render_minimap()
         ctx.textAlign = 'center';
         ctx.fillStyle = '#ffb36e';
         ctx.fillText('DUST BLIND', w/2, mh/2 + 3);
+        for (const v of enemies) {
+            if ((v.hp > 0) && radar_sees(v)) {
+                const p = point(v);
+                map_icon(ctx, 'raiders', p.x, p.y, 10);
+            }
+        }
         ctx.restore();
         ctx.restore();
         return;
-    }
-    function point(v) {
-        return {x: v.x*sx, y: v.y*sy};
     }
     const home = point(station);
     map_icon(ctx, 'station', home.x, home.y, 11);
@@ -601,7 +615,7 @@ function render_minimap()
             ctx.stroke();
             ctx.setLineDash([]);
         }
-        map_icon(ctx, v.icon, p.x, p.y, v.small ? 6 : 10, v.tint, v.angle || 0);
+        map_icon(ctx, v.icon, p.x, p.y, v.blip ? 10 : v.small ? 6 : 10, v.tint, v.angle || 0);
         if (v.short) {
             ctx.font = 'bold 7px ui-monospace,monospace';
             ctx.textAlign = 'left';

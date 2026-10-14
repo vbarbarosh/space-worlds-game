@@ -516,8 +516,8 @@ function physics_base_render_navigation()
                 'Follow the current stage in MISSION PLAN. Scans require a timed hold within 150 m; recoveries require clearing an ambush before extracting its item; relay defenses require staying within 450 m through several waves. Convoys have three legs and field repairs. Dock and press Collect reward for salvage and XP.',
             ],
             [
-                'Cockpit flight',
-                'Press V to cycle Wireframe, Rendered and Cockpit. In Cockpit, hold W / S for forward / reverse thrust and A / D to turn; arrows and the touch stick work too. Click a visible station, gate or marker to fly toward it, or click in the window for a flight direction. B brakes. Automatic weapons and guided routes still work. The local radar rotates with your heading and shows nearby contacts, including ships behind you.',
+                'Radar',
+                'Install the Radar module (MODULES) to see raiders far beyond the window: 2.5, 4 or 6 km by level. Each gets a red marker on the window\'s edge with its distance, and a count when several fly that way; dashed lines run to the nearest; the flagship is pink, a missile coming at you orange. Seeker missiles fly by it: they lock from as far, hold the lock and turn harder.',
             ],
             [
                 'Zoom and sound',

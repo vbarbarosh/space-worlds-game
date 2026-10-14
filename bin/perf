@@ -43,7 +43,7 @@ const layer_names = [
     'render_drifting_debris', 'render_engine_plumes', 'render_world_station', 'render_drones', 'render_ore_scanner',
     'render_projectiles', 'render_structures', 'render_transport', 'render_waypoints', 'render_survey_robot',
     'render_hostile_marks', 'render_enemies', 'render_explosions', 'render_pulse', 'render_pickups', 'render_equipment',
-    'render_hazards', 'render_teleport', 'render_screen_controls', 'render_minimap', 'render_target_brackets',
+    'render_hazards', 'render_teleport', 'render_screen_controls', 'render_minimap', 'render_radar', 'render_target_brackets',
     'render_world_labels', 'render_radiation_edge', 'race_render_course', 'race_render_rivals',
 ];
 const modes = ['frames', 'raster', 'split', 'layers', 'profile', 'shots'];
@@ -521,7 +521,7 @@ function page_scene(scene)
             salvage: 99999,
             artifacts_count: 0,
             run_time: 0,
-            upgrades: {...initial_upgrades(), ...(fight ? {drone: 2, magnet: 1} : {})},
+            upgrades: {...initial_upgrades(), ...(fight ? {drone: 2, magnet: 1, radar: 3} : {})},
             supplies: {medkit: 8, emp: 8, stasis: 8},
             difficulty,
             hp: 9999,

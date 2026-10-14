@@ -166,7 +166,8 @@ function base_render_screen_controls()
     }
     if (player && (state === 'playing')) {
         for (const enemy of enemies) {
-            if (in_view(enemy, 0) || !((enemy.type === 'boss') || ((spawn_left === 0) && (enemies.length < 7)))) {
+            // the radar marks what it sees (render_radar)
+            if (in_view(enemy, 0) || radar_sees(enemy) || !((enemy.type === 'boss') || ((spawn_left === 0) && (enemies.length < 7)))) {
                 continue;
             }
             // on the window's edge toward the raider, clear of the HUD (screen px, back in the scene's units)
@@ -192,6 +193,7 @@ function base_render_screen_controls()
     }
     ctx.restore();
     render_minimap();
+    render_radar();
 }
 
 function render()

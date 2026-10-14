@@ -42,13 +42,15 @@ let missile_waves = [];
 // The trails of missiles gone, fading where they were
 let missile_wakes = [];
 
-// The launcher's missile with the modules you have
+// The launcher's missile with the modules you have; the radar turns it harder (radar_missile_turn)
 function missile_stats()
 {
+    const seeker = missile_seekers[upgrades.seeker || 0];
     return {
         ...missile_engines[upgrades.motor || 0],
         engine: upgrades.motor || 0,
-        ...missile_seekers[upgrades.seeker || 0],
+        ...seeker,
+        turn: seeker.turn + (upgrades.radar || 0)*radar_missile_turn,
         ...missile_warheads[upgrades.warhead || 0],
     };
 }
@@ -80,7 +82,7 @@ function missile_new(muzzle, angle, barrel, damage, weapon, carry)
         engine: m.engine,
         span: m.span,
         trail: [],
-        target: missile_lock_find(muzzle, angle, m.lock),
+        target: missile_lock_find(muzzle, angle, Math.max(m.lock, radar_range())),
         side: 'player',
         size: 18,
         look: missile_engines[m.engine],
@@ -132,15 +134,15 @@ function missile_raider(kind, speed)
     };
 }
 
-// The raider the seeker takes from `from` looking along angle: in its view and reach, the nearest and most ahead
-function missile_lock_find(from, angle, range)
+// The raider the seeker takes from `from` looking along angle: in its view (cone) and reach, the nearest and most ahead
+function missile_lock_find(from, angle, range, cone = missile_cone)
 {
     let out = null;
     let best = Infinity;
     for (const enemy of enemies) {
         const d = distance(from, enemy);
         const off = Math.abs(angle_delta(angle, Math.atan2(enemy.y - from.y, enemy.x - from.x)));
-        if ((enemy.hp > 0) && (d < range) && (off < missile_cone) && (d*(1 + off) < best)) {
+        if ((enemy.hp > 0) && (d < range) && (off < cone) && (d*(1 + off) < best)) {
             out = enemy;
             best = d*(1 + off);
         }
@@ -149,16 +151,19 @@ function missile_lock_find(from, angle, range)
 }
 
 // The player's missile: it keeps its lock while the raider lives, is still here and stays in the seeker's view;
-// lost, the seeker takes the next raider ahead while the motor burns
+// lost, the seeker takes the next raider ahead while the motor burns. The radar guides it too: a raider it sees keeps
+// the lock wherever it goes, and a new one is taken from all the radar sees, behind the missile too
 function missile_guide(b, dt)
 {
     const heading = Math.atan2(b.vy, b.vx);
     const t = b.target;
-    if (t && ((t.hp <= 0) || !enemies.includes(t) || (distance(b, t) > b.lock) || (Math.abs(angle_delta(heading, Math.atan2(t.y - b.y, t.x - b.x))) > missile_cone))) {
+    const guided = t && radar_sees(t);
+    if (t && ((t.hp <= 0) || !enemies.includes(t) || (!guided && ((distance(b, t) > b.lock) || (Math.abs(angle_delta(heading, Math.atan2(t.y - b.y, t.x - b.x))) > missile_cone))))) {
         b.target = null;
     }
     if (!b.target && (b.age >= b.kick) && (b.age < b.fuel)) {
-        b.target = missile_lock_find(b, heading, b.lock);
+        const range = radar_range();
+        b.target = range ? missile_lock_find(b, heading, range, Math.PI + 0.01) : missile_lock_find(b, heading, b.lock);
     }
     missile_fly(b, b.target, dt);
 }

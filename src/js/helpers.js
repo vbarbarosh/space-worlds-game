@@ -23,6 +23,7 @@ function initial_upgrades()
         seeker: 0,
         motor: 0,
         warhead: 0,
+        radar: 0,
     };
 }
 

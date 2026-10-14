@@ -131,6 +131,18 @@ const upgrade_options = [
         part: 'rcs',
     },
     {
+        key: 'radar',
+        icon: '◎',
+        title: 'Radar',
+        description: 'Finds raiders 2.5, 4 or 6 km away by level. One off the window gets a bright marker on its edge with the distance, the nearest a line from your ship; missiles coming at you are marked too. Seeker missiles fly by it: they lock from as far, hold the lock and turn harder.',
+        cap: 3,
+        cost: 40,
+        group: 'utility',
+        shelf: 'helpers',
+        line: 'Shows raiders far off: bright marks on the edge, lines to the nearest.',
+        tags: 'radar scanner sensor detect warning enemies радар сканер',
+    },
+    {
         key: 'cooling',
         icon: '❄',
         title: 'Reactor cooling',

@@ -309,6 +309,7 @@ A module level costs its base price × (1 + 0.48 per level you have)
 | Radiation lining | 4 | H D O N | 90 | +20% radiation protection |
 | Vector stabilizers | 3 | H I C | 60 | steering +15%, braking +40% |
 | Evasive thrusters | 3 | H I C | 70 | steers round obstacles |
+| Radar | 3 | H I C | 40 | sees raiders 2.5, 4, 6 km off: markers on the window's edge; Seeker missiles +0.5 rad/s turn, lock to its reach, held while it sees the target (`src/js/radar.js`) |
 | Reactor cooling | 3 | H I C | 75 | dash cooldown −0.35 s; Cryosphere shield recharge |
 | Prism cannon | 2 | H O | 75 | more a shot, by the gun (Weapons, above) |
 | Hotter plasma | 5 | H D I C N | 38 | +36% of the gun's damage a shot |
@@ -364,18 +365,18 @@ each world cleared stays.
 
 | World | Opens |
 |---|---|
-| Haven | Wisp Scout, Kestrel Courier, Pulse cannon, Shard shotgun, level 1 of every module (22) |
+| Haven | Wisp Scout, Kestrel Courier, Pulse cannon, Shard shotgun, level 1 of every module (23) |
 | Verdant | Viper Interceptor, Ion disruptor, 3 module levels (magnet 2, Phase armor 2, Shield capacitor 2) |
 | Dustfall | Mule Prospector, 4 module levels (magnet 3, Hotter plasma 2, Booster reservoir 2, Radiation lining 2) |
-| Ion Reach | Bastion Gunship, Lance railgun, Seeker launcher, 16 module levels (level 2 of the 14 three-level modules, magnet 4, Hotter plasma 3) |
+| Ion Reach | Bastion Gunship, Lance railgun, Seeker launcher, 17 module levels (level 2 of the 15 three-level modules, magnet 4, Hotter plasma 3) |
 | Obsidian | Flux beam, 6 module levels (Prism 2, Guided plasma 2, Phase armor 3, Shield capacitor 3, Booster reservoir 3, Radiation lining 3) |
-| Cryosphere | Aurora Cruiser, 16 module levels (level 3 of the 14 three-level modules, magnet 5, Hotter plasma 4) |
+| Cryosphere | Aurora Cruiser, 17 module levels (level 3 of the 15 three-level modules, magnet 5, Hotter plasma 4) |
 | Nova Forge | 4 module levels (magnet 6, Hotter plasma 5, Booster reservoir 4, Radiation lining 4) |
 | Eclipse | magnet 7 |
 
 - What a world opens is said once: in the arcade's depot before it, under the
   next world's rules (New on sale Bastion Gunship, Lance railgun, Seeker
-  launcher, 16 module levels); in the campaign by a toast as you first arrive
+  launcher, 17 module levels); in the campaign by a toast as you first arrive
   (Now on sale · ... · at every station). An item not yet open shows its
   world in a lock badge where a rank-locked gun shows its rank (Opens in Ion
   Reach), and cannot be bought.

@@ -201,6 +201,11 @@ in the depot's Installed strip.
   nearest and most ahead within its lock range, keeps it while it lives and
   stays in view, and otherwise takes the next one ahead while the motor
   burns. Turn rate is limited, so a faster motor turns wider.
+- The Radar module guides it too (`src/js/radar.js`): each level turns it
+  0.5 rad/s harder; it locks from as far as the radar sees (2.5, 4, 6 km)
+  when that is farther than its own lock range; a raider the radar sees keeps
+  its lock out of the seeker's view and reach; a lost lock is taken again
+  from all the radar sees, behind the missile too.
 - It goes off 18 units from a raider's hull (its fuse), or on a rock or
   debris. The blast is a wave running out at 650 a second: a hull within the
   fuse distance takes the full damage, one farther out less, down to the rim
