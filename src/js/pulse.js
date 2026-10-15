@@ -426,6 +426,10 @@ function render_pulse_wave(wave)
     const width = look.width*(0.6 + 0.4*(1 - life));
     const alpha = (1 - wave.fade)*(wave.depth ? 0.95*Math.pow(1 - life, 0.6) : 1 - life*0.4);
     const {x, y, r} = wave;
+    if (full_fx && pulse_wave_rings(wave, look, width, alpha)) {
+        pulse_wave_sparks(wave, look, life, alpha);
+        return;
+    }
     if (r > 2) {
         const inner = Math.max(0, r - width);
         const band = ctx.createRadialGradient(x, y, inner, x, y, r);
@@ -476,6 +480,12 @@ function render_pulse_wave(wave)
     explosion_circle(x, y, r);
     ctx.stroke();
     ctx.shadowBlur = 0;
+    pulse_wave_sparks(wave, look, life, alpha);
+}
+
+function pulse_wave_sparks(wave, look, life, alpha)
+{
+    const {x, y, r} = wave;
     ctx.fillStyle = look.edge;
     for (const spark of wave.sparks) {
         if (life > spark.life) {
@@ -485,4 +495,126 @@ function render_pulse_wave(wave)
         ctx.globalAlpha = alpha*(1 - life/spark.life);
         ctx.fillRect(x + Math.cos(spark.angle)*rr - spark.size/2, y + Math.sin(spark.angle)*rr - spark.size/2, spark.size, spark.size);
     }
+}
+
+// The wave's band, its two echoes, its halo, the front's glow and the front itself in one ring and one gradient, as
+// render_pulse_wave draws them one by one: they add up ('lighter'), so a stop holds their sum, clamped as the screen
+// clamps it. A software canvas (Chrome on Linux without the graphics card, as in the play log of v0.9.0) paid for the
+// pixels of every shape: 16.5 ms a frame for one pulse at 300 m on a 1536 × 794 window at DPR 2.5, 10.2 ms so (bin/perf
+// layers; the pixels differ by under a device pixel's shift at the edges of the thin lines). False, drawing nothing,
+// when the glow would not be a ring (render_pulse_wave draws it with a shadow then).
+function pulse_wave_rings(wave, look, width, alpha)
+{
+    const {x, y, r} = wave;
+    const t = ctx.getTransform();
+    const scale = Math.sqrt(t.a*t.a + t.b*t.b);
+    const px = 1/scale;
+    // ring_glow's spread: its blur of 18 device px
+    const sigma = 9/scale;
+    if ((r <= 2) || (r < sigma*4)) {
+        return false;
+    }
+    const edge = wave.depth ? 2.5 : 4;
+    const halo = look.halo && (r > 40);
+    const inner = Math.max(0, r - width);
+    const lo = Math.max(0, Math.min(inner, r - 24) - px);
+    const hi = r + Math.max(halo ? 26 : 0, sigma*4, edge) + px;
+    const color = pulse_rgb(look.color);
+    const alt = pulse_rgb(look.alt);
+    const front = pulse_rgb(look.edge);
+    const g = ctx.createRadialGradient(x, y, lo, x, y, hi);
+    const n = Math.min(255, Math.ceil((hi - lo)/px));
+    const sum = [0, 0, 0];
+    function add(rgb, a) {
+        sum[0] += rgb[0]*a;
+        sum[1] += rgb[1]*a;
+        sum[2] += rgb[2]*a;
+    }
+    for (let i = 0; i <= n; ++i) {
+        const d = lo + ((hi - lo)*i)/n;
+        sum[0] = 0;
+        sum[1] = 0;
+        sum[2] = 0;
+        if ((d >= inner) && (d <= r)) {
+            add(color, pulse_band_alpha((r > inner) ? (d - inner)/(r - inner) : 1)*alpha);
+        }
+        add(alt, pulse_line_cover(d, r - 10, 2, px)*alpha*0.5);
+        add(color, pulse_line_cover(d, r - 22, 2, px)*alpha*0.5);
+        if (halo && (d >= r) && (d <= r + 26)) {
+            add(color, (0x55/255)*(1 - (d - r)/26)*alpha*0.8);
+        }
+        add(color, pulse_glow_alpha(d - r, edge, sigma)*alpha);
+        add(front, pulse_line_cover(d, r, edge, px)*alpha);
+        const pr = Math.min(1, sum[0]);
+        const pg = Math.min(1, sum[1]);
+        const pb = Math.min(1, sum[2]);
+        const a = Math.max(pr, pg, pb);
+        g.addColorStop(i/n, a ? `rgba(${Math.round((pr/a)*255)}, ${Math.round((pg/a)*255)}, ${Math.round((pb/a)*255)}, ${a.toFixed(4)})` : 'rgba(0, 0, 0, 0)');
+    }
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(x, y, hi, 0, Math.PI*2);
+    ctx.arc(x, y, lo, 0, Math.PI*2, true);
+    ctx.fill();
+    if (halo) {
+        ctx.strokeStyle = look.color;
+        ctx.lineWidth = 1.5;
+        ctx.globalAlpha = alpha*0.35;
+        explosion_circle(x, y, r*0.8);
+        ctx.stroke();
+        ctx.globalAlpha = alpha*0.18;
+        explosion_circle(x, y, r*0.62);
+        ctx.stroke();
+    }
+    ctx.globalAlpha = alpha;
+    return true;
+}
+
+// '#6cf8ec' -> [0.42, 0.97, 0.93], kept per colour
+const pulse_rgb_by_color = new Map();
+
+function pulse_rgb(color)
+{
+    let out = pulse_rgb_by_color.get(color);
+    if (!out) {
+        out = [1, 3, 5].map(v => parseInt(color.slice(v, v + 2), 16)/255);
+        pulse_rgb_by_color.set(color, out);
+    }
+    return out;
+}
+
+// The band's opacity at k (0 at its inner edge, 1 at the front): the stops of render_pulse_wave's band
+function pulse_band_alpha(k)
+{
+    if (k < 0.7) {
+        return ((k/0.7)*0x22)/255;
+    }
+    if (k < 0.95) {
+        return (0x22 + ((k - 0.7)/0.25)*(0x77 - 0x22))/255;
+    }
+    return (0x77 + ((k - 0.95)/0.05)*(0xaa - 0x77))/255;
+}
+
+// How much of a pixel `px` wide at distance d a line `w` wide at distance c covers
+function pulse_line_cover(d, c, w, px)
+{
+    const lo = Math.max(d - px/2, c - w/2);
+    const hi = Math.min(d + px/2, c + w/2);
+    return Math.max(0, hi - lo)/px;
+}
+
+// The front's glow at `dd` from it, as ring_glow draws it: its 25 stops over ± 4 sigma, straight between them
+function pulse_glow_alpha(dd, width, sigma)
+{
+    const k = ((dd + sigma*4)/(sigma*8))*24;
+    if ((k < 0) || (k > 24)) {
+        return 0;
+    }
+    const j = Math.min(23, Math.floor(k));
+    function at(i) {
+        const e = -sigma*4 + (sigma*8*i)/24;
+        return normal_cdf((e + width/2)/sigma) - normal_cdf((e - width/2)/sigma);
+    }
+    return at(j) + (at(j + 1) - at(j))*(k - j);
 }
