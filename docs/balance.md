@@ -664,11 +664,25 @@ before rocks and the Relic processor.
 
   | Event | What it does | Worlds |
   |---|---|---|
-  | Ion storm | your shield stays at 0 | Ion Reach, Obsidian, Cryosphere |
-  | Convoy | an unarmed freighter (a tank's hull ×4) on a 2 km run past you, about 30 s; 6 artifacts of 8 + 2 × world index if caught | Haven, Verdant, Dustfall, Cryosphere |
-  | Fleeing ace | an elite, 30% faster, jumps away after 20 s; 4 artifacts of 10 + 2 × world index if caught | Haven, Ion Reach, Nova Forge, Eclipse |
-  | Dust blind | the minimap shows only haze | Verdant, Dustfall, Obsidian |
+  | Convoy | an unarmed freighter (a tank's hull ×4) on a 2 km run past you, about 30 s; 6 artifacts of 8 + 2 × world index if caught | Haven, Verdant, Dustfall, Ion Reach, Cryosphere |
+  | Fleeing ace | an elite, 30% faster, jumps away after 20 s; 4 artifacts of 10 + 2 × world index if caught | Haven, Ion Reach, Obsidian, Cryosphere, Nova Forge, Eclipse |
+  | Jammer | a gunner with twice the hull, 900–1300 m off; while it lives the minimap and the radar show only it | Verdant, Dustfall, Obsidian |
   | Heat surge | every 6 s a line of 8 vents, 1400 m long, across your way; each warns for 1.4 s, then bursts for 22 within 80 m | Nova Forge, Eclipse |
+  The ion storm (your shield at 0 for the wave, wherever you were) went on
+  2026-10-15: there was no answer to it, and it undid Ion Reach's own storms.
+- **World goals** (`src/js/arcade_goals.js`, from
+  `notes/gameplay-review-2026-10-15.md`): waves 1 and 2 of Dustfall, Ion
+  Reach and Cryosphere ask for the world's action instead of a count of
+  raiders. The wave keeps half its raiders and ends when the goal is met:
+  those still about jump away, the goal pays 40 + 12 × world index salvage
+  and 1500 + 300 × world index score, and the kill combo holds while a goal
+  is open.
+
+  | World | Wave 1 | Wave 2 |
+  |---|---|---|
+  | Dustfall | a missile launcher (a gunner ×3 hull, anchored, firing within 1300 m) 1.5 km out, behind an arc of rock 380 m before it: your guns don't break the wall, the pulse and the raiders' missiles do; or fly round its open back | two launchers 1.75 km out on opposite sides, then an exit 550 m past the last |
+  | Ion Reach | a relay 230 m outside the storm nearest the depot, lit by a full pulse fired within its reach; the storm charges the pulse for the shield | two relays, by the two nearest storms |
+  | Cryosphere | a capsule drifting at 90–140 m/s, hooked by staying within 120 m at under 110 m/s apart for 0.6 s, towed to the depot | three capsules, two to save; they bounce off the arena's edge and are never lost |
 - A ship that explodes hurts everything within 1.8 × its blast size, less
   with distance: a chaser 10, a tank 26, a flagship 50, an elite ×1.5
   (`arcade_blast_from_kill`).

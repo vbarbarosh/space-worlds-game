@@ -101,7 +101,8 @@ enemy and target-dummy spawning, live upgrade levels and a sound board. The
 scene lives in the URL, e.g. `dev.html?world=3&ship=gunship&weapon=rail`; a world goes by number or file name (`world=ion-reach`).
 `&screen=station-arsenal` (or flight, combat, arcade, crowded, pause, menu,
 map-plan, ...; the list is in src/js/dev/screen.js) opens that screen with the
-panel folded. `&screen=race` starts a ring race at its start line
+panel folded; with `&screen=arcade`, `&wave=2` starts the world at its second wave
+(a world goal in Dustfall, Ion Reach and Cryosphere, e.g. `dev.html?world=dustfall&screen=arcade&wave=2`). `&screen=race` starts a ring race at its start line
 (`race-mid` mid-race, `race-finish` over the line; `&race_place=1|2|3|last`,
 `&race_long=1`, `&race_left=1`, `&race_raiders=1` for its edge states), e.g.
 `dev.html?world=0&screen=race`; `&screen=race-results` shows the Races mode's

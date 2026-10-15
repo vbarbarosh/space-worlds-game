@@ -1,22 +1,22 @@
 // Wave events: wave 2 of each arcade world draws one event from that world's pool, says it in a toast and marks it on
-// the map; it ends with the wave. An ion storm takes your shield, a convoy's freighter runs past with salvage, a
-// fleeing ace jumps away unless you catch it, dust blinds the minimap, a heat surge bursts vents along a line.
+// the map; it ends with the wave. A convoy's freighter runs past with salvage, a fleeing ace jumps away unless you
+// catch it, a jammer in the dust blinds the minimap and the radar until you destroy it, a heat surge bursts vents
+// along a line. (The ion storm that took your shield everywhere for the wave went on 2026-10-15: no answer to it, and
+// it undid Ion Reach's own storms, which trade the shield for pulse where you choose to fly.)
 const arcade_event_kinds = {
-    ion_storm: {title: 'ION STORM', line: 'Shields down for the wave'},
     convoy: {title: 'CONVOY', line: 'A freighter of salvage runs past: catch it'},
     ace: {title: 'FLEEING ACE', line: 'An elite jumps away in 20 s: catch it'},
-    dust_blind: {title: 'DUST BLIND', line: 'The minimap is out for the wave'},
+    dust_blind: {title: 'JAMMER', line: 'It blinds the minimap and the radar: destroy it'},
     heat_surge: {title: 'HEAT SURGE', line: 'Vents burst along a line: keep off it'},
 };
-// Each world's pool, Haven to Eclipse: the ion storm where the middle worlds lean on your shield, the heat surge in the
-// fire worlds, the dust where it blows
+// Each world's pool, Haven to Eclipse: the heat surge in the fire worlds, the jammer where the dust blows
 const arcade_event_pools = [
     ['convoy', 'ace'],
     ['convoy', 'dust_blind'],
     ['dust_blind', 'convoy'],
-    ['ion_storm', 'ace'],
-    ['ion_storm', 'dust_blind'],
-    ['ion_storm', 'convoy'],
+    ['ace', 'convoy'],
+    ['dust_blind', 'ace'],
+    ['convoy', 'ace'],
     ['heat_surge', 'ace'],
     ['heat_surge', 'ace'],
 ];
@@ -43,6 +43,9 @@ function arcade_event_start()
     }
     else if (kind === 'ace') {
         arcade_event_ace();
+    }
+    else if (kind === 'dust_blind') {
+        arcade_event_jammer();
     }
 }
 
@@ -84,7 +87,21 @@ function arcade_event_ace()
     explode(enemy.x, enemy.y, 30, '#a8e4ff', 0, 'warp');
 }
 
-// Called from arcade_update: the event's clock, the storm on your shield, the freighter's way, the ace's jump, the vents
+// A jammer: a gunner with twice the hull, 900–1300 m away; while it lives the minimap and the radar see nothing but it
+function arcade_event_jammer()
+{
+    const angle = Math.random()*Math.PI*2;
+    const far = rand(900, 1300);
+    const enemy = spawn_enemy('shooter');
+    enemy.x = clamp(player.x + Math.cos(angle)*far, 60, world.w - 60);
+    enemy.y = clamp(player.y + Math.sin(angle)*far, 60, world.h - 60);
+    enemy.hp = enemy.max_hp = enemy.max_hp*2;
+    enemy.event_kind = 'jammer';
+    enemy.jammer = true;
+    arcade.event.target = enemy;
+}
+
+// Called from arcade_update: the event's clock, the freighter's way, the ace's jump, the vents
 function arcade_event_update(dt)
 {
     const e = arcade.event;
@@ -92,9 +109,6 @@ function arcade_event_update(dt)
         return;
     }
     e.time += dt;
-    if (e.kind === 'ion_storm') {
-        player.shield = 0;
-    }
     const target = e.target;
     if (target && (target.hp > 0)) {
         if ((e.kind === 'ace') && (e.time > arcade_ace_time)) {
@@ -130,9 +144,16 @@ function arcade_event_steer(v)
     return 1;
 }
 
-// Called on a kill: a freighter or an ace spills its salvage
+// Called on a kill: a freighter or an ace spills its salvage; a jammer down gives the minimap and the radar back
 function arcade_event_kill(enemy)
 {
+    if (enemy.jammer) {
+        show_toast('JAMMER DOWN', 'The minimap and the radar see again', 2.5, 'income');
+        if (arcade.event) {
+            arcade.event.target = null;
+        }
+        return;
+    }
     const loot = arcade_event_loot[enemy.event_kind];
     if (!loot) {
         return;
@@ -179,10 +200,26 @@ function arcade_vents_update(e, dt)
     }
 }
 
-// Whether dust blinds the minimap now
+// Whether a jammer blinds the minimap and the radar now: while it lives
 function arcade_event_blind()
 {
-    return arcade.active && !!arcade.event && (arcade.event.kind === 'dust_blind');
+    return arcade.active && !!arcade.event && (arcade.event.kind === 'dust_blind') && !!arcade.event.target && (arcade.event.target.hp > 0) && enemies.includes(arcade.event.target);
+}
+
+// The jammer off the window: the kit's edge marker with its distance (screen px), so it is found though it blinds
+function render_arcade_jammer_marker()
+{
+    if (!arcade_event_blind() || (state !== 'playing')) {
+        return;
+    }
+    const target = arcade.event.target;
+    if (in_view(target, 0)) {
+        return;
+    }
+    const m = hud_edge_marker(radar_screen(target), 40);
+    if (m.offscreen) {
+        draw_edge_marker(m, `JAMMER · ${radar_distance_text(distance(player, target))}`, '#ffb36e');
+    }
 }
 
 // The event's marks for the map: the freighter and its way out, the ace, the vents about to burst
@@ -196,6 +233,9 @@ function arcade_event_marks(add)
     if (target && (target.hp > 0)) {
         if (e.kind === 'convoy') {
             add('danger', target, 'transport', '#ffd16e', 'CONVOY · SALVAGE', {angle: target.angle + Math.PI/2});
+        }
+        else if (e.kind === 'dust_blind') {
+            add('danger', target, 'objective', '#ffb36e', 'JAMMER');
         }
         else {
             add('danger', target, 'objective', '#ffd16e', `ACE · ${Math.max(0, Math.ceil(arcade_ace_time - e.time))} S`);

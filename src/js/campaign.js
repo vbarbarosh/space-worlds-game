@@ -187,7 +187,12 @@ function visual_base_generate_map()
     configure_expedition_portals();
     combat_zone = clear_spot([0.82, 0.25], [...world_gates, ...portals, {...station, r: station_shelter}], 1000);
     const protected_objects = [station, ...world_gates, ...beacons, combat_zone, {x: station.x - 1600, y: station.y + 700}];
-    place_gravity_wells(protected_objects);
+    if (arcade.active) {
+        arcade_gravity_wells();
+    }
+    else {
+        place_gravity_wells(protected_objects);
+    }
     const saved = campaign.maps[campaign.world];
     if (saved) {
         const old = saved.size || {w: 9000 + wave*320, h: 7400 + wave*240};

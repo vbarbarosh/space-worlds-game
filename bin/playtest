@@ -206,7 +206,8 @@ function page_bot(options)
         }
     }
     function fly() {
-        const alive = enemies.filter(v => v.hp > 0);
+        // a breach's launcher is the goal's (below), not one to circle
+        const alive = enemies.filter(v => (v.hp > 0) && !v.launcher);
         function near(r) {
             return alive.filter(v => distance(v, player) < r).length;
         }
@@ -246,6 +247,20 @@ function page_bot(options)
             else if (!nearest) {
                 dx = world.w/2 - player.x;
                 dy = world.h/2 - player.y;
+            }
+        }
+        // a world goal open (src/js/arcade_goals.js): with no raider close, or a capsule in tow, fly it as a pilot
+        // would: thrust toward the velocity it asks for, coast once there, and the pulse where it says
+        const plan = arcade_goal_pilot();
+        if (plan && ((near(500) === 0) || arcade.goal.capsules.some(v => v.towed))) {
+            dx = plan.vx - player.vx;
+            dy = plan.vy - player.vy;
+            if (Math.hypot(dx, dy) < 30) {
+                dx = 0;
+                dy = 0;
+            }
+            if (plan.pulse && (player.energy >= 100)) {
+                pulse();
             }
         }
         const edge = 420;

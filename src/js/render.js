@@ -194,6 +194,8 @@ function base_render_screen_controls()
     ctx.restore();
     render_minimap();
     render_radar();
+    render_arcade_goal_marker();
+    render_arcade_jammer_marker();
 }
 
 function render()
@@ -263,6 +265,7 @@ function render()
     render_transport();
     render_waypoints();
     render_survey_robot();
+    render_arcade_goal();
     render_hostile_marks();
     boss_render();
     render_enemies();

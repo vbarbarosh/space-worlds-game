@@ -29,6 +29,8 @@ const dev_screen_options = [
     {value: 'menu', label: 'Main menu'},
 ];
 const dev_screen = new URLSearchParams(location.search).get('screen');
+// &wave=n with &screen=arcade (dev_screen_arcade_wave), read before the scenario writes the URL over
+const dev_screen_wave = clamp(Math.round(Number(new URLSearchParams(location.search).get('wave')) || 1), 1, 3);
 // read at load: starting the scene rewrites the URL
 const dev_screen_modules = new URLSearchParams(location.search).get('modules') || '';
 // &play_log=full or empty: the play log on the pause panel (dev_screen_play_log_set), read at load too
@@ -73,6 +75,7 @@ function dev_screen_open()
     if (dev_screen === 'arcade') {
         dev_arcade_start();
         dev_screen_modules_set();
+        dev_screen_arcade_wave();
         return;
     }
     // the author's moment: the world's title over a fight that has just begun, and a burst of news at once
@@ -521,4 +524,15 @@ function dev_races_turbo_open(screen)
     }
     m.progress = race_you().next;
     update_camera(0, true);
+}
+
+// &wave=2 (or 3): the arcade's world from that wave on, its goal set out (arcade_goals.js), as its first frame would
+function dev_screen_arcade_wave()
+{
+    if (dev_screen_wave === 1) {
+        return;
+    }
+    arcade.world = campaign.world;
+    arcade.world_start = {score, kills, run_time};
+    arcade_wave_start(dev_screen_wave);
 }

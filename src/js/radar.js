@@ -29,11 +29,11 @@ function radar_range()
     return (player && (state === 'playing')) ? (radar_ranges[upgrades.radar || 0] || 0) : 0;
 }
 
-// Whether the radar sees `v` (a raider, a missile)
+// Whether the radar sees `v` (a raider, a missile); an arcade jammer alive blinds it to all but itself
 function radar_sees(v)
 {
     const range = radar_range();
-    return (range > 0) && (distance(player, v) < range);
+    return (range > 0) && (distance(player, v) < range) && (!arcade_event_blind() || !!v.jammer);
 }
 
 // The markers' size: full on a window of 720 px or more each way, down to 0.65 of it on a phone
@@ -61,8 +61,9 @@ function radar_contacts()
     const cx = hud_layout.width/2;
     const cy = hud_layout.height/2;
     const seen = [];
+    const blind = arcade_event_blind();
     for (const enemy of enemies) {
-        if ((enemy.hp > 0) && !in_view(enemy, 0)) {
+        if ((enemy.hp > 0) && !in_view(enemy, 0) && (!blind || enemy.jammer)) {
             const d = distance(player, enemy);
             if (d < range) {
                 seen.push({enemy, d});

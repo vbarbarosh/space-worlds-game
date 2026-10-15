@@ -585,14 +585,14 @@ function render_minimap()
     function point(v) {
         return {x: v.x*sx, y: v.y*sy};
     }
-    // dust blinds it: the ground under a haze and the event's name, nothing on it but what the radar sees
+    // a jammer blinds it: the ground under a haze and the event's name, nothing on it but the jammer if the radar sees it
     if (arcade_event_blind()) {
         ctx.fillStyle = '#3a2f22e6';
         ctx.fillRect(0, 0, w, mh);
         ctx.font = 'bold 9px ui-monospace,monospace';
         ctx.textAlign = 'center';
         ctx.fillStyle = '#ffb36e';
-        ctx.fillText('DUST BLIND', w/2, mh/2 + 3);
+        ctx.fillText('JAMMED', w/2, mh/2 + 3);
         for (const v of enemies) {
             if ((v.hp > 0) && radar_sees(v)) {
                 const p = point(v);

@@ -127,7 +127,10 @@ function update(dt, frame_dt = dt)
     recharge_turbo(dt);
     player.shoot_cd -= dt;
     guns_cool(dt);
-    combo_timer -= dt;
+    // an arcade goal holds the kill combo: its work is no kills, and it should not cost them (arcade_goals.js)
+    if (!arcade_goal_open()) {
+        combo_timer -= dt;
+    }
     if (combo_timer <= 0) {
         combo = 1;
     }
@@ -256,7 +259,8 @@ function update(dt, frame_dt = dt)
         for (let i = 0; i < ore_nodes.length; ++i) {
             const v = ore_nodes[i];
             const d = distance(v, player);
-            if ((v.hp > 0) && (d < 650) && (d < near)) {
+            // a breach's wall only the pulse breaks: the guns leave it be (arcade_goals.js)
+            if ((v.hp > 0) && (d < 650) && (d < near) && !v.wall) {
                 near = d;
                 target = v;
             }
@@ -356,7 +360,7 @@ function update(dt, frame_dt = dt)
         if (v.type === 'shooter') {
             move = (d < 220) ? -0.6 : (d < 320) ? 0.18 : 1;
             v.fire_cd -= enemy_dt;
-            if ((v.fire_cd <= 0) && (v.age > 0.8) && !v.race_leave) {
+            if ((v.fire_cd <= 0) && (v.age > 0.8) && !v.race_leave && !arcade_launcher_holds(v, d)) {
                 // you and a race's rivals move fast: the shot leads them
                 enemy_fire(v, ((waypoint === player) || waypoint.rival) ? raider_aim(v, waypoint, 180 + wave*4) : a, 180 + wave*4);
                 v.fire_cd = Math.max(1.2, 2.1 - wave*0.04)*raider_reload(v);
@@ -388,8 +392,8 @@ function update(dt, frame_dt = dt)
             }
         }
         // an escort keeps its place in its squadron, a lurker waits in the rocks, a flanker swings out to its side, a
-        // freighter keeps to its way (arcade_role_steer)
-        if (v.guard || v.lurk || v.flank_to || v.event_goal) {
+        // freighter keeps to its way, a launcher stays put (arcade_role_steer)
+        if (v.guard || v.lurk || v.flank_to || v.event_goal || v.anchor) {
             move = arcade_role_steer(v, move, d);
             heading = v.angle;
         }
@@ -495,7 +499,7 @@ function update(dt, frame_dt = dt)
                     (v.y <= Math.max(py, b.y) + v.r + b.r) &&
                     (segment_distance(v, {x: px, y: py}, b) < v.r + b.r)
                 ) {
-                    if (arcade.active) {
+                    if (arcade.active && !arcade_wall_shields(v)) {
                         damage_ore(v, b.damage*(current_ship().mining || 1));
                     }
                     else {

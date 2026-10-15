@@ -237,5 +237,5 @@ function render_target_brackets()
     ctx.fillRect(x - half*0.7, y + half + 6, half*1.4*share, 3);
     ctx.restore();
     const [value, unit] = hud_distance(distance(player, target));
-    world_labels.push({x, y: y + half + 14, title: target.leviathan ? 'LEVIATHAN' : (target_names[target.type] || 'Raider').toUpperCase(), sub: `${value} ${unit}`, color: '#ff8a96'});
+    world_labels.push({x, y: y + half + 14, title: target.leviathan ? 'LEVIATHAN' : target.launcher ? 'MISSILE LAUNCHER' : target.jammer ? 'JAMMER' : (target_names[target.type] || 'Raider').toUpperCase(), sub: `${value} ${unit}`, color: '#ff8a96'});
 }

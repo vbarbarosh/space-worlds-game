@@ -56,9 +56,9 @@ function gravity_move(v, dt)
     }
 }
 
-function place_gravity_wells(protected_objects)
+function place_gravity_wells(protected_objects, wanted = null)
 {
-    const holes = black_holes.length ? black_holes : [{x: 0, y: 0, radius: 1080, core: 58, strength: 920 + wave*12, phase: campaign.world*0.8}];
+    const holes = wanted || (black_holes.length ? black_holes : [{x: 0, y: 0, radius: 1080, core: 58, strength: 920 + wave*12, phase: campaign.world*0.8}]);
     const black_holes_placed = [];
     const spots = [
         [0.07, 0.07],
@@ -98,6 +98,19 @@ function place_gravity_wells(protected_objects)
     gravity_was_active = false;
     // Relocated cores must leave every local gate and its exit clear.
     ore_nodes = ore_nodes.filter(v => black_holes.every(vv => distance(vv, v) > vv.radius + v.r + 180));
+}
+
+// The arcade's arena (7.2 × 5.6 km) has no room for a campaign hole clear of everything the campaign protects, so none
+// stood in it (the review of 2026-10-15). Eclipse, the world of gravity, gets one of its own, sized for the arena and
+// kept clear of the depot and the portals only: the arcade has no gates, beacons or combat zone.
+function arcade_gravity_wells()
+{
+    if (campaign.world !== 7) {
+        black_holes = [];
+        return;
+    }
+    // it starts on the depot, where it cannot stand, so it takes the first of the spots that is clear
+    place_gravity_wells([station], [{x: station.x, y: station.y, radius: 560, core: 56, strength: 920 + wave*12, phase: 0}]);
 }
 
 function nearest_gravity()

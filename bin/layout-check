@@ -12,6 +12,10 @@ const screens = [
     {value: 'flight', label: 'hud-calm', phone: true},
     {value: 'combat', label: 'hud-combat', phone: true},
     {value: 'arcade', label: 'hud-arcade', phone: true},
+    // the world goals' cards and markers (src/js/arcade_goals.js), each at its second wave
+    {value: 'arcade', label: 'hud-arcade-breach', world: 'dustfall', query: '&wave=2', phone: true},
+    {value: 'arcade', label: 'hud-arcade-relays', world: 'ion-reach', query: '&wave=2', phone: true},
+    {value: 'arcade', label: 'hud-arcade-rescue', world: 'cryosphere', query: '&wave=2', phone: true},
     // the world's title, raiders close and a burst of news at once: the news line, the title and the card apart
     {value: 'crowded', label: 'hud-crowded'},
     // a ring race under way: the standings under the minimap, one rival with a very long name
@@ -123,7 +127,7 @@ async function main()
             const phone = phone_sizes.some(v => (v[0] === w) && (v[1] === h));
             const page = await browser.newPage({viewport: {width: w, height: h}});
             for (const screen of chosen.filter(v => !phone || v.phone)) {
-                await page.goto(`file://${page_file}?world=0&screen=${screen.value}${screen.query || ''}`);
+                await page.goto(`file://${page_file}?world=${screen.world || 0}&screen=${screen.value}${screen.query || ''}`);
                 // the screen is open once the dev panel has folded (its DEV tab shows); a page's first load can take
                 // longer than the wait after it
                 await page.waitForSelector('#dev_open:not(.hidden)', {state: 'attached', timeout: 15000});

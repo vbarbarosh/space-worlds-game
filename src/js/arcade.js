@@ -1,5 +1,5 @@
 // Arcade: one run through the eight worlds, three waves each, the world's flagship in the third; no stations, contracts or saves.
-const arcade = {active: false, world: -1, wave: 0, pause: 0, squad_timer: 0, squads: 0, phase: 0, slowmo: 0, depot_hint: false, marksman_hint: false, missile_hint: false, blasts: [], event: null, between_worlds: null, world_start: null, campaign_checkpoint: null};
+const arcade = {active: false, world: -1, wave: 0, pause: 0, squad_timer: 0, squads: 0, phase: 0, slowmo: 0, depot_hint: false, marksman_hint: false, missile_hint: false, blasts: [], event: null, goal: null, between_worlds: null, world_start: null, campaign_checkpoint: null};
 const arcade_extent = [7200, 5600];
 const arcade_waves = 3;
 const arcade_radiation = 0.35;
@@ -110,6 +110,7 @@ function arcade_start(world = 0, from = null)
     arcade.marksman_hint = false;
     arcade.missile_hint = false;
     arcade.blasts = [];
+    arcade.goal = null;
     arcade.between_worlds = null;
     arcade.world_start = null;
     document.body.classList.add('arcade');
@@ -207,6 +208,7 @@ function arcade_stop()
 {
     arcade.active = false;
     arcade.between_worlds = null;
+    arcade.goal = null;
     arcade_event_end();
     document.body.classList.remove('arcade');
     set_hidden(document.getElementById('arcade_depot'), true);
@@ -254,13 +256,15 @@ function arcade_update(dt)
     }
     arcade_blasts_update(dt);
     arcade_event_update(dt);
+    arcade_goal_update(dt);
     arcade_squads_update(dt);
     arcade_flagship_update();
     if (!arcade.depot_hint && (salvage > 0)) {
         arcade.depot_hint = true;
         show_toast('SALVAGE ◆', 'SPEND IT AT THE STATION · FLY IN AND PRESS R', 3.5);
     }
-    if ((spawn_left > 0) || enemies.some(v => v.hp > 0)) {
+    // a wave with a goal waits for the goal, not for its raiders (arcade_goals.js); met, its raiders have jumped away
+    if (arcade_goal_open() || (spawn_left > 0) || enemies.some(v => v.hp > 0)) {
         return;
     }
     // the card says the wave is clear, and then the next one: no news for either
@@ -280,6 +284,7 @@ function arcade_wave_start(n)
     phase_index = n;
     phase_timer = 0;
     spawn_left = arcade_wave_size(n);
+    arcade_goal_start(n);
     if (n === arcade_waves) {
         arcade_flagship_spawn();
     }
@@ -456,13 +461,19 @@ function arcade_squad_warp(type, x, y, i)
 }
 
 // A raider's way by its place in a squadron, after its type has chosen one (update): an escort keeps its place by its
-// leader, at the leader's pace, until the leader dies or you come within 300 m; a lurker waits still, turned to you,
+// leader, at the leader's pace, until the leader dies or you come within 300 m; a launcher stays put; a lurker waits
+// still, turned to you,
 // until you come within 420 m, it is hit or 25 s pass; a flanker swings out to its side first (arcade_flank_steer).
 // Turns the raider (angle) and returns how fast it moves.
 function arcade_role_steer(v, move, d)
 {
     if (v.event_goal) {
         return arcade_event_steer(v);
+    }
+    // a launcher stays where it stands, turned to you (arcade_goals.js)
+    if (v.anchor) {
+        v.angle = Math.atan2(player.y - v.y, player.x - v.x);
+        return 0;
     }
     if (v.flank_to) {
         return arcade_flank_steer(v, move);

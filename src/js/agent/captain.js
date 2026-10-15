@@ -63,6 +63,11 @@ function captain_status()
     out.autopilot = captain_pilot.on ? (guide_flying ? 'flying' : 'on') : 'off';
     if (arcade.active) {
         out.arcade = {world: `${campaign.world + 1} / ${arcade_worlds}`, wave: `${arcade.wave} / ${arcade_waves}`};
+        // a world goal open: what it asks and how it stands (src/js/arcade_goals.js)
+        if (arcade_goal_open()) {
+            const card = arcade_goal_card();
+            out.arcade.goal = {title: card.title, how: card.line, state: card.eta, distance: card.target ? Math.round(distance(player, card.target)) : null};
+        }
     }
     out.enemies_near = enemies.filter(v => (v.hp > 0) && (distance(v, player) < 900)).length;
     out.run_time = format_time(run_time);
@@ -153,7 +158,8 @@ function captain_arcade_pilot()
     let nearest = null;
     let crowd = 0;
     for (const enemy of enemies) {
-        if (enemy.hp <= 0) {
+        // a breach's launcher is the goal's (arcade_goal_pilot), not one to keep at gun range
+        if ((enemy.hp <= 0) || enemy.launcher) {
             continue;
         }
         const d = Math.max(1, distance(enemy, player));
@@ -182,6 +188,19 @@ function captain_arcade_pilot()
         const target = pickup || station;
         x += (target.x - player.x)/Math.max(1, distance(target, player));
         y += (target.y - player.y)/Math.max(1, distance(target, player));
+    }
+    // a world goal open (src/js/arcade_goals.js): with no raider within 500 m, or a capsule in tow, thrust toward the
+    // velocity the goal asks for, coast once there, and fire the pulse where it says
+    const plan = arcade_goal_pilot();
+    if (plan && ((!nearest || (distance(nearest, player) > 500)) || arcade.goal.capsules.some(v => v.towed))) {
+        x = plan.vx - player.vx;
+        y = plan.vy - player.vy;
+        const error = Math.hypot(x, y);
+        x = (error < 30) ? 0 : x/error;
+        y = (error < 30) ? 0 : y/error;
+        if (plan.pulse && (player.energy >= 100)) {
+            pulse();
+        }
     }
     let incoming = 0;
     for (const shot of hostile) {

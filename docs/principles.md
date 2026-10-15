@@ -46,6 +46,10 @@ shows a health bar (its armour or energy, and how much is left as it is hit).
     (`ore_hp_bar` in `src/js/surfaces.js`) shows the rock's hp once it is below
     full, so in the campaign it shows only after raider fire; what a rock still
     holds shows as the field's label (`field_reserves_text`).
+  - **A breach's wall** (the arcade's Dustfall goal, `src/js/arcade_goals.js`):
+    ore rocks, solid, that your shots stop on with no damage; the pulse and
+    the raiders' missiles break them. Each wears an arc of its hp, orange,
+    red below half, besides the rock's bar.
   - **Drifting asteroids and wrecks:** they hurt your ship when you hit them,
     and your shots break them (`drifting_debris_hit` in
     `src/js/expedition.js`), but they have no bar. Raiders and raiders' shots

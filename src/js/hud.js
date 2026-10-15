@@ -262,10 +262,12 @@ function sync_arcade_card()
     hud_text(kind_el, (arcade.pause > 0) ? `Wave ${wave} of ${arcade_waves} · clear` : `Wave ${wave} of ${arcade_waves} · ${ui_sentence(arcade_wave_names[wave] || '')}`);
     kind_el.classList.toggle('eyebrow--red', !!threat);
     kind_el.classList.toggle('eyebrow--gold', !threat);
+    // a wave with a goal says the goal, and the way to its next place unless a raider is on you (arcade_goals.js)
+    const goal = arcade_goal_open() && (arcade.pause <= 0) ? arcade_goal_card() : null;
     hud_text(document.getElementById('mc_title'), (arcade.pause > 0)
         ? 'Wave clear: repair at the depot or wait for the next'
-        : flagship ? `Destroy the flagship of ${worlds[id].name}` : `Destroy ${left} raider${(left === 1) ? '' : 's'}`);
-    const nearest = threat || enemies.filter(v => v.hp > 0).sort((a, b) => distance(a, player) - distance(b, player))[0];
+        : goal ? goal.title : flagship ? `Destroy the flagship of ${worlds[id].name}` : `Destroy ${left} raider${(left === 1) ? '' : 's'}`);
+    const nearest = threat || goal?.target || enemies.filter(v => v.hp > 0).sort((a, b) => distance(a, player) - distance(b, player))[0];
     const dist = document.getElementById('mc_dist');
     set_hidden(dist, !nearest);
     dist.classList.toggle('is-danger', !!threat);
@@ -273,7 +275,7 @@ function sync_arcade_card()
         const [value, unit] = hud_distance(distance(player, nearest));
         hud_html(document.getElementById('mc_distance'), `${value}<small>${unit}</small>`);
         // folded, the wave is said here (its name, or how many are near in a fight); unfolded, the card's kind says it
-        const eta = threat ? `${hud_near_count()} near` : hud_card_open ? `${left} left` : ui_sentence(arcade_wave_names[wave] || '');
+        const eta = threat ? `${hud_near_count()} near` : goal ? goal.eta : hud_card_open ? `${left} left` : ui_sentence(arcade_wave_names[wave] || '');
         hud_text(document.getElementById('mc_eta'), hud_card_open ? eta : `Wave ${wave}/${arcade_waves} · ${eta}`);
         const a = Math.atan2(nearest.y - player.y, nearest.x - player.x);
         document.getElementById('mc_arrow').style.transform = `rotate(${a + Math.PI/4}rad)`;
