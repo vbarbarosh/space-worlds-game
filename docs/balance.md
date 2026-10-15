@@ -349,7 +349,11 @@ as its depot is the way into it; in the campaign the furthest world visited
 save opens what its trips earned. What a save already owns beyond that stays its own and flies
 or fires as before; only buying it, or one more of it, waits. In the campaign
 the rank still licenses ships and guns on top; the arcade's free gun tier for
-each world cleared stays.
+each world cleared stays, up to the tier the next world opens: 2 in Dustfall,
+3 Ion Reach, 4 Obsidian, 5 Nova Forge (`gun_tier_opens` in `src/js/tech.js`;
+the play log of v0.9.0 had every gun at tier 5 after Ion Reach). Tier 4 waits
+for Obsidian, not Cryosphere: with a plasma kit a tier lower the bot could not
+clear Obsidian's siege on any of three seeds.
 
 - Ships and guns: `opens` on each ship (`src/js/ships/`) and gun
   (`weapon_catalog`), a world tier.
@@ -453,7 +457,7 @@ before rocks and the Relic processor.
 | Repair | Full repair 60 | free on docking |
 | Ships | half the campaign price, rounded to 10 (`arcade_ship_price`): 180, 430, 530, 1150, 2800; from the world that opens it | the price above, gated by rank and by the world that opens it |
 | Guns | 120 + 45 × rating, no rank; from the world that opens it | the price above, gated by rank and by the world that opens it; each more of a gun the same (the cannon 120) |
-| Gun tier | free, one per world cleared | (130 + 22% of price) × tier × 1.5 |
+| Gun tier | free, one per world cleared, up to the tier the next world opens: 2 in Dustfall, 3 Ion Reach, 4 Obsidian, 5 Nova Forge (`gun_tier_open`) | (130 + 22% of price) × tier × 1.5 |
 | Modules, supplies | the tables above; a module level from the world that opens it | the same |
 | Builder drone, outposts, transport | none | see below |
 
@@ -558,6 +562,7 @@ before rocks and the Relic processor.
 | raider shot damage (a missile: the blast row) | ×1 | ×1.6 | ×1.75 |
 | raider hull | ×1 | ×1.5 | ×1.8 |
 | raider hull growth a world past Haven | +10% | +15% | none |
+| share of the world's shop on raider and flagship hull (`arcade_shop_hull`) | half | all | none |
 | share of the world's armour and shield | 80% | 80% | 50% |
 | blast damage to you (a ship's explosion, a raider missile) | ×0.8 | ×0.8 | ×1.2 |
 | raiders grow with your gun tier | no | no | +22% a tier |
@@ -567,8 +572,19 @@ before rocks and the Relic processor.
 - Where: `arcade_modes` in `src/js/arcade.js`; the menu's line for each mode
   is `sync_mode_note`.
 - A raider's hull is the first table's (`base_spawn_enemy`, without the
-  campaign's ×2) × the mode's hull × (1 + growth × world index), so on NORMAL an Eclipse raider has ×2.05 on top of the mode's
-  ×1.5; the flagship keeps its own scale (`arcade_hull_scale`). Raiders carry
+  campaign's ×2) × the mode's hull × (1 + growth × world index) × the
+  world's shop, so on NORMAL an Eclipse raider has ×2.05 and ×3 on top of the
+  mode's ×1.5; the flagship keeps its own scale but for the shop
+  (`arcade_hull_scale`). The shop (`arcade_shop_hull`, `arcade_shop_flagship`):
+  raiders ×1 to Obsidian, then ×2.2 Cryosphere, ×2.8 Nova Forge, ×3 Eclipse;
+  flagships ×1, 1, 1.8, 1.3, 2, 4, 4, 2. From Obsidian on a world sells the
+  gunship's third mount, Prism 2, the cruiser's fourth and the top gun tiers,
+  and a play log of v0.9.0 (NORMAL, 0 deaths, 19 min) killed a raider there in
+  0.4–0.6 s against 1.7 s before, a flagship in 2–13 s. Measured after it
+  (bin/playtest, seeds 1–3): NORMAL 793–824 s instead of 572–651, two of three
+  won (the third reached Nova Forge's depot 22 short of the cruiser and died
+  three times in Eclipse; seed 1 lost two lives in Obsidian's siege); CHILL
+  626–633 s, no deaths. Raiders carry
   the mode's share of the world's armour and shield, elites of its armour
   (`defense`, read in `arcade_update` and `arcade_elite_make`). Radiation is
   35% of the campaign's (`arcade_radiation`).
@@ -698,12 +714,12 @@ NORMAL in numbers:
 |---|---|---|---|---|---|---|---|---|---|
 | Haven | 44 | 140 | 0%, 0 | 40 | 1500 | 13 / 17 / 21 | 4 / 5 / 6 | 4.40 | 80 |
 | Verdant | 74 | 205 | 10%, 0 | 65 | 2400 | 15 / 19 / 23 | 4 / 5 / 6 | 4.16 | 120 |
-| Dustfall | 111 | 283 | 20%, 0 | 90 | 3300 | 17 / 21 / 25 | 5 / 6 / 7 | 3.92 | 160 |
-| Ion Reach | 154 | 372 | 16%, 52 (73) | 115 | 18900 | 19 / 23 / 27 | 5 / 6 / 7 | 3.68 | 200 |
-| Obsidian | 204 | 473 | 40%, 36 (50) | 140 | 15300 | 21 / 25 / 29 | 6 / 7 / 8 | 3.44 | 240 |
-| Cryosphere | 260 | 585 | 28%, 112 (157) | 165 | 7500 | 23 / 27 / 31 | 6 / 7 / 8 | 3.20 | 280 |
-| Nova Forge | 322 | 710 | 48%, 72 (101) | 190 | 8625 | 25 / 29 / 33 | 7 / 8 / 9 | 2.96 | 320 |
-| Eclipse | 391 | 846 | 52%, 160 (224) | 215 | 20280 | 27 / 31 / 35 | 7 / 8 / 9 | 2.72 | (run ends) |
+| Dustfall | 111 | 283 | 20%, 0 | 90 | 5940 | 17 / 21 / 25 | 5 / 6 / 7 | 3.92 | 160 |
+| Ion Reach | 154 | 372 | 16%, 52 (73) | 115 | 24570 | 19 / 23 / 27 | 5 / 6 / 7 | 3.68 | 200 |
+| Obsidian | 204 | 473 | 40%, 36 (50) | 140 | 30600 | 21 / 25 / 29 | 6 / 7 / 8 | 3.44 | 240 |
+| Cryosphere | 572 | 1287 | 28%, 112 (157) | 165 | 30000 | 23 / 27 / 31 | 6 / 7 / 8 | 3.20 | 280 |
+| Nova Forge | 902 | 1988 | 48%, 72 (101) | 190 | 34500 | 25 / 29 / 33 | 7 / 8 / 9 | 2.96 | 320 |
+| Eclipse | 1173 | 2538 | 52%, 160 (224) | 215 | 40560 | 27 / 31 / 35 | 7 / 8 / 9 | 2.72 | (run ends) |
 
 ## Campaign pace
 

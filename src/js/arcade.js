@@ -26,13 +26,14 @@ const arcade_squad_mixed = 0.35;
 // What each difficulty changes in the arcade: extra raiders per squadron and per wave, the gap between squadrons, the
 // first world with elites, the share of repairs that still drop, the medkits a run starts with, whether every raider
 // fires its world's gun (Haven's plasma included), how often (a factor on the gun's cooldown), and how hard its shots
-// hit, the raiders' hull and how much it grows a world past Haven, the share of the world's armour and shield they
+// hit, the raiders' hull, how much it grows a world past Haven and the share of the world's shop on it
+// (arcade_shop_hull), the share of the world's armour and shield they
 // carry, the blast damage you take (a ship's explosion or a raider missile), raiders that grow with your weapon tier,
 // the flagship's overdrive, and a factor on the share of marksmen.
 const arcade_modes = {
-    chill: {squad: 0, wave: 0, gap: 1, elite_world: 1, repairs: 1, medkits: 2, armed: false, gun_gap: 1, hits: 1, hull: 1, growth: 0.1, defense: 0.8, blast: 0.8, tier_hp: false, overdrive: false, marksmen: 0.5},
-    normal: {squad: 1, wave: 3, gap: 0.8, elite_world: 0, repairs: 0.35, medkits: 1, armed: true, gun_gap: 0.45, hits: 1.6, hull: 1.5, growth: 0.15, defense: 0.8, blast: 0.8, tier_hp: false, overdrive: false, marksmen: 1},
-    overload: {squad: 2, wave: 5, gap: 0.7, elite_world: 0, repairs: 0, medkits: 1, armed: true, gun_gap: 0.4, hits: 1.75, hull: 1.8, growth: 0, defense: 0.5, blast: 1.2, tier_hp: true, overdrive: true, marksmen: 1.3},
+    chill: {squad: 0, wave: 0, gap: 1, elite_world: 1, repairs: 1, medkits: 2, armed: false, gun_gap: 1, hits: 1, hull: 1, growth: 0.1, shop: 0.5, defense: 0.8, blast: 0.8, tier_hp: false, overdrive: false, marksmen: 0.5},
+    normal: {squad: 1, wave: 3, gap: 0.8, elite_world: 0, repairs: 0.35, medkits: 1, armed: true, gun_gap: 0.45, hits: 1.6, hull: 1.5, growth: 0.15, shop: 1, defense: 0.8, blast: 0.8, tier_hp: false, overdrive: false, marksmen: 1},
+    overload: {squad: 2, wave: 5, gap: 0.7, elite_world: 0, repairs: 0, medkits: 1, armed: true, gun_gap: 0.4, hits: 1.75, hull: 1.8, growth: 0, shop: 0, defense: 0.5, blast: 1.2, tier_hp: true, overdrive: true, marksmen: 1.3},
 };
 
 document.getElementById('arcade_depot_launch').addEventListener('click', arcade_depot_close);
@@ -196,10 +197,19 @@ function repair_drop_allowed()
 
 // A raider's hull by the mode and the world (the flagship has its own scale); on OVERLOAD it also grows as your weapon's
 // tier does, by the same 22% a tier adds to your damage.
+// What each world's shop lets a kit do, on the raiders' hull: from Obsidian on a world sells the gunship's third
+// mount, the second Prism level, the cruiser's fourth and the top gun tiers, and a play log of v0.9.0 killed a raider
+// there in 0.4–0.6 s against 1.7 s before; these bring it back near that (a raider, a flagship), at the mode's share
+// (shop): NORMAL all of it, CHILL half, OVERLOAD none (its raiders grow with your gun tier instead)
+const arcade_shop_hull = [1, 1, 1, 1, 1, 2.2, 2.8, 3];
+const arcade_shop_flagship = [1, 1, 1.8, 1.3, 2, 4, 4, 2];
+
 function arcade_hull_scale(enemy)
 {
     const mode = arcade_mode();
-    const k = ((enemy.type === 'boss') ? 1 : mode.hull*(1 + mode.growth*campaign.world))*(mode.tier_hp ? 1 + (weapon_level() - 1)*0.22 : 1);
+    const shop = ((enemy.type === 'boss') ? arcade_shop_flagship : arcade_shop_hull)[campaign.world] ?? 1;
+    const growth = (enemy.type === 'boss') ? 1 : mode.hull*(1 + mode.growth*campaign.world);
+    const k = growth*(1 + (shop - 1)*mode.shop)*(mode.tier_hp ? 1 + (weapon_level() - 1)*0.22 : 1);
     enemy.hp = Math.round(enemy.hp*k);
     enemy.max_hp = Math.round(enemy.max_hp*k);
 }
@@ -636,9 +646,10 @@ function arcade_world_clear()
     salvage += bonus;
     play_log_earn('world bonus', bonus);
     play_log_world_cleared(bonus);
-    // every gun you own grows a tier: the run's tier is one for all of them
+    // every gun you own grows a tier, up to the tier the next world opens (gun_tier_open): the run's tier is one for
+    // all of them
     const fleet = ensure_career();
-    const tier = Math.min(5, weapon_level() + 1);
+    const tier = Math.min(5, weapon_level() + 1, gun_tier_open(world_tier(campaign.world + 1)));
     for (const id of fleet.weapons) {
         fleet.weapon_levels[id] = tier;
     }
@@ -831,7 +842,7 @@ function arcade_depot_items()
         const room = carried < mounts.filter(v => gun_fits(weapon, v)).length;
         const spare = (owned[weapon.id] || 0) > carried;
         const where = (mounts.length > 1) ? `On ${carried} of your ${mounts.length} mounts.` : 'On your one mount.';
-        const line = !fits ? `Needs a ${weapon.size} mount: ${ship_catalog.filter(v => gun_fits_ship(weapon, v)).map(v => v.name).join(', ')}.` : carried ? (room ? `${where} Buy another for one more mount.` : `${where} Every gun grows a tier with every world you clear.`) : spare ? `Yours, spare. ${weapon.line}` : weapon.line;
+        const line = !fits ? `Needs a ${weapon.size} mount: ${ship_catalog.filter(v => gun_fits_ship(weapon, v)).map(v => v.name).join(', ')}.` : carried ? (room ? `${where} Buy another for one more mount.` : `${where} ${gun_tier_next_text()}`) : spare ? `Yours, spare. ${weapon.line}` : weapon.line;
         // a gun, or one more of it, waits for the world that opens it, said before whether a mount fits it; one you have
         // spare goes back on
         const closed = !spare && !(carried && !room) && !tech_open(weapon.opens);

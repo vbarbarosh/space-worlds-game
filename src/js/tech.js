@@ -40,6 +40,23 @@ function module_level_opens(option, level)
     return option.opens ? option.opens[level - 1] : Math.min(7, Math.round(((level - 1)/option.cap)*8));
 }
 
+// Where each gun tier opens (1 to 5), as world tiers: 2 in Dustfall, 3 Ion Reach, 4 Obsidian (its 40% armour asks for
+// it: a plasma kit a tier lower, measured by bin/playtest, could not clear its siege), 5 Nova Forge
+const gun_tier_opens = [0, 2, 3, 4, 6];
+
+// The highest gun tier on sale at world tier `tier`; the arcade's free tier for each world cleared stops there
+function gun_tier_open(tier)
+{
+    return gun_tier_opens.filter(v => v <= tier).length;
+}
+
+// Where the run's guns grow next, for the depot's gun cards: T3 in Ion Reach, or at the top tier
+function gun_tier_next_text()
+{
+    const tier = weapon_level();
+    return (tier >= 5) ? 'Every gun is at its top tier.' : `Every gun grows to T${tier + 1} as you clear the way to ${tech_world_name(gun_tier_opens[tier])}.`;
+}
+
 // The tier where a module's next level opens when it has not yet, else null (open, or at its cap)
 function module_next_locked(option)
 {
