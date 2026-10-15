@@ -499,9 +499,9 @@ function pulse_wave_sparks(wave, look, life, alpha)
 
 // The wave's band, its two echoes, its halo, the front's glow and the front itself in one ring and one gradient, as
 // render_pulse_wave draws them one by one: they add up ('lighter'), so a stop holds their sum, clamped as the screen
-// clamps it. A software canvas (Chrome on Linux without the graphics card, as in the play log of v0.9.0) paid for the
-// pixels of every shape: 16.5 ms a frame for one pulse at 300 m on a 1536 × 794 window at DPR 2.5, 10.2 ms so (bin/perf
-// layers; the pixels differ by under a device pixel's shift at the edges of the thin lines). False, drawing nothing,
+// clamps it. Every shape was a large blended fill of its own: on a software canvas one pulse at 300 m on a 1536 × 794
+// window at DPR 2.5 cost 16.5 ms a frame, 10.2 ms so (bin/perf layers), and a graphics card blends the ring once
+// instead of seven times (the pixels differ by under a device pixel's shift at the edges of the thin lines). False, drawing nothing,
 // when the glow would not be a ring (render_pulse_wave draws it with a shadow then).
 function pulse_wave_rings(wave, look, width, alpha)
 {

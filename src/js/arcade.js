@@ -33,7 +33,7 @@ const arcade_squad_mixed = 0.35;
 const arcade_modes = {
     chill: {squad: 0, wave: 0, gap: 1, elite_world: 1, repairs: 1, medkits: 2, armed: false, gun_gap: 1, hits: 1, hull: 1, growth: 0.1, shop: 0.5, defense: 0.8, blast: 0.8, tier_hp: false, overdrive: false, marksmen: 0.5},
     normal: {squad: 1, wave: 3, gap: 0.8, elite_world: 0, repairs: 0.35, medkits: 1, armed: true, gun_gap: 0.45, hits: 1.6, hull: 1.5, growth: 0.15, shop: 1, defense: 0.8, blast: 0.8, tier_hp: false, overdrive: false, marksmen: 1},
-    overload: {squad: 2, wave: 5, gap: 0.7, elite_world: 0, repairs: 0, medkits: 1, armed: true, gun_gap: 0.4, hits: 1.75, hull: 1.8, growth: 0, shop: 0, defense: 0.5, blast: 1.2, tier_hp: true, overdrive: true, marksmen: 1.3},
+    overload: {squad: 2, wave: 5, gap: 0.7, elite_world: 0, repairs: 0, medkits: 1, armed: true, gun_gap: 0.4, hits: 1.75, hull: 1.8, growth: 0, shop: 1, defense: 0.5, blast: 1.2, tier_hp: true, overdrive: true, marksmen: 1.3},
 };
 
 document.getElementById('arcade_depot_launch').addEventListener('click', arcade_depot_close);
@@ -200,7 +200,9 @@ function repair_drop_allowed()
 // What each world's shop lets a kit do, on the raiders' hull: from Obsidian on a world sells the gunship's third
 // mount, the second Prism level, the cruiser's fourth and the top gun tiers, and a play log of v0.9.0 killed a raider
 // there in 0.4–0.6 s against 1.7 s before; these bring it back near that (a raider, a flagship), at the mode's share
-// (shop): NORMAL all of it, CHILL half, OVERLOAD none (its raiders grow with your gun tier instead)
+// (shop): NORMAL and OVERLOAD all of it (OVERLOAD's growth with your gun tier stops at tier 5, and a play log of
+// v0.10.2 there lost no hull from Cryosphere on), CHILL half. Eclipse's flagship that died in 2 s fell into the black
+// hole beside the anchors (base_spawn_enemy keeps raiders out of a hole's reach now), not for its hull.
 const arcade_shop_hull = [1, 1, 1, 1, 1, 2.2, 2.8, 3];
 const arcade_shop_flagship = [1, 1, 1.8, 1.3, 2, 4, 4, 2];
 

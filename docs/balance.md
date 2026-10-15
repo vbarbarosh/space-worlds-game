@@ -562,7 +562,7 @@ before rocks and the Relic processor.
 | raider shot damage (a missile: the blast row) | ×1 | ×1.6 | ×1.75 |
 | raider hull | ×1 | ×1.5 | ×1.8 |
 | raider hull growth a world past Haven | +10% | +15% | none |
-| share of the world's shop on raider and flagship hull (`arcade_shop_hull`) | half | all | none |
+| share of the world's shop on raider and flagship hull (`arcade_shop_hull`) | half | all | all |
 | share of the world's armour and shield | 80% | 80% | 50% |
 | blast damage to you (a ship's explosion, a raider missile) | ×0.8 | ×0.8 | ×1.2 |
 | raiders grow with your gun tier | no | no | +22% a tier |
@@ -584,7 +584,16 @@ before rocks and the Relic processor.
   (bin/playtest, seeds 1–3): NORMAL 793–824 s instead of 572–651, two of three
   won (the third reached Nova Forge's depot 22 short of the cruiser and died
   three times in Eclipse; seed 1 lost two lives in Obsidian's siege); CHILL
-  626–633 s, no deaths. Raiders carry
+  626–633 s, no deaths. OVERLOAD carries the shop too since v0.10.3: its growth
+  with your gun tier stops at tier 5, and a play log of v0.10.2 there (16.6
+  min, no deaths) lost no hull from Cryosphere on. Its Eclipse flagship that
+  died in 2 s had fallen into the black hole: raiders spawned within the
+  hole's reach of you at the anchors and the core took them. No raider spawns
+  within 1.5 × a hole's radius now (`base_spawn_enemy`, the campaign too), and
+  the arcade's flagship is neither pulled nor taken by a core. Measured after
+  it (NORMAL seeds 1–3): Eclipse 114–129 s instead of 49–112, its flagship
+  wave a real fight (643–1283 hull); two of three won. The bot cannot clear
+  OVERLOAD's Haven, so OVERLOAD waits on a play log. Raiders carry
   the mode's share of the world's armour and shield, elites of its armour
   (`defense`, read in `arcade_update` and `arcade_elite_make`). Radiation is
   35% of the campaign's (`arcade_radiation`).

@@ -276,7 +276,8 @@ function update_gravity_objects(dt)
         const list = enemies;
         for (let i = 0, end = list.length; i < end; ++i) {
             const v = list[i];
-            if (v.hp <= 0) {
+            // the arcade's flagship holds its place against a hole: the climax is a fight, not a fall
+            if ((v.hp <= 0) || (arcade.active && (v.type === 'boss'))) {
                 continue;
             }
             gravity_move(v, dt);
