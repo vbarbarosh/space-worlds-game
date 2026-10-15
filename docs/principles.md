@@ -50,6 +50,9 @@ shows a health bar (its armour or energy, and how much is left as it is hit).
     ore rocks, solid, that your shots stop on with no damage; the pulse and
     the raiders' missiles break them. Each wears an arc of its hp, orange,
     red below half, besides the rock's bar.
+  - **A command post** (the arcade's Obsidian goal, `src/js/arcade_goals.js`):
+    no shot harms it while its emitters stand; a shield ring round it and a
+    beam from each emitter say so, and its tag reads COMMAND · SHIELDED.
   - **Drifting asteroids and wrecks:** they hurt your ship when you hit them,
     and your shots break them (`drifting_debris_hit` in
     `src/js/expedition.js`), but they have no bar. Raiders and raiders' shots

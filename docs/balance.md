@@ -671,18 +671,23 @@ before rocks and the Relic processor.
   The ion storm (your shield at 0 for the wave, wherever you were) went on
   2026-10-15: there was no answer to it, and it undid Ion Reach's own storms.
 - **World goals** (`src/js/arcade_goals.js`, from
-  `notes/gameplay-review-2026-10-15.md`): waves 1 and 2 of Dustfall, Ion
-  Reach and Cryosphere ask for the world's action instead of a count of
-  raiders. The wave keeps half its raiders and ends when the goal is met:
-  those still about jump away, the goal pays 40 + 12 × world index salvage
-  and 1500 + 300 × world index score, and the kill combo holds while a goal
-  is open.
+  `notes/gameplay-review-2026-10-15.md`): waves 1 and 2 of every world ask
+  for the world's action instead of a count of raiders. The wave keeps half
+  its raiders and ends when the goal is met: those still about jump away,
+  the goal pays 60 + 20 × world index salvage (about what the raiders it leaves out would drop, and more) and 1500 + 300 × world index
+  score (Verdant's by the share of pods scooped), logged as `goal bonus`,
+  and the kill combo holds while a goal is open.
 
   | World | Wave 1 | Wave 2 |
   |---|---|---|
+  | Haven | a tender 1.3 km out, bound for the depot at 80 m/s while you are within 420 m of it, at 35% of that while a raider is within 350 m of it; it cannot be lost | two tenders, 1.5 and 1.75 km out, 110° apart |
+  | Verdant | a nest 1.1 km out; three pods set out 2.1 km beyond it, 5 s apart, toward it at 55 m/s plus 2.5 × the current; flown within 70 m of, a pod is scooped; one that reaches the nest hatches three chasers | six pods in two streams |
   | Dustfall | a missile launcher (a gunner ×3 hull, anchored, firing within 1300 m) 1.5 km out, behind an arc of rock 380 m before it: your guns don't break the wall, the pulse and the raiders' missiles do; or fly round its open back | two launchers 1.75 km out on opposite sides, then an exit 550 m past the last |
-  | Ion Reach | a relay 230 m outside the storm nearest the depot, lit by a full pulse fired within its reach; the storm charges the pulse for the shield | two relays, by the two nearest storms |
+  | Ion Reach | a relay 230 m outside the storm nearest the depot, lit by a full pulse, or an EMP, that reaches it; the storm charges the pulse for the shield | two relays, by the two nearest storms |
+  | Obsidian | a command post (a tank ×3 hull, anchored) 1.5 km out, which no shot harms while its two emitters stand (gunners ×1.2 hull, anchored, plasma within 550 m) 320 m round its sides and back; the post and emitters carry no armour or shield, so any gun breaks them | three emitters |
   | Cryosphere | a capsule drifting at 90–140 m/s, hooked by staying within 120 m at under 110 m/s apart for 0.6 s, towed to the depot | three capsules, two to save; they bounce off the arena's edge and are never lost |
+  | Nova Forge | two regulators 60 m inside the edges of the flares nearest the depot, each shut by 4 s in all within 150 m of it (the time kept when you leave) | three regulators |
+  | Eclipse | two anchors 1.15 × the hole's radius from its centre (about 640 m: a pull of about 50 m/s), on the side facing the arena's middle, each shut by flying within 90 m of it | three anchors |
 - A ship that explodes hurts everything within 1.8 × its blast size, less
   with distance: a chaser 10, a tank 26, a flagship 50, an elite ×1.5
   (`arcade_blast_from_kill`).

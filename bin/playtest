@@ -206,8 +206,8 @@ function page_bot(options)
         }
     }
     function fly() {
-        // a breach's launcher is the goal's (below), not one to circle
-        const alive = enemies.filter(v => (v.hp > 0) && !v.launcher);
+        // a goal's anchored raider (a launcher, an emitter, a command post) is the goal's (below), not one to circle
+        const alive = enemies.filter(v => (v.hp > 0) && !v.anchor);
         function near(r) {
             return alive.filter(v => distance(v, player) < r).length;
         }
@@ -249,10 +249,10 @@ function page_bot(options)
                 dy = world.h/2 - player.y;
             }
         }
-        // a world goal open (src/js/arcade_goals.js): with no raider close, or a capsule in tow, fly it as a pilot
-        // would: thrust toward the velocity it asks for, coast once there, and the pulse where it says
+        // a world goal open (src/js/arcade_goals.js): with no raider close, or a plan to keep to (firm), fly it as a
+        // pilot would: thrust toward the velocity it asks for, coast once there, and the pulse where it says
         const plan = arcade_goal_pilot();
-        if (plan && ((near(500) === 0) || arcade.goal.capsules.some(v => v.towed))) {
+        if (plan && ((near(500) === 0) || plan.firm)) {
             dx = plan.vx - player.vx;
             dy = plan.vy - player.vy;
             if (Math.hypot(dx, dy) < 30) {
@@ -261,6 +261,17 @@ function page_bot(options)
             }
             if (plan.pulse && (player.energy >= 100)) {
                 pulse();
+            }
+        }
+        // a black hole's pull: away from it, unless a goal's plan keeps to the rim (it leans out against the pull itself)
+        if (!(plan && plan.firm)) {
+            for (const hole of black_holes) {
+                const d = Math.max(1, distance(hole, player));
+                if (d < hole.radius*1.6) {
+                    const s = Math.hypot(dx, dy) || 1;
+                    dx = dx/s + ((player.x - hole.x)/d)*3;
+                    dy = dy/s + ((player.y - hole.y)/d)*3;
+                }
             }
         }
         const edge = 420;

@@ -13,9 +13,14 @@ const screens = [
     {value: 'combat', label: 'hud-combat', phone: true},
     {value: 'arcade', label: 'hud-arcade', phone: true},
     // the world goals' cards and markers (src/js/arcade_goals.js), each at its second wave
+    {value: 'arcade', label: 'hud-arcade-escort', world: 'haven', query: '&wave=2', phone: true},
+    {value: 'arcade', label: 'hud-arcade-brood', world: 'verdant', query: '&wave=2', phone: true},
     {value: 'arcade', label: 'hud-arcade-breach', world: 'dustfall', query: '&wave=2', phone: true},
     {value: 'arcade', label: 'hud-arcade-relays', world: 'ion-reach', query: '&wave=2', phone: true},
+    {value: 'arcade', label: 'hud-arcade-siege', world: 'obsidian', query: '&wave=2', phone: true},
     {value: 'arcade', label: 'hud-arcade-rescue', world: 'cryosphere', query: '&wave=2', phone: true},
+    {value: 'arcade', label: 'hud-arcade-regulators', world: 'nova-forge', query: '&wave=2', phone: true},
+    {value: 'arcade', label: 'hud-arcade-anchors', world: 'eclipse', query: '&wave=2', phone: true},
     // the world's title, raiders close and a burst of news at once: the news line, the title and the card apart
     {value: 'crowded', label: 'hud-crowded'},
     // a ring race under way: the standings under the minimap, one rival with a very long name

@@ -390,6 +390,11 @@ function damage_enemy(enemy, damage)
         enemy.flash = 0.08;
         return;
     }
+    // a command post takes nothing while its emitters stand (arcade_goals.js)
+    if (arcade.active && arcade_post_shielded(enemy)) {
+        enemy.flash = 0.08;
+        return;
+    }
     const health = play_log_health(enemy);
     // a flagship takes more while its hull is exposed, less while its pods guard it (boss_hit_factor)
     expedition_base_damage_enemy(enemy, (enemy.type === 'boss') ? damage*boss_hit_factor(enemy) : damage);

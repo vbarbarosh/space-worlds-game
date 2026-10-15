@@ -129,7 +129,7 @@ can come without it. A reader skips fields it does not know.
 | `world` | the world it was played in |
 | `flight_s`, `docked_s` | seconds in flight; seconds in the station, depot, map or inventory |
 | `salvage` | on hand at its end |
-| `earned` | by source: `pickups` (wreck and cache salvage), `contract`, `story` (a story chapter), `race`, `goal`, `world bonus` (arcade), `sell <cargo>` (ore, cells, relics, commodities), `transport` (a transport line's sales), `refund` (a structure still building when you left), `unlogged` |
+| `earned` | by source: `pickups` (wreck and cache salvage), `contract`, `story` (a story chapter), `race`, `goal`, `world bonus` and `goal bonus` (arcade), `sell <cargo>` (ore, cells, relics, commodities), `transport` (a transport line's sales), `refund` (a structure still building when you left), `unlogged` |
 | `spent` | by kind: `ship`, `gun`, `gun tier`, `module`, `supply`, `repair` (arcade), `drone`, `drone tier`, `builder`, `structure`, `transport line`, `trade` (commodities bought), `tow` (the tug after a death), `unlogged` |
 | `xp_total`, `xp`, `rank` | campaign only (null in the arcade): XP at the end, earned by source (`kill`, `contract`, `unlogged`), the rank |
 | `kills` | by raider type: `chaser`, `shooter`, `lancer`, `tank`, `splitter`, `shard`, `boss` |

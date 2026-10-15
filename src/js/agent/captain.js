@@ -158,8 +158,9 @@ function captain_arcade_pilot()
     let nearest = null;
     let crowd = 0;
     for (const enemy of enemies) {
-        // a breach's launcher is the goal's (arcade_goal_pilot), not one to keep at gun range
-        if ((enemy.hp <= 0) || enemy.launcher) {
+        // a goal's anchored raider (a launcher, an emitter, a command post) is the goal's (arcade_goal_pilot), not one
+        // to keep at gun range
+        if ((enemy.hp <= 0) || enemy.anchor) {
             continue;
         }
         const d = Math.max(1, distance(enemy, player));
@@ -189,10 +190,10 @@ function captain_arcade_pilot()
         x += (target.x - player.x)/Math.max(1, distance(target, player));
         y += (target.y - player.y)/Math.max(1, distance(target, player));
     }
-    // a world goal open (src/js/arcade_goals.js): with no raider within 500 m, or a capsule in tow, thrust toward the
-    // velocity the goal asks for, coast once there, and fire the pulse where it says
+    // a world goal open (src/js/arcade_goals.js): with no raider within 500 m, or a plan to keep to (firm), thrust
+    // toward the velocity the goal asks for, coast once there, and fire the pulse where it says
     const plan = arcade_goal_pilot();
-    if (plan && ((!nearest || (distance(nearest, player) > 500)) || arcade.goal.capsules.some(v => v.towed))) {
+    if (plan && ((!nearest || (distance(nearest, player) > 500)) || plan.firm)) {
         x = plan.vx - player.vx;
         y = plan.vy - player.vy;
         const error = Math.hypot(x, y);
@@ -213,7 +214,8 @@ function captain_arcade_pilot()
             y += (shot.vx/speed)*1.5;
         }
     }
-    for (const hole of black_holes) {
+    // a goal's plan that keeps to the rim (the anchors) leans out against the pull itself
+    for (const hole of (plan && plan.firm) ? [] : black_holes) {
         const d = Math.max(1, distance(hole, player));
         if (d < gravity_reach(hole)*0.9) {
             x += ((player.x - hole.x)/d)*3;

@@ -120,11 +120,14 @@ there is a decision to make.
 ## The arcade
 
 `ARCADE` is a run through the eight worlds: three waves of raiders in each,
-the world's flagship in the third, and the depot between worlds. In Dustfall,
-Ion Reach and Cryosphere waves 1 and 2 have a goal instead (destroy the
-launchers behind their rock wall, light the relays with a full pulse, tow the
-drifting capsules to the depot); `status` names it, and the wave ends when it
-is done.
+the world's flagship in the third, and the depot between worlds. In every
+world waves 1 and 2 have a goal instead (Haven: escort the tender to the
+depot; Verdant: scoop the drifting pods before the nest; Dustfall: destroy
+the launchers behind their rock wall; Ion Reach: light the relays with a full
+pulse or an EMP; Obsidian: break the emitters, then the command post;
+Cryosphere: tow the drifting capsules to the depot; Nova Forge: stay in each
+regulator's ring until it shuts; Eclipse: fly through the anchors round the
+black hole); `status` names it, and the wave ends when it is done.
 In the arcade the autopilot flies for you: it keeps the nearest raider at gun
 range, sidesteps, collects pickups when the sky is clear, flies the world's
 goal when no raider is close and keeps away from gravity wells. Your guns

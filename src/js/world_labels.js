@@ -202,6 +202,27 @@ function draw_edge_marker(m, text, color = gold)
 
 const target_names = {chaser: 'Raider', tank: 'Raider tank', shooter: 'Raider gunner', splitter: 'Raider splitter', lancer: 'Raider lancer', shard: 'Raider shard', boss: 'Flagship'};
 
+// The name on a raider's plate: what it is to you, a goal's part by its part (arcade_goals.js), else its kind
+function target_plate_name(target)
+{
+    if (target.leviathan) {
+        return 'LEVIATHAN';
+    }
+    if (target.launcher) {
+        return 'MISSILE LAUNCHER';
+    }
+    if (target.emitter) {
+        return 'SHIELD EMITTER';
+    }
+    if (target.post) {
+        return arcade_post_shielded(target) ? 'COMMAND · SHIELDED' : 'COMMAND POST';
+    }
+    if (target.jammer) {
+        return 'JAMMER';
+    }
+    return (target_names[target.type] || 'Raider').toUpperCase();
+}
+
 // The raider nearest you in a fight: red corner brackets round it, its hull under it, and its name and distance on a
 // plate below (screen px; the plate joins the world's labels, so it keeps clear of the HUD)
 function render_target_brackets()
@@ -237,5 +258,5 @@ function render_target_brackets()
     ctx.fillRect(x - half*0.7, y + half + 6, half*1.4*share, 3);
     ctx.restore();
     const [value, unit] = hud_distance(distance(player, target));
-    world_labels.push({x, y: y + half + 14, title: target.leviathan ? 'LEVIATHAN' : target.launcher ? 'MISSILE LAUNCHER' : target.jammer ? 'JAMMER' : (target_names[target.type] || 'Raider').toUpperCase(), sub: `${value} ${unit}`, color: '#ff8a96'});
+    world_labels.push({x, y: y + half + 14, title: target_plate_name(target), sub: `${value} ${unit}`, color: '#ff8a96'});
 }
