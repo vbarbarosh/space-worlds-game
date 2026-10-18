@@ -92,13 +92,15 @@ function update_camera(dt, snap = false)
     if (!player) {
         return;
     }
+    // a ring race has a view of its own: it looks ahead, and keeps your ship clear of the HUD (js/race_view.js)
+    if (race_view_on()) {
+        race_view_camera(dt, snap);
+        return;
+    }
     const vw = W/zoom;
     const vh = H/zoom;
-    // on a Turbo race's track the view looks ahead of the ship, to the bend coming (race_rail.lead)
-    const lx = race_rail_riding() ? clamp(race_rail.lead.x, -vw*0.3, vw*0.3) : 0;
-    const ly = race_rail_riding() ? clamp(race_rail.lead.y, -vh*0.3, vh*0.3) : 0;
-    const tx = clamp(player.x + lx - vw/2, 0, Math.max(0, world.w - vw));
-    const ty = clamp(player.y + ly - vh/2, 0, Math.max(0, world.h - vh));
+    const tx = clamp(player.x - vw/2, 0, Math.max(0, world.w - vw));
+    const ty = clamp(player.y - vh/2, 0, Math.max(0, world.h - vh));
     const smooth = snap ? 1 : 1 - Math.exp(-10*dt);
     camera.x = clamp(camera.x + (tx - camera.x)*smooth, 0, Math.max(0, world.w - vw));
     camera.y = clamp(camera.y + (ty - camera.y)*smooth, 0, Math.max(0, world.h - vh));

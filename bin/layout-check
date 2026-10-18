@@ -23,10 +23,14 @@ const screens = [
     {value: 'arcade', label: 'hud-arcade-anchors', world: 'eclipse', query: '&wave=2', phone: true},
     // the world's title, raiders close and a burst of news at once: the news line, the title and the card apart
     {value: 'crowded', label: 'hud-crowded'},
-    // a ring race under way: the standings under the minimap, one rival with a very long name
-    {value: 'race-mid', label: 'hud-race', query: '&race_long=1'},
+    // a ring race under way: the standings under the minimap, one rival with a very long name; ship: your ship clear of
+    // every block of the HUD (ship_audit)
+    {value: 'race-mid', label: 'hud-race', query: '&race_long=1', ship: true},
     // over the line: the results and the prize on the board
     {value: 'race-finish', label: 'hud-race-results'},
+    // the Races mode at the count, then on the turbo into a bend: its HUD without what a race has no use for
+    {value: 'races-turbo', label: 'hud-races-count', phone: true, ship: true},
+    {value: 'races-turbo-mid', label: 'hud-races', phone: true, ship: true},
     // the world's cleared screen held after its button is ready
     {value: 'arcade-world-cleared', label: 'arcade-world-cleared', query: '&t=7', phone: true},
     {value: 'arcade-cleared', label: 'arcade-cleared'},
@@ -141,7 +145,9 @@ async function main()
                 fs.mkdirSync(path.dirname(shot), {recursive: true});
                 await page.screenshot({path: shot});
                 const audit = await page.evaluate(layout_audit, selectors);
+                const under = screen.ship ? await page.evaluate(ship_audit) : [];
                 const failures = [
+                    ...under.map(v => `ship under ${v}`),
                     ...audit.overlap.map(v => `overlap ${v}`),
                     ...audit.offscreen.map(v => `off ${v}`),
                     ...audit.cut.map(v => `cut ${v}`),
@@ -164,6 +170,32 @@ async function main()
     if (failed) {
         process.exit(1);
     }
+}
+
+// Runs in the page: the HUD's blocks (and the window's edges) your ship's halo comes under; the news line and the
+// banners come and go over the scene, and are left out
+function ship_audit()
+{
+    const ship = window.dev_state().ship;
+    const out = [];
+    if (!ship) {
+        return ['nothing: no ship'];
+    }
+    if ((ship.x < ship.r) || (ship.y < ship.r) || (ship.x > innerWidth - ship.r) || (ship.y > innerHeight - ship.r)) {
+        out.push('the window edge');
+    }
+    for (const v of document.querySelectorAll('#hud_root [data-hud-safe]:not(#toasts):not(#banners), #touch_buttons > button')) {
+        const r = v.getBoundingClientRect();
+        if ((r.width < 1) || (r.height < 1)) {
+            continue;
+        }
+        const dx = Math.max(r.left - ship.x, 0, ship.x - r.right);
+        const dy = Math.max(r.top - ship.y, 0, ship.y - r.bottom);
+        if (dx*dx + dy*dy < ship.r*ship.r) {
+            out.push(v.id || v.className);
+        }
+    }
+    return out;
 }
 
 // Runs in the page: what overlaps, leaves the window, is cut or sticks out, and the smallest text on screen

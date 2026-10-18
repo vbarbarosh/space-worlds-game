@@ -36,7 +36,8 @@ const race_rail_react = 0.35;
 const race_rail_ahead = 1.6;
 const race_rail_ghost = {s: 0, v: 0, d: 0, u: 0, spin: 0, lane: 0, base: 0, top: 0, turbo: false, at: 0};
 const race_rail_ghost_at = {x: 0, y: 0, vx: 0, vy: 0, angle: 0};
-// The view looks this many seconds ahead of you along the track (as far as a third of the screen), easing to it
+// The view looks this many seconds ahead of you along the track (as far as 30% of the view, js/race_view.js), easing
+// to it
 const race_rail_lead = 0.7;
 // track: the track of the race on; grip: the side force a bend holds (px/s²); rise and fall: the climb on the turbo
 // and the slowing off it; profile: at each point of the track, the fastest a ship may go and still slow for the
