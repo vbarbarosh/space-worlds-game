@@ -16,7 +16,8 @@ const usage = `usage: bin/playtest [--mode=normal] [--seeds=1,2,3] [--label=name
 
     How it flies: it holds 320 m from the nearest raider and circles it, steps aside from shots coming at it, picks
     up salvage when fewer than three raiders are close, keeps off the radiation at the edge, meets a sweeping
-    front in a lane or a rock's lee when it can get there in time and crosses it head on when not. The pulse at three
+    front in a lane or a rock's lee when it can get there in time and crosses it head on when not; a world goal and a
+    flagship's duel it flies as their pilots say (arcade_goal_pilot, boss_duel_pilot). The pulse at three
     raiders within 380 m, a dash past a missile within 220 m, the EMP at six within 550 m or below a third of its
     hull, stasis at eight, a repair kit below half. At the depot: a repair below 75% hull, two repair kits, then
     modules by value for the price (Prism, Hotter plasma, Rapid resonance, Phase armor, Shield capacitor, drones,
@@ -253,14 +254,16 @@ function page_bot(options)
             dy = uy*toward + ux*0.8;
         }
         // shots coming at the ship within 160 m: a step across their line
+        let dodge = null;
         for (const v of hostile) {
             const ox = player.x - v.x;
             const oy = player.y - v.y;
             const d = Math.hypot(ox, oy);
             if ((d < 160) && ((ox*(v.vx || 0) + oy*(v.vy || 0)) > 0)) {
                 const s = Math.hypot(v.vx || 0, v.vy || 0) || 1;
-                dx += -(v.vy || 0)/s*1.5;
-                dy += (v.vx || 0)/s*1.5;
+                dodge = {x: -(v.vy || 0)/s, y: (v.vx || 0)/s};
+                dx += dodge.x*1.5;
+                dy += dodge.y*1.5;
                 break;
             }
         }
@@ -281,13 +284,21 @@ function page_bot(options)
         }
         // a world goal open (src/js/arcade_goals.js): with no raider close, or a plan to keep to (firm), fly it as a
         // pilot would: thrust toward the velocity it asks for, coast once there, and the pulse where it says
-        const plan = arcade_goal_pilot();
+        // or a flagship's duel (src/js/boss_duels.js), where the build has one, still stepping across a shot's line
+        // as a player does while keeping to it
+        const goal = arcade_goal_pilot();
+        const duel = (!goal && (typeof boss_duel_pilot === 'function')) ? boss_duel_pilot() : null;
+        const plan = goal || duel;
         if (plan && ((near(500) === 0) || plan.firm)) {
             dx = plan.vx - player.vx;
             dy = plan.vy - player.vy;
             if (Math.hypot(dx, dy) < 30) {
                 dx = 0;
                 dy = 0;
+            }
+            if (duel && dodge) {
+                dx += dodge.x*400;
+                dy += dodge.y*400;
             }
             if (plan.pulse && (player.energy >= 100)) {
                 pulse();

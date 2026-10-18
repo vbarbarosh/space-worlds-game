@@ -1,5 +1,5 @@
 // Arcade: one run through the eight worlds, three waves each, the world's flagship in the third; no stations, contracts or saves.
-const arcade = {active: false, world: -1, wave: 0, pause: 0, squad_timer: 0, squads: 0, phase: 0, slowmo: 0, depot_hint: false, marksman_hint: false, missile_hint: false, blasts: [], event: null, goal: null, between_worlds: null, world_start: null, campaign_checkpoint: null, route: [0], seed: 0, cards: [], wind_used: false};
+const arcade = {active: false, world: -1, wave: 0, pause: 0, squad_timer: 0, squads: 0, phase: 0, slowmo: 0, depot_hint: false, marksman_hint: false, missile_hint: false, blasts: [], event: null, goal: null, between_worlds: null, world_start: null, campaign_checkpoint: null, route: [0], seed: 0, cards: [], wind_used: false, flagship_escaped: false};
 const arcade_extent = [7200, 5600];
 const arcade_waves = 3;
 const arcade_radiation = 0.35;
@@ -599,20 +599,23 @@ function raider_fire_left(enemy)
     return (enemy.type === 'shooter') ? enemy.fire_cd : enemy.gun_cd;
 }
 
-// The flagship turns at 66% (escorts) and at 33% (a last stand with more of them); on OVERLOAD, at 15% it goes into
-// overdrive: it fires faster and calls an elite squadron.
+// The flagship turns at 66% (escorts) and at 33% (a last stand with more of them), or where its duel has it
+// (boss_duel_escorts: a duel may have no last stand); on OVERLOAD, at 15% it goes into overdrive: it fires faster and
+// calls an elite squadron.
 function arcade_flagship_update()
 {
+    boss_duel_watch();
     const boss = enemies.find(v => (v.type === 'boss') && (v.hp > 0));
     if (!boss) {
         return;
     }
-    if ((arcade.phase === 1) && (boss.hp < boss.max_hp*0.66)) {
+    const marks = boss_duel_escorts();
+    if ((arcade.phase === 1) && (boss.hp < boss.max_hp*marks[0])) {
         arcade.phase = 2;
         show_toast('FLAGSHIP · ESCORTS INBOUND', worlds[campaign.world].faction.toUpperCase(), 2);
         arcade_squad_spawn(3 + Math.min(2, Math.floor(arcade_level()/3)));
     }
-    if ((arcade.phase === 2) && (boss.hp < boss.max_hp*0.33)) {
+    if ((arcade.phase === 2) && (boss.hp < boss.max_hp*marks[1])) {
         arcade.phase = 3;
         show_toast('FLAGSHIP · LAST STAND', 'EVERYTHING IT HAS', 2);
         flash = 0.35;
@@ -620,7 +623,7 @@ function arcade_flagship_update()
         ring(boss.x, boss.y, pink, 260, 0.6);
         arcade_squad_spawn(4 + Math.min(2, Math.floor(arcade_level()/3)));
     }
-    if ((arcade.phase === 3) && arcade_mode().overdrive && (boss.hp < boss.max_hp*0.15)) {
+    if ((arcade.phase === (marks[1] ? 3 : 2)) && arcade_mode().overdrive && (boss.hp < boss.max_hp*0.15)) {
         arcade.phase = 4;
         boss.overdrive = true;
         show_toast('FLAGSHIP · OVERDRIVE', 'IT WILL NOT GO QUIETLY', 2);
@@ -636,15 +639,14 @@ function arcade_flagship_spawn()
 {
     const enemy = spawn_enemy('boss');
     const scale = (difficulty === 'chill') ? 0.8 : (difficulty === 'overload') ? 1.25 : 1;
-    // by the run's step; from Ion Reach on, a design's factor more, for time to run its attacks (boss_designs): the
-    // factor of the step's world in the map's order, as the shop's factor on it (arcade_shop_flagship) is the step's,
-    // so a flagship has the step's hull whichever world it is (a play test of Ion Reach's 4.5 at step 2, on Dustfall's
-    // shop factor, ended three of eight bot runs that flew it third); and a card's factor
-    enemy.hp = Math.round(1500*(1 + arcade_level()*0.6)*scale*boss_designs[arcade_level()].hull*arcade_card_k.flagship);
+    // by the run's step, as the shop's factor on it (arcade_shop_flagship) is the step's; then its duel's factor, for
+    // time to run its attacks and its way to be won (boss_duels: the world's own, as its duel is); and a card's factor
+    enemy.hp = Math.round(1500*(1 + arcade_level()*0.6)*scale*boss_duel_hull(campaign.world)*arcade_card_k.flagship);
     enemy.max_hp = enemy.hp;
     boss_spawned = true;
     boss_defeated = false;
     arcade.phase = 1;
+    arcade.flagship_escaped = false;
     el.bossbar.querySelector('.meter-row').textContent = `${worlds[campaign.world].faction.toUpperCase()} FLAGSHIP`;
     set_hidden(el.bossbar, false);
 }

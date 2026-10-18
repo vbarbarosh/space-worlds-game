@@ -265,7 +265,8 @@ function sync_arcade_card()
     kind_el.classList.toggle('eyebrow--red', !!threat);
     kind_el.classList.toggle('eyebrow--gold', !threat);
     // a wave with a goal says the goal, and the way to its next place unless a raider is on you (arcade_goals.js)
-    const goal = arcade_goal_open() && (arcade.pause <= 0) ? arcade_goal_card() : null;
+    // a flagship's duel says how it is won (boss_duels.js)
+    const goal = (arcade_goal_open() && (arcade.pause <= 0)) ? arcade_goal_card() : flagship ? boss_duel_card() : null;
     hud_text(document.getElementById('mc_title'), (arcade.pause > 0)
         ? 'Wave clear: repair at the depot or wait for the next'
         : goal ? goal.title : flagship ? `Destroy the flagship of ${worlds[id].name}` : `Destroy ${left} raider${(left === 1) ? '' : 's'}`);

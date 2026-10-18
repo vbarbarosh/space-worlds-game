@@ -267,7 +267,8 @@ function render_marksman_aims()
 function render_enemies()
 {
     for (const enemy of enemies) {
-        if (!in_view(enemy, enemy.r + 40)) {
+        // a flagship's nest is drawn by its duel (boss_duels.js)
+        if (!in_view(enemy, enemy.r + 40) || enemy.duel_owner) {
             continue;
         }
         const color = (enemy.flash > 0) ? '#e5faff' : enemy.color || pink;

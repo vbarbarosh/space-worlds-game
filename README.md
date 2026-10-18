@@ -36,8 +36,13 @@ Three modes:
   line showing their aim; a share of the squadrons fly mixed, and each
   world's elites have a trick of their own. Each world's flagship is a fight
   of its own: its own attacks, each shown before it lands, its own way of
-  moving, a second half below 50%, and moments its hull is exposed; it calls
-  escorts at 66% and 33%. A ship that explodes hurts what is close to it. The salvage you collect buys
+  moving, a second half below 50%, and its own way to be won: the Crescent
+  runs for a gate and gets away if it reaches it, nests heal the Thorn
+  Beetle, the Sawtooth stuns itself on a rock it charges into, the Storm
+  Wheel is hurt through the gaps of its turning shell, the Iron Stair at one
+  weak point at a time, the Frost Crystal while it glows, the Furnace's ring
+  of fire closes in as it heats, and the Eclipse Eye's dome opens only while
+  you are at the black hole's edge with it. A ship that explodes hurts what is close to it. The salvage you collect buys
   repairs, weapons, ships, supplies and modules at the station's depot (R); each world opens more of them, and
   what is not open yet says where it opens. A cleared world pays a fixed bonus, the weapon
   grows a tier, a cleared screen shows the world's numbers, and the depot opens before the next world. Score, combo and a best score (salvage left at the end scores 10 points each); no

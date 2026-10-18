@@ -264,6 +264,7 @@ function base_spawn_enemy(type)
         structure_target: null,
         mission_boss: null,
         leviathan: false,
+        duel_owner: null,
     };
     if (difficulty === 'chill') {
         enemy.speed *= 0.8;

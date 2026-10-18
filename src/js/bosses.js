@@ -248,10 +248,13 @@ function boss_state_new(enemy)
         face: null,
         mv: {vx: 0, vy: 0, dir: (Math.random() < 0.5) ? -1 : 1, orbit: Math.atan2(enemy.y - player.y, enemy.x - player.x), t: 0, lunge: 0, lunge_angle: 0},
         counts: {},
+        duel: null,
     };
     boss_states.set(enemy, out);
     if (flagship && arcade.active) {
-        show_toast(design.name, design.hint, 3.5, 'danger');
+        // the arcade's flagship fights its duel (boss_duels.js), and says how it is won
+        out.duel = boss_duel_new(enemy, out);
+        show_toast(design.name, out.duel ? out.duel.def.line : design.hint, 4.5, 'danger');
     }
     return out;
 }
@@ -277,6 +280,9 @@ function boss_update(v, dt, move, d)
     // it turns as its fight has it, not as the main loop heads it
     v.angle = s.face ?? v.angle;
     boss_fight(v, s, dt);
+    if (s.duel) {
+        boss_duel_after(v, s, dt);
+    }
     s.face = v.angle;
     return 0;
 }
@@ -288,6 +294,12 @@ function boss_fight(v, s, dt)
     const design = s.design;
     s.spin += dt*(design.move.spin || 0);
     s.exposed = Math.max(0, s.exposed - dt);
+    if (s.duel) {
+        boss_duel_frame(v, s, dt);
+        if (v.hp <= 0) {
+            return;
+        }
+    }
     boss_effects_update(v, s, dt);
     boss_pods_update(v, s, dt);
     boss_plates_update(v, s, dt);
@@ -295,7 +307,7 @@ function boss_fight(v, s, dt)
         boss_phase_two(v, s);
     }
     const busy = s.attack && boss_attack_kinds[s.attack.p.kind].moves;
-    if (!busy) {
+    if (!busy && !(s.duel && boss_duel_move(v, s, dt))) {
         boss_move(v, s, dt);
     }
     if (s.roar > 0) {
@@ -372,6 +384,9 @@ function boss_hit_factor(enemy)
     const s = boss_states.get(enemy);
     if (!s) {
         return 1;
+    }
+    if (s.duel) {
+        return boss_duel_factor(enemy, s);
     }
     if (s.exposed > 0) {
         return boss_exposed_factor;
@@ -1464,6 +1479,9 @@ function boss_render()
 
 function boss_hull_draw(v, s)
 {
+    if (s.duel) {
+        boss_duel_draw(v, s);
+    }
     if (s.design.plates && (s.exposed <= 0)) {
         const plates = s.design.plates[s.phase - 1];
         const slot = (Math.PI*2)/plates.count;

@@ -70,6 +70,11 @@ function captain_status()
             const card = arcade_goal_card();
             out.arcade.goal = {title: card.title, how: card.line, state: card.eta, distance: card.target ? Math.round(distance(player, card.target)) : null};
         }
+        // the flagship's duel: how it is won now (src/js/boss_duels.js)
+        const duel = boss_duel_card();
+        if (duel) {
+            out.arcade.flagship = {title: duel.title, how: duel.line, state: duel.eta, distance: Math.round(distance(player, duel.target))};
+        }
     }
     out.enemies_near = enemies.filter(v => (v.hp > 0) && (distance(v, player) < 900)).length;
     out.run_time = format_time(run_time);
@@ -192,9 +197,10 @@ function captain_arcade_pilot()
         x += (target.x - player.x)/Math.max(1, distance(target, player));
         y += (target.y - player.y)/Math.max(1, distance(target, player));
     }
-    // a world goal open (src/js/arcade_goals.js): with no raider within 500 m, or a plan to keep to (firm), thrust
-    // toward the velocity the goal asks for, coast once there, and fire the pulse where it says
-    const plan = arcade_goal_pilot();
+    // a world goal open (src/js/arcade_goals.js), or a flagship's duel (src/js/boss_duels.js): with no raider within
+    // 500 m, or a plan to keep to (firm), thrust toward the velocity it asks for, coast once there, and fire the pulse
+    // where it says
+    const plan = arcade_goal_pilot() || boss_duel_pilot();
     if (plan && ((!nearest || (distance(nearest, player) > 500)) || plan.firm)) {
         x = plan.vx - player.vx;
         y = plan.vy - player.vy;
@@ -216,7 +222,7 @@ function captain_arcade_pilot()
             y += (shot.vx/speed)*1.5;
         }
     }
-    // a goal's plan that keeps to the rim (the anchors) leans out against the pull itself
+    // a plan that keeps to the rim (the anchors, the Eclipse Eye's edge) leans out against the pull itself
     for (const hole of (plan && plan.firm) ? [] : black_holes) {
         const d = Math.max(1, distance(hole, player));
         if (d < gravity_reach(hole)*0.9) {

@@ -149,7 +149,8 @@ function finale_build()
     letters.style.setProperty('--n', name.length + 8);
     document.getElementById('finale_stage').style.setProperty('--finale-accent', (world < 0) ? 'var(--cyan)' : worlds[world].accent);
     const next = finale.offers.map(v => worlds[v].name);
-    document.getElementById('finale_line').textContent = (world < 0) ? 'All eight worlds, all eight flagships.' : `Flagship down · next: ${(next.length > 1) ? `${next.join(' or ')}, your choice` : (finale.offers[0] === arcade_worlds - 1) ? `${next[0]}, the last` : next[0]}`;
+    // a flagship that reached its gate (the Crescent's chase, boss_duels.js) is said to have got away
+    document.getElementById('finale_line').textContent = (world < 0) ? 'All eight worlds, all eight flagships.' : `${arcade.flagship_escaped ? 'The flagship got away' : 'Flagship down'} · next: ${(next.length > 1) ? `${next.join(' or ')}, your choice` : (finale.offers[0] === arcade_worlds - 1) ? `${next[0]}, the last` : next[0]}`;
     document.getElementById('finale_score_label').textContent = (world < 0) ? 'Final score' : `Score in ${worlds[world].name}`;
     document.getElementById('finale_time_label').textContent = (world < 0) ? 'Time' : 'Time here';
     document.getElementById('finale_raiders_label').textContent = (world < 0) ? 'Raiders' : 'Raiders here';

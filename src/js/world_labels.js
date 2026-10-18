@@ -223,6 +223,10 @@ function target_plate_name(target)
     if (target.goal_raid) {
         return arcade_raid_plate_name(target);
     }
+    // a flagship's nest (boss_duels.js)
+    if (target.duel_owner) {
+        return 'NEST';
+    }
     return (target_names[target.type] || 'Raider').toUpperCase();
 }
 

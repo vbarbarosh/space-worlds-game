@@ -274,6 +274,12 @@ function update(dt, frame_dt = dt)
             }
         }
     }
+    // an arcade flagship's duel points the guns at its part that can be hurt, or at another raider while it cannot be
+    // hurt from here (boss_duels.js)
+    if (target && (target.type === 'boss') && arcade.active) {
+        target = boss_duel_aim(target);
+        near = distance(target, player);
+    }
     update_ship_orientation(dt, target, dx, dy);
     // The guns fire only at a target in their reach: a raider, debris about to hit, or (arcade) a rock; never into empty space.
     if (target) {

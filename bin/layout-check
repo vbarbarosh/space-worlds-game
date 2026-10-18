@@ -21,6 +21,15 @@ const screens = [
     {value: 'arcade', label: 'hud-arcade-rescue', world: 'cryosphere', query: '&wave=2', phone: true},
     {value: 'arcade', label: 'hud-arcade-regulators', world: 'nova-forge', query: '&wave=2', phone: true},
     {value: 'arcade', label: 'hud-arcade-anchors', world: 'eclipse', query: '&wave=2', phone: true},
+    // the flagships' duels' cards and markers (src/js/boss_duels.js), each at its third wave
+    {value: 'arcade', label: 'hud-arcade-chase', world: 'haven', query: '&wave=3', phone: true},
+    {value: 'arcade', label: 'hud-arcade-nests', world: 'verdant', query: '&wave=3', phone: true},
+    {value: 'arcade', label: 'hud-arcade-joust', world: 'dustfall', query: '&wave=3', phone: true},
+    {value: 'arcade', label: 'hud-arcade-shell', world: 'ion-reach', query: '&wave=3', phone: true},
+    {value: 'arcade', label: 'hud-arcade-weak-points', world: 'obsidian', query: '&wave=3', phone: true},
+    {value: 'arcade', label: 'hud-arcade-glow', world: 'cryosphere', query: '&wave=3', phone: true},
+    {value: 'arcade', label: 'hud-arcade-fire-ring', world: 'nova-forge', query: '&wave=3', phone: true},
+    {value: 'arcade', label: 'hud-arcade-edge', world: 'eclipse', query: '&wave=3', phone: true},
     // the world's title, raiders close and a burst of news at once: the news line, the title and the card apart
     {value: 'crowded', label: 'hud-crowded'},
     // a ring race under way: the standings under the minimap, one rival with a very long name; ship: your ship clear of
