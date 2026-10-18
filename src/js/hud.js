@@ -251,8 +251,10 @@ function sync_hud_kit()
 function sync_arcade_card()
 {
     const id = campaign.world;
-    const pips = Math.ceil(((id + 1)/arcade_worlds)*5);
-    hud_html(document.getElementById('mc_where'), `${ui_world_badge(id)}<span class="small">Arcade · world ${id + 1}/${arcade_worlds}</span><span class="threat" title="Threat ${id + 1} of ${arcade_worlds}">${[0, 1, 2, 3, 4].map(v => `<b class="${(v < pips) ? 'on' : ''}"></b>`).join('')}</span>`);
+    // the threat by the run's step: the worlds come in the order chosen (arcade_route.js)
+    const step = arcade_level();
+    const pips = Math.ceil(((step + 1)/arcade_worlds)*5);
+    hud_html(document.getElementById('mc_where'), `${ui_world_badge(id)}<span class="small">Arcade · world ${step + 1}/${arcade_worlds}</span><span class="threat" title="Threat ${step + 1} of ${arcade_worlds}">${[0, 1, 2, 3, 4].map(v => `<b class="${(v < pips) ? 'on' : ''}"></b>`).join('')}</span>`);
     const wave = Math.max(1, arcade.wave);
     const left = spawn_left + enemies.filter(v => v.hp > 0).length;
     const threat = hud_threat();

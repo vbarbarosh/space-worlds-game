@@ -3,7 +3,7 @@ const captain_news = [];
 const captain_base_show_toast = show_toast;
 const captain_pilot = {on: true, idle: 0, keys: [], dock: false};
 // The game waits for the agent on these screens; the window says so, so a pause never looks like a freeze.
-const captain_waiting_states = ['upgrade', 'arcade_depot', 'dead', 'won', 'menu'];
+const captain_waiting_states = ['upgrade', 'finale', 'arcade_break', 'arcade_depot', 'dead', 'won', 'menu'];
 let captain_last_command = Date.now();
 const captain_tick_ms = 250;
 pause_on_blur = false;
@@ -62,7 +62,9 @@ function captain_status()
     out.objective = context.goal ? {title: context.title, kind: context.kind, distance: Math.round(distance(player, context.goal))} : null;
     out.autopilot = captain_pilot.on ? (guide_flying ? 'flying' : 'on') : 'off';
     if (arcade.active) {
-        out.arcade = {world: `${campaign.world + 1} / ${arcade_worlds}`, wave: `${arcade.wave} / ${arcade_waves}`};
+        // the step of the run (the worlds come in the order chosen at each break), the route flown, and the cards in
+        // force (src/js/arcade_route.js, src/js/arcade_cards.js)
+        out.arcade = {world: `${arcade_level() + 1} / ${arcade_worlds}`, wave: `${arcade.wave} / ${arcade_waves}`, route: arcade.route.map(v => worlds[v].name), cards: arcade_cards_chips().map(v => v.text)};
         // a world goal open: what it asks and how it stands (src/js/arcade_goals.js)
         if (arcade_goal_open()) {
             const card = arcade_goal_card();

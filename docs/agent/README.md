@@ -120,7 +120,9 @@ there is a decision to make.
 ## The arcade
 
 `ARCADE` is a run through the eight worlds: three waves of raiders in each,
-the world's flagship in the third, and the depot between worlds. In every
+the world's flagship in the third, and a break and the depot between worlds.
+It starts in Haven and ends in Eclipse; the six between come in an order you
+choose, and the raiders grow with the step of the run, not with the world. In every
 world waves 1 and 2 have a goal instead (Haven: escort the tender to the
 depot; Verdant: scoop the drifting pods before the nest; Dustfall: destroy
 the launchers behind their rock wall; Ion Reach: light the relays with a full
@@ -137,11 +139,21 @@ Your part:
 
 - **The depot.** The salvage you collect buys repairs, weapons, supplies and
   modules; each world opens more of them, on sale from the depot before it
-  (an item not yet open says where it opens; the depot says what is new). After each world its cleared screen shows (screen `finale`; press
-  `To the depot`), then the depot (screen
-  `arcade_depot`), with a bonus for the world cleared: this is the main
-  decision of the run, so think about the next world's rules, shown under
-  your salvage. Press what you buy, then `Launch to <World>`. Mid-world,
+  (an item not yet open says where it opens: `Opens at world 5`; the depot
+  says what is new). After each world its cleared screen shows (screen
+  `finale`; press `Take a card`), then the break (screen `arcade_break`), in
+  two steps:
+  - **A card**, one of three: a gamble (the next world harder, a prize when
+    you clear it), a trade-off (one thing better and one worse for the rest
+    of the run) or a boon (a gift; some cost salvage). Press a card, then
+    `Take <card>`. `status` lists the cards in force under `arcade.cards`.
+  - **The next world**, one of two (only Eclipse after the seventh): each
+    names its goal, its raiders' gun and its rules. Press one, then
+    `To the depot · then <World>`.
+
+  Then the depot (screen `arcade_depot`), with a bonus for the world cleared:
+  this is where the run shops, so think about the next world's rules, shown
+  under your salvage. Press what you buy, then `Launch to <World>`. Mid-world,
   `bin/captain dock` sends the pilot to the station; the depot opens as soon
   as its shield is down (no raider near the station), and `Launch` returns to the fight.
 - **The pulse and the supplies**, when you judge it right: `key Space` when

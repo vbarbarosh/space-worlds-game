@@ -1,5 +1,5 @@
 // Arcade: one run through the eight worlds, three waves each, the world's flagship in the third; no stations, contracts or saves.
-const arcade = {active: false, world: -1, wave: 0, pause: 0, squad_timer: 0, squads: 0, phase: 0, slowmo: 0, depot_hint: false, marksman_hint: false, missile_hint: false, blasts: [], event: null, goal: null, between_worlds: null, world_start: null, campaign_checkpoint: null};
+const arcade = {active: false, world: -1, wave: 0, pause: 0, squad_timer: 0, squads: 0, phase: 0, slowmo: 0, depot_hint: false, marksman_hint: false, missile_hint: false, blasts: [], event: null, goal: null, between_worlds: null, world_start: null, campaign_checkpoint: null, route: [0], seed: 0, cards: [], wind_used: false};
 const arcade_extent = [7200, 5600];
 const arcade_waves = 3;
 const arcade_radiation = 0.35;
@@ -111,6 +111,9 @@ function arcade_start(world = 0, from = null)
     arcade.between_worlds = null;
     arcade.world_start = null;
     raider_jobs_reset();
+    // the route flown and the cards taken (arcade_route.js, arcade_cards.js), before the run's first frame counts on them
+    arcade_route_start(world, from);
+    arcade_cards_start(from);
     document.body.classList.add('arcade');
     set_hidden(document.getElementById('arcade_depot'), true);
     document.getElementById('restart_button').innerHTML = '<span>Play again</span>';
@@ -147,8 +150,8 @@ function arcade_start(world = 0, from = null)
     checkpoint = arcade.campaign_checkpoint;
 }
 
-// The run as an arcade save keeps it: the world it is in, the score and salvage, modules, supplies, weapons and hull; a
-// load starts that world again from its first wave
+// The run as an arcade save keeps it: the world it is in, the score and salvage, modules, supplies, weapons and hull,
+// the route flown, the run's dice and the cards taken; a load starts that world again from its first wave
 function arcade_snapshot()
 {
     return {
@@ -162,6 +165,9 @@ function arcade_snapshot()
         supplies: {...supplies},
         hp: Math.max(1, Math.ceil(player.hp)),
         fleet: clone(ensure_career()),
+        route: [...arcade.route],
+        seed: arcade.seed,
+        cards: arcade.cards.map(v => ({...v})),
     };
 }
 
@@ -183,7 +189,7 @@ function arcade_mode()
 // A factor on a raider's reload: slower in the arcade for a missile (arcade_reloads), as it is for others
 function arcade_reload(enemy)
 {
-    return arcade.active ? (arcade_reloads[enemy.weapon] || 1) : 1;
+    return arcade.active ? (arcade_reloads[enemy.weapon] || 1)*arcade_card_k.raider_fire : 1;
 }
 
 // Whether a repair may drop: always outside the arcade; in it, as often as the mode allows.
@@ -192,9 +198,9 @@ function repair_drop_allowed()
     return !arcade.active || (Math.random() < arcade_mode().repairs);
 }
 
-// A raider's hull by the mode and the world (the flagship has its own scale); on OVERLOAD it also grows as your weapon's
-// tier does, by the same 22% a tier adds to your damage.
-// What each world's shop lets a kit do, on the raiders' hull: from Obsidian on a world sells the gunship's third
+// A raider's hull by the mode and the run's step (the flagship has its own scale), and a card's factor; on OVERLOAD it
+// also grows as your weapon's tier does, by the same 22% a tier adds to your damage.
+// What each step's shop lets a kit do (the step's world in today's order), on the raiders' hull: from Obsidian on a world sells the gunship's third
 // mount, the second Prism level, the cruiser's fourth and the top gun tiers, and a play log of v0.9.0 killed a raider
 // there in 0.4–0.6 s against 1.7 s before; these bring it back near that (a raider, a flagship), at the mode's share
 // (shop): NORMAL and OVERLOAD all of it (OVERLOAD's growth with your gun tier stops at tier 5, and a play log of
@@ -206,8 +212,9 @@ const arcade_shop_flagship = [1, 1, 1.8, 1.3, 2, 4, 4, 2];
 function arcade_hull_scale(enemy)
 {
     const mode = arcade_mode();
-    const shop = ((enemy.type === 'boss') ? arcade_shop_flagship : arcade_shop_hull)[campaign.world] ?? 1;
-    const growth = (enemy.type === 'boss') ? 1 : mode.hull*(1 + mode.growth*campaign.world);
+    const level = arcade_level();
+    const shop = ((enemy.type === 'boss') ? arcade_shop_flagship : arcade_shop_hull)[level] ?? 1;
+    const growth = (enemy.type === 'boss') ? 1 : mode.hull*(1 + mode.growth*level)*arcade_card_k.raider_hull;
     const k = growth*(1 + (shop - 1)*mode.shop)*(mode.tier_hp ? 1 + (weapon_level() - 1)*0.22 : 1);
     enemy.hp = Math.round(enemy.hp*k);
     enemy.max_hp = Math.round(enemy.max_hp*k);
@@ -221,6 +228,8 @@ function arcade_stop()
     arcade_event_end();
     raider_jobs_reset();
     arcade_front_stop();
+    arcade_cards_stop();
+    set_hidden(document.getElementById('arcade_break'), true);
     document.body.classList.remove('arcade');
     set_hidden(document.getElementById('arcade_depot'), true);
     document.getElementById('restart_button').innerHTML = '<span>New expedition</span>';
@@ -257,6 +266,7 @@ function arcade_update(dt)
         arcade.world = campaign.world;
         // the run as this world begins, for the numbers its cleared screen shows
         arcade.world_start = {score, kills, run_time};
+        arcade_cards_world_start();
         arcade_wave_start(1);
         return;
     }
@@ -316,9 +326,10 @@ function arcade_wave_start(n)
     }
 }
 
+// A wave's raiders by the run's step and the wave, and a card's factor
 function arcade_wave_size(n)
 {
-    return 10 + campaign.world*2 + (n - 1)*4 + arcade_mode().wave;
+    return Math.round((10 + arcade_level()*2 + (n - 1)*4 + arcade_mode().wave)*arcade_card_k.raiders);
 }
 
 // Raiders come in squadrons from one side, not one by one; a squadron waits while the sky is crowded.
@@ -329,10 +340,10 @@ function arcade_squads_update(dt)
     if ((spawn_left <= 0) || (arcade.squad_timer > 0) || (alive > 14)) {
         return;
     }
-    const size = Math.min(spawn_left, 3 + Math.min(3, Math.floor(campaign.world/2)) + (arcade.wave - 1) + arcade_mode().squad);
+    const size = Math.min(spawn_left, 3 + Math.min(3, Math.floor(arcade_level()/2)) + (arcade.wave - 1) + arcade_mode().squad);
     arcade_squad_spawn(size);
     spawn_left -= size;
-    arcade.squad_timer = Math.max(2.6, 5.5 - campaign.world*0.3)*arcade_mode().gap;
+    arcade.squad_timer = Math.max(2.6, 5.5 - arcade_level()*0.3)*arcade_mode().gap;
 }
 
 // A squadron: as it comes (arcade_squad_form), then some of its line raiders swapped for raiders with jobs, and the
@@ -346,14 +357,14 @@ function arcade_squad_spawn(size)
 
 // How a squadron comes, by the type the world's mix draws for it: a line of one type, as it always did; a pincer, the
 // line split to both sides of you; a wall, a tank in front with shooters behind it; a convoy, chasers round a slow
-// tank; an ambush, lancers waiting still among the rocks. From the mode's first elite world on, every second
-// squadron from wave 2 has an elite leader.
+// tank; an ambush, lancers waiting still among the rocks. From the mode's first elite step on, every second
+// squadron from wave 2 has an elite leader (every one under an Elite hunt card).
 function arcade_squad_form(size)
 {
     const type = (arcade.wave === 1) ? ((Math.random() < 0.7) ? 'chaser' : 'shooter') : enemy_type();
     const pattern = arcade_squad_pattern(type, size);
     const angle = Math.random()*Math.PI*2;
-    const elite = (campaign.world >= arcade_mode().elite_world) && (arcade.wave >= 2) && (arcade.squads % 2 === 1);
+    const elite = (arcade_level() >= arcade_mode().elite_world) && (arcade.wave >= 2) && ((arcade.squads % 2 === 1) || !!arcade_card_k.elites);
     arcade.squads++;
     if (pattern === 'ambush') {
         arcade_squad_ambush(size, elite);
@@ -537,7 +548,7 @@ function arcade_elite_make(enemy)
     enemy.max_hp = enemy.hp;
     enemy.r = Math.round(enemy.r*1.35);
     enemy.armor = (enemy.armor || 0)*arcade_mode().defense;
-    enemy.max_shield = 40 + campaign.world*25;
+    enemy.max_shield = 40 + arcade_level()*25;
     enemy.shield = enemy.max_shield;
     arcade_hull_scale(enemy);
     enemy.drop_on_death = repair_drop_allowed() ? 'medkit' : 'emp';
@@ -599,7 +610,7 @@ function arcade_flagship_update()
     if ((arcade.phase === 1) && (boss.hp < boss.max_hp*0.66)) {
         arcade.phase = 2;
         show_toast('FLAGSHIP · ESCORTS INBOUND', worlds[campaign.world].faction.toUpperCase(), 2);
-        arcade_squad_spawn(3 + Math.min(2, Math.floor(campaign.world/3)));
+        arcade_squad_spawn(3 + Math.min(2, Math.floor(arcade_level()/3)));
     }
     if ((arcade.phase === 2) && (boss.hp < boss.max_hp*0.33)) {
         arcade.phase = 3;
@@ -607,7 +618,7 @@ function arcade_flagship_update()
         flash = 0.35;
         shake = Math.max(shake, 14);
         ring(boss.x, boss.y, pink, 260, 0.6);
-        arcade_squad_spawn(4 + Math.min(2, Math.floor(campaign.world/3)));
+        arcade_squad_spawn(4 + Math.min(2, Math.floor(arcade_level()/3)));
     }
     if ((arcade.phase === 3) && arcade_mode().overdrive && (boss.hp < boss.max_hp*0.15)) {
         arcade.phase = 4;
@@ -617,7 +628,7 @@ function arcade_flagship_update()
         shake = Math.max(shake, 18);
         ring(boss.x, boss.y, pink, 320, 0.7);
         arcade.squads = 1;
-        arcade_squad_spawn(3 + Math.min(2, Math.floor(campaign.world/3)));
+        arcade_squad_spawn(3 + Math.min(2, Math.floor(arcade_level()/3)));
     }
 }
 
@@ -625,8 +636,11 @@ function arcade_flagship_spawn()
 {
     const enemy = spawn_enemy('boss');
     const scale = (difficulty === 'chill') ? 0.8 : (difficulty === 'overload') ? 1.25 : 1;
-    // from Ion Reach on, its design's factor more, for time to run its attacks (boss_designs)
-    enemy.hp = Math.round(1500*(1 + campaign.world*0.6)*scale*boss_designs[campaign.world].hull);
+    // by the run's step; from Ion Reach on, a design's factor more, for time to run its attacks (boss_designs): the
+    // factor of the step's world in the map's order, as the shop's factor on it (arcade_shop_flagship) is the step's,
+    // so a flagship has the step's hull whichever world it is (a play test of Ion Reach's 4.5 at step 2, on Dustfall's
+    // shop factor, ended three of eight bot runs that flew it third); and a card's factor
+    enemy.hp = Math.round(1500*(1 + arcade_level()*0.6)*scale*boss_designs[arcade_level()].hull*arcade_card_k.flagship);
     enemy.max_hp = enemy.hp;
     boss_spawned = true;
     boss_defeated = false;
@@ -635,11 +649,13 @@ function arcade_flagship_spawn()
     set_hidden(el.bossbar, false);
 }
 
-// A world cleared pays a fixed bonus, the weapon grows a tier, and its cleared screen opens; its button opens the depot
-// before the jump to the next world.
+// A world cleared pays a fixed bonus, the weapon grows a tier, a gamble taken for it is won, and its cleared screen
+// opens; its button opens the break (a card, the next world: arcade_break.js), then the depot before the jump.
 function arcade_world_clear()
 {
-    if (campaign.world === arcade_worlds - 1) {
+    if (arcade_level() >= arcade_worlds - 1) {
+        // a gamble taken for the last world pays in score (arcade_cards.js)
+        arcade_cards_world_cleared();
         state = 'victory';
         victory_timer = 2.5;
         return;
@@ -648,15 +664,16 @@ function arcade_world_clear()
     salvage += bonus;
     play_log_earn('world bonus', bonus);
     play_log_world_cleared(bonus);
-    // every gun you own grows a tier, up to the tier the next world opens (gun_tier_open): the run's tier is one for
-    // all of them
+    // every gun you own grows a tier, up to the tier the next step opens (gun_tier_open), and those a card added past
+    // it: the run's tier is one for all of them
+    const won = arcade_cards_world_cleared();
     const fleet = ensure_career();
-    const tier = Math.min(5, weapon_level() + 1, gun_tier_open(world_tier(campaign.world + 1)));
+    const tier = Math.max(weapon_level(), Math.min(5, weapon_level() + 1, gun_tier_open(arcade_level() + 1) + arcade_cards_tiers()));
     for (const id of fleet.weapons) {
         fleet.weapon_levels[id] = tier;
     }
     set_hidden(el.bossbar, true);
-    arcade.between_worlds = {world: campaign.world, bonus};
+    arcade.between_worlds = {world: campaign.world, bonus, won, next: null};
     toasts_clear();
     const start = arcade.world_start || {score: 0, kills: 0, run_time: 0};
     arcade_world_cleared_open(campaign.world, {
@@ -672,7 +689,7 @@ function arcade_world_clear()
 
 function arcade_clear_bonus()
 {
-    return 80 + campaign.world*40;
+    return 80 + arcade_level()*40;
 }
 
 // A ship that dies hurts what is close to it, raiders and you alike, less with distance; a blast that kills sets off
@@ -769,9 +786,11 @@ function arcade_depot_fill()
 {
     const cleared = arcade.between_worlds;
     const here = cleared ? cleared.world : campaign.world;
-    const next = cleared ? cleared.world + 1 : null;
+    // the next world: the one chosen at the break (arcade_break.js), else the next in the map's order
+    const next = cleared ? (cleared.next ?? here + 1) : null;
+    const step = arcade_level();
     set_hidden(document.getElementById('cleared_tick'), !cleared);
-    document.getElementById('arcade_depot_eyebrow').textContent = `Arcade · depot · world ${here + 1} of ${arcade_worlds}`;
+    document.getElementById('arcade_depot_eyebrow').textContent = `Arcade · depot · world ${step + 1} of ${arcade_worlds}`;
     document.getElementById('cleared_title').textContent = cleared ? `${worlds[here].name} cleared` : worlds[here].station;
     const stats = [['Raiders', String(kills)], ['Time', format_time(run_time)], ...(cleared ? [['Bonus', `+${cleared.bonus}`]] : []), ['Score', ui_number(score)]];
     document.getElementById('cleared_stats').innerHTML = stats.map(v => `<div><dt>${v[0]}</dt><dd${(v[0] === 'Bonus') ? ' class="t-gold"' : ''}>${v[1]}</dd></div>`).join('');
@@ -788,10 +807,10 @@ function arcade_depot_fill()
     const name = document.getElementById('cleared_next_name');
     name.textContent = worlds[shown].name;
     name.style.color = `var(--w-${world_slug(shown)})`;
-    document.getElementById('arcade_depot_next').textContent = `${arcade_waves} waves · flagship`;
+    document.getElementById('arcade_depot_next').textContent = `World ${step + ((next === null) ? 1 : 2)} of ${arcade_worlds} · ${arcade_waves} waves · flagship`;
     document.getElementById('cleared_rules').innerHTML = world_rules[shown].summary.split(' · ').map(v => ui_badge(ui_sentence(v))).join('');
-    // what the next world opens, on sale here from now on (src/js/tech.js)
-    const opened = (next === null) ? [] : tech_opened(world_tier(here), world_tier(next));
+    // what the next step opens, on sale here from now on (src/js/tech.js)
+    const opened = (next === null) ? [] : tech_opened(step, step + 1);
     const fresh = document.getElementById('arcade_depot_new');
     fresh.innerHTML = opened.length ? `<b>New on sale</b> ${opened.map(ui_escape).join(', ')}` : '';
     set_hidden(fresh, !opened.length);
@@ -1114,7 +1133,9 @@ function arcade_depot_close()
     const cleared = arcade.between_worlds;
     arcade.between_worlds = null;
     if (cleared) {
-        const next = cleared.world + 1;
+        // the route goes on to it now: the jump's half way puts you there
+        const next = cleared.next ?? cleared.world + 1;
+        arcade.route.push(next);
         start_jump({world: next, label: worlds[next].name, color: worlds[next].accent});
     }
     else {
@@ -1149,7 +1170,7 @@ function arcade_finish(won)
         ? `Eight worlds, eight flagships, ${format_time(run_time)}.`
         : `You reached ${worlds[campaign.world].name}, wave ${arcade.wave} of ${arcade_waves}.${salvage ? ` Salvage kept: ◆ ${ui_number(salvage)}, +${ui_number(kept)} points.` : ''}`;
     el.result_score.textContent = score.toLocaleString();
-    el.result_sector.textContent = `${campaign.world + 1} / ${arcade_worlds}`;
+    el.result_sector.textContent = `${arcade_level() + 1} / ${arcade_worlds}`;
     el.result_best.textContent = `${record ? 'NEW PERSONAL BEST · ' : 'PERSONAL BEST · '}${best.toLocaleString()}  /  ${kills} ELIMINATIONS · ${format_time(run_time)}`;
     document.getElementById('restart_button').focus();
 }
@@ -1173,7 +1194,7 @@ function arcade_kill_shake(enemy)
 
 function arcade_update_hud()
 {
-    hud_text(el.act_label, `ARCADE · WORLD ${campaign.world + 1} / ${arcade_worlds} · ${world_looks[campaign.world].biome}`);
+    hud_text(el.act_label, `ARCADE · WORLD ${arcade_level() + 1} / ${arcade_worlds} · ${world_looks[campaign.world].biome}`);
     hud_text(el.mission_name, worlds[campaign.world].name.toUpperCase());
     hud_text(el.mission_phase, (arcade.pause > 0) ? `WAVE ${arcade.wave} CLEAR` : `WAVE ${Math.max(1, arcade.wave)} / ${arcade_waves}`);
     const total = arcade_wave_size(arcade.wave);

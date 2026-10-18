@@ -419,7 +419,7 @@ function boss_shot(v, angle, weapon, speed, pattern, from)
         v.y = from.y;
         v.r = 4;
     }
-    enemy_fire(v, angle, speed + ((pattern && (weapon !== 'rail') && (weapon !== 'ion')) ? wave*2 : 0), pattern);
+    enemy_fire(v, angle, speed + ((pattern && (weapon !== 'rail') && (weapon !== 'ion')) ? threat_wave()*2 : 0), pattern);
     v.weapon = keep_weapon;
     v.x = keep_x;
     v.y = keep_y;

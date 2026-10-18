@@ -4,9 +4,10 @@
 // flagships and the personal best. Every frame is a function of the time t since it began; any key or click skips to
 // the end of the opening, and the scene keeps living behind the buttons. After each of the first seven worlds the same
 // scene plays short (world mode): that world lights up in the ring, its numbers count up, and one button opens the
-// depot. Either way the words come one step at a time, each held long enough to read (finale_steps); with reduced
+// break (a card, then the next world: arcade_break.js) before the depot. The ring holds the worlds in the order flown
+// (arcade.route), then the ones offered next, then the rest. Either way the words come one step at a time, each held long enough to read (finale_steps); with reduced
 // motion (the Effects setting off) the end state fades in, and nothing else moves.
-const finale = {open: false, world: -1, start: 0, frozen: null, run: null, request: 0, planets: [], width: 0, height: 0};
+const finale = {open: false, world: -1, start: 0, frozen: null, run: null, request: 0, planets: [], width: 0, height: 0, order: [], here: 0, offers: []};
 const finale_end = 12.5;
 const finale_route = [0.9, 6];
 const finale_burst = 6.15;
@@ -108,13 +109,15 @@ function arcade_finale_close()
 // The art and the words for this run: planets and their names, the flagships, your ship as you built it
 function finale_build()
 {
+    finale_order_make();
     const holder = document.getElementById('finale_planets');
     holder.replaceChildren();
-    finale.planets = worlds.map(function (world, i) {
+    finale.planets = finale.order.map(function (id, i) {
+        const world = worlds[id];
         const image = document.createElement('img');
         image.className = 'finale-planet';
         image.alt = '';
-        image.src = menu_sprite_url(menu_planet_text(i));
+        image.src = menu_sprite_url(menu_planet_text(id));
         const name = document.createElement('span');
         name.className = 'finale-name';
         name.style.color = world.accent;
@@ -127,11 +130,11 @@ function finale_build()
     for (const v of flags.querySelectorAll('img')) {
         v.remove();
     }
-    for (let i = 0; i < arcade_worlds; ++i) {
+    for (const id of finale.order) {
         const image = document.createElement('img');
         image.alt = '';
-        image.title = `${worlds[i].name} flagship`;
-        image.src = finale_sprite_url(`3d/flagship-${world_slug(i)}`);
+        image.title = `${worlds[id].name} flagship`;
+        image.src = finale_sprite_url(`3d/flagship-${world_slug(id)}`);
         flags.append(image);
     }
     document.getElementById('finale_ship').src = menu_sprite_url(ship_parts_svg(current_ship().id, {...ship_parts_loadout(), gun: current_weapon().id}));
@@ -145,7 +148,8 @@ function finale_build()
     letters.innerHTML = [...`${name} CLEARED`].map((v, i) => `<span${(i > name.length) ? ' class="c"' : ''}>${(v === ' ') ? '&nbsp;' : v}</span>`).join('');
     letters.style.setProperty('--n', name.length + 8);
     document.getElementById('finale_stage').style.setProperty('--finale-accent', (world < 0) ? 'var(--cyan)' : worlds[world].accent);
-    document.getElementById('finale_line').textContent = (world < 0) ? 'All eight worlds, all eight flagships.' : `Flagship down · next: ${worlds[world + 1].name}`;
+    const next = finale.offers.map(v => worlds[v].name);
+    document.getElementById('finale_line').textContent = (world < 0) ? 'All eight worlds, all eight flagships.' : `Flagship down · next: ${(next.length > 1) ? `${next.join(' or ')}, your choice` : (finale.offers[0] === arcade_worlds - 1) ? `${next[0]}, the last` : next[0]}`;
     document.getElementById('finale_score_label').textContent = (world < 0) ? 'Final score' : `Score in ${worlds[world].name}`;
     document.getElementById('finale_time_label').textContent = (world < 0) ? 'Time' : 'Time here';
     document.getElementById('finale_raiders_label').textContent = (world < 0) ? 'Raiders' : 'Raiders here';
@@ -156,6 +160,17 @@ function finale_build()
     }
     set_hidden(document.getElementById('finale_overload'), (world >= 0) || (difficulty === 'overload'));
     set_hidden(document.getElementById('finale_depot'), world < 0);
+}
+
+// The ring's order: the worlds flown, the cleared one last of them (here), the ones offered next after it, then the
+// rest in the map's order, Eclipse last
+function finale_order_make()
+{
+    const route = arcade.active ? arcade.route : worlds.map((_, i) => i).slice(0, Math.max(0, finale.world) + 1);
+    finale.here = route.length - 1;
+    finale.offers = ((finale.world >= 0) && arcade.active) ? arcade_route_offers() : [];
+    const rest = worlds.map((_, i) => i).filter(v => !route.includes(v) && !finale.offers.includes(v));
+    finale.order = [...route, ...finale.offers, ...rest];
 }
 
 // A sprite drawn as the game draws it (its anchors stripped) as an image URL
@@ -197,7 +212,7 @@ function finale_leave(choice)
 {
     arcade_finale_close();
     if (choice === 'depot') {
-        arcade_depot_open();
+        arcade_break_open(arcade.between_worlds?.won || []);
         return;
     }
     if (choice === 'menu') {
@@ -297,8 +312,9 @@ function finale_draw_scene(c, story, t, w, h, g, path)
         }
         const last = i === arcade_worlds - 1;
         const b = last ? finale_seg(story, finale_burst, finale_burst + 0.8) : finale_seg(story, finale_arrive(i + 1) - 0.1, finale_arrive(i + 1) + 0.4);
-        finale_draw_link(c, g.points[i], g.points[(i + 1) % arcade_worlds], worlds[i].accent, b);
-        finale_draw_spoke(c, g.points[i], g, worlds[i].accent, finale_seg(story, finale_burst, finale_burst + 1));
+        const accent = worlds[finale.order[i]].accent;
+        finale_draw_link(c, g.points[i], g.points[(i + 1) % arcade_worlds], accent, b);
+        finale_draw_spoke(c, g.points[i], g, accent, finale_seg(story, finale_burst, finale_burst + 1));
     }
     // the run's flight is motion from start to end: with reduced motion the end state is all there is
     if (!full_fx) {
@@ -317,7 +333,7 @@ function finale_draw_scene(c, story, t, w, h, g, path)
             const b = finale_along(path, v);
             const world = Math.min(arcade_worlds - 1, Math.floor(v*9) - 1);
             const fade = (1 - (u - v)/0.22)*(1 - finale_seg(story, 6.3, 7.6));
-            c.strokeStyle = (world < 0) ? worlds[0].accent : worlds[world].accent;
+            c.strokeStyle = worlds[finale.order[Math.max(0, world)]].accent;
             c.globalAlpha = fade*0.9;
             c.lineWidth = 1 + fade*5;
             c.beginPath();
@@ -329,7 +345,7 @@ function finale_draw_scene(c, story, t, w, h, g, path)
     }
     // a ring in the world's colour as the ship arrives
     for (let i = 0; i < arcade_worlds; ++i) {
-        finale_draw_arrival(c, g.points[i], g, worlds[i].accent, finale_seg(story, finale_arrive(i), finale_arrive(i) + 0.9));
+        finale_draw_arrival(c, g.points[i], g, worlds[finale.order[i]].accent, finale_seg(story, finale_arrive(i), finale_arrive(i) + 0.9));
     }
     // three shockwaves at the burst
     const wave = finale_seg(story, finale_burst, finale_burst + 1.6);
@@ -498,7 +514,8 @@ function finale_place_art(story, t, g, path)
     document.getElementById('finale_flash').style.opacity = Math.max(0, 1 - Math.abs(story - finale_burst)/0.22)*0.7;
 }
 
-// Planet i: appear (0..1) fades it in, lit (0..1) brings its colour and glow with a pop, named (0..1) shows its name
+// The planet in the ring's place i: appear (0..1) fades it in, lit (0..1) brings its colour and glow with a pop, named
+// (0..1) shows its name
 function finale_place_planet(i, g, t, appear, lit, named)
 {
     const p = g.points[i];
@@ -509,7 +526,7 @@ function finale_place_planet(i, g, t, appear, lit, named)
     image.style.width = `${s}px`;
     image.style.transform = `translate(${p.x - s/2}px, ${p.y - s/2 + bob}px)`;
     image.style.opacity = appear;
-    image.style.filter = `saturate(${0.15 + 0.85*lit}) brightness(${0.45 + 0.55*lit}) drop-shadow(0 0 ${lit*22}px ${worlds[i].accent})`;
+    image.style.filter = `saturate(${0.15 + 0.85*lit}) brightness(${0.45 + 0.55*lit}) drop-shadow(0 0 ${lit*22}px ${worlds[finale.order[i]].accent})`;
     name.style.transform = `translate(calc(${p.x}px - 50%), ${p.y + s/2 + 8 + bob}px)`;
     name.style.opacity = named;
 }
@@ -586,7 +603,7 @@ function finale_place_words(story, g, h, steps)
     // in world mode the flagships still ahead stay dim
     for (const [i, v] of [...document.querySelectorAll('#finale_flags img')].entries()) {
         const k = finale_seg(story, steps.flags[0] + i*steps.flags[1], steps.flags[0] + i*steps.flags[1] + 0.25);
-        const ahead = world && (i > finale.world);
+        const ahead = world && (i > finale.here);
         v.classList.toggle('is-ahead', ahead);
         v.style.opacity = ahead ? k*0.3 : k;
         v.style.transform = `scale(${ahead ? 0.8 : 0.4 + 0.6*k + Math.sin(k*Math.PI)*0.25})`;
@@ -608,28 +625,32 @@ function finale_place_row(v, k)
 }
 
 // World mode's sky and constellation: the worlds cleared before joined and lit as the window fades in, this one
-// lighting with a ring and a spoke as its title lands, then the way on: a dashed line to the next one, which a turning
-// dashed circle marks. A burst in this world's accent once the title is read, then one every second or so
+// lighting with a ring and a spoke as its title lands, then the way on: a dashed line to each world offered next,
+// which a turning dashed circle marks. A burst in this world's accent once the title is read, then one every second or so
 function finale_world_draw(c, story, t, w, h, g)
 {
-    const here = finale.world;
+    const here = finale.here;
+    const accent = worlds[finale.world].accent;
     const steps = finale_world_steps;
     const [lit, lit_end] = steps.planet;
     const glow = finale_seg(story, lit, lit_end)*(1 - finale_seg(story, lit_end, lit_end + 1.5))*0.5;
     finale_draw_sky(c, t, w, h, g, glow, 0);
     const early = finale_seg(story, ...steps.show);
     for (let i = 0; i < here; ++i) {
-        finale_draw_link(c, g.points[i], g.points[i + 1], worlds[i].accent, early);
-        finale_draw_spoke(c, g.points[i], g, worlds[i].accent, early);
+        finale_draw_link(c, g.points[i], g.points[i + 1], worlds[finale.order[i]].accent, early);
+        finale_draw_spoke(c, g.points[i], g, worlds[finale.order[i]].accent, early);
     }
-    finale_draw_spoke(c, g.points[here], g, worlds[here].accent, finale_seg(story, lit, lit_end + 0.5));
-    finale_draw_arrival(c, g.points[here], g, worlds[here].accent, finale_seg(story, lit + 0.05, lit + 0.95));
+    finale_draw_spoke(c, g.points[here], g, accent, finale_seg(story, lit, lit_end + 0.5));
+    finale_draw_arrival(c, g.points[here], g, accent, finale_seg(story, lit + 0.05, lit + 0.95));
     const [onward, onward_end] = steps.onward;
-    finale_draw_link(c, g.points[here], g.points[here + 1], worlds[here].accent, finale_ease(finale_seg(story, onward, onward_end - 0.1)));
     const mark = finale_seg(story, onward + 0.2, onward_end);
-    if (mark > 0) {
-        const p = g.points[here + 1];
-        c.strokeStyle = worlds[here + 1].accent;
+    for (let i = here + 1; i <= here + finale.offers.length; ++i) {
+        finale_draw_link(c, g.points[here], g.points[i], accent, finale_ease(finale_seg(story, onward, onward_end - 0.1)));
+        if (mark <= 0) {
+            continue;
+        }
+        const p = g.points[i];
+        c.strokeStyle = worlds[finale.order[i]].accent;
         c.globalAlpha = mark*(0.6 + 0.3*Math.sin(t*4));
         c.lineWidth = 2;
         c.setLineDash([5, 5]);
@@ -640,21 +661,21 @@ function finale_world_draw(c, story, t, w, h, g)
         c.globalAlpha = 1;
     }
     if (full_fx) {
-        finale_draw_fireworks(c, t + finale_fireworks[0].t0 - lit_end, w, h, worlds[here].accent, 3);
+        finale_draw_fireworks(c, t + finale_fireworks[0].t0 - lit_end, w, h, accent, 3);
     }
 }
 
-// World mode's art: the planets (cleared ones lit as the window fades in, this one lighting, the next one half lit
-// once marked), your ship settling into the emblem's centre and the ring turning around it
+// World mode's art: the planets (cleared ones lit as the window fades in, this one lighting, the ones offered next half
+// lit once marked), your ship settling into the emblem's centre and the ring turning around it
 function finale_world_place_art(story, t, g)
 {
-    const here = finale.world;
+    const here = finale.here;
     const steps = finale_world_steps;
     const [show, show_end] = steps.show;
     for (let i = 0; i < arcade_worlds; ++i) {
         const appear = finale_seg(story, show + i*0.04, show_end + i*0.04);
         const next = finale_seg(story, steps.onward[0] + 0.2, steps.onward[1])*0.35;
-        const lit = (i < here) ? appear : (i === here) ? finale_seg(story, ...steps.planet) : (i === here + 1) ? next : 0;
+        const lit = (i < here) ? appear : (i === here) ? finale_seg(story, ...steps.planet) : (i <= here + finale.offers.length) ? next : 0;
         finale_place_planet(i, g, t, appear, lit, 0);
     }
     const arrive = finale_ease(finale_seg(story, show, show_end + 0.3));

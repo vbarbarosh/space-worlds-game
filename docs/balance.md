@@ -8,7 +8,11 @@ Two modes share one combat core and differ in tuning:
 
 - **Arcade** (`src/js/arcade.js`): one run through the eight worlds, three
   waves each, the flagship in the third. Its numbers are tuned for a short,
-  dense run; three difficulty rows in `arcade_modes` change them.
+  dense run; three difficulty rows in `arcade_modes` change them. The worlds
+  come in an order of the player's (a route, a card at each break: see
+  [The arcade's route and cards](#the-arcades-route-and-cards)), so its
+  numbers go by the run's **step** (0 for the first world flown to 7 for
+  Eclipse), which is the world's index on the map's order.
 - **Campaign** (stations, contracts, trade): raiders come in patrols, the
   world's armour and shields are met at full strength, and the pace is set by
   contracts and ranks.
@@ -325,7 +329,7 @@ Forge, E Eclipse: see What each world opens, below.
 | Supply | Key | Price | Effect | Carry |
 |---|---|---|---|---|
 | Repair kit | Q | 20 | +40 hull | 8 |
-| EMP charge | E | 26 | a ring out to 650 m in 0.6 s: as it arrives, clears shots and deals 160 + 12·wave (flagship 400), the same all the way out; breaks drifting rocks and wrecks (ore rocks in the arcade only), as the pulse does | 8 |
+| EMP charge | E | 26 | a ring out to 650 m in 0.6 s: as it arrives, clears shots and deals 160 + 12·wave (the arcade: the step's wave) (flagship 400), the same all the way out; breaks drifting rocks and wrecks (ore rocks in the arcade only), as the pulse does | 8 |
 | Stasis cell | F | 24 | slows raiders and shots to 35% for 8 s, each once its ring (1 s across the view) has passed it | 8 |
 
 - Where: `upgrade_options` and `supply_options` in `src/js/upgrades.js`; the
@@ -343,13 +347,13 @@ Forge, E Eclipse: see What each world opens, below.
 Every ship, gun and module level goes on sale in a world of its own, and
 reaching that world opens it at every shop from then on, in the arcade and the
 campaign alike (`src/js/tech.js`). The world reached (`world_reached`) is in
-the arcade the run's world, and from a world's cleared screen on the next one,
+the arcade the run's step, and from a world's cleared screen on the next one,
 as its depot is the way into it; in the campaign the furthest world visited
 (`campaign.visited`) or that a chapter claimed took the pilot to, so an old
 save opens what its trips earned. What a save already owns beyond that stays its own and flies
 or fires as before; only buying it, or one more of it, waits. In the campaign
 the rank still licenses ships and guns on top; the arcade's free gun tier for
-each world cleared stays, up to the tier the next world opens: 2 in Dustfall,
+each world cleared stays, up to the tier the next step opens: 2 in Dustfall,
 3 Ion Reach, 4 Obsidian, 5 Nova Forge (`gun_tier_opens` in `src/js/tech.js`;
 the play log of v0.9.0 had every gun at tier 5 after Ion Reach). Tier 4 waits
 for Obsidian, not Cryosphere: with a plasma kit a tier lower the bot could not
@@ -430,15 +434,16 @@ clear Obsidian's siege on any of three seeds.
 Salvage (◆) is the one currency.
 
 - **Kills:** a raider drops an artifact 76% of the time, worth
-  2 + wave / 4 (rounded down): 2 in Haven and Verdant, 3 in Dustfall and Ion
+  2 + wave / 4 (rounded down; in the arcade the step's wave, 1 + 2 × step,
+  `threat_wave`): 2 in Haven and Verdant, 3 in Dustfall and Ion
   Reach, 4 in Obsidian and Cryosphere, 5 in Nova Forge and Eclipse. Shards drop
   none. A flagship drops 12 artifacts of 10. (`base_damage_enemy` in
   `src/js/combat.js`.) The Relic processor adds 25% a level.
 - **Rocks:** a broken ore rock drops 3 artifacts of 4 + wave / 5
   (`base_damage_ore` in `src/js/render.js`); a broken drifting rock or wreck
   one of 2.
-- **Arcade:** a cleared world pays 80 + 40 × the world's index, so 80 for
-  Haven up to 320 for Nova Forge (`arcade_clear_bonus`); Eclipse ends the run.
+- **Arcade:** a cleared world pays 80 + 40 × the step, so 80 for
+  the first world up to 320 for the seventh (`arcade_clear_bonus`); Eclipse ends the run.
   Salvage left at the end scores 10 points each (`arcade_salvage_points`).
 - **Campaign:** you start with 90. Contracts pay most (see
   [goals.md](goals.md)); a raider may also spill cargo (`cargo_spill` in
@@ -486,8 +491,8 @@ before rocks and the Relic processor.
 
 | | Arcade | Campaign |
 |---|---|---|
-| Elite | from the mode's first elite world, the leader of every second squadron from wave 2: hull ×3, size ×1.35, shield 40 + 25 × world index, drops a repair kit or an EMP; a trick of its world (below) | the target of an `elite` stage: hull ×3.5 (at least 600), armour +12% (at most 72%), shield ×1.6 (at least 80), speed ×0.8; carries missiles in Haven |
-| Flagship | 1500 × (1 + 0.6 × world index) hull × its design's factor (Haven to Dustfall 1, Ion Reach 4.5, Obsidian 3, Cryosphere and Nova Forge 1.25, Eclipse 2.6) (CHILL ×0.8, OVERLOAD ×1.25); fights as its world's design (below); calls escorts at 66% and a last stand at 33%; on OVERLOAD, overdrive at 15% | 10500 hull, 19000 in Eclipse; three times the world's shield |
+| Elite | from the mode's first elite world, the leader of every second squadron from wave 2: hull ×3, size ×1.35, shield 40 + 25 × step, drops a repair kit or an EMP; a trick of its world (below) | the target of an `elite` stage: hull ×3.5 (at least 600), armour +12% (at most 72%), shield ×1.6 (at least 80), speed ×0.8; carries missiles in Haven |
+| Flagship | 1500 × (1 + 0.6 × step) hull × the design's factor of the step's world on the map's order (Haven to Dustfall 1, Ion Reach 4.5, Obsidian 3, Cryosphere and Nova Forge 1.25, Eclipse 2.6), so any world's flagship at step 3 has Ion Reach's (CHILL ×0.8, OVERLOAD ×1.25); fights as its world's design (below); calls escorts at 66% and a last stand at 33%; on OVERLOAD, overdrive at 15% | 10500 hull, 19000 in Eclipse; three times the world's shield |
 
 - Where: `arcade_elite_make`, `arcade_flagship_spawn`,
   `arcade_flagship_update` in `src/js/arcade.js`; `spawn_operation_enemy` in
@@ -572,8 +577,8 @@ before rocks and the Relic processor.
 - Where: `arcade_modes` in `src/js/arcade.js`; the menu's line for each mode
   is `sync_mode_note`.
 - A raider's hull is the first table's (`base_spawn_enemy`, without the
-  campaign's ×2) × the mode's hull × (1 + growth × world index) × the
-  world's shop, so on NORMAL an Eclipse raider has ×2.05 and ×3 on top of the
+  campaign's ×2) × the mode's hull × (1 + growth × step) × the
+  step's shop, so on NORMAL an Eclipse raider has ×2.05 and ×3 on top of the
   mode's ×1.5; the flagship keeps its own scale but for the shop
   (`arcade_hull_scale`). The shop (`arcade_shop_hull`, `arcade_shop_flagship`):
   raiders ×1 to Obsidian, then ×2.2 Cryosphere, ×2.8 Nova Forge, ×3 Eclipse;
@@ -609,10 +614,10 @@ before rocks and the Relic processor.
   beam instead of the cannon (one run each) the careful player now dies
   three times in Eclipse, where both got through before. Why: problem 1 of
   [playtest-2026-10-05.md](playtest-2026-10-05.md).
-- A wave holds 10 + 2 × world index + 4 per wave past the first + the mode's
+- A wave holds 10 + 2 × step + 4 per wave past the first + the mode's
   extra raiders (`arcade_wave_size`). A squadron is
-  3 + min(3, world index / 2) + (wave − 1) + the mode's extra, and the next
-  comes after max(2.6, 5.5 − 0.3 × world index) seconds × the mode's gap,
+  3 + min(3, step / 2) + (wave − 1) + the mode's extra, and the next
+  comes after max(2.6, 5.5 − 0.3 × step) seconds × the mode's gap,
   but not while more than 14 raiders are alive (`arcade_squads_update`).
 - Wave 1 is chasers (70%) and shooters; later waves follow the world's mix.
   The type drawn sets how the squadron comes (`arcade_squad_pattern`):
@@ -742,8 +747,8 @@ before rocks and the Relic processor.
 
   | Event | What it does | Worlds |
   |---|---|---|
-  | Convoy | an unarmed freighter (a tank's hull ×4) on a 2 km run past you, about 30 s; 6 artifacts of 8 + 2 × world index if caught | Haven, Verdant, Dustfall, Ion Reach, Cryosphere |
-  | Fleeing ace | an elite, 30% faster, jumps away after 20 s; 4 artifacts of 10 + 2 × world index if caught | Haven, Ion Reach, Obsidian, Cryosphere, Nova Forge, Eclipse |
+  | Convoy | an unarmed freighter (a tank's hull ×4) on a 2 km run past you, about 30 s; 6 artifacts of 8 + 2 × step if caught | Haven, Verdant, Dustfall, Ion Reach, Cryosphere |
+  | Fleeing ace | an elite, 30% faster, jumps away after 20 s; 4 artifacts of 10 + 2 × step if caught | Haven, Ion Reach, Obsidian, Cryosphere, Nova Forge, Eclipse |
   | Jammer | a gunner with twice the hull, 900–1300 m off; while it lives the minimap and the radar show only it | Verdant, Dustfall, Obsidian |
   | Heat surge | every 6 s a line of 8 vents, 1400 m long, across your way; each warns for 1.4 s, then bursts for 22 within 80 m | Nova Forge, Eclipse |
   The ion storm (your shield at 0 for the wave, wherever you were) went on
@@ -752,7 +757,7 @@ before rocks and the Relic processor.
   `notes/gameplay-review-2026-10-15.md`): waves 1 and 2 of every world ask
   for the world's action instead of a count of raiders. The wave keeps half
   its raiders and ends when the goal is met: those still about jump away,
-  the goal pays 60 + 20 × world index salvage (about what the raiders it leaves out would drop, and more) and 1500 + 300 × world index
+  the goal pays 60 + 20 × step salvage (about what the raiders it leaves out would drop, and more) and 1500 + 300 × step
   score (Verdant's by the share of pods scooped), logged as `goal bonus`,
   and the kill combo holds while a goal is open.
 
@@ -808,7 +813,8 @@ before rocks and the Relic processor.
   with distance: a chaser 10, a tank 26, a flagship 50, an elite ×1.5
   (`arcade_blast_from_kill`).
 
-NORMAL in numbers:
+NORMAL in numbers, a row a step (named for the world flown at it on the map's
+order; any world flown at that step has its numbers):
 
 | World | chaser | tank | armour, shield (tank) | elite shield | flagship | raiders a wave | squadron | gap (s) | clear bonus |
 |---|---|---|---|---|---|---|---|---|---|
@@ -820,6 +826,72 @@ NORMAL in numbers:
 | Cryosphere | 572 | 1287 | 28%, 112 (157) | 165 | 30000 | 23 / 27 / 31 | 6 / 7 / 8 | 3.20 | 280 |
 | Nova Forge | 902 | 1988 | 48%, 72 (101) | 190 | 34500 | 25 / 29 / 33 | 7 / 8 / 9 | 2.96 | 320 |
 | Eclipse | 1173 | 2538 | 52%, 160 (224) | 215 | 40560 | 27 / 31 / 35 | 7 / 8 / 9 | 2.72 | (run ends) |
+
+## The arcade's route and cards
+
+At each break between two worlds (after the cleared screen, before the
+depot: `src/js/arcade_break.js`) the player takes one of three cards, then
+chooses the next world of two.
+
+- **The route** (`src/js/arcade_route.js`): Haven first, Eclipse last. The
+  offer is the lowest world left on the map's order and one more of those at
+  most a step past the next one (its tier at most the next step + 1;
+  `arcade_route_steps`), drawn
+  by the run's dice (`arcade.seed`, kept in the save with the route and the
+  cards); after the seventh world only Eclipse. Taking the first (lower) one
+  every time flies the map's order with the numbers of before. Obsidian comes
+  only at its own step, the fifth world: its siege asks for a third gun and
+  is tuned to that step's hull. bin/playtest's bot (NORMAL) lost the run there
+  6 times in 9 when it came fourth, 6 in 9 when it came sixth or seventh (the
+  shop's ×2.2 and ×2.8 raider hull on its emitters), and 2 in 12 in its place,
+  both with two guns. So the first three worlds after Haven are Verdant, Dustfall and Ion
+  Reach in an order of yours (VDI, VID, DVI, DIV), and Cryosphere and Nova
+  Forge come after Obsidian in either order: eight routes.
+- **What goes by the step**, whichever world it is: the raiders' hull, armour
+  and shield, their threat level (hull, speed, the shooters' bolts and
+  reload, the flagship's pattern speed: `threat_wave`), their hits, the wave
+  and squadron sizes and gap, the elites' shield, the flagship's hull with
+  the design factor of the step's world (so Ion Reach flown third has
+  Dustfall's 5 940, not 26 730), the world bonus, a goal's and an event's pay,
+  your EMP, what a kill drops, what the depot opens (`Opens at world 5`) and
+  the free gun tier. **What stays the world's:** its map (rocks, black holes,
+  storms), its rules, its raiders' gun and type mix, its marksmen and flank
+  arc, its events, its goal, its flagship's attacks and its elites' trick.
+- **The cards** (`arcade_card_pool` in `src/js/arcade_cards.js`): one of each
+  kind a break, by the run's dice; a kind with none left gives its place to
+  another. A gamble lasts the next world and pays its prize when that world
+  is cleared (in Eclipse, where the run ends, 25 000 score instead); a
+  trade-off lasts the rest of the run and is taken once; a boon is given at
+  once, or lasts the run. What is in force shows as chips over the gauges.
+
+  | Card | Kind | What it does |
+  |---|---|---|
+  | Bounty contract | gamble | ×1.5 raiders a wave; prize +15% damage |
+  | Flagship wager | gamble | flagship hull ×1.6; prize a module level the depot does not sell yet |
+  | Armoured raiders | gamble | raider hull ×1.4; prize every gun a tier past the depot's |
+  | Elite hunt | gamble | an elite leads every squadron from wave 2; prize +20% hull |
+  | Hot zone | gamble | raiders reload ×0.77 (30% faster); prize your guns 15% faster |
+  | Afterburners | trade-off | speed +20%, hull −15% |
+  | Glass cannon | trade-off | damage +30%, damage taken +25% |
+  | Heavy plating | trade-off | hull +35%, speed −12% |
+  | Overclocked guns | trade-off | fire rate +25%, hull −20% |
+  | Shield over hull | trade-off | shield +60%, hull −20% (with 25 shield or more) |
+  | Field upgrade | boon | a module level on sale now, free |
+  | Prototype | boon | a module level not on sale yet, for twice its price |
+  | Second wind | boon | once a world, a hit that would destroy you leaves 30% hull |
+  | Supply cache | boon | +2 repair kits, +1 EMP, +1 stasis cell |
+  | Tuned guns | boon | +12% damage |
+  | Black-market tier | boon | every gun a tier past the depot's, for 400 |
+
+- Measured (`bin/playtest --pick=... --route=...`, NORMAL): the old order
+  with no card (`--pick=none --route=low`) won 5 of seeds 1–6 (the game
+  before: 2 of seeds 1–3); a card and a world at random won 5 of 6, always
+  the gamble and the later world 3 of 3, and CHILL with the later world 3 of
+  3 with no death. The two runs lost ended in Obsidian (with two guns, at its
+  own step) and in Eclipse. Before Obsidian kept its step, runs that took it
+  early or late ended there more often than not (above), and before the
+  flagship's hull went by the step, Ion Reach flown third had a flagship of
+  26 730 and ended three runs of eight.
 
 ## Campaign pace
 

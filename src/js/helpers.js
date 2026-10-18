@@ -27,9 +27,11 @@ function initial_upgrades()
     };
 }
 
+// the shield's capacitors and the ship's own, and an arcade card's factor (arcade_cards.js)
 function shield_max()
 {
-    return upgrades.shield*25 + current_ship().shield;
+    const shield = upgrades.shield*25 + current_ship().shield;
+    return (arcade_card_k.shield === 1) ? shield : Math.round(shield*arcade_card_k.shield);
 }
 
 function dash_cooldown()

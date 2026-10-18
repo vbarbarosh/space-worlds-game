@@ -34,6 +34,18 @@ const screens = [
     // the world's cleared screen held after its button is ready
     {value: 'arcade-world-cleared', label: 'arcade-world-cleared', query: '&t=7', phone: true},
     {value: 'arcade-cleared', label: 'arcade-cleared'},
+    // the break between worlds (src/js/arcade_break.js): three cards; the longest texts with a price out of reach; a
+    // gamble won in the world just cleared; the next world of two on the route's map, after a route of its own; one
+    // way on (Obsidian, at its own step); the last break, Eclipse alone; the cards in force over the HUD's gauges, and
+    // the most there can be
+    {value: 'arcade-pick', label: 'arcade-pick', world: 'dustfall', phone: true},
+    {value: 'arcade-pick', label: 'arcade-pick-long', world: 'dustfall', query: '&cards=long&salvage=50', phone: true},
+    {value: 'arcade-pick', label: 'arcade-pick-won', world: 'dustfall', query: '&won=1&cards=wager,overclock,prototype', phone: true},
+    {value: 'arcade-route', label: 'arcade-route', query: '&route=0,2,1,3,4', phone: true},
+    {value: 'arcade-route', label: 'arcade-route-one', query: '&route=0,1,2,3', phone: true},
+    {value: 'arcade-route', label: 'arcade-route-last', world: 'nova-forge', phone: true},
+    {value: 'arcade', label: 'hud-arcade-cards', world: 'ion-reach', query: '&card_hud=1', phone: true},
+    {value: 'arcade', label: 'hud-arcade-cards-all', world: 'ion-reach', query: '&card_hud=all', phone: true},
     // the finale held after its results are in
     {value: 'arcade-finale', label: 'arcade-finale', query: '&t=13', phone: true},
     {value: 'station-jobs', label: 'station-contracts', phone: true},
@@ -97,8 +109,8 @@ const selectors = {
     blocks: ['.dev-fps', '.hud-top .readouts', '.hud-top .toolbar', '.hud-top .brand', '.ui.hud .mission', '.ui.hud .minimap',
         '.hud-toasts > *', '.hud-toasts .toast', '.ui.hud .banners > *', '.ui.hud .race-board', '.hud-bottom .qbar', '.hud-bottom .shipstat', '.hud-bottom .hud-end', '.mm-left',
         '.depot-title', '.depot-stats', '.depot-wallet', '.depot-filters .seg', '.depot-search', '.depot-ship', '.depot-next',
-        '.finale-title', '.finale-res'],
-    contained: ['.modal', '.pause-layout', '.mm-left', '.has-panel .scene.on', '.depot-side', '.depot-top', '.depot-filters', '.finale-title h1', '.finale-res'],
+        '.finale-title', '.finale-res', '.brk-title', '.brk-steps', '.brk-wallet', '.brk-won', '.brk-body', '.brk-foot'],
+    contained: ['.modal', '.pause-layout', '.mm-left', '.has-panel .scene.on', '.depot-side', '.depot-top', '.depot-filters', '.finale-title h1', '.finale-res', '.brk-top', '.brk-foot', '.shipstat .cardfx'],
     clip: '.btn, .tab, .badge, .key, .qslot, .size, .alert, .seg button, .wallet, .meter-mini',
     boxes: '.card, .toast, .panel',
     // a mark in a corner of a screen (the menu's build stamp) stays inside the window and clear of what the screen shows

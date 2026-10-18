@@ -254,7 +254,7 @@ function render_marksman_aims()
         if ((left >= arcade_aim_time) || (d >= 900)) {
             continue;
         }
-        const angle = raider_aim(enemy, player, (enemy.type === 'shooter') ? 180 + wave*4 : 210);
+        const angle = raider_aim(enemy, player, (enemy.type === 'shooter') ? 180 + threat_wave()*4 : 210);
         ctx.globalAlpha = 0.25 + 0.6*(1 - Math.max(0, left)/arcade_aim_time);
         ctx.beginPath();
         ctx.moveTo(enemy.x + Math.cos(angle)*(enemy.r + 8), enemy.y + Math.sin(angle)*(enemy.r + 8));

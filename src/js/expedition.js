@@ -8,7 +8,7 @@ function cruise_speed(id = campaign.world, ship = current_ship())
 {
     const r = world_rules[id];
     const gravity_fit = (id === 4) ? Math.min(1.15, 0.8 + ship.traction*0.15) : 1;
-    return 285*(1 + upgrades.speed*0.15)*r.speed*ship.speed*gravity_fit;
+    return 285*(1 + upgrades.speed*0.15)*r.speed*ship.speed*gravity_fit*arcade_card_k.speed;
 }
 
 function turbo_duration(ship = current_ship())

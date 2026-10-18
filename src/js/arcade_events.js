@@ -77,7 +77,7 @@ function arcade_event_convoy()
 function arcade_event_ace()
 {
     const angle = Math.random()*Math.PI*2;
-    const enemy = spawn_enemy((campaign.world >= 1) ? 'shooter' : 'chaser');
+    const enemy = spawn_enemy((arcade_level() >= 1) ? 'shooter' : 'chaser');
     enemy.x = clamp(player.x + Math.cos(angle)*700, 60, world.w - 60);
     enemy.y = clamp(player.y + Math.sin(angle)*700, 60, world.h - 60);
     arcade_elite_make(enemy);
@@ -159,7 +159,7 @@ function arcade_event_kill(enemy)
         return;
     }
     for (let i = 0; i < loot[0]; ++i) {
-        drop_pickup(enemy.x + rand(-60, 60), enemy.y + rand(-60, 60), 'artifact', loot[1] + campaign.world*2);
+        drop_pickup(enemy.x + rand(-60, 60), enemy.y + rand(-60, 60), 'artifact', loot[1] + arcade_level()*2);
     }
     show_toast((enemy.event_kind === 'ace') ? 'ACE DOWN' : 'CONVOY TAKEN', 'Its salvage is yours', 2.5, 'income');
     if (arcade.event) {

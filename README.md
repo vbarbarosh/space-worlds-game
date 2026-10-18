@@ -105,7 +105,12 @@ panel folded; with `&screen=arcade`, `&wave=2` starts the world at its second wa
 (a world goal in every world, e.g. `dev.html?world=dustfall&screen=arcade&wave=2`), and
 `&raiders=sniper,bulwark` brings a pack of three chasers and one raider of each kind named (interceptor,
 carrier, bulwark, sniper, minelayer) 640 m ahead. `&front=far|near|in` sets the world's sweeping front out
-at once, 1500 m off (its edge marker), 260 m off (in view) or over you. `&screen=race` starts a ring race at its start line
+at once, 1500 m off (its edge marker), 260 m off (in view) or over you.
+`&card_hud=1` puts cards in force over the gauges.
+`&screen=arcade-pick` opens the break after the world at its three cards,
+`arcade-route` at the next world of two (`&cards=wager,overclock,prototype`
+draws those, `&cards=long` the longest texts, `&salvage=n`, `&route=0,2,1` a
+route flown, `&won=1` a gamble won; the list is in src/js/dev/arcade_break.js). `&screen=race` starts a ring race at its start line
 (`race-mid` mid-race, `race-finish` over the line; `&race_place=1|2|3|last`,
 `&race_long=1`, `&race_left=1`, `&race_raiders=1` for its edge states), e.g.
 `dev.html?world=0&screen=race`; `&screen=race-results` shows the Races mode's

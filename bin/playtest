@@ -7,7 +7,9 @@ const {chromium} = require('playwright');
 
 const data_dir = path.join(__dirname, '..', 'data', 'playtest');
 const modes = ['chill', 'normal', 'overload'];
-const usage = `usage: bin/playtest [--mode=normal] [--seeds=1,2,3] [--label=name] [--page=build/index.html] [--minutes=20] [--gun=id]
+const picks = ['boon', 'gamble', 'trade', 'random', 'none'];
+const routes = ['low', 'high', 'random'];
+const usage = `usage: bin/playtest [--mode=normal] [--seeds=1,2,3] [--label=name] [--page=build/index.html] [--minutes=20] [--gun=id] [--pick=boon] [--route=low]
 
     A bot plays arcade runs of build/index.html (a copy with a hook, in data/playtest/) in Chromium, on a virtual
     clock and a seeded Math.random, as fast as the machine allows, and counts per world and wave what a run costs.
@@ -31,14 +33,19 @@ const usage = `usage: bin/playtest [--mode=normal] [--seeds=1,2,3] [--label=name
     --minutes stops a run that takes longer than that on the wall clock, and says so.
     --gun buys that gun (plasma, scatter, ion, rail, missile, beam) at the first depot that can pay for it after a
     repair, before any module, with the cheapest ship that has a mount for it when yours has none; a sturdier ship
-    later is one that still carries it.`;
+    later is one that still carries it.
+
+    At each break between worlds (src/js/arcade_break.js) it takes a card and chooses the next world:
+    --pick takes the boon, the gamble or the trade-off (another when it cannot pay for it), a card at random, or
+    none (the break's card skipped, as the game before cards was); --route takes the lower world offered (today's
+    order), the higher, or one at random.`;
 
 cli(main);
 
 async function main()
 {
     const options = Object.fromEntries(process.argv.slice(2).map(v => v.replace(/^--/, '').split('=')));
-    if (Object.keys(options).some(v => !['mode', 'seeds', 'label', 'page', 'minutes', 'gun'].includes(v))) {
+    if (Object.keys(options).some(v => !['mode', 'seeds', 'label', 'page', 'minutes', 'gun', 'pick', 'route'].includes(v)) || !picks.includes(options.pick || 'boon') || !routes.includes(options.route || 'low')) {
         console.log(usage);
         process.exit(2);
     }
@@ -65,7 +72,7 @@ async function main()
             await page.addInitScript(page_clock);
             await page.goto(`file://${hooked}`);
             await page.waitForTimeout(400);
-            await page.evaluate(v => window.__t(v), `(${page_bot})(${JSON.stringify({mode, seed, gun: options.gun || null})})`);
+            await page.evaluate(v => window.__t(v), `(${page_bot})(${JSON.stringify({mode, seed, gun: options.gun || null, pick: options.pick || 'boon', route: options.route || 'low'})})`);
             const time0 = Date.now();
             while (!await page.evaluate(() => window.__bot.done) && (Date.now() - time0 < minutes*60000)) {
                 await page.waitForTimeout(1000);
@@ -91,6 +98,7 @@ function run_table(run)
 {
     const maxed = run.maxed ? `shop ran out at ${(run.maxed.run_time/60).toFixed(1)} min in ${run.maxed.world}` : 'shop never ran out';
     const lines = [`${run.mode} seed ${run.seed}: ${run.won ? 'won' : run.cut ? 'cut (time)' : 'lost'} · ${run.deaths} deaths · ${Math.round(run.run_time)} s · score ${run.score} · salvage left ${run.salvage_left} · ${maxed} · ${run.wall_seconds} s on the clock`];
+    lines.push(`cards ${run.pick}: ${(run.cards || []).join(', ') || '-'} · route ${run.route_how}: ${(run.route || []).join(' > ')}`);
     lines.push('world        hull lost (w1/w2/w3)   all dmg  kills  off-screen  salvage at depot  left after  deaths  time  ship and guns  most from');
     for (const world of run.worlds) {
         const hull = world.waves.map(v => Math.round(v.hull)).join(' / ');
@@ -132,7 +140,7 @@ function page_bot(options)
     time = 0;
     ui_timer = 0;
     difficulty = options.mode;
-    const B = {done: false, deaths: 0, worlds: [], world: null, snapshot: null, won: false, maxed: null};
+    const B = {done: false, deaths: 0, worlds: [], world: null, snapshot: null, won: false, maxed: null, cards: []};
     window.__bot = B;
     const priorities = ['spread', 'damage', 'rate', 'armor', 'shield', 'drone', 'nanites', 'pulse'];
     // what a player buys once the fight's core is bought and the ship is sturdier: the rest that helps in a fight
@@ -372,6 +380,26 @@ function page_bot(options)
         entry.salvage_after_depot = salvage;
         arcade_depot_close();
     }
+    // The break: a card by --pick (none skips it), then the world by --route
+    function pause_break() {
+        if (arcade_break.step === 'pick') {
+            const cards = arcade_break.cards;
+            const wanted = (options.pick === 'random') ? Math.floor(Math.random()*cards.length) : cards.findIndex(v => arcade_card_def(v.id).kind === options.pick);
+            const order = [wanted, ...cards.keys()].filter(v => (v >= 0) && arcade_card_affordable(cards[v]));
+            if ((options.pick === 'none') || !order.length) {
+                arcade_break.step = 'route';
+                arcade_break.chosen = (arcade_break.offers.length === 1) ? 0 : -1;
+                return;
+            }
+            arcade_break.chosen = order[0];
+            B.cards.push(cards[order[0]].id);
+            arcade_break_go();
+            return;
+        }
+        const n = arcade_break.offers.length;
+        arcade_break.chosen = (options.route === 'high') ? n - 1 : (options.route === 'random') ? Math.floor(Math.random()*n) : 0;
+        arcade_break_go();
+    }
     function step() {
         if (B.done) {
             return;
@@ -386,6 +414,9 @@ function page_bot(options)
         }
         else if ((state === 'finale') && (finale.world >= 0)) {
             finale_leave('depot');
+        }
+        else if (state === 'arcade_break') {
+            pause_break();
         }
         else if (state === 'arcade_depot') {
             shop();
@@ -406,7 +437,7 @@ function page_bot(options)
         }
     }
     B.report = function () {
-        return {mode: options.mode, seed: options.seed, gun: options.gun, done: B.done, won: B.won, deaths: B.deaths, run_time, score, salvage_left: salvage, maxed: B.maxed, kit: {ship: current_ship().id, guns: mounted_weapons().map(v => (v ? v.id : 'empty')), upgrades: {...upgrades}}, worlds: B.worlds};
+        return {mode: options.mode, seed: options.seed, gun: options.gun, pick: options.pick, route_how: options.route, cards: B.cards, route: (arcade.route || []).map(v => worlds[v].name), done: B.done, won: B.won, deaths: B.deaths, run_time, score, salvage_left: salvage, maxed: B.maxed, kit: {ship: current_ship().id, guns: mounted_weapons().map(v => (v ? v.id : 'empty')), upgrades: {...upgrades}}, worlds: B.worlds};
     };
     const base_frame = frame;
     frame = function () {

@@ -153,6 +153,12 @@ difficulty; none of that changes the campaign's rules.
 - An arcade run starts from a checkpoint made up on the spot and puts the
   campaign's checkpoint back after (`arcade_start`); an arcade save is a slot
   of its own (`arcade_snapshot`, `src/js/saves.js`).
+- In the arcade a fight's numbers follow the run's step (`arcade_level`, the
+  worlds flown before), not the world's index: the worlds come in an order the
+  player chooses (`src/js/arcade_route.js`), and a world keeps only what makes
+  it itself (map, rules, its raiders' gun, goal, flagship's attacks). Outside
+  the arcade `arcade_level()` is the world's index, and a card's factors
+  (`arcade_card_k`) are all 1.
 - Arcade-only effects: a kill shakes the screen by the size of what died
   (`arcade_kill_shake`), a flagship's death plays at 30% speed for a moment
   (`arcade_time_step`), a ship that explodes hurts what is close to it

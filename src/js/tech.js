@@ -3,14 +3,13 @@
 // campaign's ranks still license ships and guns on top. What a save owns beyond its world stays its own; only buying
 // more waits. Where the numbers come from: docs/balance.md, What each world opens.
 
-// The furthest world reached in this game, as a tier: the arcade run's world, and from its cleared screen on the next
-// one, as its depot is the way into it; in the campaign the furthest world visited, or that a chapter claimed took the
-// pilot to (a save from before this kept no more than that)
+// The furthest world reached in this game, as a tier: the arcade run's step (arcade_route.js), and from its cleared
+// screen on the next one, as its depot is the way into it; in the campaign the furthest world visited, or that a
+// chapter claimed took the pilot to (a save from before this kept no more than that)
 function world_reached()
 {
     if (arcade.active) {
-        const next = arcade.between_worlds && worlds[campaign.world + 1];
-        return world_tier(next ? campaign.world + 1 : campaign.world);
+        return Math.min(arcade_worlds - 1, arcade_level() + (arcade.between_worlds ? 1 : 0));
     }
     const chapters = story.slice(0, campaign.story || 0).map(v => v.world).filter(v => worlds[v]);
     return Math.max(...[campaign.world, ...(campaign.visited || []), ...chapters].map(world_tier));
@@ -22,15 +21,16 @@ function tech_open(tier)
     return tier <= world_reached();
 }
 
-// The world a tier names: Opens in Ion Reach
+// The world a tier names: Opens in Ion Reach; in the arcade, whose worlds come in the order you choose, the step:
+// world 4
 function tech_world_name(tier)
 {
-    return worlds[worlds.findIndex((v, i) => world_tier(i) === tier)].name;
+    return arcade.active ? `world ${tier + 1}` : worlds[worlds.findIndex((v, i) => world_tier(i) === tier)].name;
 }
 
 function tech_lock_text(tier)
 {
-    return `Opens in ${tech_world_name(tier)}`;
+    return `Opens ${arcade.active ? 'at' : 'in'} ${tech_world_name(tier)}`;
 }
 
 // Where level `level` (1 to the cap) of a module opens: spread over the eight worlds by its share of the levels, level 1

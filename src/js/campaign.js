@@ -221,10 +221,10 @@ let gunners_spawned = 0;
 // The story's front: the world one behind the chapter you fly. A world the story has moved past fights as hard as the
 // front, so in act I only a world you go back to is harder, and in act II (chapters 9 to 16, back through the eight
 // worlds) every world fights seven tiers past its own: Haven's raiders with Eclipse's hull and guns, Eclipse's beyond
-// them. The arcade keeps the world's own.
+// them. The arcade's raiders fight at the run's step, whichever world it is (arcade_route.js).
 function raider_tier(id = campaign.world)
 {
-    return arcade.active ? world_tier(id) : Math.max(world_tier(id), campaign.story - 1);
+    return arcade.active ? arcade_level() : Math.max(world_tier(id), campaign.story - 1);
 }
 
 // A world's raider armour at the story's front: 4% more a tier past its own, 72% at most
@@ -238,7 +238,7 @@ function spawn_enemy(type)
     const tier = raider_tier();
     // a raider's hull and speed follow the tier's threat level, as a world's follow its own (1, 3, ... 15, then on)
     const own_wave = wave;
-    if (tier > world_tier(campaign.world)) {
+    if (tier !== world_tier(campaign.world)) {
         wave = 1 + tier*2;
     }
     base_spawn_enemy(type);
@@ -246,10 +246,11 @@ function spawn_enemy(type)
     const enemy = enemies[enemies.length - 1];
     const w = worlds[campaign.world];
     // past the world's own tier, 4% more armour (72% at most) and 15 more shield a tier: in act II every world's
-    // raiders come 28% heavier and with 105 more shield than in act I, so a light gun's bolts fail there again
+    // raiders come 28% heavier and with 105 more shield than in act I, so a light gun's bolts fail there again. In the
+    // arcade, the armour and shield of the world whose step this is in the map's order: any route is as hard
     const past = tier - world_tier(campaign.world);
-    const armour = world_armour(campaign.world);
-    const shield = w.shield + past*15;
+    const armour = arcade.active ? worlds[tier].armor : world_armour(campaign.world);
+    const shield = arcade.active ? worlds[tier].shield : w.shield + past*15;
     enemy.color = w.accent;
     enemy.armor = armour;
     enemy.max_shield = shield*((type === 'tank') ? 1.4 : 1);
@@ -258,7 +259,7 @@ function spawn_enemy(type)
     enemy.weapon = w.weapon;
     if (type === 'shooter') {
         gunners_spawned += 1;
-        if ((world_tier(campaign.world) >= 1) && (gunners_spawned % 2 === 0)) {
+        if ((arcade_tier() >= 1) && (gunners_spawned % 2 === 0)) {
             enemy.weapon = 'missile';
         }
     }
@@ -294,7 +295,7 @@ function world_audio_base_enemy_fire(enemy, angle, speed = 210, pattern = false)
     const kind = (w === 'missile') ? missile_kind_for(enemy) : null;
     const group = raider_shot_group(w, pattern);
     const s = raider_shot_speed(enemy, speed, pattern);
-    const spread = (w === 'scatter') ? [-0.23, 0, 0.23] : (kind && (kind !== 'torpedo') && (world_tier(campaign.world) >= 6)) ? [-0.2, 0.2] : [0];
+    const spread = (w === 'scatter') ? [-0.23, 0, 0.23] : (kind && (kind !== 'torpedo') && (arcade_tier() >= 6)) ? [-0.2, 0.2] : [0];
     for (const offset of spread) {
         const a = angle + offset;
         const x = enemy.x + Math.cos(a)*enemy.r;

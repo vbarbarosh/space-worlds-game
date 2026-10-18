@@ -590,10 +590,10 @@ function arcade_rescue_update(g, dt)
 function arcade_goal_finish(g)
 {
     g.done = true;
-    const bonus = Math.round((arcade_goal_salvage[0] + arcade_goal_salvage[1]*campaign.world)*g.pay);
+    const bonus = Math.round((arcade_goal_salvage[0] + arcade_goal_salvage[1]*arcade_level())*g.pay);
     salvage += bonus;
     play_log_earn('goal bonus', bonus);
-    score += Math.round((arcade_goal_score[0] + arcade_goal_score[1]*campaign.world)*g.pay);
+    score += Math.round((arcade_goal_score[0] + arcade_goal_score[1]*arcade_level())*g.pay);
     show_toast('GOAL DONE', `+${bonus} ◆ · the raiders jump away`, 3, 'income');
     spawn_left = 0;
     for (const enemy of enemies.slice()) {

@@ -439,7 +439,8 @@ function guide_base_update_hud()
     }
     const w = worlds[campaign.world];
     const m = campaign.contracts.find(v => !v.ready) || campaign.contracts[0];
-    const sector_html = `${campaign.world + 1}<small>/${worlds.length}</small>`;
+    // the arcade counts the worlds flown, in the order chosen (arcade_route.js)
+    const sector_html = `${arcade_level() + 1}<small>/${worlds.length}</small>`;
     hud_html(el.sector, sector_html);
     hud_text(el.act_label, race_mode.active ? w.name.toUpperCase() : `${w.name.toUpperCase()} / THREAT ${Math.floor(world_tier(campaign.world)) + 1}`);
     hud_text(el.mission_name, m ? m.title : `FREE FLIGHT / ${w.station}`);

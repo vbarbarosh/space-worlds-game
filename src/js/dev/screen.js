@@ -7,6 +7,8 @@ const dev_screen_options = [
     {value: 'crowded', label: 'Arcade: arrival in a fight, a burst of news'},
     {value: 'arcade-world-cleared', label: 'Arcade: world cleared'},
     {value: 'arcade-cleared', label: 'Arcade: depot after a world'},
+    {value: 'arcade-pick', label: 'Arcade: the break, a card to take'},
+    {value: 'arcade-route', label: 'Arcade: the break, the next world'},
     {value: 'arcade-finale', label: 'Arcade: finale'},
     {value: 'rocks', label: 'Facing a mining field'},
     {value: 'race', label: 'Race: lined up, the count'},
@@ -77,6 +79,12 @@ function dev_screen_open()
         dev_screen_modules_set();
         dev_screen_arcade_wave();
         dev_raiders_open();
+        dev_break_card_hud();
+        return;
+    }
+    // the break between worlds (src/js/dev/arcade_break.js)
+    if (['arcade-pick', 'arcade-route'].includes(dev_screen)) {
+        dev_break_open(dev_screen);
         return;
     }
     // the author's moment: the world's title over a fight that has just begun, and a burst of news at once
@@ -94,6 +102,7 @@ function dev_screen_open()
         dev_arcade_start();
         dev_screen_modules_set();
         campaign.world = arcade_worlds - 1;
+        arcade.route = [0, 2, 1, 3, 4, 6, 5, 7];
         score = 556825;
         kills = 700;
         run_time = 824;
@@ -116,6 +125,7 @@ function dev_screen_open()
         dev_screen_modules_set();
         // the eighth world ends in the finale instead
         campaign.world = Math.min(campaign.world, arcade_worlds - 2);
+        arcade.route = arcade.route.slice(0, campaign.world + 1);
         arcade.world_start = {score: 18400, kills: 41, run_time: 512};
         score = 31960;
         kills = 77;

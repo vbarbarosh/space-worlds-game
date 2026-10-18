@@ -70,7 +70,7 @@ function pulse_fire(x, y)
 // raiders' shots as its front passes and breaks rocks as the pulse does
 function emp_fire(x, y)
 {
-    pulse_waves.push(pulse_wave_create('emp', x, y, {reach: emp_reach, speed: emp_speed, damage: 160 + wave*12, boss_damage: 400, shots: true, rocks: true}));
+    pulse_waves.push(pulse_wave_create('emp', x, y, {reach: emp_reach, speed: emp_speed, damage: 160 + threat_wave()*12, boss_damage: 400, shots: true, rocks: true}));
     pulse_glow_start(pulse_looks.emp.color);
 }
 

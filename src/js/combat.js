@@ -405,7 +405,7 @@ function base_damage_enemy(enemy, damage)
             }
         }
         if (!enemy.child && (Math.random() < 0.76)) {
-            drop_pickup(enemy.x, enemy.y, 'artifact', 2 + Math.floor(wave/4));
+            drop_pickup(enemy.x, enemy.y, 'artifact', 2 + Math.floor(threat_wave()/4));
         }
         const drop = Math.random();
         if ((drop < 0.1) && repair_drop_allowed()) {
@@ -429,7 +429,7 @@ function damage_player(amount, blast = false, cause = 'other', by = null)
         return;
     }
     const multiplier = (difficulty === 'chill') ? 0.65 : (difficulty === 'overload') ? 1.2 : 1;
-    let damage = amount*multiplier*(1 - upgrades.armor*((campaign.world === 4) ? 0.15 : 0.12));
+    let damage = amount*multiplier*(1 - upgrades.armor*((campaign.world === 4) ? 0.15 : 0.12))*arcade_card_k.taken;
     player.since_hit = 0;
     const shield_before = player.shield;
     const absorbed = Math.min(player.shield, damage);
@@ -453,7 +453,8 @@ function damage_player(amount, blast = false, cause = 'other', by = null)
     combo_timer = 0;
     burst(player.x, player.y, absorbed ? blue : cyan, 26, 210);
     sfx('hit');
-    if (player.hp <= 0) {
+    // an arcade card's second wind turns one such hit a world into 30% hull (arcade_cards.js)
+    if ((player.hp <= 0) && !arcade_cards_second_wind()) {
         finish(false);
     }
 }

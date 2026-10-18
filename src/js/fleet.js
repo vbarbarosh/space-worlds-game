@@ -194,9 +194,11 @@ function guns_text()
     return parts.join(' + ');
 }
 
+// the ship's hull, and an arcade card's factor (arcade_cards.js)
 function hull_max()
 {
-    return current_ship().hull;
+    const hull = current_ship().hull;
+    return (arcade_card_k.hull === 1) ? hull : Math.round(hull*arcade_card_k.hull);
 }
 
 function cargo_capacity()
@@ -295,7 +297,7 @@ function fire_equipped_weapon(mount = null)
     }
     const f = ensure_career();
     const tier = f.weapon_levels[v.id] || 1;
-    const damage = v.damage*(1 + upgrades.damage*hotter_plasma_share)*(1 + (tier - 1)*0.22)*current_ship().damage;
+    const damage = v.damage*(1 + upgrades.damage*hotter_plasma_share)*(1 + (tier - 1)*0.22)*current_ship().damage*arcade_card_k.damage;
     const count = gun_shot_count(v);
     player.barrels = player.barrels || [];
     const slot = mount ?? 0;
@@ -336,7 +338,7 @@ function fire_equipped_weapon(mount = null)
     if (v.id === 'beam') {
         player.energy = Math.max(0, player.energy - 1.8*count);
     }
-    player.shoot_cd = Math.max(0.065, v.interval*(1 - upgrades.rate*0.12));
+    player.shoot_cd = Math.max(0.065, v.interval*(1 - upgrades.rate*0.12)*arcade_card_k.rate);
     if (mount !== null) {
         player.gun_cd = player.gun_cd || [];
         player.gun_cd[mount] = player.shoot_cd;

@@ -99,7 +99,7 @@ function missile_new(muzzle, angle, barrel, damage, weapon, carry)
 // (shooters, elites, flagships) the seeker
 function missile_kind_for(enemy)
 {
-    if ((enemy.type === 'tank') && (world_tier(campaign.world) >= 6)) {
+    if ((enemy.type === 'tank') && (arcade_tier() >= 6)) {
         return 'torpedo';
     }
     return (['chaser', 'splitter', 'lancer'].includes(enemy.type) && !enemy.elite) ? 'dart' : 'seeker';

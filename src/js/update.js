@@ -370,8 +370,8 @@ function update(dt, frame_dt = dt)
             v.fire_cd -= enemy_dt;
             if ((v.fire_cd <= 0) && (v.age > 0.8) && !v.race_leave && !arcade_launcher_holds(v, d)) {
                 // you and a race's rivals move fast: the shot leads them
-                enemy_fire(v, ((waypoint === player) || waypoint.rival) ? raider_aim(v, waypoint, 180 + wave*4) : a, 180 + wave*4);
-                v.fire_cd = Math.max(1.2, 2.1 - wave*0.04)*raider_reload(v);
+                enemy_fire(v, ((waypoint === player) || waypoint.rival) ? raider_aim(v, waypoint, 180 + threat_wave()*4) : a, 180 + threat_wave()*4);
+                v.fire_cd = Math.max(1.2, 2.1 - threat_wave()*0.04)*raider_reload(v);
                 ring(v.x, v.y, gold, 30, 0.25);
             }
         }

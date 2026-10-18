@@ -55,7 +55,8 @@ function expedition_base_reset_run(resume = false)
 function show_world_arrival(title)
 {
     const r = current_world_rules();
-    show_banner('world', `World ${campaign.world + 1} · arrived`, worlds[campaign.world].name, `${r.name} · ${r.summary}`, 3);
+    // the arcade counts the worlds flown, in the order chosen (arcade_route.js)
+    show_banner('world', `World ${arcade_level() + 1} · arrived`, worlds[campaign.world].name, `${r.name} · ${r.summary}`, 3);
 }
 
 function render_celestial_body(body)
