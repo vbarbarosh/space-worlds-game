@@ -458,7 +458,8 @@ Salvage (◆) is the one currency.
   `src/js/combat.js`.) The Relic processor adds 25% a level.
 - **Rocks:** a broken ore rock drops 3 artifacts of 4 + wave / 5
   (`base_damage_ore` in `src/js/render.js`); a broken drifting rock or wreck
-  one of 2.
+  one of 2. A Dustfall cliff that falls (arcade) drops 2 of them and one more
+  a raider it crushed ([Dustfall's cliffs](#dustfalls-cliffs)).
 - **Arcade:** a cleared world pays 80 + 40 × the step, so 80 for
   the first world up to 320 for the seventh (`arcade_clear_bonus`); Eclipse ends the run.
   Salvage left at the end scores 10 points each (`arcade_salvage_points`).
@@ -814,6 +815,60 @@ order; any world flown at that step has its numbers):
 | Nova Forge | 902 | 1988 | 48%, 72 (101) | 190 | 34500 | 25 / 29 / 33 | 7 / 8 / 9 | 2.96 | 320 |
 | Eclipse | 1173 | 2538 | 52%, 160 (224) | 215 | 40560 | 27 / 31 / 35 | 7 / 8 / 9 | 2.72 | (run ends) |
 
+## Dustfall's cliffs
+
+In the arcade, Dustfall is the world where you change the ground, not only
+shoot what flies over it (`src/js/arcade_cliffs.js`; the campaign has none).
+
+- **Six cliffs** (`cliff_count`), 115 to 150 m across in radius
+  (`cliff_size`), 1.5 to 2.3 km round the middle, 1.1 km apart, each leaning
+  across the ring, the same every visit (their own seed). The ore rocks under
+  a cliff and down its fall zone go (78 rocks stay of 95), so the zone is
+  bare ground until the cliff falls.
+- **The fall zone:** from the cliff's middle 520 m out past its face
+  (`cliff_reach`), as wide as the cliff at its foot and 130 m wider each
+  side at its far end (`cliff_spread`); drawn faint, warmer with a raider
+  under it, red while it rumbles and falls.
+- **Hull:** 180 × the mode's raider hull × (1 + its growth × step)
+  (`cliff_hull`): 351 at NORMAL's third step, 2.3 s of two cannons, 4.7 s
+  of the first gun; CHILL 216 to 238. A bar over it once hit, orange once it
+  is **primed** (a quarter left, `cliff_primed`). Your shots, the pulse and
+  your missiles wear it down to primed; the last quarter gives only to the
+  guns while they aim at its crack. Raiders' shots stop on it and do not wear
+  it (Dustfall's `solid` rule wears its ore rocks only).
+- **The guns aim at a crack** within 600 m of its face (`cliff_aim_reach`)
+  when two raiders are under it (`cliff_aim_least`), or one once it is
+  primed, and you are out of its zone (60 m to spare); or when you point at
+  the cliff. With nothing else near they wear a cliff down to primed, as
+  they shoot rocks.
+- **The fall:** broken, it rumbles 0.6 s (`cliff_rumble`, a red ring and
+  ROCKFALL), then the fall runs down the zone at 2 km/s (`cliff_fall_pace`)
+  and each hull it reaches loses 1.6 × its hull and shield together (dead,
+  its armour aside: `cliff_crush`), a tank, bulwark, carrier or elite 0.9 ×
+  (left with a sliver: `cliff_crush_heavy`), a flagship 0.15 ×
+  (`cliff_crush_flagship`). You lose 40 (`cliff_hit`, a blast: a dash does
+  not cover it). Eight rubble rocks of 26 to 42 m (`cliff_rubble`) land in
+  the zone as the fall passes them (ore rocks: your shots break them, with
+  their salvage), and where the cliff stood is open.
+- **The pay:** the crushed raiders' kills (the combo counting up through
+  them), 60 × n × n score on top (`cliff_points`), and 2 + n pieces of a
+  rock's salvage in the zone (`cliff_salvage`): a toast CRUSHED ×n.
+- **Squadrons come to the cliffs:** half of Dustfall's lines and pincers
+  (`cliff_squad_share`) warp in a third of the way down the zone of the
+  nearest standing cliff 500 to 1400 m from you (`cliff_squad_range`), when
+  you are out of it, in one line.
+- The world's arrival says it once: CLIFFS · SHOOT A CLIFF'S CRACK · THE ROCK
+  FALLS ON WHAT IS UNDER IT.
+- Measured (`bin/playtest`'s bot, NORMAL, seeds 1 to 4, Dustfall third): no
+  deaths in Dustfall before or after; its time 94, 88, 109, 117 s against
+  143, 107, 243, 92 before (mean 102 against 146); hull lost there 56, 24,
+  0, 0 against 16, 24, 57, 15, all damage 135 to 192 against 126 to 380. The
+  bot does not seek the cliffs: its guns felled 2 to 5 a run, each with
+  raiders under it, and crushed 6 to 10 raiders a run (up to 6 at once); no
+  fall caught the bot. With the last quarter open to any shot (the first
+  try), 14 falls of 21 came down on no raider, shot through by fire at
+  raiders round them, and two caught the bot (30 each).
+
 ## The arcade's route and cards
 
 At each break between two worlds (after the cleared screen, before the
@@ -948,6 +1003,9 @@ chooses the next world of two.
   by one for each kill within 4 s of the last, up to ×8, and a hit on you
   resets it.
 - An artifact picked up scores 25.
+- Arcade Dustfall: raiders crushed by one cliff's fall score their kills
+  (the combo counting up through them) and 60 × n × n on top: 240 for two,
+  960 for four (`cliff_points`).
 - Arcade: salvage left at the end scores 10 each.
 - Campaign: a claimed contract scores 10 × its reward
   (`expedition_base_guide_base_claim_contract` in `src/js/station.js`).

@@ -239,6 +239,8 @@ function arcade_update(dt)
     depot_shield_update(dt);
     // raiders with jobs do them, the mines tick and the packs hunt (arcade_raiders.js, arcade_pack.js)
     raider_jobs_update(dt);
+    // a broken cliff rumbles and falls, between waves too (arcade_cliffs.js)
+    cliffs_update(dt);
     for (const enemy of enemies) {
         if (!enemy.arcade_scaled) {
             enemy.arcade_scaled = true;
@@ -265,6 +267,7 @@ function arcade_update(dt)
         arcade.world_start = {score, kills, run_time, snapshot: arcade_snapshot()};
         arcade_cards_world_start();
         arcade_wave_start(1);
+        cliffs_hint();
         return;
     }
     if (arcade.pause > 0) {
@@ -367,8 +370,14 @@ function arcade_squad_form(size)
         arcade_squad_escorted(pattern, size, angle, elite);
         return;
     }
-    const sides = (pattern === 'pincer') ? [angle, angle + Math.PI] : [angle];
     const mix = arcade_squad_mix(type, size);
+    // in Dustfall a share of them warp in under a cliff (arcade_cliffs.js), in one line
+    const spot = cliff_squad_spot();
+    if (spot) {
+        arcade_squad_line(type, size, Math.atan2(spot.y - player.y, spot.x - player.x), elite, mix, distance(spot, player));
+        return;
+    }
+    const sides = (pattern === 'pincer') ? [angle, angle + Math.PI] : [angle];
     for (let i = 0; i < sides.length; ++i) {
         const count = (sides.length === 1) ? size : (i === 0) ? Math.ceil(size/2) : Math.floor(size/2);
         arcade_squad_line(type, count, sides[i], elite && (i === 0), mix);
@@ -405,12 +414,12 @@ function arcade_squad_pattern(type, size)
     return ((size >= 4) && (n < 0.35)) ? 'pincer' : 'line';
 }
 
-// One type in a line across its heading (or two, mixed: the second in every other place), 640 m away on the given
-// side, warping in; then it hunts as a pack (arcade_pack.js)
-function arcade_squad_line(type, size, angle, elite, mix = null)
+// One type in a line across its heading (or two, mixed: the second in every other place), 640 m away (or `far`) on the
+// given side, warping in; then it hunts as a pack (arcade_pack.js)
+function arcade_squad_line(type, size, angle, elite, mix = null, far = 640)
 {
-    const cx = player.x + Math.cos(angle)*640;
-    const cy = player.y + Math.sin(angle)*640;
+    const cx = player.x + Math.cos(angle)*far;
+    const cy = player.y + Math.sin(angle)*far;
     for (let i = 0; i < size; ++i) {
         const offset = (i - (size - 1)/2)*55;
         const kind = (mix && (i % 2 === 1)) ? mix : type;

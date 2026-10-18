@@ -264,11 +264,18 @@ function update(dt, frame_dt = dt)
         for (let i = 0; i < ore_nodes.length; ++i) {
             const v = ore_nodes[i];
             const d = distance(v, player);
-            if ((v.hp > 0) && (d < 650) && (d < near)) {
+            if ((v.hp > 0) && (d < 650) && (d < near) && ((v.type !== 'cliff') || cliff_idle_target(v))) {
                 near = d;
                 target = v;
             }
         }
+    }
+    // Dustfall's cliffs (arcade): the guns turn to a crack with raiders under it, or one you point at
+    const cliff = arcade.active && cliff_target();
+    cliff_aim = cliff || null;
+    if (cliff) {
+        target = cliff;
+        near = Math.max(0, distance(cliff, player) - cliff.r);
     }
     // an arcade flagship's duel points the guns at its part that can be hurt, or at another raider while it cannot be
     // hurt from here (boss_duels.js)

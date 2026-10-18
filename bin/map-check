@@ -34,7 +34,9 @@ const usage = `usage: bin/map-check
     keep apart from each other and the station, no gravity well or solid lies on any of them; the campaign's race
     courses (js/race.js) keep their rings and start line out of every range, rock and pull, their legs off gravity,
     portals and the station, and turn at each ring; the Races mode's Turbo track of each difficulty (js/race_rail.js)
-    keeps its width clear of structures, gates, beacons and pulls. Exits 1 on any failure.`;
+    keeps its width clear of structures, gates, beacons and pulls; arcade Dustfall's cliffs and the rubble each leaves
+    once it falls stand a ship's width clear of the station, gates, portals and beacons, as every solid. Exits 1 on
+    any failure.`;
 
 cli(main);
 
@@ -140,7 +142,9 @@ function check_map(map)
         const need = map.station_size/2 + 400 + rules.zone_apart;
         fail('combat zone near the station', distance(station, map.combat_zone), need);
     }
-    const solids = [...map.ore.map(v => ({...v, kind: 'rock'})), ...map.debris];
+    // a cliff's rubble (arcade Dustfall) is a solid of the map once the cliff falls: it keeps the same room
+    const rubble = map.cliffs.flatMap(v => v.rubble.map(vv => ({...vv, kind: 'cliff rubble'})));
+    const solids = [...map.ore.map(v => ({...v, kind: v.cliff ? 'cliff' : 'rock'})), ...rubble, ...map.debris];
     if (!map.arcade) {
         out.push(...check_races(map, things, solids));
     }

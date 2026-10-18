@@ -285,7 +285,8 @@ function block_hostile_ore(b, previous)
         return false;
     }
     b.life = 0;
-    if (current_world_rules().solid) {
+    // a cliff's face only chips: the crack is opened by your shots (arcade_cliffs.js)
+    if (current_world_rules().solid && (v.type !== 'cliff')) {
         v.hp = Math.max(0, v.hp - (b.damage || 13)*0.5);
     }
     burst(v.x, v.y, worlds[campaign.world].accent, 4, 80);

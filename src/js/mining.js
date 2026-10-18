@@ -2,7 +2,8 @@ function recenter_mining_fields()
 {
     const groups = new Map();
     for (const ore_node of ore_nodes) {
-        if (ore_node.hp <= 0) {
+        // a rock of no field (a cliff, rubble: arcade_cliffs.js) makes none
+        if ((ore_node.hp <= 0) || (ore_node.field < 0)) {
             continue;
         }
         if (!groups.has(ore_node.field)) {

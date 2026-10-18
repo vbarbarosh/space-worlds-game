@@ -86,6 +86,18 @@ ships. "Modes" is arcade, campaign or both.
   `src/js/deposits.js` (the reserve), `src/js/mining.js`, `src/js/drones.js`;
   `resolve_solid_ore` in `src/js/flight.js`.
 
+### Cliffs (arcade Dustfall)
+
+- Six rock faces round the middle of the arcade's Dustfall, each leaning over
+  a strip of ground it would fall on (its fall zone, drawn faint, warmer with
+  raiders under it). Shoot the crack in its foot: broken, it rumbles and
+  falls, crushing what is in the zone (raiders, and you) and leaving its
+  rubble there as rocks; where it stood is open. Half of Dustfall's squadrons
+  warp in under a cliff, and the guns turn to a crack with raiders under it.
+- Solid; your shots damage it, a bar once hit; raiders' shots stop on it.
+  Arcade, Dustfall only. Where: `src/js/arcade_cliffs.js`; numbers in
+  [balance.md](balance.md#dustfalls-cliffs).
+
 ### Drifting asteroids and wrecks
 
 - Moving obstacles: they raise the difficulty a little and add noise, so

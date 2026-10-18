@@ -76,7 +76,7 @@ Three modes:
     bin/build-docs   docs/ as a website in build/docs, with the game from
                      bin/build in play/; published to GitHub Pages on every
                      push to main (.github/workflows/docs.yml)
-    bin/perf         frame times, garbage and drawing costs over 49 scenes
+    bin/perf         frame times, garbage and drawing costs over 53 scenes
                      (every world calm and in a fight, zoom 100% and 50%,
                      the arcade from Ion Reach on, campaigns of 10, 50 and
                      100 structures, a ring race and drifting debris close

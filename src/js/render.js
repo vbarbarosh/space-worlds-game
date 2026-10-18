@@ -39,9 +39,11 @@ function base_render_navigation_objects()
         }
         ctx.restore();
     }
+    render_cliff_zones();
     for (const ore_node of ore_nodes) {
         render_world_ore(ore_node);
     }
+    render_cliffs();
     render_ore_scanner();
     render_drones();
     for (const portal of portals) {

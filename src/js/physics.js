@@ -1,5 +1,10 @@
 function damage_ore(v, amount)
 {
+    // a cliff does not break as a rock does: it falls (arcade_cliffs.js)
+    if (v.type === 'cliff') {
+        cliff_damage(v, amount);
+        return;
+    }
     const alive = v.hp > 0;
     physics_base_damage_ore(v, amount);
     if (alive && (v.hp <= 0) && !arcade.active && (campaign.world === 2) && (cargo_count() < cargo_capacity())) {
@@ -19,6 +24,7 @@ function generate_map()
     generate_environment();
     refresh_mining_resources(true);
     generate_drifting_debris();
+    cliffs_generate();
 }
 
 function expedition_base_reset_run(resume = false)

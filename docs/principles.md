@@ -8,15 +8,19 @@ breaks one changes this file first.
 A thing in space is either solid or background, and you can tell which at a
 glance.
 
-- **Solid:** asteroids and ore rocks, drifting debris and wrecks, built outposts
-  and platforms, the convoy's freighter, every hull (yours and the raiders').
-  Shots stop on them, and ships collide with them: a hit pushes the ship off,
-  and above cruising speed it costs hull.
+- **Solid:** asteroids and ore rocks, Dustfall's cliffs and their rubble (arcade),
+  drifting debris and wrecks, built outposts and platforms, the convoy's
+  freighter, every hull (yours and the raiders'). Shots stop on them, and ships
+  collide with them: a hit pushes the ship off, and above cruising speed it
+  costs hull.
 - **Background:** scenery rocks, wrecks and satellites drawn dim (8%) behind the
   world. Shots and ships pass through them, and they never look like the solid
   things.
 - **Everyone follows it:** raiders collide with the same things you do, and
   with each other, and steer round what lies ahead. No two hulls overlap.
+- A cliff is a rock of `ore_nodes` (type `cliff`), drawn in full colour with a
+  dark outline and a cast shadow, larger than any rock, so it can never pass for
+  the dim scenery; its fall zone is drawn on the ground, not as a body.
 - Where it lives: `src/js/bodies.js` (what is solid, the separation),
   `resolve_solid_ore` in `src/js/flight.js` (your ship against rocks),
   `block_hostile_ore` (enemy shots on rocks), `src/js/evasion.js` (the
@@ -46,6 +50,13 @@ shows a health bar (its armour or energy, and how much is left as it is hit).
     (`ore_hp_bar` in `src/js/surfaces.js`) shows the rock's hp once it is below
     full, so in the campaign it shows only after raider fire; what a rock still
     holds shows as the field's label (`field_reserves_text`).
+  - **Dustfall's cliffs** (arcade): solid; your shots, the pulse and your
+    missiles wear one down to its crack (a quarter left: primed), and the
+    crack gives only to the guns aimed at it, so a cliff falls when you mean
+    it to. Raiders' shots stop on a cliff and do not wear it, unlike
+    Dustfall's ore rocks. A bar over it once hit, orange once primed.
+    Broken, it rumbles 0.6 s and falls along its zone; its rubble are ore
+    rocks with their own bars (`src/js/arcade_cliffs.js`).
   - **Drifting asteroids and wrecks:** they hurt your ship when you hit them,
     and your shots break them (`drifting_debris_hit` in
     `src/js/expedition.js`), but they have no bar. Raiders and raiders' shots
@@ -129,6 +140,9 @@ so the eye sees the wave do the work.
   reaches it, less toward the rim, and sets off the missiles it reaches
   (`missile_waves_update` in `src/js/missiles.js`). Today the arcade's
   dying-ship blasts (`arcade_blast_from_kill`) still land at once.
+- A cliff's fall (arcade Dustfall) runs down its zone from the cliff's foot at
+  2 km/s: each raider, you and each piece of rubble are hit or land as the
+  front gets there (`cliff_fall_update` in `src/js/arcade_cliffs.js`).
 - Where it lives: `src/js/pulse.js` (`pulse_fire`, `emp_fire`,
   `stasis_fire`, `stasis_scale`), `use_supply` in `src/js/upgrades.js`.
 
