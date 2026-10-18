@@ -19,6 +19,8 @@
 //   kept when you leave; the flare's heat decides when to go in. Wave 2: three.
 // - Eclipse, the anchors: set round the black hole inside its pull, each shut by flying through its ring. Wave 2:
 //   three.
+// Raiders fight over the goal (arcade_goal_raids.js): a part can be lost, a goal ends when each part is done or lost,
+// and one with nothing done is lost: no bonus, and the wave goes on until its raiders are down.
 
 const arcade_goal_kinds = {0: 'escort', 1: 'brood', 2: 'breach', 3: 'relays', 4: 'siege', 5: 'rescue', 6: 'regulators', 7: 'anchors'};
 // a goal wave's share of the raiders the wave would have
@@ -105,6 +107,7 @@ function arcade_goal_start(n)
         siege: arcade_siege_start, rescue: arcade_rescue_start, regulators: arcade_regulators_start, anchors: arcade_anchors_start,
     };
     starts[kind](arcade.goal, n);
+    arcade_raid_setup(arcade.goal);
     const card = arcade_goal_card();
     show_toast(card.title.toUpperCase(), card.line, 4, 'income');
 }
@@ -343,42 +346,59 @@ function arcade_goal_update(dt)
     if (g.kind === 'anchors') {
         arcade_anchors_update(g);
     }
-    if (arcade_goal_met(g)) {
+    arcade_raid_update(g, dt);
+    if (arcade_goal_ended(g)) {
         arcade_goal_finish(g);
     }
 }
 
-function arcade_goal_met(g)
+// The goal's parts: how many done, how many lost and how many it has (a rescue's: the capsules it needs)
+function arcade_goal_tally(g)
 {
+    function count(list, done) {
+        return {done: list.filter(done).length, lost: list.filter(v => v.lost).length, total: list.length};
+    }
     if (g.kind === 'breach') {
-        return g.launchers.every(v => v.hp <= 0) && (!g.exit || g.exit.reached);
+        return count(g.launchers, v => (v.hp <= 0) && !v.lost);
     }
     if (g.kind === 'relays') {
-        return g.relays.every(v => v.lit);
+        return count(g.relays, v => v.lit);
     }
     if (g.kind === 'escort') {
-        return g.tenders.every(v => v.docked);
+        return count(g.tenders, v => v.docked);
     }
     if (g.kind === 'brood') {
-        return g.pods.every(v => v.caught || v.hatched);
+        return {done: g.pods.filter(v => v.caught).length, lost: g.pods.filter(v => v.hatched).length, total: g.pods.length};
     }
     if (g.kind === 'siege') {
-        return g.post.hp <= 0;
+        return {done: ((g.post.hp <= 0) && !g.relieved) ? 1 : 0, lost: g.relieved ? 1 : 0, total: 1};
     }
     if (g.kind === 'regulators') {
-        return g.regulators.every(v => v.shut);
+        return count(g.regulators, v => v.shut);
     }
     if (g.kind === 'anchors') {
-        return g.anchors.every(v => v.shut);
+        return count(g.anchors, v => v.shut);
     }
-    return g.saved >= g.need;
+    // a rescue: lost is what can no longer be saved, so it ends when too few are left to save
+    const open = g.capsules.filter(v => !v.saved && !v.lost).length;
+    return {done: Math.min(g.saved, g.need), lost: Math.max(0, g.need - g.saved - open), total: g.need};
+}
+
+// Whether the goal is over: each part done or lost (a breach of wave 2 with a launcher down, once its exit is reached)
+function arcade_goal_ended(g)
+{
+    const t = arcade_goal_tally(g);
+    if (t.done + t.lost < t.total) {
+        return false;
+    }
+    return !t.done || !g.exit || g.exit.reached;
 }
 
 // A tender moves toward the depot while you are near it, slowly while a raider is on it; in the depot's reach it docks
 function arcade_escort_update(g, dt)
 {
     for (const t of g.tenders) {
-        if (t.docked) {
+        if (t.docked || t.lost) {
             continue;
         }
         t.held = enemies.some(v => (v.hp > 0) && (distance(v, t) < arcade_tender_raider));
@@ -394,7 +414,7 @@ function arcade_escort_update(g, dt)
             t.docked = true;
             t.moving = false;
             ring(t.x, t.y, arcade_goal_green, 120, 0.7);
-            const left = g.tenders.filter(v => !v.docked).length;
+            const left = g.tenders.filter(v => !v.docked && !v.lost).length;
             if (left) {
                 show_toast('TENDER DOCKED', `${left} more to bring in`, 2.5, 'income');
             }
@@ -414,13 +434,14 @@ function arcade_brood_update(g, dt)
             pod.wait -= dt;
             continue;
         }
-        const d = Math.max(1, distance(pod, g.nest));
-        const flow = world_flow(pod);
-        pod.vx = ((g.nest.x - pod.x)/d)*arcade_pod_speed + flow.x*arcade_pod_flow;
-        pod.vy = ((g.nest.y - pod.y)/d)*arcade_pod_speed + flow.y*arcade_pod_flow;
-        pod.x = clamp(pod.x + pod.vx*dt, 200, world.w - 200);
-        pod.y = clamp(pod.y + pod.vy*dt, 200, world.h - 200);
-        if (distance(pod, player) < arcade_pod_catch + player.r) {
+        // a pod a raider carries goes where it flies, out of your reach, and hatches at the nest all the same
+        if (pod.carrier) {
+            arcade_pod_carry(pod, dt);
+        }
+        else {
+            arcade_pod_drift(g, pod, dt);
+        }
+        if (!pod.carrier && (distance(pod, player) < arcade_pod_catch + player.r)) {
             pod.caught = true;
             ring(pod.x, pod.y, arcade_goal_leaf, 90, 0.5);
             const left = g.pods.filter(v => !v.caught && !v.hatched).length;
@@ -431,6 +452,7 @@ function arcade_brood_update(g, dt)
         }
         if (distance(pod, g.nest) < g.nest.r) {
             pod.hatched = true;
+            arcade_pod_let_go(pod);
             explode(pod.x, pod.y, 50, arcade_goal_leaf);
             for (let i = 0; i < 3; ++i) {
                 const enemy = spawn_enemy('chaser');
@@ -440,7 +462,17 @@ function arcade_brood_update(g, dt)
             show_toast('A POD HATCHED', 'Three chasers out of the nest', 2.5, 'danger');
         }
     }
-    g.pay = g.pods.filter(v => v.caught).length/g.pods.length;
+}
+
+// A pod drifting: toward the nest, carried by the current
+function arcade_pod_drift(g, pod, dt)
+{
+    const d = Math.max(1, distance(pod, g.nest));
+    const flow = world_flow(pod);
+    pod.vx = ((g.nest.x - pod.x)/d)*arcade_pod_speed + flow.x*arcade_pod_flow;
+    pod.vy = ((g.nest.y - pod.y)/d)*arcade_pod_speed + flow.y*arcade_pod_flow;
+    pod.x = clamp(pod.x + pod.vx*dt, 200, world.w - 200);
+    pod.y = clamp(pod.y + pod.vy*dt, 200, world.h - 200);
 }
 
 // Whether a command post's emitters still stand: no shot harms it then (damage_enemy)
@@ -454,7 +486,9 @@ function arcade_post_shielded(enemy)
 function arcade_regulators_update(g, dt)
 {
     for (const r of g.regulators) {
-        if (r.shut || (distance(player, r) >= arcade_regulator_ring)) {
+        // a raider of the goal in its ring holds its count (arcade_goal_raids.js)
+        r.jammed = !r.shut && !r.lost && arcade_raid_in_ring(r, arcade_regulator_ring);
+        if (r.shut || r.lost || r.jammed || (distance(player, r) >= arcade_regulator_ring)) {
             continue;
         }
         r.held += dt;
@@ -462,7 +496,7 @@ function arcade_regulators_update(g, dt)
             r.shut = true;
             ring(r.x, r.y, arcade_goal_green, 160, 0.7);
             explode(r.x, r.y, 40, arcade_goal_heat);
-            const left = g.regulators.filter(v => !v.shut).length;
+            const left = g.regulators.filter(v => !v.shut && !v.lost).length;
             if (left) {
                 show_toast('REGULATOR SHUT', `${left} more to shut down`, 2.5, 'income');
             }
@@ -474,10 +508,11 @@ function arcade_regulators_update(g, dt)
 function arcade_anchors_update(g)
 {
     for (const a of g.anchors) {
-        if (!a.shut && (distance(player, a) < arcade_anchor_ring)) {
+        if (!a.shut && !a.lost && (distance(player, a) < arcade_anchor_ring)) {
             a.shut = true;
+            arcade_anchor_let_go(a);
             ring(a.x, a.y, arcade_goal_violet, 150, 0.7);
-            const left = g.anchors.filter(v => !v.shut).length;
+            const left = g.anchors.filter(v => !v.shut && !v.lost).length;
             if (left) {
                 show_toast('ANCHOR SHUT', `${left} more round the hole`, 2.5, 'income');
             }
@@ -488,7 +523,7 @@ function arcade_anchors_update(g)
 // The launchers down, wave 2 opens the exit past the last one; flying into it is the breach's end
 function arcade_breach_update(g)
 {
-    if ((g.wave > 1) && !g.exit && g.launchers.every(v => v.hp <= 0)) {
+    if ((g.wave > 1) && !g.exit && g.launchers.every(v => v.hp <= 0) && g.launchers.some(v => !v.lost)) {
         const last = g.launchers[g.launchers.length - 1];
         const a = Math.atan2(last.y - station.y, last.x - station.x);
         g.exit = {...arcade_goal_spot(a, distance(last, station) + 550, 300), reached: false};
@@ -523,11 +558,11 @@ function arcade_goal_pulse(wave)
         return;
     }
     for (const relay of g.relays) {
-        if (!relay.lit && pulse_wave_reaches(wave, relay)) {
+        if (!relay.lit && !relay.lost && pulse_wave_reaches(wave, relay)) {
             relay.lit = true;
             ring(relay.x, relay.y, cyan, 160, 0.8);
             explode(relay.x, relay.y, 60, cyan);
-            const left = g.relays.filter(v => !v.lit).length;
+            const left = g.relays.filter(v => !v.lit && !v.lost).length;
             if (left) {
                 show_toast('RELAY LIT', `${left} more to light`, 2.5, 'income');
             }
@@ -541,7 +576,7 @@ function arcade_rescue_update(g, dt)
 {
     const towing = g.capsules.find(v => v.towed && !v.saved);
     for (const c of g.capsules) {
-        if (c.saved) {
+        if (c.saved || c.lost) {
             continue;
         }
         if (c.towed) {
@@ -586,15 +621,30 @@ function arcade_rescue_update(g, dt)
     }
 }
 
-// The goal met: its bonus, and the raiders still about jump away (the flagship's wave keeps its own)
+// The goal over. Lost (nothing done): no bonus, and the wave goes on with its raiders. Otherwise its bonus for the share
+// done, more for a clean save (every part done, none touched), and the raiders still about jump away (the flagship's
+// wave keeps its own).
 function arcade_goal_finish(g)
 {
     g.done = true;
-    const bonus = Math.round((arcade_goal_salvage[0] + arcade_goal_salvage[1]*arcade_level())*g.pay);
+    const t = arcade_goal_tally(g);
+    g.result = !t.done ? 'lost' : (t.done < t.total) ? 'partial' : g.harm ? 'done' : 'clean';
+    arcade_goal_log(g);
+    if (g.result === 'lost') {
+        show_toast('GOAL LOST', 'No bonus · clear the wave', 3, 'danger');
+        return;
+    }
+    const pay = (t.done/t.total)*((g.result === 'clean') ? 1 + arcade_goal_clean : 1);
+    const bonus = Math.round((arcade_goal_salvage[0] + arcade_goal_salvage[1]*arcade_level())*pay);
     salvage += bonus;
     play_log_earn('goal bonus', bonus);
-    score += Math.round((arcade_goal_score[0] + arcade_goal_score[1]*arcade_level())*g.pay);
-    show_toast('GOAL DONE', `+${bonus} ◆ · the raiders jump away`, 3, 'income');
+    score += Math.round((arcade_goal_score[0] + arcade_goal_score[1]*arcade_level())*pay);
+    const said = {
+        clean: ['CLEAN SAVE', `+${bonus} ◆ · nothing touched · the raiders jump away`],
+        done: ['GOAL DONE', `+${bonus} ◆ · the raiders jump away`],
+        partial: [`GOAL DONE ${t.done}/${t.total}`, `+${bonus} ◆ for what was saved · the raiders jump away`],
+    }[g.result];
+    show_toast(said[0], said[1], 3, 'income');
     spawn_left = 0;
     for (const enemy of enemies.slice()) {
         if ((enemy.hp > 0) && (enemy.type !== 'boss')) {
@@ -604,25 +654,34 @@ function arcade_goal_finish(g)
     }
 }
 
-// The goal on the card: its title, a line under it in the toast, where to fly next, and the state in a few words
+// The goal on the card: as arcade_goal_card_plain has it, or, while raiders attack a part, that part, where it is and
+// how whole (arcade_goal_raids.js)
 function arcade_goal_card()
+{
+    const card = arcade_goal_card_plain();
+    const alert = arcade_goal_alert(arcade.goal);
+    return alert ? {...card, target: alert.target, eta: alert.eta, label: alert.label, alert: true} : card;
+}
+
+// The goal on the card: its title, a line under it in the toast, where to fly next, and the state in a few words
+function arcade_goal_card_plain()
 {
     const g = arcade.goal;
     if (g.kind === 'breach') {
-        const left = g.launchers.filter(v => v.hp > 0);
+        const left = g.launchers.filter(v => (v.hp > 0) && !v.lost);
         if (left.length) {
             return {
                 title: `Destroy ${(left.length > 1) ? `${left.length} launchers` : 'the launcher'}`,
                 line: 'Pulse its wall (Space) or fly round',
                 target: arcade_goal_nearest(left),
-                eta: `${g.launchers.length - left.length}/${g.launchers.length} down`,
+                eta: `${arcade_goal_tally(g).done}/${g.launchers.length} down`,
                 label: 'LAUNCHER',
             };
         }
         return {title: 'Reach the exit', line: 'Fly into the green ring', target: g.exit, eta: 'exit open', label: 'EXIT'};
     }
     if (g.kind === 'relays') {
-        const left = g.relays.filter(v => !v.lit);
+        const left = g.relays.filter(v => !v.lit && !v.lost);
         return {
             title: `Light ${(left.length > 1) ? `${left.length} relays` : 'the relay'}`,
             line: 'A full pulse or an EMP near it · storms charge the pulse',
@@ -632,7 +691,7 @@ function arcade_goal_card()
         };
     }
     if (g.kind === 'escort') {
-        const left = g.tenders.filter(v => !v.docked);
+        const left = g.tenders.filter(v => !v.docked && !v.lost);
         const t = arcade_goal_nearest(left);
         return {
             title: `Escort ${(left.length > 1) ? `${left.length} tenders` : 'the tender'} to the depot`,
@@ -645,10 +704,12 @@ function arcade_goal_card()
     if (g.kind === 'brood') {
         const left = g.pods.filter(v => !v.caught && !v.hatched);
         const drifting = g.pods.filter(v => !v.caught && !v.hatched && (v.wait <= 0));
+        // a pod a raider carries: the carrier is the way to it
+        const next = arcade_goal_nearest(drifting.length ? drifting : left);
         return {
             title: `Scoop ${left.length} pod${(left.length > 1) ? 's' : ''} before the nest`,
             line: 'Fly into a pod · the current carries them',
-            target: arcade_goal_nearest(drifting.length ? drifting : left),
+            target: next.carrier || next,
             eta: `${g.pods.filter(v => v.caught).length}/${g.pods.length} scooped`,
             label: 'POD',
         };
@@ -660,7 +721,7 @@ function arcade_goal_card()
             : {title: 'Destroy the command post', line: 'Its shield is down', target: g.post, eta: 'shield down', label: 'COMMAND'};
     }
     if (g.kind === 'regulators') {
-        const left = g.regulators.filter(v => !v.shut);
+        const left = g.regulators.filter(v => !v.shut && !v.lost);
         const r = arcade_goal_nearest(left);
         return {
             title: `Shut ${(left.length > 1) ? `${left.length} regulators` : 'the regulator'}`,
@@ -671,7 +732,7 @@ function arcade_goal_card()
         };
     }
     if (g.kind === 'anchors') {
-        const left = g.anchors.filter(v => !v.shut);
+        const left = g.anchors.filter(v => !v.shut && !v.lost);
         return {
             title: `Shut ${(left.length > 1) ? `${left.length} anchors` : 'the anchor'}`,
             line: 'Fly through its ring · the hole pulls',
@@ -681,7 +742,7 @@ function arcade_goal_card()
         };
     }
     const towed = g.capsules.find(v => v.towed);
-    const free = g.capsules.filter(v => !v.saved && !v.towed);
+    const free = g.capsules.filter(v => !v.saved && !v.towed && !v.lost);
     return {
         title: towed ? 'Tow the capsule to the depot' : `Rescue ${g.need - g.saved} capsule${((g.need - g.saved) > 1) ? 's' : ''}`,
         line: 'Fly at its speed to hook it',
@@ -747,7 +808,7 @@ function render_arcade_goal()
     }
     if (g.kind === 'relays') {
         const reach = 480 + upgrades.pulse*80;
-        if ((player.energy >= 100) && g.relays.some(v => !v.lit && (distance(v, player) < reach*2))) {
+        if ((player.energy >= 100) && g.relays.some(v => !v.lit && !v.lost && (distance(v, player) < reach*2))) {
             ctx.strokeStyle = '#ff5baf88';
             ctx.setLineDash([10/zoom, 8/zoom]);
             ctx.beginPath();
@@ -756,7 +817,7 @@ function render_arcade_goal()
             ctx.setLineDash([]);
         }
         for (const relay of g.relays) {
-            if (!in_view(relay, 200)) {
+            if (relay.lost || !in_view(relay, 200)) {
                 continue;
             }
             ctx.fillStyle = relay.lit ? cyan : '#1b2633';
@@ -792,7 +853,7 @@ function render_arcade_goal()
             ctx.setLineDash([]);
         }
         for (const c of g.capsules) {
-            if (c.saved || !in_view(c, 400)) {
+            if (c.saved || c.lost || !in_view(c, 400)) {
                 continue;
             }
             if (!c.towed) {
@@ -851,6 +912,7 @@ function render_arcade_goal()
     if (g.kind === 'anchors') {
         render_arcade_anchors(g);
     }
+    render_arcade_raids(g);
     ctx.restore();
 }
 
@@ -858,7 +920,7 @@ function render_arcade_goal()
 function render_arcade_escort(g)
 {
     for (const t of g.tenders) {
-        if (t.docked) {
+        if (t.docked || t.lost) {
             continue;
         }
         ctx.strokeStyle = arcade_goal_gold;
@@ -990,12 +1052,13 @@ function render_arcade_siege(g)
 function render_arcade_regulators(g)
 {
     for (const r of g.regulators) {
-        if (!in_view(r, arcade_regulator_ring + 40)) {
+        if (r.lost || !in_view(r, arcade_regulator_ring + 40)) {
             continue;
         }
         const inside = !r.shut && (distance(player, r) < arcade_regulator_ring);
         if (!r.shut) {
-            ctx.strokeStyle = inside ? arcade_goal_green : arcade_goal_heat;
+            // red while a raider in the ring holds its count
+            ctx.strokeStyle = r.jammed ? arcade_raid_red : inside ? arcade_goal_green : arcade_goal_heat;
             ctx.lineWidth = 2/zoom;
             ctx.setLineDash([12/zoom, 9/zoom]);
             ctx.beginPath();
@@ -1021,7 +1084,7 @@ function render_arcade_regulators(g)
         ctx.closePath();
         ctx.fill();
         ctx.stroke();
-        arcade_goal_tag(r.x, r.y - r.r - 24, r.shut ? 'REGULATOR SHUT' : 'REGULATOR', r.shut ? '#8a8a90' : arcade_goal_heat);
+        arcade_goal_tag(r.x, r.y - r.r - 24, r.shut ? 'REGULATOR SHUT' : r.jammed ? 'REGULATOR · HELD BY RAIDERS' : 'REGULATOR', r.shut ? '#8a8a90' : r.jammed ? arcade_raid_red : arcade_goal_heat);
     }
 }
 
@@ -1029,7 +1092,7 @@ function render_arcade_regulators(g)
 function render_arcade_anchors(g)
 {
     for (const a of g.anchors) {
-        if (!in_view(a, arcade_anchor_ring + 600)) {
+        if (a.lost || !in_view(a, arcade_anchor_ring + 600)) {
             continue;
         }
         if (!a.shut && g.hole) {
@@ -1095,7 +1158,8 @@ function render_arcade_goal_marker()
     const m = hud_edge_marker(radar_screen(card.target), 40);
     if (m.offscreen) {
         const colors = {RELAY: cyan, EMITTER: cyan, CAPSULE: arcade_goal_ice, POD: arcade_goal_leaf, REGULATOR: arcade_goal_heat, ANCHOR: arcade_goal_violet};
-        draw_edge_marker(m, `${card.label} · ${radar_distance_text(distance(player, card.target))}`, colors[card.label] || gold);
+        // red for a part under attack (arcade_goal_raids.js)
+        draw_edge_marker(m, `${card.label} · ${radar_distance_text(distance(player, card.target))}`, card.alert ? arcade_raid_red : (colors[card.label] || gold));
     }
 }
 
@@ -1111,8 +1175,13 @@ function arcade_goal_pilot()
         return null;
     }
     const g = arcade.goal;
+    // a part under attack far off: there first (arcade_goal_raids.js)
+    const defend = arcade_raid_pilot(g);
+    if (defend) {
+        return defend;
+    }
     if (g.kind === 'breach') {
-        const left = g.launchers.filter(v => v.hp > 0);
+        const left = g.launchers.filter(v => (v.hp > 0) && !v.lost);
         if (!left.length) {
             return g.exit ? arcade_goal_toward(arcade_goal_way(g.exit)) : null;
         }
@@ -1121,7 +1190,7 @@ function arcade_goal_pilot()
         return (way === l) ? arcade_goal_toward(l, 220) : arcade_goal_toward(way);
     }
     if (g.kind === 'relays') {
-        const relay = arcade_goal_nearest(g.relays.filter(v => !v.lit));
+        const relay = arcade_goal_nearest(g.relays.filter(v => !v.lit && !v.lost));
         if (player.energy < 100) {
             const storm = arcade_goal_nearest(world_zones.filter(v => v.type === 'storm'));
             return storm ? arcade_goal_toward(storm, 120) : arcade_goal_toward(relay, 200);
@@ -1131,13 +1200,17 @@ function arcade_goal_pilot()
         return plan;
     }
     if (g.kind === 'escort') {
-        const t = arcade_goal_nearest(g.tenders.filter(v => !v.docked));
+        const t = arcade_goal_nearest(g.tenders.filter(v => !v.docked && !v.lost));
         const plan = arcade_goal_toward(t, 160);
         plan.firm = distance(player, t) > arcade_tender_near*0.8;
         return plan;
     }
     if (g.kind === 'brood') {
         const pod = arcade_goal_nearest(g.pods.filter(v => !v.caught && !v.hatched && (v.wait <= 0)));
+        // a carried pod: close enough to the carrier for the guns
+        if (pod && pod.carrier) {
+            return arcade_goal_toward(pod.carrier, 220);
+        }
         if (!pod) {
             return arcade_goal_toward(arcade_goal_nearest(g.pods.filter(v => !v.caught && !v.hatched)), 200);
         }
@@ -1148,14 +1221,14 @@ function arcade_goal_pilot()
         return arcade_goal_toward(left.length ? arcade_goal_nearest(left) : g.post, 260);
     }
     if (g.kind === 'regulators') {
-        const r = arcade_goal_nearest(g.regulators.filter(v => !v.shut));
+        const r = arcade_goal_nearest(g.regulators.filter(v => !v.shut && !v.lost));
         const plan = arcade_goal_toward(r, 40);
         plan.firm = distance(player, r) < arcade_regulator_ring*2;
         return plan;
     }
     if (g.kind === 'anchors') {
         // through the ring at speed, never slowing where the hole pulls, and leaning out against the pull
-        const a = arcade_goal_nearest(g.anchors.filter(v => !v.shut));
+        const a = arcade_goal_nearest(g.anchors.filter(v => !v.shut && !v.lost));
         const plan = arcade_goal_toward(arcade_goal_round_hole(g.hole, a), 0, 300);
         if (g.hole) {
             const d = Math.max(1, distance(player, g.hole));
@@ -1179,7 +1252,7 @@ function arcade_goal_pilot()
         plan.firm = true;
         return plan;
     }
-    const c = arcade_goal_nearest(g.capsules.filter(v => !v.saved));
+    const c = arcade_goal_nearest(g.capsules.filter(v => !v.saved && !v.lost));
     // the capsule's way, and a pull onto it that eases as you come close, so you arrive at its speed
     const plan = arcade_goal_toward(c, 0, Math.min(260, distance(player, c)*0.9));
     plan.vx += c.vx;

@@ -174,6 +174,7 @@ Every event has `t` and `type`.
 | `card won` | arcade: a gamble's world cleared, its prize given: `world`, `card` |
 | `card used` | arcade: the second wind saved you: `world`, `card` |
 | `route` | arcade: the next world chosen at the break: `from`, `to`, `offered` (the worlds offered, names) |
+| `goal` | arcade: a world goal's end: `world`, `wave`, `kind`, `result` (`clean`, `done`, `partial`, `lost`), `done`, `lost`, `of` (its parts) |
 | `death` | `world`, `cause` (`kind` as `taken_by`; for a shot `raider`, `weapon`, `elite`; for a ram `raider`, `elite`), `first_in_world` (in this game), `in_world_s`, `salvage`, `ship`, `flagship_alive` (its hull left, 0 to 1, or null) |
 | `won` | the arcade's last world cleared: `world`, `salvage` |
 

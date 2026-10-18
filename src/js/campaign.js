@@ -314,6 +314,8 @@ function world_audio_base_enemy_fire(enemy, angle, speed = 210, pattern = false)
             escort_target: !!enemy.escort_raider,
             // who fired it: in the arcade a raider's hits keep a safe time of their own (arcade_crowds.js)
             raider: enemy,
+            // an arcade goal's part it was fired at, null: at you (arcade_goal_raids.js)
+            goal_target: arcade_goal_gun_target(enemy),
             // who fired it, for the play log's cause of a death
             from: enemy.type,
             from_elite: !!enemy.elite,

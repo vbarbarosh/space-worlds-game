@@ -775,17 +775,40 @@ before rocks and the Relic processor.
   for the world's action instead of a count of raiders. The wave keeps half
   its raiders and ends when the goal is met: those still about jump away,
   the goal pays 60 + 20 × step salvage (about what the raiders it leaves out would drop, and more) and 1500 + 300 × step
-  score (Verdant's by the share of pods scooped), logged as `goal bonus`,
-  and the kill combo holds while a goal is open.
+  score, by the share of its parts done, logged as `goal bonus`, and the
+  kill combo holds while a goal is open.
+- **Goals fought over** (`src/js/arcade_goal_raids.js`): 9 s into wave 1's
+  goal (6 s into wave 2's), then every 17 s (CHILL 26, OVERLOAD 13), a party
+  of 2 / 3 raiders (CHILL 1 / 2, OVERLOAD 3) warps in 800 m beyond the part
+  farthest from you (beyond it from a black hole in Eclipse), taken from the
+  wave's raiders while it has any left; six of them at most at once. A raider
+  of the party turns on you within 230 m. A part with a hull (a tender, a
+  relay, a capsule, a regulator) takes 28 hits on NORMAL (CHILL 40,
+  OVERLOAD 22) × 1.2 for a tender or a regulator, × 0.6 for a capsule; a
+  missile counts two, and a raider with no gun (CHILL's plasma) boards it, a
+  hit every 1.4 s. Destroyed, it is lost. Elsewhere: Verdant's snatchers
+  carry a pod to the nest (shot down, they drop it); Dustfall's couriers
+  (one every 15 s, CHILL 22, OVERLOAD 12; a chaser's hull × 1.5, 115 m/s,
+  no gun) bring a warhead to a launcher from 1.5 km behind it, and three (CHILL
+  four) arm it: it jumps away, lost; Obsidian's couriers leave the command
+  post for the arena's edge, and three out (CHILL four) call the relief: the
+  post and its emitters jump away, lost, and a squadron jumps in; a raider
+  of Cryosphere's party across your tow line cuts it; one in a Nova Forge
+  regulator's ring holds its count; Eclipse's tugs drag an anchor toward the
+  hole at 20 m/s, and deeper than 0.78 × its radius it is swallowed, lost.
+  A goal ends when each of its parts is done or lost (a rescue: when too few
+  capsules are left to save). Nothing done is a goal lost: no bonus, and the
+  wave goes on until its raiders are down. Every part done and none touched
+  is a clean save: × 1.6 the bonus.
 
   | World | Wave 1 | Wave 2 |
   |---|---|---|
-  | Haven | a tender 1.3 km out, bound for the depot at 80 m/s while you are within 420 m of it, at 35% of that while a raider is within 350 m of it; it cannot be lost | two tenders, 1.5 and 1.75 km out, 110° apart |
+  | Haven | a tender 1.3 km out, bound for the depot at 80 m/s while you are within 420 m of it, at 35% of that while a raider is within 350 m of it | two tenders, 1.5 and 1.75 km out, 110° apart |
   | Verdant | a nest 1.1 km out; three pods set out 2.1 km beyond it, 5 s apart, toward it at 55 m/s plus 2.5 × the current; flown within 70 m of, a pod is scooped; one that reaches the nest hatches three chasers | six pods in two streams |
   | Dustfall | a missile launcher (a gunner ×3 hull, anchored, firing within 1300 m) 1.5 km out, behind an arc of rock 380 m before it: your guns don't break the wall, the pulse and the raiders' missiles do; or fly round its open back | two launchers 1.75 km out on opposite sides, then an exit 550 m past the last |
   | Ion Reach | a relay 230 m outside the storm nearest the depot, lit by a full pulse, or an EMP, that reaches it; the storm charges the pulse for the shield | two relays, by the two nearest storms |
   | Obsidian | a command post (a tank ×3 hull, anchored) 1.5 km out, which no shot harms while its two emitters stand (gunners ×1.2 hull, anchored, plasma within 550 m) 320 m round its sides and back; the post and emitters carry no armour or shield, so any gun breaks them | three emitters |
-  | Cryosphere | a capsule drifting at 90–140 m/s, hooked by staying within 120 m at under 110 m/s apart for 0.6 s, towed to the depot | three capsules, two to save; they bounce off the arena's edge and are never lost |
+  | Cryosphere | a capsule drifting at 90–140 m/s, hooked by staying within 120 m at under 110 m/s apart for 0.6 s, towed to the depot | three capsules, two to save; they bounce off the arena's edge |
   | Nova Forge | two regulators 60 m inside the edges of the flares nearest the depot, each shut by 4 s in all within 150 m of it (the time kept when you leave) | three regulators |
   | Eclipse | two anchors 1.15 × the hole's radius from its centre (about 640 m: a pull of about 50 m/s), on the side facing the arena's middle, each shut by flying within 90 m of it | three anchors |
 - **Sweeping fronts** (`src/js/arcade_fronts.js`, R6 of the 2026-10-17

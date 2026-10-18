@@ -220,6 +220,9 @@ function target_plate_name(target)
     if (target.jammer) {
         return 'JAMMER';
     }
+    if (target.goal_raid) {
+        return arcade_raid_plate_name(target);
+    }
     return (target_names[target.type] || 'Raider').toUpperCase();
 }
 
