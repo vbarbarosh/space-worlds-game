@@ -312,6 +312,8 @@ function world_audio_base_enemy_fire(enemy, angle, speed = 210, pattern = false)
             r: (w === 'missile') ? 7 : (w === 'rail') ? 3 : 5,
             weapon: w,
             escort_target: !!enemy.escort_raider,
+            // who fired it: in the arcade a raider's hits keep a safe time of their own (arcade_crowds.js)
+            raider: enemy,
             // who fired it, for the play log's cause of a death
             from: enemy.type,
             from_elite: !!enemy.elite,

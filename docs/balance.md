@@ -231,6 +231,23 @@ below). That gives, in the campaign at NORMAL:
   and cut 12% per Phase armor level, 15% in Obsidian; after a hit you cannot
   be hit for 0.85 s, and the combo resets (`damage_player` in
   `src/js/combat.js`).
+- **Crowds** (the arcade only, `src/js/arcade_crowds.js`): a raider's shot,
+  missile or dying blast hurts × 0.45, and after it only that raider's next
+  hit waits 0.35 s, anyone's 0.1 s. With 0.85 s for any hit one raider firing
+  at you filled most of it (a raider of Ion Reach hits about 50 times a
+  minute on its own), so twelve hurt little more than three; a 0.35 s for any
+  hit lifts twelve only × 1.2. Measured with immortal raiders round a pilot
+  that circles and dodges as the playtest bot does (NORMAL, damage a minute):
+
+  | World | 3 raiders before / now | 12 raiders before / now |
+  |---|---|---|
+  | Verdant | 546 / 386 | 792 / 884 |
+  | Ion Reach | 1202 / 1235 | 1540 / 1955 |
+  | Nova Forge | 1073 / 817 | 1314 / 1455 |
+
+  A ram, a flagship's fire (its beams, pools, rings of shots), a flare, a
+  vent and a rock keep the whole hit and 0.85 s for any hit, as in the
+  campaign.
 - Crashes: an ore rock costs hull above 110 m/s, up to 24
   (`resolve_solid_ore` in `src/js/flight.js`); drifting debris costs
   8 + 2.2% of the closing speed, up to 40 (`src/js/expedition.js`).

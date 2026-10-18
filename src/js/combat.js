@@ -425,11 +425,13 @@ function base_damage_enemy(enemy, damage)
 function damage_player(amount, blast = false, cause = 'other', by = null)
 {
     // on a Turbo race's track the ship cannot steer round a drifting rock, so none costs it anything
-    if ((player.invincible > 0) || ((player.dash_grace > 0) && !blast) || (state !== 'playing') || race_rail_riding()) {
+    if ((player.invincible > 0) || ((player.dash_grace > 0) && !blast) || (state !== 'playing') || race_rail_riding() || arcade_hit_held(cause, by)) {
         return;
     }
     const multiplier = (difficulty === 'chill') ? 0.65 : (difficulty === 'overload') ? 1.2 : 1;
-    let damage = amount*multiplier*(1 - upgrades.armor*((campaign.world === 4) ? 0.15 : 0.12))*arcade_card_k.taken;
+    // a crowd's hits come smaller and closer together in the arcade (arcade_crowds.js), and shake the view less
+    const share = arcade_hit_share(cause, by);
+    let damage = amount*multiplier*share*(1 - upgrades.armor*((campaign.world === 4) ? 0.15 : 0.12))*arcade_card_k.taken;
     player.since_hit = 0;
     const shield_before = player.shield;
     const absorbed = Math.min(player.shield, damage);
@@ -440,8 +442,8 @@ function damage_player(amount, blast = false, cause = 'other', by = null)
     player.hp = Math.max(0, player.hp - damage);
     play_log_hurt(cause, absorbed, damage, by);
     race_crash_note(cause, absorbed + hull_before - player.hp);
-    player.invincible = 0.85;
-    shake = 16;
+    player.invincible = arcade_hit_safe(cause, by);
+    shake = 16*share;
     // a hit on the hull reddens the screen's edge; one the shield took tints it as before
     if (damage > 0) {
         hurt = hurt_duration;
