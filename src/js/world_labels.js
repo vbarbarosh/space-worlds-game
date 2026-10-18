@@ -202,26 +202,14 @@ function draw_edge_marker(m, text, color = gold)
 
 const target_names = {chaser: 'Raider', tank: 'Raider tank', shooter: 'Raider gunner', splitter: 'Raider splitter', lancer: 'Raider lancer', shard: 'Raider shard', boss: 'Flagship', interceptor: 'Raider interceptor', bulwark: 'Raider bulwark', carrier: 'Raider carrier', drone: 'Carrier drone', sniper: 'Raider sniper', minelayer: 'Raider mine-layer'};
 
-// The name on a raider's plate: what it is to you, a goal's part by its part (arcade_goals.js), else its kind
+// The name on a raider's plate: what it is to you, else its kind
 function target_plate_name(target)
 {
     if (target.leviathan) {
         return 'LEVIATHAN';
     }
-    if (target.launcher) {
-        return 'MISSILE LAUNCHER';
-    }
-    if (target.emitter) {
-        return 'SHIELD EMITTER';
-    }
-    if (target.post) {
-        return arcade_post_shielded(target) ? 'COMMAND · SHIELDED' : 'COMMAND POST';
-    }
     if (target.jammer) {
         return 'JAMMER';
-    }
-    if (target.goal_raid) {
-        return arcade_raid_plate_name(target);
     }
     // a flagship's nest (boss_duels.js)
     if (target.duel_owner) {

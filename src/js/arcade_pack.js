@@ -72,9 +72,9 @@ function pack_form(squad)
     pack_roles(group, new Set(members));
 }
 
-// The roles by the pack's raiders still in the fight (`here`: the raiders on the map; a goal done sends them away
-// without a kill), in their order: the first cuts you off, the next two take a flank each (in a world of flanks), the
-// rest come from behind; a ring's slots in the same order
+// The roles by the pack's raiders still in the fight (`here`: the raiders on the map; one taken off it is out of the
+// fight without a kill), in their order: the first cuts you off, the next two take a flank each (in a world of
+// flanks), the rest come from behind; a ring's slots in the same order
 function pack_roles(group, here)
 {
     const alive = group.members.filter(v => (v.hp > 0) && here.has(v));

@@ -2,31 +2,20 @@
 // of two, so the six worlds between come in an order of your own. The run's difficulty grows with the step, not the
 // world: a world's raiders carry the hull, armour, shield and hits of the step they come at (spawn_enemy), its waves
 // the step's size, its flagship the step's hull, and the depot opens what the step opens (world_reached); the world
-// keeps what makes it itself: its map, its rules, its raiders' gun, its goal and its flagship's attacks. The offer:
+// keeps what makes it itself: its map, its rules, its raiders' gun and its flagship's attacks. The offer:
 // the lowest world left (so none is put off for ever without your say) and one more of those at most a step ahead,
 // so no gun or rule comes far before the kit that answers it; Obsidian only at its own step. Always taking the lowest
 // flies today's order with today's numbers. The offers come from the run's own dice (arcade.seed), so loading a save
 // offers the same two again.
 
 // The steps a world may be flown at, by its index: from a step before its own place (its tier) to the last before
-// Eclipse. Obsidian only at its own, 4: its siege asks for a third gun (the gunship's mount, on sale from step 3) and
-// is tuned to step 4's hull; bin/playtest's bot (NORMAL) lost the run there 6 times in 9 at step 3, 6 in 9 at steps 5
-// and 6 (where the shop gives raiders 2.2 and 2.8 times the hull), and 2 in 12 at step 4, both with two guns
+// Eclipse. Obsidian only at its own, 4: it is tuned to step 4's hull; bin/playtest's bot (NORMAL) lost the run there
+// 6 times in 9 at step 3, 6 in 9 at steps 5 and 6 (where the shop gives raiders 2.2 and 2.8 times the hull), and 2 in
+// 12 at step 4, both with two guns
 const arcade_route_steps = [[0, 0], [1, 6], [1, 6], [2, 6], [4, 4], [4, 6], [5, 6], [7, 7]];
 
 // Raiders' guns as the route card names them
 const arcade_route_guns = {plasma: 'Plasma bolts', scatter: 'Scatter shot', missile: 'Missiles', ion: 'Ion bolts', rail: 'Railgun slugs'};
-// Each world's goal in a few words (arcade_goals.js), for the route card
-const arcade_route_goals = {
-    escort: 'Escort tenders to the depot',
-    brood: 'Scoop the seed pods before the nest',
-    breach: 'Break through the launchers’ rock walls',
-    relays: 'Light relays with a storm-charged pulse',
-    siege: 'Break the emitters, then the command post',
-    rescue: 'Tow the drifting capsules home',
-    regulators: 'Hold the regulators by the flares',
-    anchors: 'Fly through the anchors round the black hole',
-};
 
 // The step of the run, 0 to 7: the worlds cleared before this one. Outside the arcade, the world.
 function arcade_level()
@@ -84,12 +73,10 @@ function arcade_route_offers()
     return [lowest, other].sort((a, b) => world_tier(a) - world_tier(b));
 }
 
-// What a world offered asks of you, as the route card says it: its goal, its raiders' gun, its rules
+// What a world offered asks of you, as the route card says it: its raiders' gun, its rules
 function arcade_route_card(world)
 {
-    const kind = arcade_goal_kinds[world];
     return {
-        goal: arcade_route_goals[kind] || '',
         gun: arcade_route_guns[worlds[world].weapon] || '',
         rules: world_rules[world].summary.split(' · '),
     };

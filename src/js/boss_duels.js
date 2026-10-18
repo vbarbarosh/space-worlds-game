@@ -338,7 +338,7 @@ function boss_duel_live()
     return null;
 }
 
-// The HUD card's goal while a duel is on (sync_arcade_card): a title, the next thing to go for, how it stands
+// The HUD card while a duel is on (sync_arcade_card): a title, the next thing to go for, how it stands
 function boss_duel_card()
 {
     const live = boss_duel_live();
@@ -353,7 +353,7 @@ function boss_duel_card()
 // The duel's next thing off the window: the kit's edge marker with its name and distance (screen px)
 function boss_duel_marker()
 {
-    if (!arcade.active || (state !== 'playing') || arcade_goal_open()) {
+    if (!arcade.active || (state !== 'playing')) {
         return;
     }
     const card = boss_duel_card();
@@ -379,8 +379,8 @@ function boss_duel_edge_marker(target, name, color)
     }
 }
 
-// How a pilot fights the duel now, for the bots (bin/playtest): the velocity to fly at and whether to keep to it with
-// raiders near (firm), as arcade_goal_pilot; null to fight as against any raider
+// How a pilot fights the duel now, for the bots (bin/playtest, the captain's autopilot): the velocity to fly at (m/s),
+// whether to fire the pulse, and whether to keep to it with raiders near (firm); null to fight as against any raider
 function boss_duel_pilot()
 {
     const live = boss_duel_live();
@@ -1444,7 +1444,7 @@ function boss_duel_nest_shield_draw(v)
     ctx.globalAlpha = 1;
 }
 
-// The rocks a charge can stun itself on: whole ore rocks, a breach's wall too
+// The rocks a charge can stun itself on: whole ore rocks
 function boss_duel_nearest_rock(p)
 {
     let out = null;

@@ -46,13 +46,6 @@ shows a health bar (its armour or energy, and how much is left as it is hit).
     (`ore_hp_bar` in `src/js/surfaces.js`) shows the rock's hp once it is below
     full, so in the campaign it shows only after raider fire; what a rock still
     holds shows as the field's label (`field_reserves_text`).
-  - **A breach's wall** (the arcade's Dustfall goal, `src/js/arcade_goals.js`):
-    ore rocks, solid, that your shots stop on with no damage; the pulse and
-    the raiders' missiles break them. Each wears an arc of its hp, orange,
-    red below half, besides the rock's bar.
-  - **A command post** (the arcade's Obsidian goal, `src/js/arcade_goals.js`):
-    no shot harms it while its emitters stand; a shield ring round it and a
-    beam from each emitter say so, and its tag reads COMMAND · SHIELDED.
   - **Drifting asteroids and wrecks:** they hurt your ship when you hit them,
     and your shots break them (`drifting_debris_hit` in
     `src/js/expedition.js`), but they have no bar. Raiders and raiders' shots
@@ -152,7 +145,7 @@ difficulty; none of that changes the campaign's rules.
 - In the arcade a fight's numbers follow the run's step (`arcade_level`, the
   worlds flown before), not the world's index: the worlds come in an order the
   player chooses (`src/js/arcade_route.js`), and a world keeps only what makes
-  it itself (map, rules, its raiders' gun, goal, flagship's attacks). Outside
+  it itself (map, rules, its raiders' gun, flagship's attacks). Outside
   the arcade `arcade_level()` is the world's index, and a card's factors
   (`arcade_card_k`) are all 1.
 - Arcade-only effects: a kill shakes the screen by the size of what died

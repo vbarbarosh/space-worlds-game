@@ -65,11 +65,6 @@ function captain_status()
         // the step of the run (the worlds come in the order chosen at each break), the route flown, and the cards in
         // force (src/js/arcade_route.js, src/js/arcade_cards.js)
         out.arcade = {world: `${arcade_level() + 1} / ${arcade_worlds}`, wave: `${arcade.wave} / ${arcade_waves}`, route: arcade.route.map(v => worlds[v].name), cards: arcade_cards_chips().map(v => v.text)};
-        // a world goal open: what it asks and how it stands (src/js/arcade_goals.js)
-        if (arcade_goal_open()) {
-            const card = arcade_goal_card();
-            out.arcade.goal = {title: card.title, how: card.line, state: card.eta, distance: card.target ? Math.round(distance(player, card.target)) : null};
-        }
         // the flagship's duel: how it is won now (src/js/boss_duels.js)
         const duel = boss_duel_card();
         if (duel) {
@@ -165,8 +160,7 @@ function captain_arcade_pilot()
     let nearest = null;
     let crowd = 0;
     for (const enemy of enemies) {
-        // a goal's anchored raider (a launcher, an emitter, a command post) is the goal's (arcade_goal_pilot), not one
-        // to keep at gun range
+        // an anchored raider (a flagship's nest) is the duel's (boss_duel_pilot), not one to keep at gun range
         if ((enemy.hp <= 0) || enemy.anchor) {
             continue;
         }
@@ -197,10 +191,9 @@ function captain_arcade_pilot()
         x += (target.x - player.x)/Math.max(1, distance(target, player));
         y += (target.y - player.y)/Math.max(1, distance(target, player));
     }
-    // a world goal open (src/js/arcade_goals.js), or a flagship's duel (src/js/boss_duels.js): with no raider within
-    // 500 m, or a plan to keep to (firm), thrust toward the velocity it asks for, coast once there, and fire the pulse
-    // where it says
-    const plan = arcade_goal_pilot() || boss_duel_pilot();
+    // a flagship's duel (src/js/boss_duels.js): with no raider within 500 m, or a plan to keep to (firm), thrust toward
+    // the velocity it asks for, coast once there, and fire the pulse where it says
+    const plan = boss_duel_pilot();
     if (plan && ((!nearest || (distance(nearest, player) > 500)) || plan.firm)) {
         x = plan.vx - player.vx;
         y = plan.vy - player.vy;
@@ -222,7 +215,7 @@ function captain_arcade_pilot()
             y += (shot.vx/speed)*1.5;
         }
     }
-    // a plan that keeps to the rim (the anchors, the Eclipse Eye's edge) leans out against the pull itself
+    // a plan that keeps to the rim (the Eclipse Eye's edge) leans out against the pull itself
     for (const hole of (plan && plan.firm) ? [] : black_holes) {
         const d = Math.max(1, distance(hole, player));
         if (d < gravity_reach(hole)*0.9) {

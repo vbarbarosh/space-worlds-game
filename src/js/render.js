@@ -194,7 +194,6 @@ function base_render_screen_controls()
     ctx.restore();
     render_minimap();
     render_radar();
-    render_arcade_goal_marker();
     boss_duel_marker();
     render_arcade_jammer_marker();
 }
@@ -266,7 +265,6 @@ function render()
     render_transport();
     render_waypoints();
     render_survey_robot();
-    render_arcade_goal();
     raider_jobs_render_under();
     pack_render();
     render_hostile_marks();

@@ -553,7 +553,7 @@ function dev_races_turbo_open(screen)
     update_camera(0, true);
 }
 
-// &wave=2 (or 3): the arcade's world from that wave on, its goal set out (arcade_goals.js), as its first frame would
+// &wave=2 (or 3): the arcade's world from that wave on, as its first frame would
 function dev_screen_arcade_wave()
 {
     if (dev_screen_wave === 1) {

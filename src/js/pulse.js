@@ -106,7 +106,6 @@ function pulse_update(dt)
     for (const wave of pulse_waves) {
         wave.previous = wave.r;
         wave.r = Math.min(wave.reach, wave.r + wave.speed*dt);
-        arcade_goal_pulse(wave);
         if (wave.shots) {
             pulse_wave_clear_shots(wave);
         }

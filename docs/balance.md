@@ -632,7 +632,7 @@ before rocks and the Relic processor.
   with your gun tier stops at tier 5, and a play log of v0.10.2 there (16.6
   min, no deaths) lost no hull from Cryosphere on. Its Eclipse flagship that
   died in 2 s had fallen into the black hole: raiders spawned within the
-  hole's reach of you at the anchors and the core took them. No raider spawns
+  hole's reach of you and the core took them. No raider spawns
   within 1.5 × a hole's radius now (`base_spawn_enemy`, the campaign too), and
   the arcade's flagship is neither pulled nor taken by a core. Measured after
   it (NORMAL seeds 1–3): Eclipse 114–129 s instead of 49–112, its flagship
@@ -653,8 +653,12 @@ before rocks and the Relic processor.
   beam instead of the cannon (one run each) the careful player now dies
   three times in Eclipse, where both got through before. Why: problem 1 of
   [playtest-2026-10-05.md](playtest-2026-10-05.md).
-- A wave holds 10 + 2 × step + 4 per wave past the first + the mode's
-  extra raiders (`arcade_wave_size`). A squadron is
+- A wave holds 10 + step + 4 per wave past the first + the mode's extra
+  raiders (`arcade_wave_size`): on NORMAL 13 in Haven's first wave, 24 in
+  Eclipse's second. With the world goals gone (2026-10-18) waves 1 and 2
+  are full again, and 2 a step made Eclipse's second wave 31: the bot won
+  3 runs of 12 (27 deaths in Eclipse); with 1 a step it wins 8 of 12, as
+  before, every death in Eclipse. A squadron is
   3 + min(3, step / 2) + (wave − 1) + the mode's extra, and the next
   comes after max(2.6, 5.5 − 0.3 × step) seconds × the mode's gap,
   but not while more than 14 raiders are alive (`arcade_squads_update`).
@@ -792,49 +796,6 @@ before rocks and the Relic processor.
   | Heat surge | every 6 s a line of 8 vents, 1400 m long, across your way; each warns for 1.4 s, then bursts for 22 within 80 m | Nova Forge, Eclipse |
   The ion storm (your shield at 0 for the wave, wherever you were) went on
   2026-10-15: there was no answer to it, and it undid Ion Reach's own storms.
-- **World goals** (`src/js/arcade_goals.js`, from
-  `notes/gameplay-review-2026-10-15.md`): waves 1 and 2 of every world ask
-  for the world's action instead of a count of raiders. The wave keeps half
-  its raiders and ends when the goal is met: those still about jump away,
-  the goal pays 60 + 20 × step salvage (about what the raiders it leaves out would drop, and more) and 1500 + 300 × step
-  score, by the share of its parts done, logged as `goal bonus`, and the
-  kill combo holds while a goal is open.
-- **Goals fought over** (`src/js/arcade_goal_raids.js`): 9 s into wave 1's
-  goal (6 s into wave 2's), then every 17 s (CHILL 26, OVERLOAD 13), a party
-  of 2 / 3 raiders (CHILL 1 / 2, OVERLOAD 3) warps in 800 m beyond the part
-  farthest from you (beyond it from a black hole in Eclipse), on top of the
-  wave's raiders (its squadrons are all out by then); six of them at most at
-  once. A raider
-  of the party turns on you within 230 m. A part with a hull (a tender, a
-  relay, a capsule, a regulator) takes 28 hits on NORMAL (CHILL 40,
-  OVERLOAD 22) × 1.2 for a tender or a regulator, × 0.6 for a capsule; a
-  missile counts two, and a raider with no gun (CHILL's plasma) boards it, a
-  hit every 1.4 s. Destroyed, it is lost. Elsewhere: Verdant's snatchers
-  carry a pod to the nest (shot down, they drop it); Dustfall's couriers
-  (one every 15 s, CHILL 22, OVERLOAD 12; a chaser's hull × 1.5, 115 m/s,
-  no gun) bring a warhead to a launcher from 1.5 km behind it, and three (CHILL
-  four) arm it: it jumps away, lost; Obsidian's couriers leave the command
-  post for the arena's edge, and three out (CHILL four) call the relief: the
-  post and its emitters jump away, lost, and a squadron jumps in; a raider
-  of Cryosphere's party across your tow line cuts it; one in a Nova Forge
-  regulator's ring holds its count; Eclipse's tugs drag an anchor toward the
-  hole at 20 m/s, and deeper than 0.78 × its radius it is swallowed, lost;
-  a tug shot down lets go, and its anchor drifts back to its place at 30 m/s.
-  A goal ends when each of its parts is done or lost (a rescue: when too few
-  capsules are left to save). Nothing done is a goal lost: no bonus, and the
-  wave goes on until its raiders are down. Every part done and none touched
-  is a clean save: × 1.6 the bonus.
-
-  | World | Wave 1 | Wave 2 |
-  |---|---|---|
-  | Haven | a tender 1.3 km out, bound for the depot at 80 m/s while you are within 420 m of it, at 35% of that while a raider is within 350 m of it | two tenders, 1.5 and 1.75 km out, 110° apart |
-  | Verdant | a nest 1.1 km out; three pods set out 2.1 km beyond it, 5 s apart, toward it at 55 m/s plus 2.5 × the current; flown within 70 m of, a pod is scooped; one that reaches the nest hatches three chasers | six pods in two streams |
-  | Dustfall | a missile launcher (a gunner ×3 hull, anchored, firing within 1300 m) 1.5 km out, behind an arc of rock 380 m before it: your guns don't break the wall, the pulse and the raiders' missiles do; or fly round its open back | two launchers 1.75 km out on opposite sides, then an exit 550 m past the last |
-  | Ion Reach | a relay 230 m outside the storm nearest the depot, lit by a full pulse, or an EMP, that reaches it; the storm charges the pulse for the shield | two relays, by the two nearest storms |
-  | Obsidian | a command post (a tank ×3 hull, anchored) 1.5 km out, which no shot harms while its two emitters stand (gunners ×1.2 hull, anchored, plasma within 550 m) 320 m round its sides and back; the post and emitters carry no armour or shield, so any gun breaks them | three emitters |
-  | Cryosphere | a capsule drifting at 90–140 m/s, hooked by staying within 120 m at under 110 m/s apart for 0.6 s, towed to the depot | three capsules, two to save; they bounce off the arena's edge |
-  | Nova Forge | two regulators 60 m inside the edges of the flares nearest the depot, each shut by 4 s in all within 150 m of it (the time kept when you leave) | three regulators |
-  | Eclipse | two anchors 1.15 × the hole's radius from its centre (about 640 m: a pull of about 50 m/s), on the side facing the arena's middle, each shut by flying within 90 m of it | three anchors |
 - A ship that explodes hurts everything within 1.8 × its blast size, less
   with distance: a chaser 10, a tank 26, a flagship 50, an elite ×1.5
   (`arcade_blast_from_kill`).
@@ -866,23 +827,23 @@ chooses the next world of two.
   by the run's dice (`arcade.seed`, kept in the save with the route and the
   cards); after the seventh world only Eclipse. Taking the first (lower) one
   every time flies the map's order with the numbers of before. Obsidian comes
-  only at its own step, the fifth world: its siege asks for a third gun and
-  is tuned to that step's hull. bin/playtest's bot (NORMAL) lost the run there
-  6 times in 9 when it came fourth, 6 in 9 when it came sixth or seventh (the
-  shop's ×2.2 and ×2.8 raider hull on its emitters), and 2 in 12 in its place,
-  both with two guns. So the first three worlds after Haven are Verdant, Dustfall and Ion
-  Reach in an order of yours (VDI, VID, DVI, DIV), and Cryosphere and Nova
-  Forge come after Obsidian in either order: eight routes.
+  only at its own step, the fifth world: it is tuned to that step's hull.
+  bin/playtest's bot (NORMAL) lost the run there 6 times in 9 when it came
+  fourth, 6 in 9 when it came sixth or seventh (the shop's ×2.2 and ×2.8
+  raider hull), and 2 in 12 in its place, both with two guns. So the first
+  three worlds after Haven are Verdant, Dustfall and Ion Reach in an order of
+  yours (VDI, VID, DVI, DIV), and Cryosphere and Nova Forge come after
+  Obsidian in either order: eight routes.
 - **What goes by the step**, whichever world it is: the raiders' hull, armour
   and shield, their threat level (hull, speed, the shooters' bolts and
   reload, the flagship's pattern speed: `threat_wave`), their hits, the wave
   and squadron sizes and gap, the elites' shield, the flagship's hull with
   the design factor of the step's world (so Ion Reach flown third has
-  Dustfall's 5 940, not 26 730), the world bonus, a goal's and an event's pay,
+  Dustfall's 5 940, not 26 730), the world bonus, an event's pay,
   your EMP, what a kill drops, what the depot opens (`Opens at world 5`) and
   the free gun tier. **What stays the world's:** its map (rocks, black holes,
   storms), its rules, its raiders' gun and type mix, its marksmen and flank
-  arc, its events, its goal, its flagship's attacks and its elites' trick.
+  arc, its events, its flagship's attacks and its elites' trick.
 - **The cards** (`arcade_card_pool` in `src/js/arcade_cards.js`): one of each
   kind a break, by the run's dice; a kind with none left gives its place to
   another. A gamble lasts the next world and pays its prize when that world

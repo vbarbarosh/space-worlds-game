@@ -127,10 +127,7 @@ function update(dt, frame_dt = dt)
     recharge_turbo(dt);
     player.shoot_cd -= dt;
     guns_cool(dt);
-    // an arcade goal holds the kill combo: its work is no kills, and it should not cost them (arcade_goals.js)
-    if (!arcade_goal_open()) {
-        combo_timer -= dt;
-    }
+    combo_timer -= dt;
     if (combo_timer <= 0) {
         combo = 1;
     }
@@ -267,8 +264,7 @@ function update(dt, frame_dt = dt)
         for (let i = 0; i < ore_nodes.length; ++i) {
             const v = ore_nodes[i];
             const d = distance(v, player);
-            // a breach's wall only the pulse breaks: the guns leave it be (arcade_goals.js)
-            if ((v.hp > 0) && (d < 650) && (d < near) && !v.wall) {
+            if ((v.hp > 0) && (d < 650) && (d < near)) {
                 near = d;
                 target = v;
             }
@@ -345,8 +341,7 @@ function update(dt, frame_dt = dt)
         const enemy_dt = dt*stasis_scale(v);
         v.age += enemy_dt;
         v.flash = Math.max(0, v.flash - dt);
-        // a raider sent for an arcade goal's part flies for it (arcade_goal_raids.js)
-        const prey = (v.escort_raider && escort) ? escort : (v.robot_raider && survey_robot) ? survey_robot : (structure_prey(v) || arcade_goal_prey(v) || race_prey(v));
+        const prey = (v.escort_raider && escort) ? escort : (v.robot_raider && survey_robot) ? survey_robot : (structure_prey(v) || race_prey(v));
         // a race on: the raiders turn away from its course and leave (race_keep_off)
         const waypoint = (race.course && race_keep_off(v, prey)) || prey || (drones.length && drone_prey(v)) || enemy_waypoint(v);
         const a = Math.atan2(waypoint.y - v.y, waypoint.x - v.x);
@@ -375,7 +370,7 @@ function update(dt, frame_dt = dt)
         if (v.type === 'shooter') {
             move = (d < 220) ? -0.6 : (d < 320) ? 0.18 : 1;
             v.fire_cd -= enemy_dt;
-            if ((v.fire_cd <= 0) && (v.age > 0.8) && !v.race_leave && !arcade_launcher_holds(v, d)) {
+            if ((v.fire_cd <= 0) && (v.age > 0.8) && !v.race_leave) {
                 // you and a race's rivals move fast: the shot leads them
                 enemy_fire(v, ((waypoint === player) || waypoint.rival) ? raider_aim(v, waypoint, 180 + threat_wave()*4) : a, 180 + threat_wave()*4);
                 v.fire_cd = Math.max(1.2, 2.1 - threat_wave()*0.04)*raider_reload(v);
@@ -406,13 +401,8 @@ function update(dt, frame_dt = dt)
                 move = 0;
             }
         }
-        // a raider sent for a goal's part keeps its range of it, boards it, or flies its errand (arcade_goal_raids.js)
-        if (v.goal_raid && prey) {
-            move = arcade_goal_raid_steer(v, move, prey);
-            heading = v.angle;
-        }
         // an escort keeps its place in its squadron, a lurker waits in the rocks, a pack hunts together, a raider with a
-        // job does it, a freighter keeps to its way, a launcher stays put (arcade_role_steer)
+        // job does it, a freighter keeps to its way, an anchored raider stays put (arcade_role_steer)
         if (v.guard || v.lurk || v.pack || v.job || v.event_goal || v.anchor) {
             move = arcade_role_steer(v, move, d);
             heading = v.angle;
@@ -526,7 +516,7 @@ function update(dt, frame_dt = dt)
                     (v.y <= Math.max(py, b.y) + v.r + b.r) &&
                     (segment_distance(v, {x: px, y: py}, b) < v.r + b.r)
                 ) {
-                    if (arcade.active && !arcade_wall_shields(v)) {
+                    if (arcade.active) {
                         damage_ore(v, b.damage*(current_ship().mining || 1));
                     }
                     else {
@@ -561,7 +551,7 @@ function update(dt, frame_dt = dt)
         }
         const enemy_dt = dt*stasis_scale(b);
         if (b.missile) {
-            missile_fly(b, (b.escort_target && escort) ? escort : ((b.goal_target && arcade_goal_missile_target(b)) || player), enemy_dt);
+            missile_fly(b, (b.escort_target && escort) ? escort : player, enemy_dt);
         }
         b.px = b.x;
         b.py = b.y;
@@ -572,10 +562,6 @@ function update(dt, frame_dt = dt)
             if (b.missile) {
                 missile_detonate(b);
             }
-            continue;
-        }
-        // a shot fired at a goal's part stops on it (arcade_goal_raids.js)
-        if (b.goal_target && arcade_goal_shot_hit(b)) {
             continue;
         }
         if (b.missile) {

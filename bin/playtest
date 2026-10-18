@@ -15,15 +15,14 @@ const usage = `usage: bin/playtest [--mode=normal] [--seeds=1,2,3] [--label=name
     clock and a seeded Math.random, as fast as the machine allows, and counts per world and wave what a run costs.
 
     How it flies: it holds 320 m from the nearest raider and circles it, steps aside from shots coming at it, picks
-    up salvage when fewer than three raiders are close, keeps off the radiation at the edge; a world goal and a
-    flagship's duel it flies as their pilots say (arcade_goal_pilot, boss_duel_pilot). The pulse at three
-    raiders within 380 m, a dash past a missile within 220 m, the EMP at six within 550 m or below a third of its
-    hull, stasis at eight, a repair kit below half. At the depot: a repair below 75% hull, two repair kits, then
-    modules by value for the price (Prism, Hotter plasma, Rapid resonance, Phase armor, Shield capacitor, drones,
-    nanites, the pulse); once they are bought, a sturdier ship on sale with no fewer mounts and one more of its gun
-    for each empty mount, then the rest that helps in a fight (reactor, cooling, evasion, the missile modules, dash,
-    speed, stabilizer), then the rest of the shop (magnet, relic processor, booster reservoir, radiation lining);
-    EMPs up to three. Guns fire by themselves.
+    up salvage when fewer than three raiders are close, keeps off the radiation at the edge; a flagship's duel it
+    flies as its pilot says (boss_duel_pilot). The pulse at three raiders within 380 m, a dash past a missile within
+    220 m, the EMP at six within 550 m or below a third of its hull, stasis at eight, a repair kit below half. At the
+    depot: a repair below 75% hull, two repair kits, then modules by value for the price (Prism, Hotter plasma, Rapid
+    resonance, Phase armor, Shield capacitor, drones, nanites, the pulse); once they are bought, a sturdier ship on
+    sale with no fewer mounts and one more of its gun for each empty mount, then the rest that helps in a fight
+    (reactor, cooling, evasion, the missile modules, dash, speed, stabilizer), then the rest of the shop (magnet, relic
+    processor, booster reservoir, radiation lining); EMPs up to three. Guns fire by themselves.
 
     A death starts the world again from its first wave, as loading an arcade save does; three deaths in one world
     end the run. The run says when the shop ran out (the Aurora Cruiser owned and every module at its cap, a
@@ -99,7 +98,7 @@ function run_table(run)
     const maxed = run.maxed ? `shop ran out at ${(run.maxed.run_time/60).toFixed(1)} min in ${run.maxed.world}` : 'shop never ran out';
     const lines = [`${run.mode} seed ${run.seed}: ${run.won ? 'won' : run.cut ? 'cut (time)' : 'lost'} · ${run.deaths} deaths · ${Math.round(run.run_time)} s · score ${run.score} · salvage left ${run.salvage_left} · ${maxed} · ${run.wall_seconds} s on the clock`];
     lines.push(`cards ${run.pick}: ${(run.cards || []).join(', ') || '-'} · route ${run.route_how}: ${(run.route || []).join(' > ')}`);
-    lines.push('world        hull lost (w1/w2/w3)   all dmg  kills  off-screen  salvage at depot  left after  deaths  time  goals  flagship  ship and guns  most from');
+    lines.push('world        hull lost (w1/w2/w3)   all dmg  kills  off-screen  salvage at depot  left after  deaths  time  flagship  ship and guns  most from');
     for (const world of run.worlds) {
         const hull = world.waves.map(v => Math.round(v.hull)).join(' / ');
         const all = Math.round(world.waves.reduce((sum, v) => sum + v.hull + v.shield, 0));
@@ -109,7 +108,7 @@ function run_table(run)
         // the flagship: the seconds it lived and the hull you lost meanwhile, over every try; how it ended
         const f = world.flagship;
         const flagship = f.time ? `${Math.round(f.time)} s ${Math.round(f.hull)} hp${f.escaped ? ' fled' : ''}` : '-';
-        lines.push(`${world.name.padEnd(12)} ${hull.padEnd(22)} ${String(all).padStart(7)}  ${String(world.kills).padStart(5)}  ${String(world.off_screen).padStart(10)}  ${String(world.salvage_at_depot ?? '-').padStart(16)}  ${left.padStart(10)}  ${String(world.deaths).padStart(6)}  ${Math.round(world.time)} s  ${(world.goals || []).join(',') || '-'}  ${flagship.padStart(8)}  ${world.ship}: ${world.guns.join('+')}  ${sources}`);
+        lines.push(`${world.name.padEnd(12)} ${hull.padEnd(22)} ${String(all).padStart(7)}  ${String(world.kills).padStart(5)}  ${String(world.off_screen).padStart(10)}  ${String(world.salvage_at_depot ?? '-').padStart(16)}  ${left.padStart(10)}  ${String(world.deaths).padStart(6)}  ${Math.round(world.time)} s  ${flagship.padStart(8)}  ${world.ship}: ${world.guns.join('+')}  ${sources}`);
     }
     return lines.join('\n');
 }
@@ -162,7 +161,7 @@ function page_bot(options)
         if (current && (current.world === campaign.world)) {
             return current;
         }
-        const out = {world: campaign.world, name: worlds[campaign.world].name, ship: current_ship().id, guns: mounted_weapons().map(v => (v ? v.id : 'empty')), waves: [], sources: {}, flagship: {time: 0, hull: 0, escaped: false}, kills: 0, off_screen: 0, deaths: 0, time: 0, salvage_at_depot: null, goals: [], earned: {}};
+        const out = {world: campaign.world, name: worlds[campaign.world].name, ship: current_ship().id, guns: mounted_weapons().map(v => (v ? v.id : 'empty')), waves: [], sources: {}, flagship: {time: 0, hull: 0, escaped: false}, kills: 0, off_screen: 0, deaths: 0, time: 0, salvage_at_depot: null, earned: {}};
         B.worlds.push(out);
         return out;
     }
@@ -193,13 +192,7 @@ function page_bot(options)
             sources[caller] = (sources[caller] || 0) + lost;
         }
     };
-    // each world goal's end: its wave and how it ended (clean, done, partial, lost)
-    const base_goal_finish = arcade_goal_finish;
-    arcade_goal_finish = function (g) {
-        base_goal_finish(g);
-        world_entry().goals.push(`${g.wave}:${g.result || 'done'}`);
-    };
-    // the salvage each world brought in, by where it came from (pickups, goal bonus, world bonus)
+    // the salvage each world brought in, by where it came from (pickups, world bonus)
     const base_earn = play_log_earn;
     play_log_earn = function (source, amount) {
         base_earn(source, amount);
@@ -236,7 +229,7 @@ function page_bot(options)
         }
     }
     function fly() {
-        // a goal's anchored raider (a launcher, an emitter, a command post) is the goal's (below), not one to circle
+        // an anchored raider (a flagship's nest) is the duel's (below), not one to circle
         const alive = enemies.filter(v => (v.hp > 0) && !v.anchor);
         function near(r) {
             return alive.filter(v => distance(v, player) < r).length;
@@ -281,13 +274,10 @@ function page_bot(options)
                 dy = world.h/2 - player.y;
             }
         }
-        // a world goal open (src/js/arcade_goals.js): with no raider close, or a plan to keep to (firm), fly it as a
-        // pilot would: thrust toward the velocity it asks for, coast once there, and the pulse where it says
-        // or a flagship's duel (src/js/boss_duels.js), where the build has one, still stepping across a shot's line
-        // as a player does while keeping to it
-        const goal = arcade_goal_pilot();
-        const duel = (!goal && (typeof boss_duel_pilot === 'function')) ? boss_duel_pilot() : null;
-        const plan = goal || duel;
+        // a flagship's duel (src/js/boss_duels.js), where the build has one: with no raider close, or a plan to keep
+        // to (firm), fly it as a pilot would: thrust toward the velocity it asks for, coast once there, and the pulse
+        // where it says, still stepping across a shot's line as a player does while keeping to it
+        const plan = (typeof boss_duel_pilot === 'function') ? boss_duel_pilot() : null;
         if (plan && ((near(500) === 0) || plan.firm)) {
             dx = plan.vx - player.vx;
             dy = plan.vy - player.vy;
@@ -295,7 +285,7 @@ function page_bot(options)
                 dx = 0;
                 dy = 0;
             }
-            if (duel && dodge) {
+            if (dodge) {
                 dx += dodge.x*400;
                 dy += dodge.y*400;
             }
@@ -303,7 +293,8 @@ function page_bot(options)
                 pulse();
             }
         }
-        // a black hole's pull: away from it, unless a goal's plan keeps to the rim (it leans out against the pull itself)
+        // a black hole's pull: away from it, unless the duel's plan keeps to the rim (it leans out against the pull
+        // itself)
         if (!(plan && plan.firm)) {
             for (const hole of black_holes) {
                 const d = Math.max(1, distance(hole, player));

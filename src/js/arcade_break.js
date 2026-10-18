@@ -152,7 +152,7 @@ function arcade_break_cards_html()
     return `<div class="pick-cards">${cards.join('')}</div>`;
 }
 
-// The route's map, then a card for each world offered: its planet, name, the step, its goal, its raiders' gun, its rules
+// The route's map, then a card for each world offered: its planet, name, the step, its raiders' gun, its rules
 function arcade_break_route_html()
 {
     const offers = arcade_break.offers;
@@ -162,7 +162,7 @@ function arcade_break_route_html()
         const card = arcade_route_card(world);
         const on = world === chosen;
         const last = world === arcade_worlds - 1;
-        return `<button type="button" class="route-card${on ? ' is-chosen' : ''}" data-choice="${i}" aria-pressed="${on}" style="--world:var(--w-${world_slug(world)})"><span class="rc-head"><span class="key">${i + 1}</span><span class="rc-step">World ${step} of ${arcade_worlds}${last ? ' · the last' : ''}</span></span><span class="rc-world"><img src="${arcade_route_planet(world)}" alt=""><b>${ui_escape(worlds[world].name)}</b></span><dl class="rc-lines">${card.goal ? `<div><dt>Goal</dt><dd>${ui_escape(card.goal)}</dd></div>` : ''}<div><dt>Raiders</dt><dd>${ui_escape(card.gun)}</dd></div></dl><span class="rc-rules">${card.rules.map(v => ui_badge(ui_escape(ui_sentence(v)))).join('')}</span></button>`;
+        return `<button type="button" class="route-card${on ? ' is-chosen' : ''}" data-choice="${i}" aria-pressed="${on}" style="--world:var(--w-${world_slug(world)})"><span class="rc-head"><span class="key">${i + 1}</span><span class="rc-step">World ${step} of ${arcade_worlds}${last ? ' · the last' : ''}</span></span><span class="rc-world"><img src="${arcade_route_planet(world)}" alt=""><b>${ui_escape(worlds[world].name)}</b></span><dl class="rc-lines"><div><dt>Raiders</dt><dd>${ui_escape(card.gun)}</dd></div></dl><span class="rc-rules">${card.rules.map(v => ui_badge(ui_escape(ui_sentence(v)))).join('')}</span></button>`;
     });
     return `<div class="route-map">${arcade_route_map_html(offers, chosen)}</div><div class="route-cards${(offers.length === 1) ? ' is-one' : ''}">${worlds_html.join('')}</div>`;
 }

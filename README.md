@@ -106,8 +106,8 @@ enemy and target-dummy spawning, live upgrade levels and a sound board. The
 scene lives in the URL, e.g. `dev.html?world=3&ship=gunship&weapon=rail`; a world goes by number or file name (`world=ion-reach`).
 `&screen=station-arsenal` (or flight, combat, arcade, crowded, pause, menu,
 map-plan, ...; the list is in src/js/dev/screen.js) opens that screen with the
-panel folded; with `&screen=arcade`, `&wave=2` starts the world at its second wave
-(a world goal in every world, e.g. `dev.html?world=dustfall&screen=arcade&wave=2`), and
+panel folded; with `&screen=arcade`, `&wave=2` starts the world at that wave
+(e.g. `dev.html?world=dustfall&screen=arcade&wave=2`), and
 `&raiders=sniper,bulwark` brings a pack of three chasers and one raider of each kind named (interceptor,
 carrier, bulwark, sniper, minelayer) 640 m ahead.
 `&card_hud=1` puts cards in force over the gauges.

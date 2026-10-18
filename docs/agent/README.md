@@ -122,26 +122,20 @@ there is a decision to make.
 `ARCADE` is a run through the eight worlds: three waves of raiders in each,
 the world's flagship in the third, and a break and the depot between worlds.
 It starts in Haven and ends in Eclipse; the six between come in an order you
-choose, and the raiders grow with the step of the run, not with the world. In every
-world waves 1 and 2 have a goal instead (Haven: escort the tender to the
-depot; Verdant: scoop the drifting pods before the nest; Dustfall: destroy
-the launchers behind their rock wall; Ion Reach: light the relays with a full
-pulse or an EMP; Obsidian: break the emitters, then the command post;
-Cryosphere: tow the drifting capsules to the depot; Nova Forge: stay in each
-regulator's ring until it shuts; Eclipse: fly through the anchors round the
-black hole); `status` names it, and the wave ends when it is done. Each
-flagship is a fight of its own, said when it arrives and in `status` (its
-`flagship` line): the Crescent runs for a gate and gets away with its bounty
-if it reaches it; nests heal the Thorn Beetle; the Sawtooth's blade turns
-your shots until it rams a rock; the Storm Wheel is hurt through the gaps of
-its turning shell; the Iron Stair at its one glowing weak point; the Frost
-Crystal while it glows; the Furnace's ring of fire closes in and burns
-outside; the Eclipse Eye's dome opens only while you are at the hole's edge.
-In the arcade the autopilot flies for you: it keeps the nearest raider at gun
-range, sidesteps, collects pickups when the sky is clear, flies the world's
-goal or the flagship's fight when no raider is close and keeps away from
-gravity wells. Your guns fire on their own, at the part of a flagship that
-can be hurt from where you are, or at another raider while none can.
+choose, and the raiders grow with the step of the run, not with the world. A
+wave ends when its raiders are down. Each flagship is a fight of its own,
+said when it arrives and in `status` (its `flagship` line): the Crescent
+runs for a gate and gets away with its bounty if it reaches it; nests
+shield the Thorn Beetle; the Sawtooth's blade turns your shots until it rams a
+rock; the Storm Wheel is hurt through the gaps of its turning shell; the
+Iron Stair at its one glowing weak point; the Frost Crystal while it glows;
+the Furnace's ring of fire closes in and burns outside; the Eclipse Eye's
+dome opens only while you are at the hole's edge. In the arcade the
+autopilot flies for you: it keeps the nearest raider at gun range,
+sidesteps, collects pickups when the sky is clear, flies the flagship's
+fight when no raider is close and keeps away from gravity wells. Your guns
+fire on their own, at the part of a flagship that can be hurt from where you
+are, or at another raider while none can.
 
 Your part:
 
@@ -156,7 +150,7 @@ Your part:
     of the run) or a boon (a gift; some cost salvage). Press a card, then
     `Take <card>`. `status` lists the cards in force under `arcade.cards`.
   - **The next world**, one of two (only Eclipse after the seventh): each
-    names its goal, its raiders' gun and its rules. Press one, then
+    names its raiders' gun and its rules. Press one, then
     `To the depot · then <World>`.
 
   Then the depot (screen `arcade_depot`), with a bonus for the world cleared:

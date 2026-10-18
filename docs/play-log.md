@@ -129,7 +129,7 @@ can come without it. A reader skips fields it does not know.
 | `world` | the world it was played in |
 | `flight_s`, `docked_s` | seconds in flight; seconds in the station, depot, map or inventory |
 | `salvage` | on hand at its end |
-| `earned` | by source: `pickups` (wreck and cache salvage), `contract`, `story` (a story chapter), `race`, `goal`, `world bonus` and `goal bonus` (arcade), `sell <cargo>` (ore, cells, relics, commodities), `transport` (a transport line's sales), `refund` (a structure still building when you left), `unlogged` |
+| `earned` | by source: `pickups` (wreck and cache salvage), `contract`, `story` (a story chapter), `race`, `goal`, `world bonus` (arcade), `sell <cargo>` (ore, cells, relics, commodities), `transport` (a transport line's sales), `refund` (a structure still building when you left), `unlogged` |
 | `spent` | by kind: `ship`, `gun`, `gun tier`, `module`, `supply`, `repair` (arcade), `card` (arcade, a card's price), `drone`, `drone tier`, `builder`, `structure`, `transport line`, `trade` (commodities bought), `tow` (the tug after a death), `unlogged` |
 | `xp_total`, `xp`, `rank` | campaign only (null in the arcade): XP at the end, earned by source (`kill`, `contract`, `unlogged`), the rank |
 | `kills` | by raider type: `chaser`, `shooter`, `lancer`, `tank`, `splitter`, `shard`, `boss` |
@@ -174,7 +174,6 @@ Every event has `t` and `type`.
 | `card won` | arcade: a gamble's world cleared, its prize given: `world`, `card` |
 | `card used` | arcade: the second wind saved you: `world`, `card` |
 | `route` | arcade: the next world chosen at the break: `from`, `to`, `offered` (the worlds offered, names) |
-| `goal` | arcade: a world goal's end: `world`, `wave`, `kind`, `result` (`clean`, `done`, `partial`, `lost`), `done`, `lost`, `of` (its parts) |
 | `death` | `world`, `cause` (`kind` as `taken_by`; for a shot `raider`, `weapon`, `elite`; for a ram `raider`, `elite`), `first_in_world` (in this game), `in_world_s`, `salvage`, `ship`, `flagship_alive` (its hull left, 0 to 1, or null) |
 | `won` | the arcade's last world cleared: `world`, `salvage` |
 

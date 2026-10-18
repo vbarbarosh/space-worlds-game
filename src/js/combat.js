@@ -167,7 +167,7 @@ function base_spawn_enemy(type)
     const radius = Math.max(330, Math.min(W, H)*0.55) + rand(120, 230);
     let found = false;
     // never inside a black hole's radius and a half: a raider there was pulled to the core and lost before it fought
-    // (the arcade's Eclipse, where the anchors keep you beside the hole, lost flagships so in 2 s)
+    // (the arcade's Eclipse, with you beside the hole, lost flagships so in 2 s)
     for (let i = 0; i < 24; ++i) {
         const a = rand(0, Math.PI*2);
         x = player.x + Math.cos(a)*radius;
