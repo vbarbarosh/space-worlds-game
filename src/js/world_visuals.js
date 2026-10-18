@@ -702,6 +702,8 @@ function physics_base_update_hud()
 {
     visual_base_update_hud();
     if (player) {
-        hud_text(el.act_label, `${worlds[campaign.world].name.toUpperCase()} / ${world_looks[campaign.world].biome} / THREAT ${Math.floor(world_tier(campaign.world)) + 1}`);
+        // the Races mode has no raiders to rate a world's threat by
+        const threat = race_mode.active ? '' : ` / THREAT ${Math.floor(world_tier(campaign.world)) + 1}`;
+        hud_text(el.act_label, `${worlds[campaign.world].name.toUpperCase()} / ${world_looks[campaign.world].biome}${threat}`);
     }
 }

@@ -546,8 +546,9 @@ function update_expedition_readout()
     else {
         text += `\nNO RADIATION · ${Math.round(world.w/1000)} × ${Math.round(world.h/1000)} km`;
     }
+    // the way to the next ring is the race card's already
     const context = guide_context();
-    if (context?.goal && guide_path.length) {
+    if (context?.goal && guide_path.length && !race_mode.active) {
         const m = route_metrics();
         text += `\nROUTE ${m.jumps} PORTALS · ${(m.walk/1000).toFixed(1)} km · ~${format_time(m.seconds)}`;
     }

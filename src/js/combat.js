@@ -456,7 +456,8 @@ function damage_player(amount, blast = false, cause = 'other', by = null)
 
 function pulse()
 {
-    if ((state !== 'playing') || (player.energy < 100)) {
+    // the Races mode has no pulse: it would make you crash-proof for a moment (race-mode.css hides its gauge)
+    if ((state !== 'playing') || (player.energy < 100) || race_mode.active) {
         return;
     }
     player.energy = 0;

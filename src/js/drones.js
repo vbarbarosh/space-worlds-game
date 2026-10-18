@@ -39,7 +39,7 @@ function drone_cut_rate()
 // H: launch the drones at the rocks within 900 m, or call them back.
 function drones_toggle()
 {
-    if ((state !== 'playing') || arcade.active || !player) {
+    if ((state !== 'playing') || arcade.active || race_mode.active || !player) {
         return;
     }
     if (drones_out) {

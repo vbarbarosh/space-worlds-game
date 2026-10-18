@@ -31,7 +31,8 @@ function toggle_inventory()
         el.inventory_button.focus();
         return;
     }
-    if (!['playing', 'paused'].includes(state)) {
+    // the Races mode has no inventory: no supplies, cargo or magnet to use in a race
+    if (!['playing', 'paused'].includes(state) || race_mode.active) {
         return;
     }
     inventory_return = state;

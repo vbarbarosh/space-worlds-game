@@ -57,7 +57,7 @@ function on_build_key(event)
     if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName) || event.repeat) {
         return;
     }
-    if ((event.code === 'KeyK') && (state === 'playing') && !arcade.active) {
+    if ((event.code === 'KeyK') && (state === 'playing') && !arcade.active && !race_mode.active) {
         build_menu_toggle();
     }
     else if ((event.code === 'Escape') && !document.getElementById('build_overlay').classList.contains('hidden')) {

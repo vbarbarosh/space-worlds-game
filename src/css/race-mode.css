@@ -15,6 +15,35 @@ body.race-mode #combo_box {
     display: none;
 }
 
+/* nor anything a race has no use for: no supplies (the start ship has none), drones or builds, so no quick bar (a route
+   is still set with Ctrl); no pulse (a race waives the world's price of a turbo in pulse, and a pulse would make you
+   crash-proof for a moment), so no pulse gauge or touch PULSE; no inventory (Tab), no map behind the minimap (OPEN J),
+   no raiders to rate a threat by, no coordinates to plan by */
+body.race-mode #loadout,
+body.race-mode #inventory_button,
+body.race-mode #pulse_gauge,
+body.race-mode #touch_pulse,
+body.race-mode .ui.hud .minimap .mm-open,
+body.race-mode .ui .mission .where .threat,
+body.race-mode #map_coordinates {
+    display: none;
+}
+
+body.race-mode .ui.hud .minimap {
+    cursor: default;
+    pointer-events: none;
+}
+
+/* without the threat, Details keeps the card's corner */
+body.race-mode .ui .mission .where #mc_details_button {
+    margin-left: auto;
+}
+
+/* the ship panel is the hull and the turbo, half and half */
+body.race-mode .ui .hud-bottom .shipstat {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 /* the results: the place as the title, the time and crashes under it, the field as the HUD's board lists it */
 .ui .race-result .race-result-rows {
     display: flex;
