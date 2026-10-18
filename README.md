@@ -111,6 +111,7 @@ panel folded; with `&screen=arcade`, `&wave=2` starts the world at its second wa
 `&raiders=sniper,bulwark` brings a pack of three chasers and one raider of each kind named (interceptor,
 carrier, bulwark, sniper, minelayer) 640 m ahead.
 `&card_hud=1` puts cards in force over the gauges.
+`&screen=arcade-lost` shows a death on the world's last wave, with Retry for that world.
 `&screen=arcade-pick` opens the break after the world at its three cards,
 `arcade-route` at the next world of two (`&cards=wager,overclock,prototype`
 draws those, `&cards=long` the longest texts, `&salvage=n`, `&route=0,2,1` a

@@ -116,7 +116,7 @@ function arcade_start(world = 0, from = null)
     arcade_cards_start(from);
     document.body.classList.add('arcade');
     set_hidden(document.getElementById('arcade_depot'), true);
-    document.getElementById('restart_button').innerHTML = '<span>Play again</span>';
+    document.getElementById('restart_button').innerHTML = '<span>New run</span>';
     document.getElementById('result_sector_label').textContent = 'World reached';
     // A run starts as a resumed checkpoint made up on the spot; the campaign's own checkpoint is put back after.
     arcade.campaign_checkpoint = checkpoint;
@@ -263,8 +263,8 @@ function arcade_update(dt)
     }
     if (arcade.world !== campaign.world) {
         arcade.world = campaign.world;
-        // the run as this world begins, for the numbers its cleared screen shows
-        arcade.world_start = {score, kills, run_time};
+        // the run as this world begins, for the numbers its cleared screen shows and a retry after a death (as a load)
+        arcade.world_start = {score, kills, run_time, snapshot: arcade_snapshot()};
         arcade_cards_world_start();
         arcade_wave_start(1);
         return;
@@ -1159,7 +1159,11 @@ function arcade_finish(won)
         arcade_finale_open({score, best: previous, raiders: kills, time: run_time, salvage, kept});
         return;
     }
-    set_hidden(document.getElementById('retry_sector'), true);
+    // a death sends you back to the start of the world you died in, not of the run: the first button, so Enter retries
+    const retry = document.getElementById('retry_sector');
+    const name = worlds[campaign.world].name;
+    retry.innerHTML = `<span>Retry ${name}</span>`;
+    set_hidden(retry, !arcade.world_start?.snapshot);
     set_hidden(el.result_overlay, false);
     for (const v of [el.loadout, el.inventory_button, el.mission, el.pause_button, el.touch_buttons, el.bossbar]) {
         set_hidden(v, true);
@@ -1169,11 +1173,11 @@ function arcade_finish(won)
     el.result_title.textContent = won ? 'All eight worlds.' : 'One more run?';
     el.result_description.textContent = won
         ? `Eight worlds, eight flagships, ${format_time(run_time)}.`
-        : `You reached ${worlds[campaign.world].name}, wave ${arcade.wave} of ${arcade_waves}.${salvage ? ` Salvage kept: ◆ ${ui_number(salvage)}, +${ui_number(kept)} points.` : ''}`;
+        : `You reached ${name}, wave ${arcade.wave} of ${arcade_waves}. Retry it from its first wave as you began it, or start a new run.${salvage ? ` Salvage kept: ◆ ${ui_number(salvage)}, +${ui_number(kept)} points.` : ''}`;
     el.result_score.textContent = score.toLocaleString();
     el.result_sector.textContent = `${arcade_level() + 1} / ${arcade_worlds}`;
     el.result_best.textContent = `${record ? 'NEW PERSONAL BEST · ' : 'PERSONAL BEST · '}${best.toLocaleString()}  /  ${kills} ELIMINATIONS · ${format_time(run_time)}`;
-    document.getElementById('restart_button').focus();
+    (arcade.world_start?.snapshot ? retry : document.getElementById('restart_button')).focus();
 }
 
 // A flagship's death plays at 30% speed for a moment; elsewhere the clock runs as it is.

@@ -210,6 +210,14 @@ function checkpoint_without_feltmere(v)
 }
 
 document.getElementById('retry_sector').addEventListener('click', function () {
+    // an arcade death: the world it came in, again from its first wave, as the run stood when that world began
+    if (arcade.active) {
+        const from = arcade.world_start.snapshot;
+        set_pause_icon(false);
+        arcade_stop();
+        arcade_start(from.world, from);
+        return;
+    }
     if (!checkpoint) {
         return;
     }

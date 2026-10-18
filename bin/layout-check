@@ -55,6 +55,8 @@ const screens = [
     {value: 'arcade-route', label: 'arcade-route-last', world: 'nova-forge', phone: true},
     {value: 'arcade', label: 'hud-arcade-cards', world: 'ion-reach', query: '&card_hud=1', phone: true},
     {value: 'arcade', label: 'hud-arcade-cards-all', world: 'ion-reach', query: '&card_hud=all', phone: true},
+    // a death: Retry the world first, the longest world's name and the run's longest numbers
+    {value: 'arcade-lost', label: 'arcade-lost', world: 'nova-forge', phone: true},
     // the finale held after its results are in
     {value: 'arcade-finale', label: 'arcade-finale', query: '&t=13', phone: true},
     {value: 'station-jobs', label: 'station-contracts', phone: true},

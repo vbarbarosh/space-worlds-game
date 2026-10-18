@@ -10,6 +10,7 @@ const dev_screen_options = [
     {value: 'arcade-pick', label: 'Arcade: the break, a card to take'},
     {value: 'arcade-route', label: 'Arcade: the break, the next world'},
     {value: 'arcade-finale', label: 'Arcade: finale'},
+    {value: 'arcade-lost', label: 'Arcade: lost, retry the world'},
     {value: 'rocks', label: 'Facing a mining field'},
     {value: 'race', label: 'Race: lined up, the count'},
     {value: 'race-mid', label: 'Race: mid-race, the standings'},
@@ -109,6 +110,21 @@ function dev_screen_open()
         salvage = 455;
         finale.frozen = (dev_screen_time === null) ? null : Number(dev_screen_time);
         arcade_finish(true);
+        return;
+    }
+    // a death on the last wave of the world, at the run's longest numbers: Retry the world, a new run, the menu
+    if (dev_screen === 'arcade-lost') {
+        dev_arcade_start();
+        dev_screen_modules_set();
+        arcade.world = campaign.world;
+        arcade.world_start = {score, kills, run_time, snapshot: arcade_snapshot()};
+        arcade.wave = arcade_waves;
+        score = 1556825;
+        kills = 1700;
+        run_time = 5824;
+        salvage = 99455;
+        player.hp = 0;
+        finish(false);
         return;
     }
     if (dev_screen === 'arcade-cleared') {
