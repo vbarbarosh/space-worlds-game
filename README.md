@@ -37,7 +37,7 @@ Three modes:
   world's elites have a trick of their own. Each world's flagship is a fight
   of its own: its own attacks, each shown before it lands, its own way of
   moving, a second half below 50%, and its own way to be won: the Crescent
-  runs for a gate and gets away if it reaches it, nests heal the Thorn
+  runs for a gate and gets away if it reaches it, nests shield the Thorn
   Beetle, the Sawtooth stuns itself on a rock it charges into, the Storm
   Wheel is hurt through the gaps of its turning shell, the Iron Stair at one
   weak point at a time, the Frost Crystal while it glows, the Furnace's ring

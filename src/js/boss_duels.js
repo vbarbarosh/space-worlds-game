@@ -4,7 +4,8 @@
 // moments it calls escorts (arcade_flagship_update):
 // - Haven, the chase: the Crescent runs for a gate; each third of its hull lost sputters its engine. At the gate it
 //   gets away: the wave goes on without it and its bounty is lost.
-// - Verdant, the nests: nests round the Beetle heal it while they stand; at half its hull it sows new ones.
+// - Verdant, the nests: nests round the Beetle hold a shield over it while they stand: no hit gets through it; at
+//   half its hull it sows new ones, and the shield rises again as they grow.
 // - Dustfall, the joust: the Sawtooth's blade turns most of a shot; a charge that ends on a rock stuns it, hull open.
 // - Ion Reach, the shell: a shell with two gaps turns round the Wheel's core and stops your shots; lit lanes show the
 //   gaps, and its arcs light up all round it but in the gaps.
@@ -23,10 +24,12 @@
 
 // a shot that glances off: the share of it that gets through, and the share while the hull is open
 const boss_duel_glance = 0.15;
-// the colours: what can be hurt now, a heal, a part to break
+// the colours: what can be hurt now, the nests and their shield, a part to break
 const boss_duel_open_color = '#fff3b0';
-const boss_duel_heal_color = '#9dff9b';
+const boss_duel_nest_color = '#9dff9b';
 const boss_duel_steel_color = '#9aa3b5';
+// the Beetle's shield round it, as times its hit radius: wide enough to hold its drawn spikes
+const boss_duel_nest_shield_k = 2.3;
 
 const boss_duels = [
     {
@@ -50,13 +53,12 @@ const boss_duels = [
     },
     {
         kind: 'nests',
-        line: 'NESTS HEAL IT · BREAK THE NESTS, THEN THE BEETLE',
+        line: 'NESTS SHIELD IT · BREAK THE NESTS, THEN THE BEETLE',
         hull: 1,
         escorts: [0.5, 0],
-        // nests at the start and sown at half its hull, by mode; each heals this share of its hull a second
+        // nests at the start and sown at half its hull, by mode; while one stands grown, the shield holds
         nests: [2, 3, 3],
         sown: [1, 2, 2],
-        heal: 0.015,
         phase2: {title: 'THE BROOD WAKES', line: 'NEW NESTS SPROUT · ITS EYES BURN BEFORE IT HATCHES'},
     },
     {
@@ -291,7 +293,7 @@ function boss_duel_watch()
     for (const v of enemies) {
         if (v.duel_owner && (v.hp > 0) && (v.duel_owner.hp <= 0)) {
             v.hp = 0;
-            explode(v.x, v.y, 34, boss_duel_heal_color, 0, 'spark');
+            explode(v.x, v.y, 34, boss_duel_nest_color, 0, 'spark');
         }
     }
     const live = boss_duel_live();
@@ -363,7 +365,7 @@ function boss_duel_marker()
     if (live.d.kind === 'chase') {
         boss_duel_edge_marker(live.d.gate, 'ITS GATE', gold);
     }
-    boss_duel_edge_marker(card.target, card.label, (card.label === 'NEST') ? boss_duel_heal_color : pink);
+    boss_duel_edge_marker(card.target, card.label, (card.label === 'NEST') ? boss_duel_nest_color : pink);
 }
 
 function boss_duel_edge_marker(target, name, color)
@@ -552,7 +554,7 @@ const boss_duel_kinds = {
         start: function (v, s, d) {
             d.nests = [];
             d.sown = false;
-            d.heal_shown = 0;
+            d.shield = false;
             const count = boss_duel_by_mode(d.def.nests);
             const a0 = Math.atan2(v.y - player.y, v.x - player.x);
             for (let i = 0; i < count; ++i) {
@@ -568,22 +570,31 @@ const boss_duel_kinds = {
                     boss_duel_nest(v, d, a0 + Math.PI*0.7 + i*Math.PI*0.6, 2.5);
                 }
             }
-            let healing = 0;
             for (const n of d.nests) {
                 n.grow = Math.max(0, n.grow - dt);
-                if ((n.v.hp > 0) && (n.grow <= 0)) {
-                    healing += 1;
-                }
             }
-            if (healing && (v.hp < v.max_hp)) {
-                const amount = Math.min(v.max_hp - v.hp, healing*d.def.heal*v.max_hp*dt);
-                v.hp += amount;
-                d.heal_shown += amount;
-                if (d.heal_shown >= 25) {
-                    label(v.x + rand(-30, 30), v.y - v.r - 20, `+${Math.round(d.heal_shown)}`, boss_duel_heal_color);
-                    d.heal_shown = 0;
+            // the shield rises with a grown nest and breaks with the last one: told where it happens
+            const shield = boss_duel_nest_shield(d);
+            if (shield !== d.shield) {
+                d.shield = shield;
+                ring(v.x, v.y, boss_duel_nest_color, v.r*boss_duel_nest_shield_k + (shield ? 0 : 60), shield ? 0.5 : 0.8);
+                if (!shield) {
+                    explode(v.x, v.y, v.r*boss_duel_nest_shield_k, boss_duel_nest_color, 0, 'spark');
                 }
+                label(v.x, v.y - Math.max(40, v.r*2.6), shield ? 'SHIELD UP' : 'SHIELD DOWN', boss_duel_nest_color);
             }
+            if (shield) {
+                boss_duel_block(v, s, v.r*boss_duel_nest_shield_k, dt);
+            }
+        },
+        closed: function (v, s, d, angle) {
+            return boss_duel_nest_shield(d);
+        },
+        open: function (v, s, d) {
+            return !boss_duel_nest_shield(d);
+        },
+        factor: function (v, s, d) {
+            return boss_duel_nest_shield(d) ? 0 : 1;
         },
         aim: function (target, s, d) {
             const n = boss_duel_nearest_nest(d);
@@ -596,17 +607,20 @@ const boss_duel_kinds = {
                 }
                 boss_duel_nest_draw(v, n);
             }
+            if (boss_duel_nest_shield(d)) {
+                boss_duel_nest_shield_draw(v);
+            }
         },
         card: function (v, s, d) {
             const left = d.nests.filter(v => v.v.hp > 0).length;
             if (!left) {
-                return {title: 'Destroy the Thorn Beetle', line: 'No nest heals it now', target: v, eta: 'no nests left'};
+                return {title: 'Destroy the Thorn Beetle', line: 'Its shield is down', target: v, eta: 'no nests left'};
             }
             return {
-                title: `Break the ${(left > 1) ? `${left} nests` : 'nest'} healing it`,
-                line: 'The green lines are its heal',
+                title: `Break the ${(left > 1) ? `${left} nests` : 'nest'} shielding it`,
+                line: 'The green lines hold its shield up',
                 target: boss_duel_nearest_nest(d),
-                eta: `${left} healing`,
+                eta: `${left} shielding`,
                 label: 'NEST',
             };
         },
@@ -1331,7 +1345,7 @@ function boss_duel_escape(v, s, d)
 }
 
 // A nest round the Thorn Beetle: an anchored raider that does not fire, drawn as a nest (boss_duel_nest_draw), a
-// tenth of the Beetle's hull; `grow` the seconds before it heals
+// tenth of the Beetle's hull; `grow` the seconds before it holds the shield up
 function boss_duel_nest(v, d, angle, grow)
 {
     const at = boss_duel_at(v, angle, 600);
@@ -1348,11 +1362,11 @@ function boss_duel_nest(v, d, angle, grow)
     enemy.arcade_scaled = true;
     enemy.r = 30;
     enemy.hp = enemy.max_hp = Math.round(v.max_hp*0.1);
-    enemy.color = boss_duel_heal_color;
+    enemy.color = boss_duel_nest_color;
     enemy.duel_owner = v;
     ore_nodes = ore_nodes.filter(v => distance(v, enemy) > v.r + 90);
     mark_mining_changed();
-    ring(enemy.x, enemy.y, boss_duel_heal_color, 90, 0.6);
+    ring(enemy.x, enemy.y, boss_duel_nest_color, 90, 0.6);
     d.nests.push({v: enemy, grow});
 }
 
@@ -1367,16 +1381,16 @@ function boss_duel_nearest_nest(d)
     return out;
 }
 
-// A nest: green bulbs round a core that swell as it grows, its hull as an arc, and the heal running along a line to
-// the Beetle
+// A nest: green bulbs round a core that swell as it grows, its hull as an arc, and the shield's feed running along a
+// line to the Beetle
 function boss_duel_nest_draw(v, n)
 {
     const e = n.v;
     const grown = 1 - Math.min(1, n.grow/2.5);
     if (n.grow <= 0) {
-        boss_dash(e.x, e.y, v.x, v.y, boss_duel_heal_color, 0.35, 2/zoom);
+        boss_dash(e.x, e.y, v.x, v.y, boss_duel_nest_color, 0.35, 2/zoom);
         const f = (clock*0.8 + e.x*0.001) % 1;
-        boss_glow(e.x + (v.x - e.x)*f, e.y + (v.y - e.y)*f, 6, boss_duel_heal_color, 0.9);
+        boss_glow(e.x + (v.x - e.x)*f, e.y + (v.y - e.y)*f, 6, boss_duel_nest_color, 0.9);
     }
     ctx.fillStyle = (e.flash > 0) ? '#e5faff' : '#3f7a3a';
     ctx.globalAlpha = 0.95;
@@ -1387,14 +1401,47 @@ function boss_duel_nest_draw(v, n)
         ctx.arc(e.x + Math.cos(a)*e.r*0.55, e.y + Math.sin(a)*e.r*0.55, r, 0, Math.PI*2);
         ctx.fill();
     }
-    boss_glow(e.x, e.y, 14*(0.5 + grown*0.5), boss_duel_heal_color, 0.9);
+    boss_glow(e.x, e.y, 14*(0.5 + grown*0.5), boss_duel_nest_color, 0.9);
     ctx.globalAlpha = 0.9;
-    ctx.strokeStyle = boss_duel_heal_color;
+    ctx.strokeStyle = boss_duel_nest_color;
     ctx.lineWidth = 3/zoom;
     ctx.beginPath();
     ctx.arc(e.x, e.y, e.r + 10, -Math.PI/2, -Math.PI/2 + Math.PI*2*(e.hp/e.max_hp));
     ctx.stroke();
-    boss_duel_text((n.grow > 0) ? 'NEST · SPROUTING' : 'NEST · HEALS IT', e.x, e.y - e.r - 20, boss_duel_heal_color);
+    boss_duel_text((n.grow > 0) ? 'NEST · SPROUTING' : 'NEST · SHIELDS IT', e.x, e.y - e.r - 20, boss_duel_nest_color);
+}
+
+// Whether a grown nest stands: then the Beetle's shield is up
+function boss_duel_nest_shield(d)
+{
+    return d.nests.some(v => (v.v.hp > 0) && (v.grow <= 0));
+}
+
+// The Beetle's shield: a green bubble round it, a bright rim that breathes and a sheen turning over it
+function boss_duel_nest_shield_draw(v)
+{
+    const r = v.r*boss_duel_nest_shield_k;
+    const pulse = 0.5 + Math.sin(clock*3)*0.5;
+    boss_glow(v.x, v.y, r + 18, boss_duel_nest_color, 0.25 + pulse*0.1);
+    ctx.globalAlpha = 0.2 + pulse*0.06;
+    ctx.fillStyle = boss_duel_nest_color;
+    ctx.beginPath();
+    ctx.arc(v.x, v.y, r, 0, Math.PI*2);
+    ctx.fill();
+    ctx.globalAlpha = 0.8 + pulse*0.2;
+    ctx.strokeStyle = '#d9ffd6';
+    ctx.lineWidth = 7/zoom;
+    ctx.beginPath();
+    ctx.arc(v.x, v.y, r, 0, Math.PI*2);
+    ctx.stroke();
+    ctx.globalAlpha = 0.5;
+    ctx.lineWidth = 9/zoom;
+    ctx.strokeStyle = '#e8ffe6';
+    const a = clock*0.9;
+    ctx.beginPath();
+    ctx.arc(v.x, v.y, r - 6/zoom, a, a + 0.9);
+    ctx.stroke();
+    ctx.globalAlpha = 1;
 }
 
 // The rocks a charge can stun itself on: whole ore rocks, a breach's wall too
