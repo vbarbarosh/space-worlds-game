@@ -338,7 +338,7 @@ function fire_equipped_weapon(mount = null)
     if (v.id === 'beam') {
         player.energy = Math.max(0, player.energy - 1.8*count);
     }
-    player.shoot_cd = Math.max(0.065, v.interval*(1 - upgrades.rate*0.12)*arcade_card_k.rate);
+    player.shoot_cd = Math.max(0.065, v.interval*(1 - upgrades.rate*rate_cut())*arcade_card_k.rate);
     if (mount !== null) {
         player.gun_cd = player.gun_cd || [];
         player.gun_cd[mount] = player.shoot_cd;

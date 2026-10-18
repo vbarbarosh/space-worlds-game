@@ -1,5 +1,5 @@
 // Arcade: one run through the eight worlds, three waves each, the world's flagship in the third; no stations, contracts or saves.
-const arcade = {active: false, world: -1, wave: 0, pause: 0, squad_timer: 0, squads: 0, phase: 0, slowmo: 0, depot_hint: false, marksman_hint: false, missile_hint: false, blasts: [], event: null, between_worlds: null, world_start: null, lives: 0, life_flash: 0, campaign_checkpoint: null, route: [0], seed: 0, cards: [], wind_used: false, flagship_escaped: false};
+const arcade = {active: false, world: -1, wave: 0, pause: 0, squad_timer: 0, squads: 0, phase: 0, slowmo: 0, depot_hint: false, marksman_hint: false, missile_hint: false, blasts: [], event: null, between_worlds: null, world_start: null, lives: 0, life_flash: 0, campaign_checkpoint: null, route: [0], seed: 0, cards: [], wind_used: false, flagship_escaped: false, owned: {}, fitted: [], reactor: 0, evade: 0};
 const arcade_extent = [7200, 5600];
 const arcade_waves = 3;
 const arcade_radiation = 0.35;
@@ -45,9 +45,16 @@ document.getElementById('arcade_depot_tabs').addEventListener('click', function 
     }
 });
 document.getElementById('arcade_depot_list').addEventListener('click', function (event) {
-    const button = event.target.closest('[data-buy]');
-    if (button && !button.disabled) {
-        arcade_depot_buy(button.closest('[data-item]').dataset.item);
+    const button = event.target.closest('[data-buy], [data-fit]');
+    if (!button || button.disabled) {
+        return;
+    }
+    const id = button.closest('[data-item]').dataset.item;
+    if (button.dataset.fit) {
+        arcade_depot_fit(id, button.dataset.fit);
+    }
+    else {
+        arcade_depot_buy(id);
     }
 });
 document.getElementById('arcade_depot_list').addEventListener('mouseover', function (event) {
@@ -155,11 +162,13 @@ function arcade_start(world = 0, from = null)
     };
     reset_run(true);
     checkpoint = arcade.campaign_checkpoint;
+    // the module levels owned and those installed, within the reactor's power (arcade_power.js)
+    arcade_modules_start(from);
 }
 
-// The run as an arcade save keeps it: the world it is in, the score and salvage, modules, supplies, weapons and hull,
-// the route flown, the run's dice, the cards taken and the lives left; a load starts that world again from its first
-// wave
+// The run as an arcade save keeps it: the world it is in, the score and salvage, the module levels installed (upgrades),
+// owned and in the order they went in (fitted), the Reactor tunings bought, supplies, weapons and hull, the route flown, the run's dice, the cards
+// taken and the lives left; a load starts that world again from its first wave
 function arcade_snapshot()
 {
     return {
@@ -170,6 +179,9 @@ function arcade_snapshot()
         salvage,
         run_time,
         upgrades: {...upgrades},
+        owned: {...arcade.owned},
+        fitted: [...arcade.fitted],
+        reactor: arcade.reactor,
         supplies: {...supplies},
         hp: Math.max(1, Math.ceil(player.hp)),
         fleet: clone(ensure_career()),
@@ -209,14 +221,15 @@ function repair_drop_allowed()
 
 // A raider's hull by the mode and the run's step (the flagship has its own scale), and a card's factor; on OVERLOAD it
 // also grows as your weapon's tier does, by the same 22% a tier adds to your damage.
-// What each step's shop lets a kit do (the step's world in today's order), on the raiders' hull: from Obsidian on a world sells the gunship's third
-// mount, the second Prism level, the cruiser's fourth and the top gun tiers, and a play log of v0.9.0 killed a raider
-// there in 0.4–0.6 s against 1.7 s before; these bring it back near that (a raider, a flagship), at the mode's share
-// (shop): NORMAL and OVERLOAD all of it (OVERLOAD's growth with your gun tier stops at tier 5, and a play log of
-// v0.10.2 there lost no hull from Cryosphere on), CHILL half. Eclipse's flagship that died in 2 s fell into the black
-// hole beside you (base_spawn_enemy keeps raiders out of a hole's reach now), not for its hull.
-const arcade_shop_hull = [1, 1, 1, 1, 1, 2.2, 2.8, 3];
-const arcade_shop_flagship = [1, 1, 1.8, 1.3, 2, 4, 4, 2];
+// What each step's shop lets a kit do (the step's world in today's order), on the raiders' hull (a raider, a flagship),
+// at the mode's share (shop): NORMAL and OVERLOAD all of it, CHILL half. It used to assume every level bought and
+// installed (raiders ×1 to Obsidian, then ×2.2, ×2.8, ×3; flagships ×1, 1, 1.8, 1.3, 2, 4, 4, 2): from Obsidian on a
+// world sells the gunship's third mount, the second Prism level, the cruiser's fourth and the top gun tiers. With the
+// reactor's power budget (arcade_power.js) a kit flies a fifth to a quarter of the levels, and the armour of the later
+// worlds bites a smaller damage harder, so the hull is cut from Verdant on: measured with bin/playtest (NORMAL, seeds
+// 1–12) until its bot won about half its runs, as before the budget (docs/balance.md, The arcade's power budget).
+const arcade_shop_hull = [1, 0.7, 0.55, 0.4, 0.3, 0.5, 0.6, 0.5];
+const arcade_shop_flagship = [1, 0.7, 1, 0.5, 0.6, 1, 1, 0.45];
 
 function arcade_hull_scale(enemy)
 {
@@ -793,14 +806,16 @@ function arcade_depot_open()
     mouse_drive_suspend();
     joystick.active = false;
     arcade_depot_view.hover = '';
+    arcade_depot_view.note = '';
     arcade_depot_fill();
     set_hidden(document.getElementById('arcade_depot'), false);
     document.getElementById('arcade_depot_launch').focus();
     sfx('pickup');
 }
 
-// The depot's view: the shelf shown, the search, and the item under the pointer (its preview on the ship)
-const arcade_depot_view = {tab: 'all', search: '', hover: ''};
+// The depot's view: the shelf shown, the search, the item under the pointer (its preview on the ship), and the news of
+// the last change to the power (a level left spare, levels a smaller reactor took out)
+const arcade_depot_view = {tab: 'all', search: '', hover: '', note: ''};
 
 // The header, the ship and the next world, then the shop: repairs and supplies, the guns, the modules by shelf
 function arcade_depot_fill()
@@ -821,6 +836,7 @@ function arcade_depot_fill()
     document.getElementById('cleared_hull').classList.toggle('is-low', player.hp < hull_max()*0.5);
     const installed = upgrade_options.filter(v => upgrades[v.key] > 0);
     document.getElementById('arcade_depot_installed').innerHTML = installed.map(v => `<img src="${module_icon(v)}" alt="" title="${v.title} · level ${upgrades[v.key]}">`).join('') || '<span class="small">Nothing yet</span>';
+    arcade_depot_power_fill();
     // the next world (or, between waves, this one)
     const shown = (next === null) ? here : next;
     document.getElementById('cleared_next_eyebrow').textContent = (next === null) ? 'This world' : 'Next world';
@@ -840,6 +856,19 @@ function arcade_depot_fill()
     document.getElementById('arcade_depot_tabs').innerHTML = tabs.map(v => `<button type="button" class="${(v.value === arcade_depot_view.tab) ? 'is-active' : ''}" data-tab="${v.value}">${module_shelves.includes(v) ? `<i class="depot-dot depot-dot--${v.value}"></i>` : ''}${v.label}</button>`).join('');
     arcade_depot_render_list();
     arcade_depot_sync_hover();
+}
+
+// The reactor in the header: the power the installed levels draw against what it holds, a cell a unit (lit for those
+// drawn, red past it)
+function arcade_depot_power_fill()
+{
+    const used = arcade_power_used();
+    const capacity = arcade_power_capacity();
+    const box = document.getElementById('arcade_depot_power');
+    box.classList.toggle('is-over', used > capacity);
+    box.title = `Every module level installed draws power: ${used} of the ${capacity} your ${current_ship().name}'s reactor holds now (${current_ship().power} of its own, ${world_reached()} for the worlds cleared${arcade.reactor ? `, ${arcade.reactor} from Reactor tuning` : ''}). Levels you own and do not install wait for free; put them in and take them out here.`;
+    document.getElementById('arcade_depot_power_text').innerHTML = `${used}<small> / ${capacity}</small>`;
+    document.getElementById('arcade_depot_power_cells').innerHTML = Array.from({length: Math.max(used, capacity)}, (_, i) => `<i class="${(i >= capacity) ? 'over' : (i < used) ? 'on' : ''}"></i>`).join('');
 }
 
 // What the depot sells, as items of one shape: kind and id, the section it shows under, title, line, the words a
@@ -907,7 +936,7 @@ function arcade_depot_items()
         const have = ensure_career().ships.includes(ship.id);
         const closed = !have && !tech_open(ship.opens);
         out.push({
-            kind: 'ship', id: ship.id, section: 'ships', title: ship.name, line: now ? 'Your ship.' : have ? `Yours. ${ship.role}.` : `${ship.role}.`,
+            kind: 'ship', id: ship.id, section: 'ships', title: ship.name, line: arcade_ship_line(ship, now, have),
             tags: `ship hull ${ship.role.toLowerCase()} корабль`, icon: ship_parts_clean_url(`3d/ship-${ship.id}`), chips: arcade_ship_chips(ship, flying),
             price: (now || closed) ? null : have ? 0 : Math.round((ship.price*arcade_ship_price)/10)*10, done: now ? 'Flying' : closed ? tech_lock_text(ship.opens) : '', locked: closed, owned: now, label: have ? 'Fly' : 'Buy',
             buy: function () {
@@ -915,16 +944,41 @@ function arcade_depot_items()
             },
         });
     }
+    // the modules: the levels owned (bought) and installed (drawing power, arcade_power.js), each level's draw; Remove
+    // and Install move an owned level out and in for free
+    const free = arcade_power_free();
+    const base = initial_upgrades();
+    // Reactor tuning: one more unit of power on every ship, a few times a run (arcade_power.js)
+    const tuned = arcade.reactor;
+    const tunings = arcade_reactor_prices.length;
+    out.push({
+        kind: 'reactor', id: 'tuning', section: 'ships', title: 'Reactor tuning', line: `+1 power on every ship for the rest of the run. ${tuned} of ${tunings} bought.`,
+        tags: 'reactor power tuning energy core', icon: module_icon(upgrade_options.find(v => v.key === 'reactor')), chips: [['POWER', '+1', 'up']], pips: [tuned, tunings],
+        price: (tuned < tunings) ? arcade_reactor_prices[tuned] : null, done: (tuned >= tunings) ? 'Max' : '', label: 'Buy',
+        buy: function () {
+            arcade.reactor++;
+        },
+    });
     for (const shelf of module_shelves) {
         for (const option of upgrade_options.filter(v => v.shelf === shelf.value)) {
-            const level = upgrades[option.key];
+            const level = arcade.owned[option.key];
+            const fitted = upgrades[option.key];
+            const draw = module_power(option.key);
             const closed = module_next_locked(option);
             out.push({
-                kind: 'module', id: option.key, section: shelf.value, title: option.title, line: option.line, tags: option.tags, icon: module_icon(option),
-                part: option.part, pips: [level, option.cap], price: module_cost(option), label: level ? 'Upgrade' : 'Buy',
-                done: (level >= option.cap) ? 'Max' : module_needs_gun(option) ? 'Needs launcher' : (closed !== null) ? tech_lock_text(closed) : '', locked: (closed !== null) && !module_needs_gun(option),
+                kind: 'module', id: option.key, section: shelf.value, title: option.title, line: arcade_module_line(option), tags: option.tags, icon: module_icon(option),
+                part: option.part, on_ship: option.part && (fitted > 0), pips: [fitted, option.cap, level], price: module_cost(option), label: level ? 'Upgrade' : 'Buy',
+                chips: [['POWER', String(draw), (draw > 1) ? 'heavy' : '']],
+                fit: {out: fitted > base[option.key], in: level > fitted, power: free >= draw, draw},
+                installs: free >= draw,
+                done: (level >= option.cap) ? 'Max' : module_needs_gun(option) ? 'Needs launcher' : (closed !== null) ? tech_lock_text(closed) : '', locked: (closed !== null) && !module_needs_gun(option), owned: fitted > base[option.key],
                 buy: function () {
-                    grant_upgrade(option);
+                    if (!arcade_module_own(option.key)) {
+                        arcade_depot_view.note = `${option.title} ${arcade.owned[option.key]} is yours, spare: it needs ${draw} power and the reactor has ${Math.max(0, free)} free. Remove a level to install it.`;
+                    }
+                    if (option.key === 'turbo_tank') {
+                        player.turbo_fuel = turbo_duration();
+                    }
                 },
             });
         }
@@ -940,7 +994,7 @@ function arcade_depot_render_list()
     const sections = [
         {value: 'repairs', label: 'Repairs and supplies', note: 'kept for the next world'},
         {value: 'weapons', label: 'Weapons', note: 'each mount fires a gun bought for it · a spare one goes back on for free'},
-        {value: 'ships', label: 'Ships', note: 'your modules and gun move with you'},
+        {value: 'ships', label: 'Ships', note: 'your modules and gun move with you · Reactor tuning adds power to every ship'},
         ...module_shelves,
     ];
     const html = [];
@@ -952,17 +1006,38 @@ function arcade_depot_render_list()
         }
     }
     const list = document.getElementById('arcade_depot_list');
-    list.innerHTML = html.join('') || `<div class="depot-empty">Nothing matches “${ui_escape(arcade_depot_view.search)}”. Try: homing, shield, speed, repair.</div>`;
+    // the news of the last change to the power (a level left spare, levels a smaller reactor took out) heads the list
+    const note = arcade_depot_view.note ? `<p class="depot-note" role="status">${ui_escape(arcade_depot_view.note)}</p>` : '';
+    list.innerHTML = note + (html.join('') || `<div class="depot-empty">Nothing matches “${ui_escape(arcade_depot_view.search)}”. Try: homing, shield, speed, repair.</div>`);
 }
 
-// One item: icon, title (its key, ON SHIP for a module you will see on the ship), line, chips or level pips, and Buy
-// with the price, "Need n" in the button when the salvage is short; one a later world opens, the lock and that world
+// One item: icon, title (its key, ON SHIP for a module installed that you see on the ship), line, chips or level
+// pips, and Buy with the price, "Need n" in the button when the salvage is short; one a later world opens, the lock and
+// that world. A module's pips are its levels installed (lit), owned but not installed (an outline) and not owned;
+// Remove and Install move a level out and in, Install saying "No power" when the reactor is short of its draw
 function arcade_depot_item_html(item, words)
 {
     const short = (item.price !== null) && !item.done && (salvage < item.price);
-    const classes = ['depot-it', short && 'is-short', item.done && !item.owned && (item.locked ? 'is-locked' : 'is-done'), item.owned && 'is-owned'].filter(Boolean).join(' ');
-    const chips = (item.chips || []).map(v => `<span class="depot-chip${v[2] ? ` is-${v[2]}` : ''}"><i>${v[0]}</i>${v[1]}</span>`).join('');
-    const pips = item.pips ? `<span class="depot-pips${(item.pips[1] > 3) ? ' is-many' : ''}">${Array.from({length: item.pips[1]}, (_, i) => `<i${(i < item.pips[0]) ? ' class="on"' : ''}></i>`).join('')}</span>` : '';
+    const idle = item.done && !(item.fit && (item.fit.in || item.fit.out));
+    const classes = ['depot-it', short && 'is-short', idle && !item.owned && (item.locked ? 'is-locked' : 'is-done'), item.owned && 'is-owned'].filter(Boolean).join(' ');
+    const chips = (item.chips || []).map(v => `<span class="depot-chip${v[2] ? ` is-${v[2]}` : ''}"${(v[0] === 'POWER') ? ' title="The power each level draws while installed"' : ''}><i>${v[0]}</i>${v[1]}</span>`).join('');
+    let pips = '';
+    if (item.pips) {
+        const [fitted, cap, owned = fitted] = item.pips;
+        const title = (owned > fitted) ? `${fitted} of ${owned} levels owned installed` : `${fitted} of ${cap} levels`;
+        // the levels in words too, for a screen reader and the captain's agent
+        const said = `<span class="visually-hidden">Installed ${fitted}, owned ${owned}, of ${cap}</span>`;
+        pips = `<span class="depot-pips${(cap > 3) ? ' is-many' : ''}" title="${title}">${Array.from({length: cap}, (_, i) => `<i${(i < fitted) ? ' class="on"' : (i < owned) ? ' class="own"' : ''}></i>`).join('')}${said}</span>`;
+    }
+    let fit = '';
+    if (item.fit && (item.fit.in || item.fit.out)) {
+        const take = item.fit.out ? '<button type="button" class="btn btn-sm btn-ghost" data-fit="out" title="Take a level out: it stays yours, and its power is free">Remove</button>' : '';
+        const no_power = item.fit.in && !item.fit.power;
+        const put = !item.fit.in ? '' : no_power
+            ? `<button type="button" class="btn btn-sm is-disabled is-short" data-fit="in" disabled title="It draws ${item.fit.draw} power: remove a level to free it">No power</button>`
+            : '<button type="button" class="btn btn-sm btn-primary" data-fit="in" title="Put a level you own in, free">Install</button>';
+        fit = `<span class="depot-fit">${take}${put}</span>`;
+    }
     let action = '';
     if (item.locked) {
         action = ui_badge(`${ui_lock_svg}${item.done}`, 'locked');
@@ -976,8 +1051,9 @@ function arcade_depot_item_html(item, words)
         action = `<button type="button" class="btn btn-sm${kind}" data-buy${short ? ` disabled title="You need ${ui_number(item.price - salvage)} more salvage"` : ''}><span>${short ? `Need ${ui_number(item.price - salvage)}` : (item.label || 'Buy')}</span>${price}</button>`;
     }
     const keycap = item.keycap ? `<span class="key key--sm">${item.keycap}</span>` : '';
-    const part = item.part ? '<span class="depot-onship" title="You will see it on your ship">ON SHIP</span>' : '';
-    return `<div class="${classes}" data-item="${item.kind}:${item.id}"><span class="ic"><img src="${item.icon}" alt=""></span><b><span>${arcade_depot_mark(item.title, words)}</span>${keycap}${part}</b><p>${arcade_depot_mark(item.line, words)}</p><div class="row">${chips}${pips}${action}</div></div>`;
+    // ON SHIP: a module installed that you see on the ship (a level owned but not installed is not on it)
+    const part = item.on_ship ? '<span class="depot-onship" title="Installed: you see it on your ship">ON SHIP</span>' : '';
+    return `<div class="${classes}" data-item="${item.kind}:${item.id}"><span class="ic"><img src="${item.icon}" alt=""></span><b><span>${arcade_depot_mark(item.title, words)}</span>${keycap}${part}</b><p>${arcade_depot_mark(item.line, words)}</p><div class="row">${chips}${pips}${fit}${action}</div></div>`;
 }
 
 // Text with the words of the search marked
@@ -1004,7 +1080,7 @@ function arcade_depot_sync_hover()
     const ship_id = current_ship().id;
     let preview = null;
     let pulse = '';
-    if (buyable && item.part) {
+    if (buyable && item.part && item.installs) {
         preview = {...ship_parts_loadout({...upgrades, [item.id]: upgrades[item.id] + 1}), gun: base.gun};
         // a level the drawing does not show (magnet 3, the second prism) lights the part it improves
         if (arcade_depot_ship_signature(ship_id, preview) === arcade_depot_ship_signature(ship_id, base)) {
@@ -1094,11 +1170,20 @@ function arcade_ship_chips(ship, mine)
         mark('HULL', String(ship.hull), ship.hull, mine.hull),
         mark('SHIELD', String(ship.shield), ship.shield, mine.shield),
         mark('SPEED', `×${ship.speed}`, ship.speed, mine.speed),
+        mark('POWER', String(arcade_power_capacity(ship)), ship.power, mine.power),
     ];
 }
 
+// A ship's line at the depot: yours or its role, and the levels its smaller reactor would take out
+function arcade_ship_line(ship, now, have)
+{
+    const cut = now ? 0 : arcade_power_cut(ship).length;
+    const head = now ? 'Your ship.' : have ? `Yours. ${ship.role}.` : `${ship.role}.`;
+    return cut ? `${head} Its reactor takes out ${cut} module level${(cut > 1) ? 's' : ''}, the newest.` : head;
+}
+
 // A ship bought or taken out again; the modules and the gun move over, a new hull comes repaired and one you had keeps
-// its share of the damage
+// its share of the damage; a smaller reactor takes out the newest module levels past its power, and the depot says so
 function arcade_ship_take(ship)
 {
     const fleet = ensure_career();
@@ -1108,6 +1193,10 @@ function arcade_ship_take(ship)
         fleet.ships.push(ship.id);
     }
     fleet.ship_id = ship.id;
+    const cut = arcade_power_fit();
+    if (cut.length) {
+        arcade_depot_view.note = `The ${ship.name}'s reactor holds ${arcade_power_capacity()}: ${arcade_power_levels_text(cut)} came out. They stay yours; install them when there is power.`;
+    }
     player.hp = fresh ? hull_max() : Math.max(1, Math.round(share*hull_max()));
     player.shield = shield_max();
     player.turbo_fuel = turbo_duration();
@@ -1137,8 +1226,28 @@ function arcade_depot_buy(id)
     }
     salvage -= item.price;
     play_log_depot_spend(item);
+    arcade_depot_view.note = '';
     item.buy();
     sfx('upgrade');
+    update_hud();
+    arcade_depot_fill();
+    document.querySelector(`#arcade_depot_list [data-item="${id}"]`)?.classList.add('is-flash');
+}
+
+// A module level taken out of the ship or put in again, free: it stays owned either way
+function arcade_depot_fit(id, way)
+{
+    const item = arcade_depot_items().find(v => `${v.kind}:${v.id}` === id);
+    if ((state !== 'arcade_depot') || !item?.fit) {
+        return;
+    }
+    const done = (way === 'out') ? arcade_module_remove(item.id) : arcade_module_install(item.id);
+    if (!done) {
+        return;
+    }
+    arcade_depot_view.note = '';
+    play_log_event('module', {world: worlds[campaign.world].name, module: item.id, way, level: upgrades[item.id], power: arcade_power_used()});
+    sfx((way === 'out') ? 'dash' : 'upgrade');
     update_hud();
     arcade_depot_fill();
     document.querySelector(`#arcade_depot_list [data-item="${id}"]`)?.classList.add('is-flash');

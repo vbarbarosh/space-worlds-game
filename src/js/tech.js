@@ -57,10 +57,11 @@ function gun_tier_next_text()
     return (tier >= 5) ? 'Every gun is at its top tier.' : `Every gun grows to T${tier + 1} as you clear the way to ${tech_world_name(gun_tier_opens[tier])}.`;
 }
 
-// The tier where a module's next level opens when it has not yet, else null (open, or at its cap)
+// The tier where a module's next level opens when it has not yet, else null (open, or at its cap); in the arcade the
+// next past the levels owned
 function module_next_locked(option)
 {
-    const level = upgrades[option.key] + 1;
+    const level = module_owned(option.key) + 1;
     if (level > option.cap) {
         return null;
     }

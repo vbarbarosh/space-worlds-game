@@ -46,7 +46,15 @@ Three modes:
   black hole bends every shot, slings a ship that passes close, and swallows
   the raiders you lead into it. A ship that explodes hurts what is close to it. The salvage you collect buys
   repairs, weapons, ships, supplies and modules at the station's depot (R); each world opens more of them, and
-  what is not open yet says where it opens. A cleared world pays a fixed bonus, the weapon
+  what is not open yet says where it opens. A module level bought is yours for the run but works only installed,
+  and the ship's reactor powers only so many: its own power (Wisp Scout 4 up to Aurora Cruiser 8) and one more for
+  each world cleared, so a run flies a build, not the whole shop (by Eclipse a cruiser holds 15 of the 75 levels'
+  84 power); Hotter plasma, Rapid resonance and Prism draw 2 a level, the rest 1. At the depot a level goes in or
+  out for free, so each world can fly its own build; a ship with a smaller reactor takes out the newest levels and
+  says so. Reactor tuning (600, 1200, 1800 salvage, three a run) adds a unit of power to every ship. The support
+  levels do more in the arcade (drones that grow with the run, nanites that mend under fire, a fast pulse, shots
+  that slip past an evasive ship), so a guns build, a tank and an evasive pulse build each win about half the
+  bot's runs ([docs/balance.md](docs/balance.md#the-arcades-power-budget)). A cleared world pays a fixed bonus, the weapon
   grows a tier, a cleared screen shows the world's numbers, and the depot opens before the next world. Score, combo and a best score (salvage left at the end scores 10 points each); no
   stations or contracts. A run has three lives, shown at the top of the HUD: a
   death costs one and retries its world from the first wave, as you began it;
@@ -89,8 +97,9 @@ Three modes:
                      docs/performance-2026-10-05.md
     bin/playtest     a bot plays arcade runs on a virtual clock (about a
                      minute each) and counts per world and wave the hull
-                     lost, kills off the screen and salvage left; tables
-                     and JSON in data/playtest/
+                     lost, kills off the screen and salvage left, flying
+                     a build of modules (--build=mixed, guns, tank or
+                     evasion); tables and JSON in data/playtest/
     bin/play-log     a play log saved from the pause panel (Download play log)
                      as a report: time, income and spending per world, the
                      kit as it changed, when the shop ran out, deaths, frame
@@ -118,6 +127,9 @@ carrier, bulwark, sniper, minelayer) 640 m ahead.
 `&screen=arcade-lost` shows a death on the world's last wave with two lives left, with Retry for that world
 (`&lives=1` the last one left), `arcade-over` the last life lost, the run over; `&long=1` gives either a very long
 world name and a huge score. With `&screen=arcade`, `&lives=n` sets the HUD's lives (0 to 3), the lost ones blinking.
+`&screen=arcade-depot` opens the depot before the next world (`&modules=damage:3,armor:2` owned and installed in that
+order while the reactor's power lasts, `&ship=gunship` the ship flown, `&swap=scout` a ship taken there, its smaller
+reactor taking out the newest levels).
 `&screen=arcade-pick` opens the break after the world at its three cards,
 `arcade-route` at the next world of two (`&cards=wager,overclock,prototype`
 draws those, `&cards=long` the longest texts, `&salvage=n`, `&route=0,2,1` a

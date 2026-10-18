@@ -34,6 +34,12 @@ const screens = [
     // the world's cleared screen held after its button is ready
     {value: 'arcade-world-cleared', label: 'arcade-world-cleared', query: '&t=7', phone: true},
     {value: 'arcade-cleared', label: 'arcade-cleared'},
+    // the depot before the next world (src/js/arcade_power.js): nothing installed, the reactor's power empty; a gunship's
+    // power full with levels owned left spare (No power), and those levels after a Wisp Scout is taken, its smaller
+    // reactor taking the newest out, said under the filters; every module's row with its power, pips and Remove/Install
+    {value: 'arcade-depot', label: 'arcade-depot', world: 'dustfall', phone: true},
+    {value: 'arcade-depot', label: 'arcade-depot-full', world: 'ion-reach', query: '&ship=gunship&modules=damage:3,armor:2,shield:2,spread:1,rate:1,drone:2,magnet:3', phone: true},
+    {value: 'arcade-depot', label: 'arcade-depot-swap', world: 'ion-reach', query: '&ship=gunship&modules=damage:3,armor:2,shield:2,spread:1,rate:1,drone:2,magnet:3&swap=scout', phone: true},
     // the break between worlds (src/js/arcade_break.js): three cards; the longest texts with a price out of reach; a
     // gamble won in the world just cleared; the next world of two on the route's map, after a route of its own; one
     // way on (Obsidian, at its own step); the last break, Eclipse alone; the cards in force over the HUD's gauges, and
@@ -117,7 +123,7 @@ const phone_sizes = [[320, 640], [390, 844], [844, 390]];
 const selectors = {
     blocks: ['.dev-fps', '.hud-top .readouts', '.hud-top .toolbar', '.hud-top .brand', '.ui.hud .mission', '.ui.hud .minimap',
         '.hud-toasts > *', '.hud-toasts .toast', '.ui.hud .banners > *', '.ui.hud .race-board', '.hud-bottom .qbar', '.hud-bottom .shipstat', '.hud-bottom .hud-end', '.mm-left',
-        '.depot-title', '.depot-stats', '.depot-wallet', '.depot-filters .seg', '.depot-search', '.depot-ship', '.depot-next',
+        '.depot-title', '.depot-stats', '.depot-power', '.depot-wallet', '.depot-filters .seg', '.depot-search', '.depot-ship', '.depot-next',
         '.finale-title', '.finale-res', '.brk-title', '.brk-steps', '.brk-wallet', '.brk-won', '.brk-body', '.brk-foot'],
     contained: ['.modal', '.pause-layout', '.mm-left', '.has-panel .scene.on', '.depot-side', '.depot-top', '.depot-filters', '.finale-title h1', '.finale-res', '.brk-top', '.brk-foot', '.shipstat .cardfx'],
     clip: '.btn, .tab, .badge, .key, .qslot, .size, .alert, .seg button, .wallet, .meter-mini',

@@ -13,6 +13,8 @@ const ship_miner = {
         cargo: 150,
         radius: 19,
         damage: 1,
+        // the arcade's reactor: the power its module levels may draw, one more a world cleared (src/js/arcade_power.js)
+        power: 5,
         mounts: ['medium'],
         mining: 2.5,
         color: '#eabb7e',

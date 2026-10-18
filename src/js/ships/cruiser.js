@@ -13,6 +13,8 @@ const ship_cruiser = {
         cargo: 120,
         radius: 25,
         damage: 1,
+        // the arcade's reactor: the power its module levels may draw, one more a world cleared (src/js/arcade_power.js)
+        power: 8,
         mounts: ['medium', 'medium', 'heavy', 'heavy'],
         color: '#e8c4ff',
         shape: 5,

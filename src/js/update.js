@@ -120,7 +120,13 @@ function update(dt, frame_dt = dt)
             shield_max(),
             player.shield + dt*(5 + upgrades.shield*2)*(current_world_rules().shield + ((campaign.world === 5) ? upgrades.cooling*0.15 : 0))
         );
-        player.hp = Math.min(hull_max(), player.hp + dt*upgrades.nanites*0.35);
+        if (!arcade.active) {
+            player.hp = Math.min(hull_max(), player.hp + dt*nanites_rate());
+        }
+    }
+    // in the arcade the nanites mend with no wait (arcade_power.js)
+    if (arcade.active && upgrades.nanites && (player.hp > 0)) {
+        player.hp = Math.min(hull_max(), player.hp + dt*nanites_rate());
     }
     player.invincible = Math.max(0, player.invincible - dt);
     player.dash_grace = Math.max(0, player.dash_grace - dt);
@@ -596,6 +602,11 @@ function update(dt, frame_dt = dt)
             b.x = b.px + (b.x - b.px)*contact;
             b.y = b.py + (b.y - b.py)*contact;
             const share = shielded ? (player.r + b.r)/reach : 1;
+            // in the arcade the Evasive thrusters and Slipstream slip a share of the shots (arcade_power.js)
+            if (arcade_evade_shot()) {
+                b.life = 0;
+                continue;
+            }
             damage_player((b.damage || 13)*(arcade.active ? arcade_mode().hits : 1)*share, false, 'shot', b);
             if (shielded) {
                 shield_impact(player, b, ship_halo() + 3);

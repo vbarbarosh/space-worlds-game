@@ -36,7 +36,7 @@ function shield_max()
 
 function dash_cooldown()
 {
-    return Math.max(3, 8 - upgrades.dash*0.9 - upgrades.cooling*0.35);
+    return Math.max(3, 8 - upgrades.dash*dash_cut() - upgrades.cooling*0.35);
 }
 
 function format_reading(v)

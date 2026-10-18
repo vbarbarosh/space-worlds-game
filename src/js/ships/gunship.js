@@ -13,6 +13,8 @@ const ship_gunship = {
         cargo: 65,
         radius: 21,
         damage: 1,
+        // the arcade's reactor: the power its module levels may draw, one more a world cleared (src/js/arcade_power.js)
+        power: 7,
         mounts: ['medium', 'medium', 'heavy'],
         color: blue,
         shape: 4,

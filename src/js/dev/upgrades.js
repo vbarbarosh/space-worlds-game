@@ -74,6 +74,12 @@ function dev_upgrades_preset(value)
 
 function dev_upgrades_after_change()
 {
+    // in the arcade the levels set are owned and installed, past the reactor's power if need be (arcade_power.js)
+    if (arcade.active) {
+        const base = initial_upgrades();
+        arcade.owned = {...upgrades};
+        arcade.fitted = upgrade_options.flatMap(v => Array(Math.max(0, upgrades[v.key] - base[v.key])).fill(v.key));
+    }
     if (dev_run_active()) {
         player.shield = Math.min(player.shield, shield_max());
         player.turbo_fuel = Math.min(player.turbo_fuel, turbo_duration());

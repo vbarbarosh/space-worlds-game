@@ -153,7 +153,7 @@ function update_world_environment(dt)
         player.overheated = false;
     }
     // the Pulse reactor and the world's own charge or drain in one step, so a drain after the cap can't hold it at 99%
-    player.energy = clamp(player.energy + (upgrades.reactor*1.5 + r.energy)*dt, 0, 100);
+    player.energy = clamp(player.energy + (reactor_rate() + r.energy)*dt, 0, 100);
     if ((campaign.world === 1) && (player.since_hit > 5)) {
         player.hp = Math.min(hull_max(), player.hp + 0.4*dt);
     }

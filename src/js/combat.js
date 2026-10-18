@@ -434,7 +434,7 @@ function damage_player(amount, blast = false, cause = 'other', by = null)
     const multiplier = (difficulty === 'chill') ? 0.65 : (difficulty === 'overload') ? 1.2 : 1;
     // a crowd's hits come smaller and closer together in the arcade (arcade_crowds.js), and shake the view less
     const share = arcade_hit_share(cause, by);
-    let damage = amount*multiplier*share*(1 - upgrades.armor*((campaign.world === 4) ? 0.15 : 0.12))*arcade_card_k.taken;
+    let damage = amount*multiplier*share*(1 - upgrades.armor*armor_cut())*arcade_card_k.taken;
     player.since_hit = 0;
     const shield_before = player.shield;
     const absorbed = Math.min(player.shield, damage);

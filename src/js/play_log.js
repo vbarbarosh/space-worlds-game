@@ -884,7 +884,8 @@ function play_log_race_forfeit(why)
     }
 }
 
-// The kit as it is now: ship, the gun on each mount with its tier, module levels, drones, rank
+// The kit as it is now: ship, the gun on each mount with its tier, module levels installed, drones, rank; in the arcade
+// also the levels owned and the reactor's power used and held (arcade_power.js)
 function play_log_kit()
 {
     const f = ensure_career();
@@ -898,7 +899,7 @@ function play_log_kit()
         if (upgrades[option.key]) {
             modules[option.key] = upgrades[option.key];
         }
-        if (upgrades[option.key] < option.cap) {
+        if (module_owned(option.key) < option.cap) {
             below_cap.push(module_needs_gun(option) ? `${option.key} (needs a launcher)` : option.key);
         }
     }
@@ -912,6 +913,7 @@ function play_log_kit()
         ships_owned: f.ships.length,
         drones: arcade.active ? null : (campaign.drones || 0),
         rank: play_log_rank_name(),
+        ...(arcade.active ? {owned: Object.fromEntries(upgrade_options.filter(v => arcade.owned[v.key]).map(v => [v.key, arcade.owned[v.key]])), power: [arcade_power_used(), arcade_power_capacity()]} : {}),
     };
 }
 

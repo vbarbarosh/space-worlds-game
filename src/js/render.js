@@ -349,7 +349,7 @@ function update_equipment(dt)
 {
     drone_cd -= dt;
     if (upgrades.drone && (drone_cd <= 0)) {
-        drone_cd = 0.42;
+        drone_cd = drone_fire_gap();
         for (let i = 0; i < upgrades.drone; ++i) {
             const a = time*1.7 + (i/upgrades.drone)*Math.PI*2;
             const x = player.x + Math.cos(a)*orbit_drone_radius();
@@ -365,7 +365,7 @@ function update_equipment(dt)
             }
             if (target) {
                 const aim = Math.atan2(target.y - y, target.x - x);
-                bullets.push({x, y, vx: Math.cos(aim)*680, vy: Math.sin(aim)*680, life: 1.5, damage: 10 + upgrades.damage*3, r: 3, homing: true});
+                bullets.push({x, y, vx: Math.cos(aim)*680, vy: Math.sin(aim)*680, life: 1.5, damage: drone_bolt_damage(), r: 3, homing: true});
             }
         }
     }

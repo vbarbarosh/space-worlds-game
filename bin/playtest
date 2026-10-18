@@ -9,7 +9,26 @@ const data_dir = path.join(__dirname, '..', 'data', 'playtest');
 const modes = ['chill', 'normal', 'overload'];
 const picks = ['boon', 'gamble', 'trade', 'random', 'none'];
 const routes = ['low', 'high', 'random'];
-const usage = `usage: bin/playtest [--mode=normal] [--seeds=1,2,3] [--label=name] [--page=build/index.html] [--minutes=20] [--gun=id] [--pick=boon] [--route=low]
+// The bot's builds (--build), each on the same small core (Prism 1, Phase armor 1, Shield capacitor 1): mixed, the
+// default, Prism and Hotter plasma first with armour and the shield between; guns, Hotter plasma, Rapid resonance and
+// Prism; tank, armour, shield, drones and nanites; evasion, the Evasive thrusters, Slipstream, the pulse and its reactor
+const builds = {
+    mixed: [
+        'spread', 'damage', 'armor', 'shield', 'damage', 'spread', 'armor', 'damage', 'shield', 'armor', 'damage', 'shield',
+        'damage', 'rate', 'drone', 'nanites', 'rate', 'drone', 'nanites', 'pulse', 'rate', 'drone', 'nanites', 'pulse',
+        'reactor', 'cooling', 'evasive', 'pulse', 'reactor', 'cooling', 'evasive', 'reactor', 'cooling', 'evasive',
+    ],
+    guns: ['spread', 'armor', 'shield', 'damage', 'damage', 'rate', 'spread', 'damage', 'rate', 'damage', 'rate', 'damage'],
+    tank: [
+        'spread', 'armor', 'shield', 'armor', 'shield', 'drone', 'nanites', 'armor', 'shield', 'drone', 'nanites', 'drone',
+        'nanites', 'damage', 'damage',
+    ],
+    evasion: [
+        'spread', 'armor', 'shield', 'evasive', 'pulse', 'reactor', 'evasive', 'speed', 'pulse', 'reactor', 'evasive',
+        'speed', 'pulse', 'reactor', 'dash', 'speed', 'homing', 'homing', 'dash',
+    ],
+};
+const usage = `usage: bin/playtest [--mode=normal] [--seeds=1,2,3] [--label=name] [--page=build/index.html] [--minutes=20] [--gun=id] [--pick=boon] [--route=low] [--build=mixed|guns|tank|evasion|key,...]
 
     A bot plays arcade runs of build/index.html (a copy with a hook, in data/playtest/) in Chromium, on a virtual
     clock and a seeded Math.random, as fast as the machine allows, and counts per world and wave what a run costs.
@@ -18,15 +37,16 @@ const usage = `usage: bin/playtest [--mode=normal] [--seeds=1,2,3] [--label=name
     up salvage when fewer than three raiders are close, keeps off the radiation at the edge; a flagship's duel it
     flies as its pilot says (boss_duel_pilot). The pulse at three raiders within 380 m, a dash past a missile within
     220 m, the EMP at six within 550 m or below a third of its hull, stasis at eight, a repair kit below half. At the
-    depot: a repair below 75% hull, two repair kits, then modules by value for the price (Prism, Hotter plasma, Rapid
-    resonance, Phase armor, Shield capacitor, drones, nanites, the pulse); once they are bought, a sturdier ship on
-    sale with no fewer mounts and one more of its gun for each empty mount, then the rest that helps in a fight
-    (reactor, cooling, evasion, the missile modules, dash, speed, stabilizer), then the rest of the shop (magnet, relic
-    processor, booster reservoir, radiation lining); EMPs up to three. Guns fire by themselves.
+    depot: a repair below 75% hull, two repair kits, then the build its reactor's power holds (src/js/arcade_power.js:
+    Hotter plasma, Phase armor, the shield, Prism, Rapid resonance, then drones, nanites, the pulse, reactor, cooling,
+    evasion), each level in its order that fits the power left; once that is bought, a sturdier ship on sale with no
+    fewer mounts (more power) and one more of its gun for each empty mount, then the levels the next two worlds' power
+    will hold; then it takes out what is not in the build and installs the build. EMPs up to three. Guns fire by
+    themselves.
 
     A death with lives left starts the world again from its first wave, as the game's Retry does (arcade_retry); the
     last of the run's lives (arcade_lives, 3) ends it lost, as it ends the game's run. The run says when the shop ran
-    out (the Aurora Cruiser owned and every module at its cap, a launcher's modules only with the launcher): the
+    out (the Aurora Cruiser owned and every module level owned, a launcher's modules only with the launcher): the
     minute and the world. Results go to data/playtest/<label>/<mode>-<seed>.json, and a table per run is printed.
 
     --minutes stops a run that takes longer than that on the wall clock, and says so.
@@ -37,14 +57,17 @@ const usage = `usage: bin/playtest [--mode=normal] [--seeds=1,2,3] [--label=name
     At each break between worlds (src/js/arcade_break.js) it takes a card and chooses the next world:
     --pick takes the boon, the gamble or the trade-off (another when it cannot pay for it), a card at random, or
     none (the break's card skipped, as the game before cards was); --route takes the lower world offered (today's
-    order), the higher, or one at random.`;
+    order), the higher, or one at random.
+
+    --build picks the bot's build (mixed, the default; guns; tank; evasion: see the builds in this file), or gives its
+    own order: module keys, a key a level (damage,damage,armor is Hotter plasma 1 and 2, then Phase armor 1).`;
 
 cli(main);
 
 async function main()
 {
     const options = Object.fromEntries(process.argv.slice(2).map(v => v.replace(/^--/, '').split('=')));
-    if (Object.keys(options).some(v => !['mode', 'seeds', 'label', 'page', 'minutes', 'gun', 'pick', 'route'].includes(v)) || !picks.includes(options.pick || 'boon') || !routes.includes(options.route || 'low')) {
+    if (Object.keys(options).some(v => !['mode', 'seeds', 'label', 'page', 'minutes', 'gun', 'pick', 'route', 'build'].includes(v)) || !picks.includes(options.pick || 'boon') || !routes.includes(options.route || 'low')) {
         console.log(usage);
         process.exit(2);
     }
@@ -71,7 +94,7 @@ async function main()
             await page.addInitScript(page_clock);
             await page.goto(`file://${hooked}`);
             await page.waitForTimeout(400);
-            await page.evaluate(v => window.__t(v), `(${page_bot})(${JSON.stringify({mode, seed, gun: options.gun || null, pick: options.pick || 'boon', route: options.route || 'low'})})`);
+            await page.evaluate(v => window.__t(v), `(${page_bot})(${JSON.stringify({mode, seed, gun: options.gun || null, pick: options.pick || 'boon', route: options.route || 'low', build: builds[options.build || 'mixed'] || options.build.split(',')})})`);
             const time0 = Date.now();
             while (!await page.evaluate(() => window.__bot.done) && (Date.now() - time0 < minutes*60000)) {
                 await page.waitForTimeout(1000);
@@ -98,7 +121,7 @@ function run_table(run)
     const maxed = run.maxed ? `shop ran out at ${(run.maxed.run_time/60).toFixed(1)} min in ${run.maxed.world}` : 'shop never ran out';
     const lines = [`${run.mode} seed ${run.seed}: ${run.won ? 'won' : run.cut ? 'cut (time)' : 'lost'} · ${run.deaths} deaths · ${Math.round(run.run_time)} s · score ${run.score} · salvage left ${run.salvage_left} · ${maxed} · ${run.wall_seconds} s on the clock`];
     lines.push(`cards ${run.pick}: ${(run.cards || []).join(', ') || '-'} · route ${run.route_how}: ${(run.route || []).join(' > ')}`);
-    lines.push('world        hull lost (w1/w2/w3)   all dmg  kills  off-screen  salvage at depot  left after  deaths  time  flagship  ship and guns  most from');
+    lines.push('world        hull lost (w1/w2/w3)   all dmg  kills  off-screen  salvage at depot  left after  power  deaths  time  flagship  ship and guns  most from');
     for (const world of run.worlds) {
         const hull = world.waves.map(v => Math.round(v.hull)).join(' / ');
         const all = Math.round(world.waves.reduce((sum, v) => sum + v.hull + v.shield, 0));
@@ -108,7 +131,9 @@ function run_table(run)
         // the flagship: the seconds it lived and the hull you lost meanwhile, over every try; how it ended
         const f = world.flagship;
         const flagship = f.time ? `${Math.round(f.time)} s ${Math.round(f.hull)} hp${f.escaped ? ' fled' : ''}` : '-';
-        lines.push(`${world.name.padEnd(12)} ${hull.padEnd(22)} ${String(all).padStart(7)}  ${String(world.kills).padStart(5)}  ${String(world.off_screen).padStart(10)}  ${String(world.salvage_at_depot ?? '-').padStart(16)}  ${left.padStart(10)}  ${String(world.deaths).padStart(6)}  ${Math.round(world.time)} s  ${flagship.padStart(8)}  ${world.ship}: ${world.guns.join('+')}  ${sources}`);
+        // the power the build draws after the depot, and what the reactor holds
+        const power = world.power ? `${world.power[0]}/${world.power[1]}` : '-';
+        lines.push(`${world.name.padEnd(12)} ${hull.padEnd(22)} ${String(all).padStart(7)}  ${String(world.kills).padStart(5)}  ${String(world.off_screen).padStart(10)}  ${String(world.salvage_at_depot ?? '-').padStart(16)}  ${left.padStart(10)}  ${power.padStart(5)}  ${String(world.deaths).padStart(6)}  ${Math.round(world.time)} s  ${flagship.padStart(8)}  ${world.ship}: ${world.guns.join('+')}  ${sources}`);
     }
     return lines.join('\n');
 }
@@ -144,14 +169,13 @@ function page_bot(options)
     difficulty = options.mode;
     const B = {done: false, deaths: 0, worlds: [], world: null, snapshot: null, won: false, maxed: null, cards: []};
     window.__bot = B;
-    const priorities = ['spread', 'damage', 'rate', 'armor', 'shield', 'drone', 'nanites', 'pulse'];
-    // what a player buys once the fight's core is bought and the ship is sturdier: the rest that helps in a fight
-    const extras = ['reactor', 'cooling', 'evasive', 'homing', 'seeker', 'warhead', 'motor', 'dash', 'speed', 'stabilizer'];
-    // and then the rest of the shop, so the salvage left at the end is what nothing could buy
-    const rest = ['magnet', 'salvager', 'turbo_tank', 'radshield'];
+    // The build: module levels in the order the bot wants them installed, a key a level (its n-th time is level n); the
+    // reactor's power (src/js/arcade_power.js) takes them from the front, a level that does not fit giving its place
+    // to the next that does. --build names one of these (mixed by default) or gives its own list.
+    const build = options.build;
     // the shop ran out: the top ship, every module at its cap (a launcher's modules only with the launcher)
     function maxed_check() {
-        const done = ensure_career().ships.includes('cruiser') && upgrade_options.every(v => (upgrades[v.key] >= v.cap) || module_needs_gun(v));
+        const done = ensure_career().ships.includes('cruiser') && upgrade_options.every(v => (module_owned(v.key) >= v.cap) || module_needs_gun(v));
         if (done && !B.maxed) {
             B.maxed = {run_time, world: worlds[campaign.world].name};
         }
@@ -330,15 +354,57 @@ function page_bot(options)
         arcade_depot_buy(`${kind}:${id}`);
         return true;
     }
-    // modules of the list in its order, the first not maxed each time, while the salvage lasts
-    function buy_in_order(list) {
-        for (let bought = true; bought;) {
-            bought = false;
-            const items = arcade_depot_items().filter(v => (v.kind === 'module') && list.includes(v.id) && !v.done && (v.price !== null));
-            items.sort((a, b) => list.indexOf(a.id) - list.indexOf(b.id));
-            const next = items[0];
-            if (next && (salvage >= next.price)) {
-                bought = buy('module', next.id);
+    // The levels of the build the reactor holds now, a key a level: each in the build's order that is owned or on sale
+    // and fits the power left; a module's level that does not fit leaves out its higher ones too. `more` power on top
+    // plans the levels to buy ahead for the next worlds' power
+    function build_plan(more = 0) {
+        const out = [];
+        const shut = new Set();
+        let left = arcade_power_capacity() + more;
+        const levels = {};
+        for (const key of build) {
+            const option = upgrade_options.find(v => v.key === key);
+            const level = (levels[key] = (levels[key] || 0) + 1);
+            if (shut.has(key) || (level > option.cap) || module_needs_gun(option)) {
+                continue;
+            }
+            const owned = arcade.owned[key] >= level;
+            const open = module_level_opens(option, level) <= world_reached();
+            if ((!owned && !open) || (module_power(key) > left)) {
+                shut.add(key);
+                continue;
+            }
+            out.push(key);
+            left -= module_power(key);
+        }
+        return out;
+    }
+    // the levels of a plan the bot does not own yet, bought in its order while the salvage lasts; true when all are
+    function buy_plan(plan) {
+        const seen = {};
+        for (const key of plan) {
+            seen[key] = (seen[key] || 0) + 1;
+            if ((arcade.owned[key] < seen[key]) && !buy('module', key)) {
+                return false;
+            }
+        }
+        return true;
+    }
+    // the ship flies the plan: the levels past it out, then its levels in, by the depot's Remove and Install
+    function install_plan(plan) {
+        const want = {};
+        for (const key of plan) {
+            want[key] = (want[key] || 0) + 1;
+        }
+        const base = initial_upgrades();
+        for (const option of upgrade_options) {
+            while (upgrades[option.key] - base[option.key] > (want[option.key] || 0)) {
+                arcade_depot_fit(`module:${option.key}`, 'out');
+            }
+        }
+        for (const key of plan) {
+            if (arcade_module_fitted(key) < want[key]) {
+                arcade_depot_fit(`module:${key}`, 'in');
             }
         }
     }
@@ -362,9 +428,9 @@ function page_bot(options)
         while ((supplies.medkit < 2) && buy('supply', 'medkit')) {
             continue;
         }
-        buy_in_order(priorities);
-        const left = arcade_depot_items().filter(v => (v.kind === 'module') && priorities.includes(v.id) && !v.done);
-        if (!left.length) {
+        // the build the reactor holds; once it is bought, a sturdier ship (more power), a gun for each empty mount, and
+        // the levels the next two worlds' power will hold
+        if (buy_plan(build_plan())) {
             // the next sturdier ship the depot sells (one a later world opens waits for it) with no fewer mounts
             const on_sale = arcade_depot_items().filter(v => (v.kind === 'ship') && !v.done && (v.price !== null)).map(v => v.id);
             const sturdier = ship_catalog.filter(v => (v.hull > current_ship().hull) && (v.mounts.length >= current_ship().mounts.length) && on_sale.includes(v.id) && (!options.gun || gun_fits_ship(weapon_by_id(options.gun), v))).sort((a, b) => a.hull - b.hull)[0];
@@ -376,17 +442,22 @@ function page_bot(options)
                 continue;
             }
             if (!sturdier || (current_ship().hull >= sturdier.hull)) {
-                buy_in_order(extras);
-                buy_in_order(rest);
+                // Reactor tuning while the salvage lasts, each a level more of the build
+                while (buy('reactor', 'tuning')) {
+                    buy_plan(build_plan());
+                }
+                buy_plan(build_plan(2));
             }
         }
+        install_plan(build_plan());
         while ((supplies.emp < 3) && buy('supply', 'emp')) {
             continue;
         }
         maxed_check();
         // what is left to buy after this depot: module levels (a launcher's only with the launcher) and ships
         const entry = world_entry();
-        entry.levels_left = upgrade_options.filter(v => !module_needs_gun(v)).reduce((n, v) => n + v.cap - upgrades[v.key], 0);
+        entry.levels_left = upgrade_options.filter(v => !module_needs_gun(v)).reduce((n, v) => n + v.cap - module_owned(v.key), 0);
+        entry.power = [arcade_power_used(), arcade_power_capacity()];
         entry.ships_left = ship_catalog.filter(v => !ensure_career().ships.includes(v.id)).length;
         entry.salvage_after_depot = salvage;
         arcade_depot_close();
@@ -455,7 +526,7 @@ function page_bot(options)
         }
     }
     B.report = function () {
-        return {mode: options.mode, seed: options.seed, gun: options.gun, pick: options.pick, route_how: options.route, cards: B.cards, route: (arcade.route || []).map(v => worlds[v].name), done: B.done, won: B.won, deaths: B.deaths, run_time, score, salvage_left: salvage, maxed: B.maxed, kit: {ship: current_ship().id, guns: mounted_weapons().map(v => (v ? v.id : 'empty')), upgrades: {...upgrades}}, worlds: B.worlds};
+        return {mode: options.mode, seed: options.seed, gun: options.gun, pick: options.pick, route_how: options.route, cards: B.cards, route: (arcade.route || []).map(v => worlds[v].name), done: B.done, won: B.won, deaths: B.deaths, run_time, score, salvage_left: salvage, maxed: B.maxed, kit: {ship: current_ship().id, guns: mounted_weapons().map(v => (v ? v.id : 'empty')), upgrades: {...upgrades}, owned: {...arcade.owned}, power: [arcade_power_used(), arcade_power_capacity()]}, worlds: B.worlds};
     };
     const base_frame = frame;
     frame = function () {

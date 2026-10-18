@@ -48,12 +48,12 @@ function pulse_clear()
 // The pulse from the ship: 480 m, 140 damage on average (320 on a flagship), each amplifier level +80 m, +60 (+120)
 function pulse_fire(x, y)
 {
-    const base = 140 + upgrades.pulse*60;
+    const base = 140 + upgrades.pulse*pulse_amp_damage();
     pulse_waves.push(pulse_wave_create('pulse', x, y, {
         reach: 480 + upgrades.pulse*80,
         speed: pulse_speed,
         damage: base,
-        boss_damage: 320 + upgrades.pulse*120,
+        boss_damage: 320 + upgrades.pulse*pulse_amp_damage()*2,
         base,
         falloff: true,
         push: pulse_push,

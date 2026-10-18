@@ -6,7 +6,8 @@ const dev_screen_options = [
     {value: 'arcade', label: 'Arcade'},
     {value: 'crowded', label: 'Arcade: arrival in a fight, a burst of news'},
     {value: 'arcade-world-cleared', label: 'Arcade: world cleared'},
-    {value: 'arcade-cleared', label: 'Arcade: depot after a world'},
+    {value: 'arcade-cleared', label: 'Arcade: a world cleared, the break'},
+    {value: 'arcade-depot', label: 'Arcade: the depot before the next world'},
     {value: 'arcade-pick', label: 'Arcade: the break, a card to take'},
     {value: 'arcade-route', label: 'Arcade: the break, the next world'},
     {value: 'arcade-finale', label: 'Arcade: finale'},
@@ -55,6 +56,8 @@ const dev_screen_contracts = new URLSearchParams(location.search).get('contracts
 const dev_screen_cargo = new URLSearchParams(location.search).get('cargo');
 // &station=full: the station's header and NEXT strip at their longest (dev_screen_station_set)
 const dev_screen_station = new URLSearchParams(location.search).get('station');
+// &swap=scout: at the arcade's depot, that ship taken, its reactor taking out what it cannot hold (dev_screen_depot_open)
+const dev_screen_swap = new URLSearchParams(location.search).get('swap');
 // The crowded screen's burst: the news of a busy arrival, danger among it, the same title twice, a long line
 const dev_screen_news = [
     ['DEPOT SHIELDED', 'RAIDERS NEAR THE STATION · CLEAR THEM AND IT OPENS', 'info'],
@@ -136,6 +139,10 @@ function dev_screen_open()
         salvage = 375;
         arcade_world_clear();
         finale_leave('depot');
+        return;
+    }
+    if (dev_screen === 'arcade-depot') {
+        dev_screen_depot_open();
         return;
     }
     if (dev_screen === 'arcade-world-cleared') {
@@ -381,11 +388,48 @@ function dev_screen_raiders()
 // &modules=evasive:3,speed:2 sets module levels for the screen (again after an arcade start, which resets them)
 function dev_screen_modules_set()
 {
-    for (const pair of dev_screen_modules.split(',').filter(Boolean)) {
-        const [key, level] = pair.split(':');
-        if (Object.hasOwn(upgrades, key)) {
-            upgrades[key] = Number(level) || 0;
+    const pairs = dev_screen_modules.split(',').filter(Boolean).map(v => v.split(':')).filter(v => Object.hasOwn(upgrades, v[0]));
+    for (const [key, level] of pairs) {
+        upgrades[key] = Number(level) || 0;
+    }
+    // in the arcade the levels are owned, and go in in the URL's order while the reactor has the power for them
+    // (arcade_power.js): the rest stay spare
+    if (arcade.active && pairs.length) {
+        const base = initial_upgrades();
+        const fitted = pairs.flatMap(v => Array(Math.max(0, upgrades[v[0]] - base[v[0]])).fill(v[0]));
+        const kept = [];
+        let used = 0;
+        for (const key of fitted) {
+            if (used + module_power(key) <= arcade_power_capacity()) {
+                kept.push(key);
+                used += module_power(key);
+            }
         }
+        arcade_modules_start({owned: {...upgrades}, fitted: kept});
+    }
+}
+
+// The arcade's depot after a world cleared, its card skipped and the first next world taken, flying the &ship= with
+// the modules of &modules=, and &swap= a ship taken there
+function dev_screen_depot_open()
+{
+    dev_arcade_start();
+    const fleet = ensure_career();
+    fleet.ships = [...new Set([...fleet.ships, dev_scenario.ship])];
+    fleet.ship_id = dev_scenario.ship;
+    player.r = current_ship().radius;
+    salvage = 375;
+    arcade_world_clear();
+    dev_screen_modules_set();
+    finale_leave('depot');
+    player.hp = hull_max()*0.32;
+    arcade_break.step = 'route';
+    arcade_break.chosen = 0;
+    arcade_break_go();
+    const ship = ship_catalog.find(v => v.id === dev_screen_swap);
+    if (ship) {
+        arcade_ship_take(ship);
+        arcade_depot_fill();
     }
 }
 

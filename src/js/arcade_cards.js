@@ -123,7 +123,7 @@ function arcade_cards_draw()
         const which = def.module || def.prize_module;
         if (which) {
             card.module = arcade_card_module_pick(which, dice);
-            card.level = upgrades[card.module] + 1;
+            card.level = module_owned(card.module) + 1;
         }
         out.push(card);
     }
@@ -134,15 +134,16 @@ function arcade_cards_draw()
 // (locked); null when there is none
 function arcade_card_module_pick(which, dice)
 {
-    const options = arcade_card_modules.map(v => upgrade_options.find(vv => vv.key === v)).filter(v => v && (upgrades[v.key] < v.cap) && !module_needs_gun(v) && ((module_next_locked(v) === null) === (which === 'open')));
+    const options = arcade_card_modules.map(v => upgrade_options.find(vv => vv.key === v)).filter(v => v && (module_owned(v.key) < v.cap) && !module_needs_gun(v) && ((module_next_locked(v) === null) === (which === 'open')));
     return options.length ? options[Math.floor(dice()*options.length)].key : null;
 }
 
-// The module a card gives: Shield capacitor level 2
+// The module a card gives, and the reactor's power it draws installed (arcade_power.js): Shield capacitor level 2
+// (1 power)
 function arcade_card_module_text(card)
 {
     const option = upgrade_options.find(v => v.key === card.module);
-    return `${option.title} level ${card.level}`;
+    return `${option.title} level ${card.level} (${module_power(option.key)} power)`;
 }
 
 // A card's price in salvage, 0 for none
@@ -258,7 +259,7 @@ function arcade_cards_world_cleared()
         }
         else if (def.prize_module) {
             const option = upgrade_options.find(v => v.key === card.module);
-            if (upgrades[option.key] < option.cap) {
+            if (module_owned(option.key) < option.cap) {
                 grant_upgrade(option);
             }
         }

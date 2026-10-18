@@ -298,9 +298,16 @@ function collect_pickup(v, quiet = false)
     }
 }
 
+// A module level bought or given: installed at once; in the arcade owned, and installed if the reactor has the power
+// for it (src/js/arcade_power.js)
 function grant_upgrade(v)
 {
-    upgrades[v.key]++;
+    if (arcade.active) {
+        arcade_module_own(v.key);
+    }
+    else {
+        upgrades[v.key]++;
+    }
     if (v.key === 'shield') {
         player.shield = shield_max();
     }
@@ -311,9 +318,10 @@ function grant_upgrade(v)
     update_hud();
 }
 
+// The next level's price, by the levels owned (in the arcade, installed or not)
 function module_cost(v)
 {
-    return Math.round(v.cost*(1 + upgrades[v.key]*0.48));
+    return Math.round(v.cost*(1 + module_owned(v.key)*0.48));
 }
 
 function render_draft()

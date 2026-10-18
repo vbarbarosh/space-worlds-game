@@ -313,32 +313,37 @@ below). That gives, in the campaign at NORMAL:
 
 ## Modules and supplies
 
-A module level costs its base price × (1 + 0.48 per level you have)
-(`module_cost` in `src/js/upgrades.js`). Modules move between ships.
+A module level costs its base price × (1 + 0.48 per level you have; in the
+arcade the levels owned, installed or not) (`module_cost` in
+`src/js/upgrades.js`). Modules move between ships. In the arcade each level
+installed draws the reactor's power (Power, below; [The arcade's power
+budget](#the-arcades-power-budget)), and the drones, nanites, Pulse reactor
+and amplifier, Turbo drive, Evasive thrusters, Slipstream, Rapid resonance and
+Phase armor do more there (its Builds).
 
-| Module | Levels | Opens (level by level) | Base price | Per level (code) |
-|---|---|---|---|---|
-| Artifact magnet | 7 | H V D I C N E | 32 | reach 45 + 110 per level (starts at 1) |
-| Orbit drones | 3 | H I C | 65 | one more drone |
-| Shield capacitor | 3 | H V O | 44 | +25 shield, faster recharge |
-| Repair nanites | 3 | H I C | 60 | 0.35 hull a second after 5 s unhit |
-| Guided plasma | 2 | H O | 55 | plasma and ion bolts turn toward targets |
-| Pulse reactor | 3 | H I C | 42 | 1.5 pulse a second |
-| Relic processor | 3 | H I C | 35 | +25% salvage from artifacts |
-| Turbo drive | 3 | H I C | 70 | turbo speed + 0.65 on a ×3.2 base; dash cooldown −0.9 s |
-| Booster reservoir | 4 | H D O N | 65 | +3 s of turbo |
-| Radiation lining | 4 | H D O N | 90 | +20% radiation protection |
-| Vector stabilizers | 3 | H I C | 60 | steering +15%, braking +40% |
-| Evasive thrusters | 3 | H I C | 70 | steers round obstacles |
-| Radar | 3 | H I C | 40 | sees raiders 2.5, 4, 6 km off: markers on the window's edge; Seeker missiles +0.5 rad/s turn, lock to its reach, held while it sees the target (`src/js/radar.js`) |
-| Reactor cooling | 3 | H I C | 75 | dash cooldown −0.35 s; Cryosphere shield recharge |
-| Prism cannon | 2 | H O | 75 | more a shot, by the gun (Weapons, above) |
-| Hotter plasma | 5 | H D I C N | 38 | +36% of the gun's damage a shot |
-| Rapid resonance | 3 | H I C | 45 | fire interval −12% |
-| Slipstream | 3 | H I C | 30 | cruise speed +15% |
-| Phase armor | 3 | H V O | 46 | −12% damage taken (−15% in Obsidian) |
-| Pulse amplifier | 3 | H I C | 42 | pulse reach +80, damage +60 (flagship +120) |
-| Seeker head, Rocket motor, Shaped warhead | 3 each | H I C | 55, 50, 60 | the Seeker launcher's missiles; on sale with the launcher |
+| Module | Levels | Opens (level by level) | Base price | Power (arcade) | Per level (code) |
+|---|---|---|---|---|---|
+| Artifact magnet | 7 | H V D I C N E | 32 | 1 (none for the level 1 you start with) | reach 45 + 110 per level (starts at 1) |
+| Orbit drones | 3 | H I C | 65 | 1 | one more drone |
+| Shield capacitor | 3 | H V O | 44 | 1 | +25 shield, faster recharge |
+| Repair nanites | 3 | H I C | 60 | 1 | 0.35 hull a second after 5 s unhit |
+| Guided plasma | 2 | H O | 55 | 1 | plasma and ion bolts turn toward targets |
+| Pulse reactor | 3 | H I C | 42 | 1 | 1.5 pulse a second |
+| Relic processor | 3 | H I C | 35 | 1 | +25% salvage from artifacts |
+| Turbo drive | 3 | H I C | 70 | 1 | turbo speed + 0.65 on a ×3.2 base; dash cooldown −0.9 s |
+| Booster reservoir | 4 | H D O N | 65 | 1 | +3 s of turbo |
+| Radiation lining | 4 | H D O N | 90 | 1 | +20% radiation protection |
+| Vector stabilizers | 3 | H I C | 60 | 1 | steering +15%, braking +40% |
+| Evasive thrusters | 3 | H I C | 70 | 1 | steers round obstacles |
+| Radar | 3 | H I C | 40 | 1 | sees raiders 2.5, 4, 6 km off: markers on the window's edge; Seeker missiles +0.5 rad/s turn, lock to its reach, held while it sees the target (`src/js/radar.js`) |
+| Reactor cooling | 3 | H I C | 75 | 1 | dash cooldown −0.35 s; Cryosphere shield recharge |
+| Prism cannon | 2 | H O | 75 | 2 | more a shot, by the gun (Weapons, above) |
+| Hotter plasma | 5 | H D I C N | 38 | 2 | +36% of the gun's damage a shot |
+| Rapid resonance | 3 | H I C | 45 | 2 | fire interval −12% |
+| Slipstream | 3 | H I C | 30 | 1 | cruise speed +15% |
+| Phase armor | 3 | H V O | 46 | 1 | −12% damage taken (−15% in Obsidian) |
+| Pulse amplifier | 3 | H I C | 42 | 1 | pulse reach +80, damage +60 (flagship +120) |
+| Seeker head, Rocket motor, Shaped warhead | 3 each | H I C | 55, 50, 60 | 1 | the Seeker launcher's missiles; on sale with the launcher |
 
 H Haven, V Verdant, D Dustfall, I Ion Reach, O Obsidian, C Cryosphere, N Nova
 Forge, E Eclipse: see What each world opens, below.
@@ -358,6 +363,142 @@ Forge, E Eclipse: see What each world opens, below.
   amplifier; a kill blows up 0.05–0.14 s later and sends a chain ring: 110 m,
   28 damage, ×0.82 a step, 3 steps, ×1.35 from a tank, elite or flagship
   (`src/js/pulse.js`). A kill gives 4 energy + the amplifier level.
+
+## The arcade's power budget
+
+In the arcade (`src/js/arcade_power.js`; the campaign has none) a module level
+bought is owned for the rest of the run, but it works only installed, and every
+level installed draws power from the ship's reactor, which holds a limited
+amount. So no ship flies with everything, and a run ends with "which build next
+time?", not with the whole shop bought.
+
+- **The reactor:** the ship's own power (`power` in `src/js/ships/`) + 1 for
+  each world cleared (`arcade_power_per_world`; the step, and from a world's
+  cleared screen on the next one, as `world_reached` counts) + 1 for each
+  Reactor tuning bought (below):
+
+  | Ship | Power | at the depot before world 2 | before Obsidian (5) | before Eclipse (8) |
+  |---|---|---|---|---|
+  | Wisp Scout | 4 | 5 | 8 | 11 |
+  | Kestrel Courier | 5 | 6 | 9 | 12 |
+  | Mule Prospector | 5 | 6 | 9 | 12 |
+  | Viper Interceptor | 6 | 7 | 10 | 13 |
+  | Bastion Gunship | 7 | 8 | 11 | 14 |
+  | Aurora Cruiser | 8 | 9 | 12 | 15 |
+
+- **The draw:** Hotter plasma, Rapid resonance and Prism draw 2 a level
+  (`arcade_power_draws`): they multiply every shot, the strongest levels in
+  the shop for their price, and the three at their caps alone would take 20.
+  Every other level draws 1; the magnet's level 1, which every run starts with,
+  draws none. All 75 levels would draw 84, so an Eclipse cruiser flies about a
+  fifth of them.
+- **Reactor tuning** (the depot's Ships shelf): +1 power on every ship for the
+  rest of the run, at 600, 1200 and 1800 salvage, three a run at most
+  (`arcade_reactor_prices`), kept in the save. It gives the salvage a run piles
+  up a use, dear enough that a run buys one or two: the bot bought one or two
+  in every run that reached Eclipse, and its salvage left at the end fell from
+  700–3394 (median 2000) to 426–1663 (median 1200).
+- **Owned and installed:** a level bought goes in at once when the reactor has
+  the power for it, else it stays owned, spare, and the depot says so (the
+  row's Install says No power, and a note heads the list). At the depot a level
+  comes out (Remove) or an owned one goes in (Install) for free, so each world
+  can fly its own build. A module's row shows its draw (POWER), its levels
+  installed (lit pips), owned but not installed (outlined) and not owned, and
+  ON SHIP once a level of a module you see on the ship is installed; the
+  header shows the power used against the reactor's, a cell a unit. A level's
+  price goes by the levels owned. `upgrades` stays the levels installed, so
+  every effect reads only those; `arcade.owned` holds the levels bought and
+  `arcade.fitted` those installed past the start's, in the order they went in.
+- **A smaller reactor** (a ship with less power taken at the depot): the
+  newest levels installed come out until it holds the rest, they stay owned,
+  and a note at the head of the list names them (The Wisp Scout's reactor
+  holds 8: Orbit drones 1, Shield capacitor 1–2 came out...); a ship's row says
+  beforehand how many levels its reactor would take out. A bigger reactor puts
+  nothing back by itself: Install does.
+- **The save** (`arcade_snapshot`) keeps the levels installed (`upgrades`),
+  owned (`owned`) and the order they went in (`fitted`); a retry and a load
+  start the world with them. A save from before the budget owns every level it
+  had and installs as many as the reactor holds, Hotter plasma, Phase armor,
+  the shield, Prism, Rapid resonance, drones, nanites and the pulse first
+  (`arcade_power_fill`).
+- **Cards:** a module level a card gives (Field upgrade, Prototype, a Flagship
+  wager's prize) is owned and goes in if there is power; the card names its
+  draw (Shield capacitor level 2 (1 power)). Each break's three cards hold a
+  trade-off (a run-long card with a downside) while one is left
+  (`arcade_cards_draw` draws one of each kind).
+- **The raiders' hull** went down with it: the shop's factor on it
+  (`arcade_shop_hull`, `arcade_shop_flagship`; [The arcade's difficulty
+  rows](#the-arcades-difficulty-rows)) assumed every level bought and
+  installed. The armour of the later worlds takes a flat share off every hit,
+  so the smaller damage of a budget kit bites it much less: with Eclipse's
+  raiders at a third of their old hull the bot won no run of 12.
+- **Builds.** In the arcade the levels that are not the guns' do more, so a
+  build of one kind carries a run (`arcade_module_tune`, the campaign keeps
+  its numbers; the depot's rows say the arcade's):
+
+  | Module | Campaign | Arcade |
+  |---|---|---|
+  | Orbit drones | a bolt of 10 + 3 per Hotter plasma level every 0.42 s | the same + 16 a step, every 0.3 s |
+  | Repair nanites | 0.35 hull a second after 5 s unhit | 1.2% of the hull a second, under fire too |
+  | Pulse reactor | 1.5 energy a second | 9 |
+  | Pulse amplifier | +60 damage (flagship +120) | +60 + 80 a step (twice that to a flagship) |
+  | Turbo drive | dash cooldown −0.9 s | −1.4 s |
+  | Evasive thrusters | steers round rocks and ships | that, and 17% of the raiders' shots that reach you slip by |
+  | Slipstream | cruise +15% | that, and 8% of the shots slip by (with the thrusters, 50% at most) |
+  | Rapid resonance | interval −12% | −20% |
+  | Phase armor | −12% a hit (−15% in Obsidian) | −15% |
+
+  A shot that slips is counted out, not rolled: at 30% the 4th, 7th and 10th
+  of ten slip (`arcade_evade_shot`). The draws stay as above: with the guns at
+  2 a level a guns build is the weakest of the three (6 of 12), at 3 it would
+  fall further; and no stat is taken from the guns' levels for the same
+  reason, as the reactor is their price.
+- **The bot** (`bin/playtest`) flies a build: levels in its order, each that
+  fits the power left; once those are bought, a sturdier ship (more power), a
+  gun for each empty mount, Reactor tuning while the salvage lasts, the levels
+  the next two worlds' power will hold; then at each depot it takes out what
+  is not in its build and installs what is. `--build=` names one of four
+  (`builds` in `bin/playtest`), each on the same core of Prism 1, Phase armor 1
+  and Shield capacitor 1, or gives its own order. Measured (NORMAL, seeds
+  1–12):
+
+  | Build | Its levels (after the core) | Won | Deaths | The kit at the end of a won run | Salvage left |
+  |---|---|---|---|---|---|
+  | mixed (the default) | Hotter plasma, armour, shield, Prism 2, ... | 8 of 12 | 17: Haven 1, Verdant 2, Obsidian 2, Nova Forge 1, Eclipse 11 | Hotter plasma 4, Prism 2, armour 3, shield 2 | 426–1663 |
+  | guns | Hotter plasma, Rapid resonance, Prism 2 | 6 of 12 | 22: Haven 1, Verdant 2, Obsidian 3, Nova Forge 2, Eclipse 14 | Hotter plasma 3, Rapid resonance 2, Prism 2 | 476–1691 |
+  | tank | armour, shield, drones, nanites, then Hotter plasma | 8 of 12 | 18: Haven 1, Verdant 3, Ion Reach 1, Obsidian 4, Eclipse 9 | armour 3, shield 3, drones 3, nanites 3, Hotter plasma 1 | 572–2224 |
+  | evasion | Evasive thrusters, the pulse and its reactor, Slipstream, Turbo drive, Guided plasma | 6 of 12 | 24: Haven 1, Verdant 2, Dustfall 1, Ion Reach 1, Obsidian 2, Eclipse 17 | evasion 3, Pulse amplifier 3, Pulse reactor 3, Slipstream 2, Turbo drive 1 | 433–3059 |
+
+  A won run takes 700–890 s (median). Before the arcade's own numbers the
+  guns won 1 to 2 runs of 12, the tank 0 to 1, evasion none (it died in Ion
+  Reach); with evasion at 20% a level and Slipstream 10% (90% of the shots
+  slipping) evasion won 11 of 12; at 17% and 8% with no cap (up to 75%) 7 of
+  12, and with the slips capped at 50% (`evade_max`) 6. The mixed build before them won 7 of 12
+  (below).
+- Measured (`bin/playtest`, NORMAL, seeds 1–12, the budget and the hull below
+  against the game before, the mixed build, before the arcade's own module
+  numbers and Reactor tuning):
+
+  | | before | with the budget |
+  |---|---|---|
+  | runs won | 6 of 12 | 7 of 12 |
+  | deaths | 25: Haven 1, Verdant 3, Ion Reach 1, Eclipse 20 | 25: Haven 1, Verdant 2, Obsidian 1, Eclipse 21 |
+  | levels at the end, owned / installed | 46–62 / all of them | 11–15 / 10 (power 15 of 15) |
+  | the kit at Eclipse | every module near its cap | Hotter plasma 3, Prism 2, Phase armor 3, Shield capacitor 2, the rest spare |
+  | salvage left at the end | 845–7513 (median 3960) | 700–3394 (median 2000) |
+  | damage taken a world without a death (median, hull and shield): Verdant, Dustfall, Ion Reach, Obsidian | 244, 161, 293, 262 | 257, 343, 357, 592 |
+  | the same: Cryosphere, Nova Forge, Eclipse | 208, 256, 746 | 296, 450, 744 |
+  | a won run, s (median) | 709 | 695 |
+
+  Raider hull ×1, 0.7, 0.55, 0.4, 0.3, 0.5, 0.6, 0.5 by step (before ×1 to
+  Obsidian, 2.2, 2.8, 3), flagships ×1, 0.7, 1, 0.5, 0.6, 1, 1, 0.45 (before
+  1, 1, 1.8, 1.3, 2, 4, 4, 2). Tried on the way: the old hull lost all 12 runs
+  (Verdant to Obsidian); ×0.75 to 0.5 up to Obsidian, then 1.1, 1.4, 1.5, also
+  0 of 12 (Obsidian and later); the factors above with Eclipse at 0.6 (flagship
+  0.5) 4 of 12, at 0.42 (0.4) 8 of 12. The middle worlds cost more than
+  before, not less, as the kit fights them with fewer levels. CHILL (seeds
+  1–3): 3 won, 1 death (with the builds' numbers and Reactor tuning: 3 won, no death). With the
+  trade-off card taken at every break (NORMAL, seeds 1–8): 3 of 8 won.
 
 ## What each world opens
 
@@ -481,7 +622,7 @@ before rocks and the Relic processor.
 | Ships | half the campaign price, rounded to 10 (`arcade_ship_price`): 180, 430, 530, 1150, 2800; from the world that opens it | the price above, gated by rank and by the world that opens it |
 | Guns | 120 + 45 × rating, no rank; from the world that opens it | the price above, gated by rank and by the world that opens it; each more of a gun the same (the cannon 120) |
 | Gun tier | free, one per world cleared, up to the tier the next world opens: 2 in Dustfall, 3 Ion Reach, 4 Obsidian, 5 Nova Forge (`gun_tier_open`) | (130 + 22% of price) × tier × 1.5 |
-| Modules, supplies | the tables above; a module level from the world that opens it | the same |
+| Modules, supplies | the tables above; a module level from the world that opens it, and it works installed, within the reactor's power ([The arcade's power budget](#the-arcades-power-budget)) | the same, every level installed |
 | Builder drone, outposts, transport | none | see below |
 
 - Campaign extras: builder drone 150 (`builder_price`), mining outpost 120 and
@@ -633,11 +774,14 @@ before rocks and the Relic processor.
   Eclipse twice).
 - A raider's hull is the first table's (`base_spawn_enemy`, without the
   campaign's ×2) × the mode's hull × (1 + growth × step) × the
-  step's shop, so on NORMAL an Eclipse raider has ×2.05 and ×3 on top of the
+  step's shop, so on NORMAL an Eclipse raider has ×2.05 and ×0.5 on top of the
   mode's ×1.5; the flagship keeps its own scale but for the shop
-  (`arcade_hull_scale`). The shop (`arcade_shop_hull`, `arcade_shop_flagship`):
-  raiders ×1 to Obsidian, then ×2.2 Cryosphere, ×2.8 Nova Forge, ×3 Eclipse;
-  flagships ×1, 1, 1.8, 1.3, 2, 4, 4, 2. From Obsidian on a world sells the
+  (`arcade_hull_scale`). The shop (`arcade_shop_hull`, `arcade_shop_flagship`)
+  since the power budget: raiders ×1, 0.7, 0.55, 0.4, 0.3, 0.5, 0.6, 0.5 by
+  step; flagships ×1, 0.7, 1, 0.5, 0.6, 1, 1, 0.45 ([The arcade's power
+  budget](#the-arcades-power-budget)). Before it, with every level bought and
+  installed: raiders ×1 to Obsidian, then ×2.2 Cryosphere, ×2.8 Nova Forge, ×3
+  Eclipse; flagships ×1, 1, 1.8, 1.3, 2, 4, 4, 2. From Obsidian on a world sells the
   gunship's third mount, Prism 2, the cruiser's fourth and the top gun tiers,
   and a play log of v0.9.0 (NORMAL, 0 deaths, 19 min) killed a raider there in
   0.4–0.6 s against 1.7 s before, a flagship in 2–13 s. Measured after it
@@ -871,13 +1015,13 @@ order; any world flown at that step has its numbers):
 | World | chaser | tank | armour, shield (tank) | elite shield | flagship | raiders a wave | squadron | gap (s) | clear bonus |
 |---|---|---|---|---|---|---|---|---|---|
 | Haven | 44 | 140 | 0%, 0 | 40 | 1500 | 13 / 17 / 21 | 4 / 5 / 6 | 4.40 | 80 |
-| Verdant | 74 | 205 | 10%, 0 | 65 | 2400 | 15 / 19 / 23 | 4 / 5 / 6 | 4.16 | 120 |
-| Dustfall | 111 | 283 | 20%, 0 | 90 | 5940 | 17 / 21 / 25 | 5 / 6 / 7 | 3.92 | 160 |
-| Ion Reach | 154 | 372 | 16%, 52 (73) | 115 | 24570 | 19 / 23 / 27 | 5 / 6 / 7 | 3.68 | 200 |
-| Obsidian | 204 | 473 | 40%, 36 (50) | 140 | 30600 | 21 / 25 / 29 | 6 / 7 / 8 | 3.44 | 240 |
-| Cryosphere | 572 | 1287 | 28%, 112 (157) | 165 | 30000 | 23 / 27 / 31 | 6 / 7 / 8 | 3.20 | 280 |
-| Nova Forge | 902 | 1988 | 48%, 72 (101) | 190 | 34500 | 25 / 29 / 33 | 7 / 8 / 9 | 2.96 | 320 |
-| Eclipse | 1173 | 2538 | 52%, 160 (224) | 215 | 40560 | 27 / 31 / 35 | 7 / 8 / 9 | 2.72 | (run ends) |
+| Verdant | 52 | 144 | 10%, 0 | 65 | 1680 | 15 / 19 / 23 | 4 / 5 / 6 | 4.16 | 120 |
+| Dustfall | 61 | 156 | 20%, 0 | 90 | 3300 | 17 / 21 / 25 | 5 / 6 / 7 | 3.92 | 160 |
+| Ion Reach | 62 | 149 | 16%, 52 (73) | 115 | 9450 | 19 / 23 / 27 | 5 / 6 / 7 | 3.68 | 200 |
+| Obsidian | 61 | 142 | 40%, 36 (50) | 140 | 9180 | 21 / 25 / 29 | 6 / 7 / 8 | 3.44 | 240 |
+| Cryosphere | 130 | 292 | 28%, 112 (157) | 165 | 7500 | 23 / 27 / 31 | 6 / 7 / 8 | 3.20 | 280 |
+| Nova Forge | 193 | 426 | 48%, 72 (101) | 190 | 8625 | 25 / 29 / 33 | 7 / 8 / 9 | 2.96 | 320 |
+| Eclipse | 196 | 423 | 52%, 160 (224) | 215 | 9126 | 27 / 31 / 35 | 7 / 8 / 9 | 2.72 | (run ends) |
 
 ## Dustfall's cliffs
 

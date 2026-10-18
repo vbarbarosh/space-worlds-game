@@ -13,6 +13,8 @@ const ship_scout = {
         cargo: 40,
         radius: 12,
         damage: 1,
+        // the arcade's reactor: the power its module levels may draw, one more a world cleared (src/js/arcade_power.js)
+        power: 4,
         mounts: ['light'],
         color: cyan,
         shape: 0,

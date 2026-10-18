@@ -155,7 +155,18 @@ Your part:
 
   Then the depot (screen `arcade_depot`), with a bonus for the world cleared:
   this is where the run shops, so think about the next world's rules, shown
-  under your salvage. Press what you buy, then `Launch to <World>`. Mid-world,
+  under your salvage. Press what you buy, then `Launch to <World>`. A module
+  level works only installed, and every level installed draws power from the
+  ship's reactor (`POWER 9 / 11` at the top: its own power and one for each
+  world cleared; a row's `POWER 2` is what one level of it draws). A level
+  bought goes in when there is power, else it stays yours, spare; `Remove`
+  takes a level out and `Install` puts an owned one in, both free (`No power`
+  when the reactor is short), and each row says `Installed n, owned n, of n`.
+  A ship with a smaller reactor takes out the newest levels; its row says how
+  many first. `Reactor tuning` (Ships) adds a unit of power to every ship, a
+  few times a run. A build of one kind can carry a run: the guns, a tank
+  (armour, shield, drones, nanites) or an evasive pulse ship (evasion,
+  Slipstream, the pulse and its reactor); each row says what it does here. Mid-world,
   `bin/captain dock` sends the pilot to the station; the depot opens as soon
   as its shield is down (no raider near the station), and `Launch` returns to the fight.
 - **The pulse and the supplies**, when you judge it right: `key Space` when

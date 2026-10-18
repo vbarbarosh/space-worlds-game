@@ -737,6 +737,73 @@ body:not(.in-game) .ui.hud .hud-top .toolbar {
     color: var(--red-2);
 }
 
+/* the reactor (arcade_power.js): the power the installed module levels draw against what it holds, a cell a unit */
+.ui .depot-power {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border: 1px solid rgba(108, 248, 236, 0.4);
+    border-radius: 12px;
+    background: var(--cyan-dim);
+}
+
+.ui .depot-power .readout {
+    font-size: 26px;
+    color: var(--cyan);
+    white-space: nowrap;
+}
+
+.ui .depot-power .readout small {
+    font-size: 15px;
+    color: var(--text-3);
+}
+
+.ui .depot-power-cells {
+    display: grid;
+    grid-auto-flow: column;
+    grid-template-rows: repeat(2, 7px);
+    gap: 3px;
+}
+
+.ui .depot-power-cells i {
+    width: 7px;
+    border-radius: 2px;
+    background: var(--line-2);
+}
+
+.ui .depot-power-cells i.on {
+    background: var(--cyan);
+    box-shadow: 0 0 5px var(--cyan);
+}
+
+.ui .depot-power-cells i.over {
+    background: var(--red);
+    box-shadow: 0 0 5px var(--red);
+}
+
+.ui .depot-power.is-over {
+    border-color: rgba(255, 77, 94, 0.5);
+    background: var(--red-dim);
+}
+
+.ui .depot-power.is-over .readout {
+    color: var(--red-2);
+}
+
+/* the news of the last change to the power: a level left spare, levels a smaller reactor took out */
+.ui .depot-note {
+    margin: 0 0 16px;
+    padding: 8px 12px;
+    border: 1px solid rgba(255, 204, 77, 0.35);
+    border-radius: 10px;
+    background: var(--gold-dim);
+    font: 500 13px/1.35 var(--font-ui);
+    color: var(--text-1);
+    overflow-wrap: anywhere;
+}
+
 .ui .depot-filters {
     flex: none;
     display: flex;
@@ -745,6 +812,12 @@ body:not(.in-game) .ui.hud .hud-top .toolbar {
     gap: 10px;
     padding: 0 0 12px;
     border-bottom: 1px solid var(--line-1);
+}
+
+/* the shelves wrap to a second row where the window is narrower than all eight */
+.ui .depot-filters .seg {
+    flex-wrap: wrap;
+    max-width: 100%;
 }
 
 .ui .depot-filters .seg button {
@@ -1044,6 +1117,23 @@ body:not(.in-game) .ui.hud .hud-top .toolbar {
     box-shadow: 0 0 6px var(--shelf, var(--cyan));
 }
 
+/* a level owned but not installed */
+.ui .depot-pips i.own {
+    background: transparent;
+    box-shadow: inset 0 0 0 1.5px var(--shelf, var(--cyan));
+}
+
+.ui .depot-chip.is-heavy {
+    color: var(--gold);
+}
+
+/* Remove and Install: a level out of the ship or in, free */
+.ui .depot-it .row > .depot-fit {
+    display: inline-flex;
+    gap: 6px;
+    margin-left: auto;
+}
+
 .ui .depot-empty {
     padding: 40px;
     text-align: center;
@@ -1194,7 +1284,7 @@ body:not(.in-game) .ui.hud .hud-top .toolbar {
         display: none;
     }
 
-    .ui .depot-wallet {
+    .ui .depot-power {
         margin-left: auto;
     }
 
@@ -1243,6 +1333,24 @@ body:not(.in-game) .ui.hud .hud-top .toolbar {
     .ui .depot-top .h-panel {
         font-size: 24px;
     }
+
+    .ui .depot-top {
+        gap: 10px;
+    }
+
+    .ui .depot-power,
+    .ui .depot-wallet {
+        padding: 6px 10px;
+    }
+
+    .ui .depot-power-cells {
+        display: none;
+    }
+
+    .ui .depot-power .readout,
+    .ui .depot-wallet .readout {
+        font-size: 22px;
+    }
 }
 
 @container screen (max-height: 620px) {
@@ -1263,12 +1371,18 @@ body:not(.in-game) .ui.hud .hud-top .toolbar {
         display: none;
     }
 
-    .ui .depot-wallet {
+    .ui .depot-wallet,
+    .ui .depot-power {
         padding: 6px 12px;
     }
 
-    .ui .depot-wallet .readout {
+    .ui .depot-wallet .readout,
+    .ui .depot-power .readout {
         font-size: 22px;
+    }
+
+    .ui .depot-note {
+        padding: 4px 10px;
     }
 
     .ui .depot-side {

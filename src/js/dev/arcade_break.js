@@ -50,7 +50,7 @@ function dev_break_cards_set()
                 title: `${def.title} of the long and winding outer frontier`,
                 risk: 'Half as many raiders again in every wave, and each of them fires twice as often at you while the flagship calls its escorts twice over.',
                 prize: 'Plus fifteen per cent damage for the rest of the run, and a word with no spaces: PROTOTYPE_PLASMA_RESONANCE_COUPLING.',
-                line: 'A gift with a very long line: Shield capacitor level 3 now, before the depot sells it at world 5, fitted by the Free Traders.',
+                line: 'A gift with a very long line: Shield capacitor level 3 (1 power) now, before the depot sells it at world 5, fitted by the Free Traders.',
             });
             if (def.kind === 'trade') {
                 def.k = {damage: 1.3, taken: 1.25, speed: 0.9, rate: 0.85};
@@ -64,7 +64,7 @@ function dev_break_cards_set()
             const which = def && (def.module || def.prize_module);
             if (which) {
                 out.module = arcade_card_module_pick(which, () => 0) || 'shield';
-                out.level = upgrades[out.module] + 1;
+                out.level = module_owned(out.module) + 1;
             }
             return out;
         }).filter(v => arcade_card_def(v.id));

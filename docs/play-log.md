@@ -159,7 +159,7 @@ Every event has `t` and `type`.
 | `run` | a load or the tow inside a session: `how`, `world`, `salvage`, `xp` |
 | `buy` | `kind` (as `spent`), `item`, `price`, `salvage_left`, `priciest_yet` (the game's dearest purchase so far), and for a gun tier `tier`, for trade `amount` |
 | `sell` | `item`, `amount`, `value`, `salvage_left` |
-| `kit` | `ship`, `guns` (mount by mount: `id`, `name`, `tier`, or null for an empty mount), `modules` (level by key), `modules_at_cap`, `modules_total`, `modules_below_cap` (those needing a launcher are marked), `ships_owned`, `drones`, `rank`, `salvage` |
+| `kit` | `ship`, `guns` (mount by mount: `id`, `name`, `tier`, or null for an empty mount), `modules` (installed level by key), `modules_at_cap`, `modules_total`, `modules_below_cap` (by the levels owned; those needing a launcher are marked), `ships_owned`, `drones`, `rank`, `salvage`; in the arcade `owned` (owned level by key, installed or not) and `power` (used, held by the reactor) |
 | `rank` | `rank`, `xp` |
 | `milestone` | `what`: `top ship` (the priciest ship owned), `all modules at cap` (all but those needing a launcher you do not carry), `all guns tier 5`; `salvage` |
 | `contract` | `action` (`taken`, `stage done`, `completed`, `claimed`, `abandoned`), `title`, `kind` (the stage's), `stage`, `stages`, `world`, `reward`, `story`, `secs` (since taken), `stage_secs` (since the stage began), and `xp` when claimed |
@@ -173,6 +173,7 @@ Every event has `t` and `type`.
 | `card` | arcade: a card taken at the break (`src/js/arcade_cards.js`): `world` (the one just cleared), `card` (its id), `kind` (`gamble`, `trade`, `boon`), `module` and `price` when it has them |
 | `card won` | arcade: a gamble's world cleared, its prize given: `world`, `card` |
 | `card used` | arcade: the second wind saved you: `world`, `card` |
+| `module` | arcade: a module level taken out of the ship or put in at the depot, free (`src/js/arcade_power.js`): `world`, `module`, `way` (`out`, `in`), `level` (installed now), `power` (used now) |
 | `route` | arcade: the next world chosen at the break: `from`, `to`, `offered` (the worlds offered, names) |
 | `death` | `world`, `cause` (`kind` as `taken_by`; for a shot `raider`, `weapon`, `elite`; for a ram `raider`, `elite`), `first_in_world` (in this game), `in_world_s`, `salvage`, `ship`, `flagship_alive` (its hull left, 0 to 1, or null) |
 | `won` | the arcade's last world cleared: `world`, `salvage` |
