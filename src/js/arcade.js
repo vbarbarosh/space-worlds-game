@@ -639,9 +639,12 @@ function arcade_flagship_spawn()
 {
     const enemy = spawn_enemy('boss');
     const scale = (difficulty === 'chill') ? 0.8 : (difficulty === 'overload') ? 1.25 : 1;
-    // by the run's step, as the shop's factor on it (arcade_shop_flagship) is the step's; then its duel's factor, for
-    // time to run its attacks and its way to be won (boss_duels: the world's own, as its duel is); and a card's factor
-    enemy.hp = Math.round(1500*(1 + arcade_level()*0.6)*scale*boss_duel_hull(campaign.world)*arcade_card_k.flagship);
+    // by the run's step, as the shop's factor on it (arcade_shop_flagship) is the step's: the design's factor of the
+    // step's world in the map's order, so a flagship has the step's hull whichever world it is; times how much more its
+    // own duel asks than its design (boss_duels: Dustfall's blade halves your shots, Ion Reach's shell lets them through
+    // its gaps only), so Ion Reach's duel flown at step 2 is not a step-3 fight on a step-2 kit; and a card's factor
+    const duel = boss_duel_hull(campaign.world)/boss_designs[campaign.world].hull;
+    enemy.hp = Math.round(1500*(1 + arcade_level()*0.6)*scale*boss_designs[arcade_level()].hull*duel*arcade_card_k.flagship);
     enemy.max_hp = enemy.hp;
     boss_spawned = true;
     boss_defeated = false;

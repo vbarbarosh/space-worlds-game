@@ -509,7 +509,7 @@ before rocks and the Relic processor.
 | | Arcade | Campaign |
 |---|---|---|
 | Elite | from the mode's first elite world, the leader of every second squadron from wave 2: hull ×3, size ×1.35, shield 40 + 25 × step, drops a repair kit or an EMP; a trick of its world (below) | the target of an `elite` stage: hull ×3.5 (at least 600), armour +12% (at most 72%), shield ×1.6 (at least 80), speed ×0.8; carries missiles in Haven |
-| Flagship | 1500 × (1 + 0.6 × step) hull × its own world's duel factor, whichever step the route flies it at (Haven and Verdant 1, Dustfall 0.7, Ion Reach 3.2, Obsidian 3, Cryosphere 2.3, Nova Forge 1.5, Eclipse 4.5) (CHILL ×0.8, OVERLOAD ×1.25), × a card's factor; fights its world's duel (below); calls escorts and a last stand where its duel has it (66% and 33% for most); on OVERLOAD, overdrive at 15% | 10500 hull, 19000 in Eclipse; three times the world's shield |
+| Flagship | 1500 × (1 + 0.6 × step) hull × the design's factor of the step's world on the map's order (so any world's flagship at step 3 has Ion Reach's design) × its own duel's factor over its own design's, for its way to be won (so on the worlds' own order it is the duel's factor: Haven and Verdant 1, Dustfall 0.7, Ion Reach 3.2, Obsidian 3, Cryosphere 2.3, Nova Forge 1.5, Eclipse 4.5) (CHILL ×0.8, OVERLOAD ×1.25), × a card's factor; fights its world's duel (below); calls escorts and a last stand where its duel has it (66% and 33% for most); on OVERLOAD, overdrive at 15% | 10500 hull, 19000 in Eclipse; three times the world's shield |
 
 - Where: `arcade_elite_make`, `arcade_flagship_spawn`,
   `arcade_flagship_update` in `src/js/arcade.js`; `spawn_operation_enemy` in
