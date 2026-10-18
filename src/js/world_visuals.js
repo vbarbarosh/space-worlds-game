@@ -418,6 +418,7 @@ function draw_background()
         draw_ion_discharges(sky);
     }
     draw_sky_stars(sky);
+    render_far_layer(id);
     for (const world_body of world_bodies) {
         render_celestial_body(world_body);
     }
