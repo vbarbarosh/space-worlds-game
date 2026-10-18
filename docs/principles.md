@@ -12,7 +12,7 @@ glance.
   and platforms, the convoy's freighter, every hull (yours and the raiders').
   Shots stop on them, and ships collide with them: a hit pushes the ship off,
   and above cruising speed it costs hull.
-- **Background:** scenery rocks, wrecks and satellites drawn dim behind the
+- **Background:** scenery rocks, wrecks and satellites drawn dim (8%) behind the
   world. Shots and ships pass through them, and they never look like the solid
   things.
 - **Everyone follows it:** raiders collide with the same things you do, and

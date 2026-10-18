@@ -215,17 +215,30 @@ function update_world_environment(dt)
     resolve_solid_ore();
 }
 
+// The most a ship flies in a frame: a longer way is a jump (a portal, the dock), not a flight to sweep for rocks
+const sweep_most = 200;
+
+// The ship against the rocks, along the way it flew this frame: at turbo that way can be longer than a small rock is
+// wide, so a rock met on it stops the ship where it touched, on the near side, not where the frame ended (past the rock,
+// or past its middle and pushed out the far side)
 function resolve_solid_ore()
 {
+    const from = player.previous_position;
+    const swept = !!from && (distance(from, player) < sweep_most);
     for (const ore_node of ore_nodes) {
         if (ore_node.hp <= 0) {
             continue;
         }
+        const min = player.r + ore_node.r;
+        const t = swept ? segment_contact(ore_node, from, player, min) : null;
+        if (t !== null) {
+            player.x = from.x + (player.x - from.x)*t;
+            player.y = from.y + (player.y - from.y)*t;
+        }
         const dx = player.x - ore_node.x;
         const dy = player.y - ore_node.y;
         const d = Math.hypot(dx, dy);
-        const min = player.r + ore_node.r;
-        if (d < min) {
+        if ((t !== null) || (d < min)) {
             const nx = d ? dx/d : 1;
             const ny = d ? dy/d : 0;
             const speed = Math.hypot(player.vx, player.vy);

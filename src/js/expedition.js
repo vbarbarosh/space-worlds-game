@@ -354,19 +354,23 @@ function update_expedition_environment(dt)
             drifting_debri.vx = Math.cos(a)*40;
             drifting_debri.vy = Math.sin(a)*40;
         }
-        if (
-            !safe &&
-            (segment_distance({x: 0, y: 0}, {x: previous.x - old.x, y: previous.y - old.y}, {x: player.x - drifting_debri.x, y: player.y - drifting_debri.y}) <
-                drifting_debri.r + player.r)
-        ) {
+        // the way the ship flew this frame, as seen from the piece
+        const start = {x: previous.x - old.x, y: previous.y - old.y};
+        const end = {x: player.x - drifting_debri.x, y: player.y - drifting_debri.y};
+        const reach = drifting_debri.r + player.r;
+        if (!safe && (segment_distance({x: 0, y: 0}, start, end) < reach)) {
             const speed = Math.hypot(player.vx - drifting_debri.vx, player.vy - drifting_debri.vy);
             damage_player(Math.min(40, 8 + speed*0.022), false, 'debris');
             stop_turbo();
             // a crash knocks the turbo out for a moment, so a held Shift does not relight it against the rock every frame
             player.dash_cd = 0.6;
-            const a = Math.atan2(player.y - drifting_debri.y, player.x - drifting_debri.x);
-            player.x = drifting_debri.x + Math.cos(a)*(drifting_debri.r + player.r + 3);
-            player.y = drifting_debri.y + Math.sin(a)*(drifting_debri.r + player.r + 3);
+            // out on the side it came from, where its way first touched the piece: where the frame ended can be past the
+            // piece's middle at turbo, and out from there is through it
+            const t = (distance(start, end) < sweep_most) ? segment_contact({x: 0, y: 0}, start, end, reach) : null;
+            const at = (t === null) ? end : {x: start.x + (end.x - start.x)*t, y: start.y + (end.y - start.y)*t};
+            const a = Math.atan2(at.y, at.x);
+            player.x = drifting_debri.x + Math.cos(a)*(reach + 3);
+            player.y = drifting_debri.y + Math.sin(a)*(reach + 3);
             player.vx = drifting_debri.vx + Math.cos(a)*80;
             player.vy = drifting_debri.vy + Math.sin(a)*80;
         }

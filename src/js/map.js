@@ -171,6 +171,24 @@ function segment_distance(v, a, b)
     return Math.sqrt(ex*ex + ey*ey);
 }
 
+// How far along the way from a to b (0 to 1) it first comes within reach of v; null when it never does on the way, or
+// is within reach at a already
+function segment_contact(v, a, b, reach)
+{
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    const fx = a.x - v.x;
+    const fy = a.y - v.y;
+    const outside = fx*fx + fy*fy - reach*reach;
+    const l = dx*dx + dy*dy;
+    const half = fx*dx + fy*dy;
+    if ((outside <= 0) || !l || (half >= 0) || (half*half < l*outside)) {
+        return null;
+    }
+    const t = (-half - Math.sqrt(half*half - l*outside))/l;
+    return (t <= 1) ? t : null;
+}
+
 function fatal_gravity(h)
 {
     play_log_hurt('black hole', 0, Math.max(0, player.hp));

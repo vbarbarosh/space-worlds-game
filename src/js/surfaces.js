@@ -470,8 +470,9 @@ function render_map()
             continue;
         }
         const size = v.r*1.45;
-        // Scenery is background: dim in every world, so it never passes for an asteroid, which is solid
-        const alpha = [2, 5, 6, 7].includes(campaign.world) ? 0.08 : 0.22;
+        // Scenery is background: the ship flies through it, so it is as dim in every world as it is in the darkest ones;
+        // at 0.22 in Haven, Verdant, Ion Reach and Obsidian their crystal shards and hulls passed for rocks to hit
+        const alpha = 0.08;
         // every fourth is a satellite where the world has them (Haven), faded like the rest and turning slowly
         const satellite = ((i % 4) === 3) && world_art(`satellite-${(i % 3) + 1}`);
         if (satellite && sprite_draw_box(satellite, null, size*0.7, v.x, v.y, v.angle + clock*0.05, alpha + 0.1)) {
