@@ -206,7 +206,8 @@
 }
 
 /* The news line, under the readouts and clear of the middle: one message at a time (show_toast), a dot in its kind's
-   colour, the title, its line (two lines at most, then cut; the whole in the tooltip) and an amount at the end.
+   colour, the title (whole up to 60% of the line, so a long line cuts itself, not the name), its line (two lines at
+   most, then cut; the whole in the tooltip) and an amount at the end.
    Danger is red, its dot blinks. The pulse's chain counter comes under it, then a banner. The line and the banner are
    HUD blocks (data-hud-safe) as wide as their text, so labels and edge markers in the world keep clear of them. */
 .ui .hud-toasts .toasts {
@@ -256,7 +257,7 @@
 }
 
 .ui.hud .toast b {
-    flex: 0 1 auto;
+    flex: none;
     min-width: 0;
     max-width: 60%;
     overflow: hidden;

@@ -227,7 +227,7 @@ function base_spawn_enemy(type)
         // every field a raider gets later, here at the value that reads as not set, so all raiders keep one shape and
         // the loops over them read their numbers without boxing them: the world's (spawn_enemy), an attack run's
         // (update; Infinity is a count not started), a gate's, the pulse's push, the hit marks, the arcade's (scale,
-        // elite, squadron, event), and the campaign's (operations, escorts, the survey robot, structures, the lure)
+        // elite, squadron, pack, job, event), and the campaign's (operations, escorts, the survey robot, structures, the lure)
         color: null,
         armor: 0,
         max_shield: 0,
@@ -252,7 +252,8 @@ function base_spawn_enemy(type)
         guard: null,
         guard_offset: null,
         lurk: false,
-        flank_to: null,
+        pack: null,
+        job: null,
         unarmed: false,
         event_kind: null,
         event_goal: null,
@@ -347,7 +348,8 @@ function base_damage_enemy(enemy, damage)
     combo = (combo_timer > 0) ? Math.min(8, combo + 1) : 1;
     combo_timer = 4;
     const chain = pulse_score_scale();
-    const points = Math.round(((enemy.type === 'boss') ? 5000 : (enemy.type === 'tank') ? 140 : (enemy.type === 'shooter') ? 100 : (enemy.type === 'splitter') ? 110 : 80)*combo*chain);
+    // an arcade raider with a job scores by its kind (raider_kind_points)
+    const points = Math.round((raider_kind_points(enemy) ?? ((enemy.type === 'boss') ? 5000 : (enemy.type === 'tank') ? 140 : (enemy.type === 'shooter') ? 100 : (enemy.type === 'splitter') ? 110 : 80))*combo*chain);
     score += points;
     player.energy = Math.min(100, player.energy + 4 + upgrades.pulse);
     burst(
@@ -371,7 +373,7 @@ function base_damage_enemy(enemy, damage)
         explode_flagship(enemy.x, enemy.y, enemy.r, enemy.color || pink);
     }
     else {
-        explode(enemy.x, enemy.y, {shard: 26, tank: 72, splitter: 48, lancer: 48, shooter: 46}[enemy.type] || 40, enemy.color || pink);
+        explode(enemy.x, enemy.y, {shard: 26, tank: 72, splitter: 48, lancer: 48, shooter: 46, drone: 20, carrier: 74, bulwark: 70}[enemy.type] || 40, enemy.color || pink);
     }
     if (enemy.drop_on_death) {
         drop_pickup(enemy.x, enemy.y, enemy.drop_on_death);
@@ -379,6 +381,7 @@ function base_damage_enemy(enemy, damage)
     if (arcade.active) {
         arcade_blast_from_kill(enemy);
         arcade_event_kill(enemy);
+        raider_job_kill(enemy);
     }
     if (enemy.type === 'boss') {
         boss_defeated = true;
@@ -391,7 +394,8 @@ function base_damage_enemy(enemy, damage)
             drop_pickup(enemy.x + rand(-50, 50), enemy.y + rand(-50, 50), 'artifact', 10);
         }
     }
-    else {
+    // a carrier's drone drops nothing: its carrier carries the salvage (raider_job_kill)
+    else if (!raider_job_bare(enemy)) {
         if (enemy.type === 'splitter') {
             for (let i = 0; i < 2; ++i) {
                 spawn_enemy('shard');

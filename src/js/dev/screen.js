@@ -76,6 +76,7 @@ function dev_screen_open()
         dev_arcade_start();
         dev_screen_modules_set();
         dev_screen_arcade_wave();
+        dev_raiders_open();
         return;
     }
     // the author's moment: the world's title over a fight that has just begun, and a burst of news at once

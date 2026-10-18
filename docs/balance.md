@@ -626,16 +626,69 @@ before rocks and the Relic processor.
     420 m, hit one, or 25 s pass;
   - the rest come in a **line** across their heading, 640 m away, or, from
     four raiders on and 35% of the time, in a **pincer**: the line split to
-    both sides of you. From Dustfall on, chasers, shooters and splitters of a
-    line then **fan out**: each swings to its own bearing round you,
-    min(0.55, arc / size) radians from the next, 290 m out for a shooter and
-    340 m for the rest, before it fights as its type does; it stops swinging
-    once there or 6 s after it came (`arcade_flank_steer`). Their fire comes
-    from a wide arc, not from one side, so circling one raider is flying
-    straight at or away from another. The arc (`arcade_flank_arc`) is 2.8
-    radians (160°) in Dustfall, Ion Reach, Cryosphere and Nova Forge; none in
-    Haven and Verdant, nor in the rail worlds, Obsidian and Eclipse, where a
-    slug crosses the screen in a quarter second.
+    both sides of you.
+- **Packs** (`src/js/arcade_pack.js`): a squadron's chasers, shooters,
+  splitters and lancers (three at least; not an elite, an escort or a lurker)
+  hunt together. Farther than 300 m (340 m for a shooter) from you, the first
+  flies for where you will be, 1.2 times as fast while it is beyond 450 m
+  (the **cut-off**); the next two swing to your sides, 300 m out (the
+  **flanks**); the rest come in 220 m behind you. Closer, each fights as its
+  type does. Hold still or circle within 300 m for 4 s (CHILL 6, OVERLOAD
+  3.5) and a pack within 1.2 km closes a **ring** round you: from as far as
+  it is (330 to 600 m) down to 230 m (CHILL 270, OVERLOAD 210) at 30 m/s,
+  turning slowly, its round drawn; closed, it holds 3 s (CHILL 2, OVERLOAD
+  3.5), then breaks and its raiders fight close; it rings you again no sooner
+  than 10 s after (CHILL 14, OVERLOAD 9), and opens at once when you are
+  150 m out of it. A second pack ringing you joins the first's ring. By
+  world (`pack_flanks`, `pack_rings`):
+
+  | | Haven | Verdant | Dustfall | Ion Reach | Obsidian | Cryosphere | Nova Forge | Eclipse |
+  |---|---|---|---|---|---|---|---|---|
+  | packs | from wave 2 | yes | yes | yes | yes | yes | yes | yes |
+  | flanks | – | – | yes | yes | – | yes | yes | – |
+  | ring | – | yes | yes | yes | – | yes | yes | – |
+
+  Flanks are kept from Haven and Verdant, as the fanning out of squadrons
+  that the packs replace was, and both from the rail worlds, where a slug
+  crosses the screen in a quarter second.
+- **Raiders with jobs** (`src/js/arcade_raiders.js`, `raider_kinds`): by the
+  world's share a squadron gives one of its line raiders' places (two from
+  Cryosphere on in a squadron of six or more) to a raider of a kind; a kind
+  opens in its world from wave 2 and in every later world from wave 1, twice
+  as often in its own world. At most world + 1 of a kind at once (one in
+  Haven), and fewer of the slow-to-answer ones in a rail world. CHILL
+  brings 60% as many. The campaign has none.
+
+  | | Haven | Verdant | Dustfall | Ion Reach | Obsidian | Cryosphere | Nova Forge | Eclipse |
+  |---|---|---|---|---|---|---|---|---|
+  | share | 40% | 50% | 55% | 60% | 50% | 65% | 70% | 55% |
+  | opens | interceptor | carrier | bulwark | sniper | mine-layer | | | |
+
+  - **Interceptor**: hull 20 + 6 × threat, 95 m/s; near (950 m), it winds up
+    for 0.45 s (its engines flare, a dashed arrow shows its way), then
+    bursts for 1.1 s at 1.3 × your cruise (CHILL 1.15, OVERLOAD 1.4), never
+    above 0.6 × your turbo, turning slowly, then coasts 0.7 s.
+  - **Bulwark**: hull 100 + 16 × threat, 1.4 × a tank's shield; an arc of
+    ±63° round its front stops your shots, turned to you at 0.75 rad/s
+    (CHILL 0.55); your guns pass over a bulwark that faces you for a raider
+    up to 350 m farther.
+  - **Carrier**: hull 120 + 18 × threat; keeps 520 to 720 m; two drones from
+    its bays every 7 s (CHILL 9), 4 at most (CHILL 3), each tied to it by a
+    thin line, ringing you at 110 m, darting in, popping on a ram (9 before
+    the world's growth); they fall when the carrier dies; it drops 2 salvage
+    pieces, the drones none.
+  - **Sniper**: keeps 580 to 820 m; a red line follows you for its charge,
+    1.6 s (CHILL 2.1, a rail world +0.3), locked for the last 0.35 s; a slug
+    of 24 before the world's growth, every 4.5 s (CHILL 6.5); a rock in the
+    way grays the line and holds the shot.
+  - **Mine-layer**: plans a 700 m lane across your way, 420 m ahead of you
+    or through itself when it is farther ahead, and drops a mine every 55 m
+    (CHILL 75) along it; a mine arms after 0.9 s, lives 15 s (CHILL 11),
+    trips within 60 m, bursts 0.35 s later for up to 18 (before the world's
+    growth and the mode's blast) within 85 m; a pulse or an EMP clears the
+    mines it passes; 70 at most.
+
+  The run's first of each kind brings a toast that says what it asks of you.
 - **Marksmen** (`arcade_marksmen`, `raider_aim`): a share of the raiders
   shows its aim, where you will be when the shot gets there if you keep
   your course (as every raider aims), as a dashed line for the last half

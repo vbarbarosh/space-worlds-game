@@ -266,9 +266,12 @@ function render()
     render_waypoints();
     render_survey_robot();
     render_arcade_goal();
+    raider_jobs_render_under();
+    pack_render();
     render_hostile_marks();
     boss_render();
     render_enemies();
+    raider_jobs_render();
     race_render_rivals();
     render_explosions();
     render_pulse();

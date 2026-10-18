@@ -155,6 +155,12 @@ ships. "Modes" is arcade, campaign or both.
   shards; numbers in [balance.md](balance.md).
 - In the arcade some are marksmen: they aim where you will be, and a dashed
   red line from them shows that aim for the half second before they fire.
+- In the arcade five more kinds have a job each (an interceptor bursting
+  faster than you cruise, a bulwark with a front shield, a carrier launching
+  drones, a sniper with a charging red line, a mine-layer sealing a lane),
+  and a squadron hunts as a pack: a cut-off, flanks, the rest from behind,
+  and a ring round a ship that holds still. Where: `src/js/arcade_raiders.js`,
+  `src/js/arcade_pack.js`.
 - Solid, damageable, a bar once hit, a shield ring. Both modes.
 - Where: `src/js/combat.js`, `spawn_enemy` in `src/js/campaign.js`,
   `src/js/navigation.js`, `src/js/update.js`.

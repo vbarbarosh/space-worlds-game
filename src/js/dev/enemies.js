@@ -5,6 +5,11 @@ const dev_enemy_type_options = [
     {value: 'shooter', label: 'Shooter'},
     {value: 'splitter', label: 'Splitter'},
     {value: 'lancer', label: 'Lancer'},
+    {value: 'interceptor', label: 'Interceptor (arcade)'},
+    {value: 'bulwark', label: 'Bulwark (arcade)'},
+    {value: 'carrier', label: 'Carrier (arcade)'},
+    {value: 'sniper', label: 'Sniper (arcade)'},
+    {value: 'minelayer', label: 'Mine-layer (arcade)'},
     {value: 'boss', label: 'Boss'},
 ];
 const dev_dummy_hp = 100000;
@@ -18,7 +23,8 @@ function dev_enemy_spawn(dummy)
     }
     const type = dev_enemy_type_options[Number(document.getElementById('dev_enemy_type').value)].value;
     const distance = Number(document.getElementById('dev_enemy_distance').value);
-    const enemy = spawn_enemy(type);
+    // a raider with a job (arcade_raiders.js) comes with it; it does its job only in the arcade
+    const enemy = Object.hasOwn(raider_kinds, type) ? raider_kind_spawn(type, 0, 0) : spawn_enemy(type);
     enemy.x = clamp(player.x + Math.cos(player.angle)*distance, 30, world.w - 30);
     enemy.y = clamp(player.y + Math.sin(player.angle)*distance, 30, world.h - 30);
     if (dummy) {

@@ -200,7 +200,7 @@ function draw_edge_marker(m, text, color = gold)
     ctx.restore();
 }
 
-const target_names = {chaser: 'Raider', tank: 'Raider tank', shooter: 'Raider gunner', splitter: 'Raider splitter', lancer: 'Raider lancer', shard: 'Raider shard', boss: 'Flagship'};
+const target_names = {chaser: 'Raider', tank: 'Raider tank', shooter: 'Raider gunner', splitter: 'Raider splitter', lancer: 'Raider lancer', shard: 'Raider shard', boss: 'Flagship', interceptor: 'Raider interceptor', bulwark: 'Raider bulwark', carrier: 'Raider carrier', drone: 'Carrier drone', sniper: 'Raider sniper', minelayer: 'Raider mine-layer'};
 
 // The name on a raider's plate: what it is to you, a goal's part by its part (arcade_goals.js), else its kind
 function target_plate_name(target)

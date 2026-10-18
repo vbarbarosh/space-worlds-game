@@ -12,10 +12,6 @@ const arcade_ship_price = 0.5;
 // when its shot gets there, not where you are, and shows its aim for the last half second (arcade_aim_time).
 const arcade_marksmen = [0, 0.2, 0.3, 0.3, 0.15, 0.25, 0.2, 0.05];
 const arcade_aim_time = 0.5;
-// How wide a line squadron fans out round you (arcade_flank_steer), in radians from its first raider to its last,
-// Haven to Eclipse: not at all in Haven and Verdant, hard enough already, nor in the rail worlds, Obsidian and Eclipse,
-// where a slug crosses the screen in a quarter second
-const arcade_flank_arc = [0, 0, 2.8, 2.8, 0, 2.8, 2.8, 0];
 // a marksman's missile turns this much harder than another's
 const arcade_marksman_turn = 1.15;
 // how much slower a raider reloads by its gun (arcade_reload): a missile is a threat to read and answer, one at a time,
@@ -114,6 +110,7 @@ function arcade_start(world = 0, from = null)
     arcade.goal = null;
     arcade.between_worlds = null;
     arcade.world_start = null;
+    raider_jobs_reset();
     document.body.classList.add('arcade');
     set_hidden(document.getElementById('arcade_depot'), true);
     document.getElementById('restart_button').innerHTML = '<span>Play again</span>';
@@ -222,6 +219,7 @@ function arcade_stop()
     arcade.between_worlds = null;
     arcade.goal = null;
     arcade_event_end();
+    raider_jobs_reset();
     document.body.classList.remove('arcade');
     set_hidden(document.getElementById('arcade_depot'), true);
     document.getElementById('restart_button').innerHTML = '<span>New expedition</span>';
@@ -232,6 +230,8 @@ function arcade_stop()
 function arcade_update(dt)
 {
     depot_shield_update(dt);
+    // raiders with jobs do them, the mines tick and the packs hunt (arcade_raiders.js, arcade_pack.js)
+    raider_jobs_update(dt);
     for (const enemy of enemies) {
         if (!enemy.arcade_scaled) {
             enemy.arcade_scaled = true;
@@ -296,6 +296,10 @@ function arcade_wave_start(n)
     phase_index = n;
     phase_timer = 0;
     spawn_left = arcade_wave_size(n);
+    // a world begins clear of the last one's mines and packs
+    if (n === 1) {
+        raider_jobs_reset(false);
+    }
     arcade_goal_start(n);
     if (n === arcade_waves) {
         arcade_flagship_spawn();
@@ -327,11 +331,20 @@ function arcade_squads_update(dt)
     arcade.squad_timer = Math.max(2.6, 5.5 - campaign.world*0.3)*arcade_mode().gap;
 }
 
+// A squadron: as it comes (arcade_squad_form), then some of its line raiders swapped for raiders with jobs, and the
+// rest as a pack (raider_squad_after)
+function arcade_squad_spawn(size)
+{
+    const first = enemies.length;
+    arcade_squad_form(size);
+    raider_squad_after(enemies.slice(first));
+}
+
 // How a squadron comes, by the type the world's mix draws for it: a line of one type, as it always did; a pincer, the
 // line split to both sides of you; a wall, a tank in front with shooters behind it; a convoy, chasers round a slow
 // tank; an ambush, lancers waiting still among the rocks. From the mode's first elite world on, every second
 // squadron from wave 2 has an elite leader.
-function arcade_squad_spawn(size)
+function arcade_squad_form(size)
 {
     const type = (arcade.wave === 1) ? ((Math.random() < 0.7) ? 'chaser' : 'shooter') : enemy_type();
     const pattern = arcade_squad_pattern(type, size);
@@ -385,22 +398,17 @@ function arcade_squad_pattern(type, size)
 }
 
 // One type in a line across its heading (or two, mixed: the second in every other place), 640 m away on the given
-// side, warping in. Chasers, shooters and splitters then fan out round you, each to its own bearing, so their fire comes
-// from a wide arc (arcade_flank_steer).
+// side, warping in; then it hunts as a pack (arcade_pack.js)
 function arcade_squad_line(type, size, angle, elite, mix = null)
 {
     const cx = player.x + Math.cos(angle)*640;
     const cy = player.y + Math.sin(angle)*640;
-    const step = Math.min(0.55, arcade_flank_arc[campaign.world]/size);
     for (let i = 0; i < size; ++i) {
         const offset = (i - (size - 1)/2)*55;
         const kind = (mix && (i % 2 === 1)) ? mix : type;
         const enemy = arcade_squad_warp(kind, cx - Math.sin(angle)*offset, cy + Math.cos(angle)*offset, i);
         if (elite && (i === 0)) {
             arcade_elite_make(enemy);
-        }
-        if (['chaser', 'shooter', 'splitter'].includes(kind) && (size > 1) && step) {
-            enemy.flank_to = {bearing: angle + (i - (size - 1)/2)*step};
         }
     }
 }
@@ -474,9 +482,9 @@ function arcade_squad_warp(type, x, y, i)
 
 // A raider's way by its place in a squadron, after its type has chosen one (update): an escort keeps its place by its
 // leader, at the leader's pace, until the leader dies or you come within 300 m; a launcher stays put; a lurker waits
-// still, turned to you,
-// until you come within 420 m, it is hit or 25 s pass; a flanker swings out to its side first (arcade_flank_steer).
-// Turns the raider (angle) and returns how fast it moves.
+// still, turned to you, until you come within 420 m, it is hit or 25 s pass; a raider with a job does it
+// (raider_job_steer); a pack's raider hunts by its role (arcade_pack_steer). Turns the raider (angle) and returns how
+// fast it moves.
 function arcade_role_steer(v, move, d)
 {
     if (v.event_goal) {
@@ -487,8 +495,8 @@ function arcade_role_steer(v, move, d)
         v.angle = Math.atan2(player.y - v.y, player.x - v.x);
         return 0;
     }
-    if (v.flank_to) {
-        return arcade_flank_steer(v, move);
+    if (v.job) {
+        return raider_job_steer(v, move, d);
     }
     if (v.lurk) {
         if ((d > 420) && (v.hp >= v.max_hp) && ((v.shield || 0) >= (v.max_shield || 0)) && (v.age < 25)) {
@@ -499,6 +507,9 @@ function arcade_role_steer(v, move, d)
         v.lurk = false;
         ring(v.x, v.y, gold, 50, 0.3);
         return move;
+    }
+    if (!v.guard) {
+        return arcade_pack_steer(v, move, d);
     }
     const lead = v.guard;
     if ((lead.hp <= 0) || (d < 300)) {
@@ -512,21 +523,6 @@ function arcade_role_steer(v, move, d)
     const vy = Math.sin(lead.angle)*lead.speed + (ty - v.y)*2;
     v.angle = Math.atan2(vy, vx);
     return Math.min(1.5, Math.sqrt(vx*vx + vy*vy)/v.speed);
-}
-
-// A flanker swings out to its own side of you before it fights: to the point at its bearing from you, at its range; once
-// there, or 6 s after it came, it fights as its type does, from that side. Turns the raider and returns how fast it moves.
-function arcade_flank_steer(v, move)
-{
-    const range = (v.type === 'shooter') ? 290 : 340;
-    const tx = player.x + Math.cos(v.flank_to.bearing)*range;
-    const ty = player.y + Math.sin(v.flank_to.bearing)*range;
-    if ((Math.hypot(tx - v.x, ty - v.y) < 90) || (v.age > 6)) {
-        v.flank_to = null;
-        return move;
-    }
-    v.angle = Math.atan2(ty - v.y, tx - v.x);
-    return 1;
 }
 
 function arcade_elite_make(enemy)
@@ -545,11 +541,11 @@ function arcade_elite_make(enemy)
 }
 
 // Whether a raider is a marksman: by the world's share and the mode's; an elite always is, from the first world with
-// marksmen on; a flagship and a shard never
+// marksmen on; a flagship, a shard and a raider with a job (it has a tell of its own) never
 function arcade_marksman(enemy)
 {
     const share = arcade_marksmen[campaign.world]*arcade_mode().marksmen;
-    if ((enemy.type === 'boss') || (enemy.type === 'shard') || enemy.unarmed || !share) {
+    if ((enemy.type === 'boss') || (enemy.type === 'shard') || enemy.job || enemy.unarmed || !share) {
         return false;
     }
     return enemy.elite || (Math.random() < share);
@@ -681,8 +677,10 @@ function arcade_blast_from_kill(enemy)
 {
     const sizes = {shard: 26, tank: 72, splitter: 48, lancer: 48, shooter: 46, boss: 220};
     const damages = {shard: 6, chaser: 10, shooter: 12, splitter: 14, lancer: 14, tank: 26, boss: 50};
-    const size = sizes[enemy.type] || 40;
-    const damage = (damages[enemy.type] || 10)*(enemy.elite ? 1.5 : 1);
+    // a raider with a job blows up by its kind (raider_kinds)
+    const kind = enemy.job ? raider_kinds[enemy.type].blast : null;
+    const size = kind ? kind[0] : sizes[enemy.type] || 40;
+    const damage = (kind ? kind[1] : damages[enemy.type] || 10)*(enemy.elite ? 1.5 : 1);
     arcade.blasts.push({x: enemy.x, y: enemy.y, radius: size*1.8, damage, t: (enemy.type === 'boss') ? 1.25 : 0.12, source: enemy});
 }
 
@@ -1165,7 +1163,7 @@ function arcade_time_step(dt)
 // A kill shakes the screen by the size of what died.
 function arcade_kill_shake(enemy)
 {
-    const strength = {shard: 1.5, chaser: 3, shooter: 4, splitter: 4.5, lancer: 4.5, tank: 9, boss: 26}[enemy.type] || 3;
+    const strength = {shard: 1.5, drone: 1, chaser: 3, shooter: 4, splitter: 4.5, lancer: 4.5, tank: 9, bulwark: 8, carrier: 10, boss: 26}[enemy.type] || 3;
     return enemy.elite ? strength*1.6 : strength;
 }
 

@@ -243,6 +243,14 @@ function update(dt, frame_dt = dt)
             target = v;
         }
     }
+    // the guns pass over an arcade bulwark that has its shield to you, for a raider they can hurt (arcade_raiders.js)
+    if (arcade.active && target && (target.type === 'bulwark')) {
+        const other = raider_target_past_shield(target);
+        if (other) {
+            target = other;
+            near = distance(other, player);
+        }
+    }
     // With no raider close, the turret shoots debris drifting at the ship before it hits.
     if (near > 600) {
         for (const piece of drifting_debris) {
@@ -391,9 +399,9 @@ function update(dt, frame_dt = dt)
                 move = 0;
             }
         }
-        // an escort keeps its place in its squadron, a lurker waits in the rocks, a flanker swings out to its side, a
-        // freighter keeps to its way, a launcher stays put (arcade_role_steer)
-        if (v.guard || v.lurk || v.flank_to || v.event_goal || v.anchor) {
+        // an escort keeps its place in its squadron, a lurker waits in the rocks, a pack hunts together, a raider with a
+        // job does it, a freighter keeps to its way, a launcher stays put (arcade_role_steer)
+        if (v.guard || v.lurk || v.pack || v.job || v.event_goal || v.anchor) {
             move = arcade_role_steer(v, move, d);
             heading = v.angle;
         }
@@ -441,6 +449,13 @@ function update(dt, frame_dt = dt)
         b.x += b.vx*dt;
         b.y += b.vy*dt;
         b.life -= dt;
+        // an arcade bulwark's front shield stops your shots where they meet it (arcade_raiders.js)
+        if (arcade.active && raider_shields.length && raider_shield_stop(b, px, py)) {
+            if (b.missile) {
+                missile_detonate(b);
+            }
+            continue;
+        }
         if (b.missile && missile_fuse_player(b, {x: px, y: py})) {
             missile_detonate(b);
         }
