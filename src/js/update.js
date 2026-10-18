@@ -418,6 +418,9 @@ function update(dt, frame_dt = dt)
         if (move > 0) {
             heading = raider_avoid(v, heading);
         }
+        // in the arcade's Eclipse a raider steers out of the hole's pull, but one closing on you forgets it
+        // (arcade_gravity.js)
+        heading = arcade_raider_mind_pull(v, heading, d, move);
         // the Leviathan's thrust is too weak against a black hole's pull: that is how it is caught
         if (v.leviathan && in_gravity_pull(v)) {
             move *= 0.35;

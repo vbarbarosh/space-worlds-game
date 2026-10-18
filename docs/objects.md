@@ -134,6 +134,10 @@ ships. "Modes" is arcade, campaign or both.
   Leviathan. Four per world, six from Ion Reach, eight from Nova Forge, but
   none in Haven: its small map leaves no place clear of the station and the
   gates (`gravity.js` drops a hole it cannot place). Eclipse pulls at 210%.
+- The arcade's Eclipse, its gravity world, has one hole, and there it bends
+  every shot's way, slings a ship that passes close past its cruising speed,
+  and pulls in raiders that close on you past it (the rest steer out of its
+  pull); one its core takes counts as your kill (`src/js/arcade_gravity.js`).
 - Not solid; not damageable. Both modes. Where: `base_generate_map` and
   `fatal_gravity` in `src/js/map.js`; `src/js/gravity.js`; `src/js/lure.js`.
 

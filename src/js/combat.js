@@ -244,6 +244,7 @@ function base_spawn_enemy(type)
         wound_timer: 0,
         disrupted: null,
         core_kill: false,
+        careless: false,
         arcade_scaled: false,
         elite: false,
         marksman: false,

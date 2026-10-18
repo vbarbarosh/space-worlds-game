@@ -815,6 +815,55 @@ before rocks and the Relic processor.
 - A ship that explodes hurts everything within 1.8 × its blast size, less
   with distance: a chaser 10, a tank 26, a flagship 50, an elite ×1.5
   (`arcade_blast_from_kill`).
+- **Eclipse is the gravity world** (`src/js/arcade_gravity.js`, the arcade
+  only; one hole of 560 m, core 56 m, its pull reaching 2260 m: 131 m/s at
+  600 m from the centre, 490 at 300). A toast as the world begins says so:
+  "it bends every shot · pass close to the hole to sling · lead raiders in".
+  - **Shots bend.** On top of the pull that moves everything, a shot's way
+    curves toward the hole by 1.2 × 10⁻⁶ rad a metre for each m/s of pull
+    across it (`arcade_shot_bend`), the same curve at any speed. A bolt of
+    1100 m/s aimed to pass 600 m from the centre turns 33° (15° with the pull
+    alone), aimed at 1 km 22° (11°); a rail slug of 2600 m/s 14° at 600 m
+    (3°); one aimed within 400 m swings round into the core, which takes it.
+    Your shots and the raiders' alike, missiles too (their guidance steers
+    back); a flagship's shots and a marksman's keep the line they showed.
+    Twice the bend whipped a bolt aimed at 600 m 120° round the core.
+  - **The slingshot.** Within 1.5 radii of the centre (840 m) and 120 m
+    clear of the core, the part of your flight across the pull builds extra
+    speed: pull ÷ cruise × 0.45 of cruise a second, at most +60%; diving
+    straight in builds none. It holds 1 s after the pass, then fades by 40%
+    of cruise a second; B drops it, and the ship turns as it does at cruise
+    (`arcade_sling_*`). A pass at 550–650 m reaches it in 3 s; SLINGSHOT
+    shows once a pass, at +20%. The core still kills.
+  - **Raiders mind the pull, but not while closing on you.** Within 1.8
+    radii of the centre (1010 m) a raider's way leans outward by the pull
+    over its speed × 1.5 (`arcade_mind_band`, `arcade_mind_lean`): it holds
+    off at the edge rather than drift in (before, nothing steered them out).
+    One within 500 m of you and heading at you (within 72°: an attack run, a
+    chaser coming in; `arcade_lure_reach`, `arcade_lure_heading`) forgets
+    the pull, and the hole pulls it ×1.5 (`arcade_lure_pull`), so a chaser
+    of 165 m/s cannot pull out within about 800 m of the centre instead of
+    480: lead it past the hole. The flagship, as before, is neither pulled
+    nor taken, and holds its place itself. A raider the core takes is a kill
+    as before, and its drop, which fell in with it, is paid instead: 150
+    points and 6 salvage, SWALLOWED over where it fell.
+  - Measured (bin/playtest, NORMAL, seeds 1–12, against the build before
+    it run beside it): 7 runs of 12 won instead of 6, 21 deaths in Eclipse
+    instead of 22 (6 elsewhere in both), Eclipse 66–323 s instead of
+    61–245; the hole took 339 of the bot's 1891 Eclipse kills (18%). The
+    bot keeps 1.6 radii off the hole, so it never slings. With every raider
+    careless near you (900 m, any heading) a pilot circling at 600 m let
+    the hole take a whole first wave in about 5 s, and the bot won 9 of 12.
+  - Circling against fighting away from the hole (build/dev.html, no god
+    mode, a cruiser with four tier-5 cannons and the bot's Eclipse modules,
+    340 hull and 205 shield, three tries each): wave 1 (20 raiders) circled
+    with the stick took 14–18 s, the hole 6–13 of them, 17–34 hull and
+    shield lost; circled with the keys' eight ways 18–19 s, 2–5, 26–51;
+    the bot's way away from it 17–23 s, none, 58–77. Wave 2 (24): circled
+    9–16 s, 6–12 swallowed, 0–70 lost; away 17–25 s, 94–392 lost. Most of
+    the loss is raiders' shots either way: led for a straight flight, they
+    miss a ship going round, and the raiders that mind the pull keep 400 m
+    or more off it. The circle's price is the core, which a slip costs.
 
 NORMAL in numbers, a row a step (named for the world flown at it on the map's
 order; any world flown at that step has its numbers):

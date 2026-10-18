@@ -166,6 +166,14 @@ difficulty; none of that changes the campaign's rules.
   (`arcade_kill_shake`), a flagship's death plays at 30% speed for a moment
   (`arcade_time_step`), and a ship that explodes hurts what is close to it
   (`arcade_blast_from_kill`).
+- A world of the arcade plays its own way, not only by its numbers: Eclipse
+  is the gravity world. Its hole bends every shot's way, yours and the
+  raiders', but a shot fired along a line shown first (a flagship's lanes, a
+  marksman's aim) keeps to it, so a tell never lies; a close pass slings your
+  ship past cruise for a moment; raiders steer out of its pull, but one
+  closing on you forgets it and is pulled harder, and one the core takes is
+  your kill (`src/js/arcade_gravity.js`). The campaign's holes pull as
+  before.
 - The pulse's chain rings are the pulse's own, in both modes; their score
   (×(1 + 0.5 × depth)) is arcade-only, and like your shots the pulse and its
   chains break ore rocks only in the arcade (`src/js/pulse.js`).

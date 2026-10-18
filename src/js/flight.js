@@ -9,6 +9,9 @@ function fly_in_world(dt, dx, dy)
     if (braking && player.turbo_active) {
         stop_turbo();
     }
+    // the fastest the engine takes you: cruise, or past it for a moment after a close pass round the arcade's Eclipse
+    // hole (arcade_gravity.js); the ship turns as it does at cruise
+    const top = speed*arcade_sling_update(dt, braking);
     const manual =
         ['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].some(v => keys.has(v)) ||
             (joystick.active && (Math.hypot(joystick.dx, joystick.dy) > 0.1));
@@ -29,7 +32,7 @@ function fly_in_world(dt, dx, dy)
     }
     const velocity = Math.hypot(player.vx, player.vy);
     const turnRate =
-        (3.8*ship.handling*(1 + upgrades.stabilizer*0.15)*clamp(rule.response/10, 0.65, 1.25))/(1 + Math.max(0, velocity/speed - 1)*0.65);
+        (3.8*ship.handling*(1 + upgrades.stabilizer*0.15)*clamp(rule.response/10, 0.65, 1.25))/(1 + Math.max(0, velocity/top - 1)*0.65);
     const before = player.angle;
     player.angle = turn_toward(player.angle, target, turnRate*dt);
     player.hull_turn = (player.angle - before)/Math.max(0.001, dt);
@@ -45,7 +48,7 @@ function fly_in_world(dt, dx, dy)
     }
     else if ((input > 0.04) || player.turbo_active) {
         const boost = !!player.turbo_active;
-        let desiredSpeed = (boost ? turbo_speed() : speed)*(boost ? 1 : input)*facing;
+        let desiredSpeed = (boost ? turbo_speed() : top)*(boost ? 1 : input)*facing;
         if (auto && (mouse_drive.following || mouse_drive.held) && !boost) {
             desiredSpeed *= mouse_drive.follow_boost || 1;
         }

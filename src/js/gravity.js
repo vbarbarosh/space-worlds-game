@@ -24,8 +24,9 @@ function gravity_pull(h, d)
 }
 
 // The position is read once and written back only when a hole moved it: objects of every kind pass here each frame,
-// and each read of a field on so many shapes boxes a number
-function gravity_move(v, dt)
+// and each read of a field on so many shapes boxes a number. k: a factor on the pull (a raider on your tail in the
+// arcade's Eclipse closing on you, arcade_lure_pull_k)
+function gravity_move(v, dt, k = 1)
 {
     let x = v.x;
     let y = v.y;
@@ -40,7 +41,7 @@ function gravity_move(v, dt)
             continue;
         }
         const d = Math.sqrt(squared);
-        const pull = gravity_pull(h, d);
+        const pull = gravity_pull(h, d)*k;
         const step = Math.min(d, pull*dt);
         x += (dx/d)*step;
         y += (dy/d)*step;
@@ -155,7 +156,7 @@ function render_gravity_fields()
         ctx.fillStyle = '#ff9cc880';
         ctx.font = '10px ui-monospace,monospace';
         ctx.textAlign = 'center';
-        ctx.fillText('GRAVITY BEGINS / STEER AWAY', black_hole.x, black_hole.y - reach - 18);
+        ctx.fillText(arcade_gravity_on() ? 'GRAVITY BEGINS / SHOTS BEND' : 'GRAVITY BEGINS / STEER AWAY', black_hole.x, black_hole.y - reach - 18);
     }
     ctx.restore();
 }

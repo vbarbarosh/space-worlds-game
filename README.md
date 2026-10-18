@@ -42,7 +42,9 @@ Three modes:
   Wheel is hurt through the gaps of its turning shell, the Iron Stair at one
   weak point at a time, the Frost Crystal while it glows, the Furnace's ring
   of fire closes in as it heats, and the Eclipse Eye's dome opens only while
-  you are at the black hole's edge with it. A ship that explodes hurts what is close to it. The salvage you collect buys
+  you are at the black hole's edge with it. Eclipse is the gravity world: its
+  black hole bends every shot, slings a ship that passes close, and swallows
+  the raiders you lead into it. A ship that explodes hurts what is close to it. The salvage you collect buys
   repairs, weapons, ships, supplies and modules at the station's depot (R); each world opens more of them, and
   what is not open yet says where it opens. A cleared world pays a fixed bonus, the weapon
   grows a tier, a cleared screen shows the world's numbers, and the depot opens before the next world. Score, combo and a best score (salvage left at the end scores 10 points each); no

@@ -279,6 +279,7 @@ function arcade_update(dt)
         // the run as this world begins, for the numbers its cleared screen shows and a retry after a death (as a load)
         arcade.world_start = {score, kills, run_time, snapshot: arcade_snapshot()};
         arcade_cards_world_start();
+        arcade_gravity_world_start();
         arcade_wave_start(1);
         cliffs_hint();
         return;

@@ -298,17 +298,27 @@ function update_gravity_objects(dt)
             if ((v.hp <= 0) || (arcade.active && (v.type === 'boss'))) {
                 continue;
             }
-            gravity_move(v, dt);
+            gravity_move(v, dt, arcade_lure_pull_k(v));
             if (in_gravity_core(v, v.r*0.4)) {
                 v.core_kill = true;
                 damage_enemy(v, v.hp/(1 - (v.armor || 0)) + (v.shield || 0) + 1);
+                if (v.hp <= 0) {
+                    arcade_swallowed(v);
+                }
             }
         }
-        for (const items of [bullets, hostile, pickups, particles, trail]) {
+        // in the arcade's Eclipse the hole bends the shots' ways too (arcade_gravity.js)
+        const bend = arcade_gravity_on();
+        const lists = [bullets, hostile, pickups, particles, trail];
+        for (let j = 0, jj = lists.length; j < jj; ++j) {
+            const items = lists[j];
             for (let i = 0; i < items.length; ++i) {
                 const item = items[i];
                 if (item.life <= 0) {
                     continue;
+                }
+                if (bend && (j < 2)) {
+                    arcade_shot_bend_move(item, dt);
                 }
                 gravity_move(item, dt);
                 if (in_gravity_core(item)) {
