@@ -196,6 +196,7 @@ function base_render_screen_controls()
     render_radar();
     render_arcade_goal_marker();
     render_arcade_jammer_marker();
+    render_arcade_front_marker();
 }
 
 function render()
@@ -233,6 +234,7 @@ function render()
     render_navigation_objects();
     race_rail_draw();
     race_render_course();
+    render_arcade_front();
     ctx.save();
     ctx.globalCompositeOperation = 'lighter';
     for (const v of trail) {

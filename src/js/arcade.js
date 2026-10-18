@@ -220,6 +220,7 @@ function arcade_stop()
     arcade.goal = null;
     arcade_event_end();
     raider_jobs_reset();
+    arcade_front_stop();
     document.body.classList.remove('arcade');
     set_hidden(document.getElementById('arcade_depot'), true);
     document.getElementById('restart_button').innerHTML = '<span>New expedition</span>';
@@ -259,6 +260,8 @@ function arcade_update(dt)
         arcade_wave_start(1);
         return;
     }
+    // a sweeping front keeps coming between waves too (arcade_fronts.js)
+    arcade_front_update(dt);
     if (arcade.pause > 0) {
         arcade.pause -= dt;
         if (arcade.pause <= 0) {
@@ -301,6 +304,7 @@ function arcade_wave_start(n)
         raider_jobs_reset(false);
     }
     arcade_goal_start(n);
+    arcade_front_wave(n);
     if (n === arcade_waves) {
         arcade_flagship_spawn();
     }
