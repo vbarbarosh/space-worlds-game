@@ -58,8 +58,8 @@ function hull_break_player()
 }
 
 // `count` pieces of the drawing `name` (its accent `color`) drawn `length` long at x, y turned to angle, flying apart
-// from `delay` seconds on, drifting with `drift` (units a second). Each piece is cut out of the raster once, here,
-// into a canvas of its own with its glowing edge beside it, so a frame draws two images a piece and clips nothing.
+// from `delay` seconds on, drifting with `drift` (units a second). Each piece is its outline and its cut edges; a frame
+// draws it from the ship's raster under a clip (hull_piece_cut).
 function hull_break_add(name, color, length, x, y, angle, drift, count, delay)
 {
     const s = sprite(name);
@@ -67,7 +67,8 @@ function hull_break_add(name, color, length, x, y, angle, drift, count, delay)
         return;
     }
     const size = (length*256)/sprite_span;
-    const px = Math.min(512, sprite_raster_px(s, size, ctx.getTransform()));
+    // the raster the ship is drawn from in the world (render): a kill comes between frames, under the screen's transform
+    const px = Math.min(512, sprite_raster_px(s, size, {a: dpr*scale*zoom, b: 0}));
     const raster = sprite_raster(name, color, px);
     if (!raster) {
         return;
@@ -123,11 +124,12 @@ function hull_break_add(name, color, length, x, y, angle, drift, count, delay)
     }
 }
 
-// The piece of the raster (drawn `size` units wide) inside `points`, burnt darker, and its cut `edges` as a glow on
-// the hull's pixels alone (no glow out in space past the hull), each in a canvas round the piece's box
+// The piece of the drawing inside `points` and its cut `edges`, drawn each frame from two tints of the ship's raster
+// made once per kind (burnt dark, and glowing hot) under clips: no canvas of its own. A canvas a piece, made at each
+// kill and drawn once or twice, made every frame with pieces in view several times slower to draw on a software canvas
+// (bin/perf fight-w3-z100: frame p95 12 to 150 ms; on the GPU path a texture per canvas)
 function hull_piece_cut(raster, size, points, edges)
 {
-    const k = raster.width/size;
     const half = size/2;
     let left = half;
     let top = half;
@@ -139,59 +141,62 @@ function hull_piece_cut(raster, size, points, edges)
         right = Math.max(right, point.x);
         bottom = Math.max(bottom, point.y);
     }
-    left = Math.max(-half, left);
-    top = Math.max(-half, top);
-    right = Math.min(half, right);
-    bottom = Math.min(half, bottom);
-    const w = Math.max(1, Math.ceil((right - left)*k));
-    const h = Math.max(1, Math.ceil((bottom - top)*k));
-    function canvas_for(paint) {
-        const out = document.createElement('canvas');
-        out.width = w;
-        out.height = h;
-        const draw = out.getContext('2d');
-        draw.scale(k, k);
-        draw.translate(-left, -top);
-        draw.beginPath();
-        for (let i = 0; i < points.length; ++i) {
-            if (i) {
-                draw.lineTo(points[i].x, points[i].y);
-            }
-            else {
-                draw.moveTo(points[i].x, points[i].y);
-            }
+    // the glow: a band along each cut, as wide as the old stroke, as a closed outline to clip by
+    const band = Math.max(1.5, size*0.035);
+    const bands = edges.map(function (edge) {
+        const there = [];
+        const back = [];
+        for (let i = 0; i < edge.length; ++i) {
+            const a = edge[Math.max(0, i - 1)];
+            const b = edge[Math.min(edge.length - 1, i + 1)];
+            const d = Math.hypot(b.x - a.x, b.y - a.y) || 1;
+            const nx = (-(b.y - a.y)/d)*band;
+            const ny = ((b.x - a.x)/d)*band;
+            there.push({x: edge[i].x + nx, y: edge[i].y + ny});
+            back.unshift({x: edge[i].x - nx, y: edge[i].y - ny});
         }
-        draw.closePath();
-        draw.clip();
-        draw.drawImage(raster, -half, -half, size, size);
-        draw.globalCompositeOperation = 'source-atop';
-        paint(draw);
-        return out;
+        return [...there, ...back];
+    });
+    return {
+        burnt: sprite_tint(hull_piece_raster(raster), '#140e10', 0.45),
+        hot: sprite_tint(hull_piece_raster(raster), '#ffc070', 1),
+        size,
+        points,
+        bands,
+        w: Math.min(half, right) - Math.max(-half, left),
+        h: Math.min(half, bottom) - Math.max(-half, top),
+    };
+}
+
+// The ship's raster at half its pixels for its pieces: a burnt piece tumbling away loses nothing by it, and a frame
+// with pieces in view draws a quarter of the image bytes (the canvas holds a frame's drawing until the images it draws
+// pass a limit, then draws it at once, in the middle of the frame)
+const hull_piece_rasters = new WeakMap();
+
+function hull_piece_raster(raster)
+{
+    let out = hull_piece_rasters.get(raster);
+    if (!out) {
+        out = document.createElement('canvas');
+        out.width = Math.max(1, Math.round(raster.width/2));
+        out.height = Math.max(1, Math.round(raster.height/2));
+        out.getContext('2d').drawImage(raster, 0, 0, out.width, out.height);
+        hull_piece_rasters.set(raster, out);
     }
-    const hull = canvas_for(function (draw) {
-        draw.fillStyle = 'rgba(20, 14, 16, 0.45)';
-        draw.fillRect(-half, -half, size, size);
-    });
-    const glow = canvas_for(function (draw) {
-        draw.fillStyle = '#000000';
-        draw.fillRect(-half, -half, size, size);
-        draw.strokeStyle = '#ffb347';
-        draw.lineJoin = 'round';
-        draw.lineCap = 'round';
-        draw.beginPath();
-        for (const edge of edges) {
-            draw.moveTo(edge[0].x, edge[0].y);
-            for (let i = 1; i < edge.length; ++i) {
-                draw.lineTo(edge[i].x, edge[i].y);
-            }
+    return out;
+}
+
+function hull_piece_path(points)
+{
+    for (let i = 0; i < points.length; ++i) {
+        if (i) {
+            ctx.lineTo(points[i].x, points[i].y);
         }
-        draw.lineWidth = Math.max(3/k, size*0.07);
-        draw.stroke();
-        draw.strokeStyle = '#fff1c8';
-        draw.lineWidth = Math.max(1.5/k, size*0.025);
-        draw.stroke();
-    });
-    return {hull, glow, left, top, w: right - left, h: bottom - top};
+        else {
+            ctx.moveTo(points[i].x, points[i].y);
+        }
+    }
+    ctx.closePath();
 }
 
 function update_hull_breaks(dt)
@@ -229,12 +234,20 @@ function render_hull_breaks()
         ctx.translate(x, y);
         ctx.rotate(v.angle + v.spin*v.t);
         ctx.globalAlpha = (p < 0.55) ? 1 : 1 - (p - 0.55)/0.45;
-        ctx.drawImage(v.hull, v.left, v.top, v.w, v.h);
+        ctx.beginPath();
+        hull_piece_path(v.points);
+        ctx.clip();
+        ctx.drawImage(v.burnt, -v.size/2, -v.size/2, v.size, v.size);
         if (heat > 0) {
-            // the cut edges glow white-hot and cool out
+            // the cut edges glow hot on the hull's own pixels and cool out
+            ctx.beginPath();
+            for (const band of v.bands) {
+                hull_piece_path(band);
+            }
+            ctx.clip();
             ctx.globalCompositeOperation = 'lighter';
             ctx.globalAlpha = heat*heat;
-            ctx.drawImage(v.glow, v.left, v.top, v.w, v.h);
+            ctx.drawImage(v.hot, -v.size/2, -v.size/2, v.size, v.size);
         }
         ctx.restore();
     }
