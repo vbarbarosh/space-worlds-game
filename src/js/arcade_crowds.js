@@ -21,8 +21,8 @@ function arcade_crowd_hit_is(cause, by)
     return arcade.active && arcade_crowd_causes.includes(cause) && !(by && ((by.from === 'boss') || (by.type === 'boss')));
 }
 
-// The raider a crowd's hit came from: the one that fired the shot (its `raider`), or the ship that blew up; null for a
-// missile's wave
+// The raider a crowd's hit came from: the one that fired the shot or the missile (its `raider`, a wave's `by`), or the
+// ship that blew up
 function arcade_hit_raider(by)
 {
     return by ? (by.raider || by) : null;

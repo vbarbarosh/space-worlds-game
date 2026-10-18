@@ -254,7 +254,8 @@ function missile_wave_add(b, wave)
     if (missile_waves.length >= missile_wave_limit) {
         return;
     }
-    missile_waves.push({x: b.x, y: b.y, r: 0, fade: 0, side: b.side, color: b.color || pink, fuse: b.fuse, edge: b.edge, hit: new Set([b]), ...wave});
+    // by: the raider that fired it, for the arcade's crowds (arcade_crowds.js): a flagship's wave keeps its whole hit
+    missile_waves.push({x: b.x, y: b.y, r: 0, fade: 0, side: b.side, color: b.color || pink, fuse: b.fuse, edge: b.edge, hit: new Set([b]), by: b.raider || null, ...wave});
 }
 
 // What the wave deals at `gap` units from its centre to a hull: its peak within the fuse, falling to `edge` of it at
@@ -311,7 +312,7 @@ function missile_waves_update(dt)
                 w.hit.add(player);
                 // a bubble wider than the hull drains as if only what reached the hull hit it (as for any shot)
                 const share = (player.shield > 0) ? (player.r + 7)/(reach + 7) : 1;
-                damage_player(missile_wave_damage(w, gap)*(arcade.active ? arcade_mode().blast : 1)*share, true, 'missile');
+                damage_player(missile_wave_damage(w, gap)*(arcade.active ? arcade_mode().blast : 1)*share, true, 'missile', w.by);
                 if (player.shield > 0) {
                     shield_impact(player, w, reach);
                 }

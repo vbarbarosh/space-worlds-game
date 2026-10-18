@@ -8,9 +8,10 @@
 //   its emitters jump away and a squadron jumps in.
 // - Cryosphere: they shoot the capsules, and one that flies across the tow line cuts it.
 // - Nova Forge: they shoot a regulator still running (blown, it is lost), and one in its ring holds its count.
-// - Eclipse: a tug latches onto an anchor and drags it toward the hole; at the core it is swallowed, lost.
-// A party comes every so often, from the wave's raiders while it has any left, warping in on the far side of the part
-// farthest from you. A part under attack shows how whole it is and a red pulse, the card says so, and an edge marker
+// - Eclipse: a tug latches onto an anchor and drags it toward the hole; at the core it is swallowed, lost. Shot down, it
+//   lets go, and the anchor drifts back to its place.
+// A party comes every so often, on top of the wave's raiders (they are all out by the first party's time), warping in
+// on the far side of the part farthest from you. A part under attack shows how whole it is and a red pulse, the card says so, and an edge marker
 // points to it in red when it is off the window. A goal ends when each of its parts is done or lost (arcade_goals.js):
 // it pays for the share done; nothing done is a goal lost, with no bonus, and the wave goes on until its raiders are
 // down. Every part done and none touched is a clean save: 60% more bonus, said in its toast.
@@ -42,6 +43,8 @@ const arcade_courier_from = 1500;
 // a tug drags its anchor toward the hole this fast (m/s); deeper than this share of the hole's radius it is swallowed
 const arcade_tug_drag = 20;
 const arcade_tug_core = 0.78;
+// an anchor let go drifts back to where it was set this fast (m/s): one left deep in the pull would hold the goal open
+const arcade_anchor_back = 30;
 // a carrier flies a pod to the nest at this share of its speed
 const arcade_carrier_pace = 0.8;
 // a clean save: this share of the goal's salvage on top
@@ -97,6 +100,7 @@ function arcade_raid_setup(g)
     for (const v of [...g.anchors, ...g.launchers]) {
         v.lost = false;
         v.hit_at = -99;
+        v.home = {x: v.x, y: v.y};
     }
     for (const v of g.launchers) {
         v.warheads = 0;
@@ -122,8 +126,6 @@ function arcade_raid_update(g, dt)
             else {
                 arcade_raid_spawn(g, Math.min(arcade_raid_alive - raiders.length, (arcade_raid_size[difficulty] || arcade_raid_size.normal)[Math.min(1, g.wave - 1)]));
             }
-            // a party is the wave's own raiders while it has any left to send
-            spawn_left = Math.max(0, spawn_left - (courier ? 1 : (arcade_raid_size[difficulty] || arcade_raid_size.normal)[Math.min(1, g.wave - 1)]));
         }
     }
     for (const v of raiders) {
@@ -157,7 +159,22 @@ function arcade_raid_update(g, dt)
             ring(a.x, a.y, arcade_goal_violet, 80, 0.5);
             label(a.x, a.y - 30, 'TUG DOWN', arcade_goal_violet);
         }
+        if (!a.tug && !a.shut && !a.lost) {
+            arcade_anchor_drift_back(a, dt);
+        }
     }
+}
+
+// An anchor no tug holds drifts back to where it was set
+function arcade_anchor_drift_back(a, dt)
+{
+    const d = distance(a, a.home);
+    if (d < 1) {
+        return;
+    }
+    const step = Math.min(d, arcade_anchor_back*dt);
+    a.x += ((a.home.x - a.x)/d)*step;
+    a.y += ((a.home.y - a.y)/d)*step;
 }
 
 // A pod carried: where its carrier flies (arcade_brood_update)

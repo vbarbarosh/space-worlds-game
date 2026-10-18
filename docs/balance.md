@@ -780,8 +780,9 @@ before rocks and the Relic processor.
 - **Goals fought over** (`src/js/arcade_goal_raids.js`): 9 s into wave 1's
   goal (6 s into wave 2's), then every 17 s (CHILL 26, OVERLOAD 13), a party
   of 2 / 3 raiders (CHILL 1 / 2, OVERLOAD 3) warps in 800 m beyond the part
-  farthest from you (beyond it from a black hole in Eclipse), taken from the
-  wave's raiders while it has any left; six of them at most at once. A raider
+  farthest from you (beyond it from a black hole in Eclipse), on top of the
+  wave's raiders (its squadrons are all out by then); six of them at most at
+  once. A raider
   of the party turns on you within 230 m. A part with a hull (a tender, a
   relay, a capsule, a regulator) takes 28 hits on NORMAL (CHILL 40,
   OVERLOAD 22) × 1.2 for a tender or a regulator, × 0.6 for a capsule; a
@@ -795,7 +796,8 @@ before rocks and the Relic processor.
   post and its emitters jump away, lost, and a squadron jumps in; a raider
   of Cryosphere's party across your tow line cuts it; one in a Nova Forge
   regulator's ring holds its count; Eclipse's tugs drag an anchor toward the
-  hole at 20 m/s, and deeper than 0.78 × its radius it is swallowed, lost.
+  hole at 20 m/s, and deeper than 0.78 × its radius it is swallowed, lost;
+  a tug shot down lets go, and its anchor drifts back to its place at 30 m/s.
   A goal ends when each of its parts is done or lost (a rescue: when too few
   capsules are left to save). Nothing done is a goal lost: no bonus, and the
   wave goes on until its raiders are down. Every part done and none touched
