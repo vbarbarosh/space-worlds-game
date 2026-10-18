@@ -278,6 +278,7 @@ function render()
     race_render_rivals();
     render_explosions();
     render_pulse();
+    render_pickup_halos();
     render_pickups();
     render_equipment();
     render_hazards();
@@ -298,6 +299,7 @@ function render()
             ctx.stroke();
         }
     }
+    render_hull_light();
     for (const label of labels) {
         if (!in_view(label, 100)) {
             continue;
