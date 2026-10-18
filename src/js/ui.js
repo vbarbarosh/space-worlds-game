@@ -20,10 +20,10 @@ function ui_button({label, key = '', price = null, kind = '', size = '', disable
     return b;
 }
 
-// Numbers as the kit writes them: thin groups of three (2 482)
+// Numbers as the kit writes them: groups of three (2 482), kept on one line by a no-break space
 function ui_number(v)
 {
-    return Math.round(v).toLocaleString('en-US').replace(/,/g, ' ');
+    return Math.round(v).toLocaleString('en-US').replace(/,/g, '\u00a0');
 }
 
 // Text made safe to put in HTML

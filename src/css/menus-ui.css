@@ -559,6 +559,12 @@ body:not(.in-game) .ui.hud .hud-top .toolbar {
     border: 1px solid var(--line-1);
     border-radius: var(--r-md);
     background: var(--space-1);
+    container-type: inline-size;
+}
+
+/* a long score (2 551 375) shrinks to its tile on a phone instead of running out of it */
+.ui .result-stats .readout {
+    font-size: min(var(--fs-2xl), 15cqi);
 }
 
 /* save slots: number, what is in it, its buttons */
