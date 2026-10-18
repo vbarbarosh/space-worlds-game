@@ -369,6 +369,7 @@ function base_damage_enemy(enemy, damage)
         arcade.slowmo = 1.4;
     }
     sfx('kill', 1, enemy);
+    hull_break_enemy(enemy);
     if (enemy.type === 'boss') {
         explode_flagship(enemy.x, enemy.y, enemy.r, enemy.color || pink);
     }

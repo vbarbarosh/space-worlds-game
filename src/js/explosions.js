@@ -88,6 +88,7 @@ function explode_ship_death(x, y, r)
         explode(x + Math.cos(angle)*r*0.6, y + Math.sin(angle)*r*0.6, 28 + explosion_random()*12, '#e8743b', i*0.09, 'blast', 6);
     }
     explode(x, y, 120, cyan, 0.3, 'blast', 24, 0.45);
+    hull_break_player();
     if (full_fx) {
         wreck_add(x, y, Math.max(40, r*2), '#4a3a34', 0.3, 7);
     }
@@ -226,6 +227,7 @@ function update_explosions(dt)
     }
     update_hull_damage(dt);
     update_enemy_wounds(dt);
+    update_hull_breaks(dt);
     update_raider_trails(dt);
 }
 
@@ -432,6 +434,7 @@ function render_explosions()
         lights -= v.lit ? 1 : 0;
     }
     render_wrecks();
+    render_hull_breaks();
     for (let i = 0; i < explosions.length; ++i) {
         const explosion = explosions[i];
         if ((explosion.t >= 0) && in_view(explosion, explosion.size*3)) {
