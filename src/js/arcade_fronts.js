@@ -8,8 +8,8 @@
 // - Dustfall, a sandstorm: a wall of sand that grinds and shoves along; the lee of a rock, or one calm lane.
 // - Ion Reach, a storm front: cells 520 m wide flash in turn, lit 2 s, dark 2 s; a lit one takes the shield and
 //   charges the pulse (the world's own trade), and with the shield gone it takes hull.
-// - Obsidian, a gravity surge: shoves every ship along, no hull lost (a rail world: fair); two calm lanes; none in the
-//   flagship's wave.
+// - Obsidian, a gravity surge: shoves every ship along, no hull lost (a rail world: fair); two calm lanes; in the
+//   first wave only (a bot's runs died three times in the second, at the emitters, where they had not before).
 // - Cryosphere, a freezing front: a wide band where engines run at 45% and raiders at 35%; two warm lanes.
 // - Nova Forge, a solar flare: fast, hot and burning; only a rock's shadow keeps it off.
 // - Eclipse, a tidal ripple: a ring that runs out of the black hole, drains the pulse and pushes out (away from the
@@ -22,7 +22,7 @@ const arcade_front_kinds = {
     1: {id: 'spores', title: 'SPORE DRIFT', line: 'Spores eat every hull · fly through a clear lane', way: 'CLEAR LANE', color: '#c8f56a', speed: 85, width: 340, gaps: 2, gap: 300, hurt: 5, raiders: 8, sound: 'storm'},
     2: {id: 'sand', title: 'SANDSTORM', line: 'A wall of sand · shelter in a rock\'s lee or the calm lane', way: 'CALM LANE', color: '#e8b25e', speed: 130, width: 420, gaps: 1, gap: 260, hurt: 9, raiders: 9, push: 60, shelter: true, sound: 'storm'},
     3: {id: 'ion', title: 'STORM FRONT', line: 'Its cells flash in turn · cross a dark one, or charge the pulse in a lit one', color: '#8d9cff', speed: 120, width: 280, cells: 520, cycle: 4, shield_drain: 40, pulse_gain: 30, hurt: 10, raiders: 10, sound: 'storm'},
-    4: {id: 'gravity', title: 'GRAVITY SURGE', line: 'It shoves every ship along · cross at a calm lane', way: 'CALM LANE', color: '#ed97cf', speed: 140, width: 300, gaps: 2, gap: 300, push: 90, waves: [1, 2], sound: 'gravity'},
+    4: {id: 'gravity', title: 'GRAVITY SURGE', line: 'It shoves every ship along · cross at a calm lane', way: 'CALM LANE', color: '#ed97cf', speed: 140, width: 300, gaps: 2, gap: 300, push: 70, waves: [1], sound: 'gravity'},
     5: {id: 'frost', title: 'FREEZING FRONT', line: 'Ice slows every engine · cross at a warm lane', way: 'WARM LANE', color: '#bfeeff', speed: 100, width: 520, gaps: 2, gap: 280, hurt: 3, slow: 0.45, raider_slow: 0.35, sound: 'storm'},
     6: {id: 'flare', title: 'SOLAR FLARE', line: 'Heat and fire · hide in a rock\'s shadow', color: '#ffad42', speed: 150, width: 340, gaps: 0, gap: 0, hurt: 10, raiders: 10, heat: 45, shelter: true, sound: 'flare'},
     7: {id: 'tide', title: 'TIDAL RIPPLE', line: 'It rings out of the black hole · cross at a lane', way: 'LANE', color: '#b98cff', ring: true, speed: 140, width: 260, gaps: 3, gap: 320, hurt: 5, raiders: 6, push: 70, pulse_drain: 25, waves: [1, 2], sound: 'gravity'},
@@ -38,6 +38,9 @@ const arcade_front_tick = 0.5;
 const arcade_front_lee = 7;
 // the first lane is this far to one side of you when the front sets out (m)
 const arcade_front_near_gap = [350, 800];
+// Eclipse's ring waits until you are this far outside where it sets out (m: about 4 s of warning), trying again each
+// second; at the anchors on the hole's rim it would be on you before its toast was read
+const arcade_front_ring_lead = 600;
 // an Ion Reach cell between flashes
 const arcade_front_dark = '#4a5590';
 
@@ -75,8 +78,11 @@ function arcade_front_update(dt)
     if (!f) {
         if ((kind.waves || [1, 2, 3]).includes(arcade.wave)) {
             arcade_front_timer -= dt;
-            if (arcade_front_timer <= 0) {
+            if ((arcade_front_timer <= 0) && arcade_front_ready(kind)) {
                 arcade_front_launch(kind);
+            }
+            else if (arcade_front_timer <= 0) {
+                arcade_front_timer = 1;
             }
         }
         return;
@@ -91,13 +97,22 @@ function arcade_front_update(dt)
         }
         return;
     }
-    if ((f.pos - f.width > arcade_front_at(f, player).s + arcade_front_beyond) || (f.pos - f.width > f.end)) {
+    // gone past you, out of the arena, or into a wave it has no part in (a rail world's flagship): it fades away
+    const past = (f.pos - f.width > arcade_front_at(f, player).s + arcade_front_beyond) || (f.pos - f.width > f.end);
+    if (past || !(kind.waves || [1, 2, 3]).includes(arcade.wave)) {
         f.fade = 1.2;
         return;
     }
     f.rocks = kind.shelter ? arcade_front_rocks(f) : [];
     arcade_front_player(f, kind, dt);
     arcade_front_raiders(f, kind, dt);
+}
+
+// Whether a front may set out now: a ring needs you well outside the hole's rim, where it starts
+function arcade_front_ready(kind)
+{
+    const hole = kind.ring ? black_holes[0] : null;
+    return !hole || (distance(player, hole) > hole.radius*1.1 + arcade_front_ring_lead);
 }
 
 // A front sets out: a ring out of the black hole in Eclipse, elsewhere a line across the arena from a side with room
@@ -351,13 +366,14 @@ function arcade_front_raiders(f, kind, dt)
 }
 
 // How a pilot meets the front, for the bots (bin/playtest): the velocity to fly at (m/s), to keep to with raiders near
-// (firm); null while it is far, gone or past. In time, to the middle of the nearest lane across from you, or into the
-// lee of a rock near you, and still there; else straight through it, against its way.
+// (firm); null while it is far, gone or past, or when it only shoves (Obsidian's: the fight matters more). In time, to
+// the middle of the nearest lane across from you, or into the lee of a rock near you, and still there; else straight
+// through it, against its way.
 function arcade_front_pilot()
 {
     const f = arcade.active && arcade_front;
     const kind = arcade_front_kind();
-    if (!f || !kind || (f.fade > 0)) {
+    if (!f || !kind || (f.fade > 0) || !(kind.hurt || kind.slow)) {
         return null;
     }
     const at = arcade_front_at(f, player);

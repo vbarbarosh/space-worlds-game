@@ -275,7 +275,8 @@ function page_bot(options)
             }
         }
         // a black hole's pull: away from it, unless a goal's plan keeps to the rim (it leans out against the pull itself)
-        if (!(plan && plan.firm)) {
+        // and no front has taken the stick from it
+        if (!(plan && plan.firm) || front) {
             for (const hole of black_holes) {
                 const d = Math.max(1, distance(hole, player));
                 if (d < hole.radius*1.6) {
