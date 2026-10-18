@@ -548,15 +548,20 @@ function arcade_front_draw_line(f, kind)
 
 // One stretch of a line front's band, from y0 to y1 across it: the fill, deeper toward the leading edge, the edges,
 // and the grain (u0: where y = 0 is across the front, so the grain stays put on it as the view moves). Ion Reach's
-// stretch is dim, its lit cells drawn over it.
+// stretch is drawn cell by cell, dim or lit.
 function arcade_front_band(f, kind, span, u0)
 {
     const [y0, y1] = span;
     const color = kind.cells ? arcade_front_dark : kind.color;
-    ctx.fillStyle = `${color}${kind.cells ? '18' : '30'}`;
-    ctx.fillRect(-f.width, y0, f.width, y1 - y0);
-    ctx.fillStyle = `${color}${kind.cells ? '10' : '40'}`;
-    ctx.fillRect(-Math.min(110, f.width), y0, Math.min(110, f.width), y1 - y0);
+    // each part of the band filled once (a software canvas pays for every layer): the body, and its last 110 m as
+    // deep as the body and a second layer over it were; Ion Reach's cells fill their own
+    if (!kind.cells) {
+        const deep = Math.min(110, f.width);
+        ctx.fillStyle = `${color}30`;
+        ctx.fillRect(-f.width, y0, f.width - deep, y1 - y0);
+        ctx.fillStyle = `${color}64`;
+        ctx.fillRect(-deep, y0, deep, y1 - y0);
+    }
     ctx.strokeStyle = color;
     ctx.lineWidth = (kind.cells ? 1.5 : 3)/zoom;
     ctx.setLineDash(kind.cells ? [10/zoom, 10/zoom] : []);
@@ -592,8 +597,10 @@ function arcade_front_cells(f, kind, y0, y1, u0)
         const lit = arcade_front_lit(f, kind, u);
         const phase = (f.time/kind.cycle + (((k % 2) + 2) % 2)*0.5) % 1;
         const soon = !lit && (phase > 0.88) && (Math.sin(clock*40) > 0);
-        if (lit || soon) {
-            ctx.fillStyle = `${kind.color}${lit ? '40' : '20'}`;
+        ctx.fillStyle = lit ? `${kind.color}48` : `${arcade_front_dark}30`;
+        ctx.fillRect(-f.width, a, f.width, b - a);
+        if (soon) {
+            ctx.fillStyle = `${kind.color}20`;
             ctx.fillRect(-f.width, a, f.width, b - a);
         }
         if (!lit) {

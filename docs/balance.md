@@ -766,6 +766,44 @@ before rocks and the Relic processor.
   | Cryosphere | a capsule drifting at 90–140 m/s, hooked by staying within 120 m at under 110 m/s apart for 0.6 s, towed to the depot | three capsules, two to save; they bounce off the arena's edge and are never lost |
   | Nova Forge | two regulators 60 m inside the edges of the flares nearest the depot, each shut by 4 s in all within 150 m of it (the time kept when you leave) | three regulators |
   | Eclipse | two anchors 1.15 × the hole's radius from its centre (about 640 m: a pull of about 50 m/s), on the side facing the arena's middle, each shut by flying within 90 m of it | three anchors |
+- **Sweeping fronts** (`src/js/arcade_fronts.js`, R6 of the 2026-10-17
+  proposals): from Verdant on, the world's hazard crosses the whole arena
+  during its waves, so flying away from a fight no longer leaves the danger
+  behind. The first sets out 14 s into a world's first wave (a death or a
+  load starts that clock again), the next 20 s after one is gone. A line
+  front sets out 1700 m behind you (at the arena's edge when that is
+  nearer), from a side with room, its first lane 350–800 m to one side of
+  you, and runs on until it is 2000 m past you; Eclipse's ring runs out of
+  the black hole once you are 600 m outside where it starts. A toast names
+  it, an edge marker gives its time to you while it is off the window, and
+  the map marks where it will reach you. It bites every 0.5 s, a hit like
+  any other (the shield first, the mode's factor, armour) without the
+  moment of grace or the shake, logged as `front`; raiders in it are hurt,
+  pushed, slowed or stripped of shield as you are (not a flagship, a goal's
+  anchored part or a freighter). Haven has none.
+
+  | World | Front | Speed, depth | Way through | In it |
+  |---|---|---|---|---|
+  | Verdant | spore drift | 85 m/s, 340 m | two clear lanes, 300 m wide | 5 hull/s (raiders 8) |
+  | Dustfall | sandstorm | 130 m/s, 420 m | a calm lane (260 m), or a rock's lee (7 radii behind it) | 9 hull/s (raiders 9), a push of 60 m/s |
+  | Ion Reach | storm front | 120 m/s, 280 m | cells 520 m wide, lit 2 s and dark 2 s in turn | lit: shield −40/s and pulse +30/s, hull 10/s once the shield is gone (raiders 10) |
+  | Obsidian | gravity surge | 140 m/s, 300 m | two calm lanes, 300 m | a push of 70 m/s, no hull; wave 1 only |
+  | Cryosphere | freezing front | 100 m/s, 520 m | two warm lanes, 280 m | engines at 45% (raiders 35%), 3 hull/s |
+  | Nova Forge | solar flare | 150 m/s, 340 m | a rock's lee only | 10 hull/s (raiders 10), heat +45/s |
+  | Eclipse | tidal ripple, a ring | 140 m/s, 260 m | three lanes, 320 m | 5 hull/s (raiders 6), a push of 70 m/s out, pulse −25/s; waves 1 and 2 |
+
+  The bot (`bin/playtest`, NORMAL, seeds 1–12) meets a front late, in a lane
+  or a rock's lee when it can get there in time: a front costs it 0–11 hull
+  a world, and the runs come out as before within the seeds' spread (won 5
+  of 12 against 7, deaths 34 against 31, all but two of them in Obsidian
+  and Eclipse as before; salvage at the depot within 15%). Flying on as if
+  it were not there (seeds 1–6) costs 4–22 a world. CHILL seeds 1–4: no
+  deaths, as before. Tried and dropped: Obsidian's surge at 90 m/s in waves
+  1 and 2 (the runs died three times at the second wave's emitters on four
+  seeds of six, against two before), a ring that set out on you at the
+  anchors (the bot flew into the hole three times), and a bot that took the
+  stick 6 s before a front and held still in its lane (a third fewer
+  pickups, weaker kit by Obsidian).
 - A ship that explodes hurts everything within 1.8 × its blast size, less
   with distance: a chaser 10, a tank 26, a flagship 50, an elite ×1.5
   (`arcade_blast_from_kill`).
