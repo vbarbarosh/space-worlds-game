@@ -1,0 +1,202 @@
+#!/usr/bin/env node
+
+const cli = require('@vbarbarosh/node-helpers/src/cli');
+const path = require('node:path');
+const {chromium} = require('playwright');
+
+const page_file = path.join(__dirname, '..', 'build', 'dev.html');
+// A window headless Chromium's software canvas keeps at 60 fps at the top ratio (1360 × 765 at ×1.7), on a screen at
+// 200%; &slow=20 then costs 21 ms a frame at ×1.7, 16 at ×1.5, 12 at ×1.3 (src/js/dev/resolution.js)
+const viewport = {width: 800, height: 450};
+const screen_ratio = 2;
+const slow = 20;
+const scene = 'world=6&screen=flight';
+const usage = `usage: bin/resolution-check [check...]
+
+    Flies Nova Forge on build/dev.html in headless Chromium (an 800 × 450 window at 200%) and checks the adaptive
+    resolution (src/js/resolution.js), in real time, about three minutes:
+
+    steady   no stand-in for a slow card: the canvas stays at the top ratio, ×1.7
+    slow     &slow=${slow}: it steps down to where the frames keep up and holds there, each step drawn in its own
+             frame with the scene kept; with the cost gone it stays (the ratio that fell behind waits 3 minutes), and
+             a new world brings it back to ×1.7; the play log's record holds the ratio
+    sharp    Settings → Resolution → Sharp puts ×1.7 back at once and keeps it however slow; kept after a reload
+    forced   &dpr=1.3: the canvas at ×1.3, however slow, never stepped
+    futile   &stall=30 (a page held to 30 fps whatever its size): the steps down bring nothing, so ×1.7 comes back
+             and stays
+    screen1  a screen at 100%: nothing to step to, ×1
+
+    Timing on a busy machine can fail steady; run it alone again. Exits 1 on a failure.`;
+const checks = {steady: check_steady, slow: check_slow, sharp: check_sharp, forced: check_forced, futile: check_futile, screen1: check_screen1};
+
+cli(main);
+
+async function main()
+{
+    const names = process.argv.slice(2);
+    if (names.some(v => !checks[v])) {
+        console.log(usage);
+        process.exit(2);
+    }
+    const browser = await chromium.launch();
+    const failures = [];
+    try {
+        for (const name of (names.length ? names : Object.keys(checks))) {
+            const context = await browser.newContext({viewport, deviceScaleFactor: (name === 'screen1') ? 1 : screen_ratio});
+            const page = await context.newPage();
+            const errors = [];
+            page.on('pageerror', v => errors.push(`page error: ${v.message}`));
+            const trace = {lines: [], dpr: null};
+            const found = [...await checks[name](page, trace), ...errors];
+            console.log(`${found.length ? 'FAIL' : 'ok  '} ${name.padEnd(8)} ${trace.lines.join(' ')}${found.length ? `\n     ${found.join('\n     ')}` : ''}`);
+            failures.push(...found.map(v => `${name}: ${v}`));
+            await context.close();
+        }
+    }
+    finally {
+        await browser.close();
+    }
+    console.log(failures.length ? `${failures.length} failures` : 'all checks pass');
+    if (failures.length) {
+        process.exit(1);
+    }
+}
+
+async function check_steady(page, trace)
+{
+    await scene_open(page, '');
+    const seen = await ratios_watch(page, 20, trace);
+    return seen.filter(v => v.dpr !== 1.7).slice(0, 1).map(v => `stepped to ×${v.dpr} at ${v.s} s (${v.fps} fps) with nothing slow`);
+}
+
+async function check_slow(page, trace)
+{
+    const out = [];
+    await scene_open(page, `&slow=${slow}`);
+    const seen = await ratios_watch(page, 25, trace);
+    const last = seen[seen.length - 1];
+    if (last.dpr >= 1.7) {
+        out.push('never stepped down');
+    }
+    const late = seen.filter(v => v.s > 15);
+    if (late.some(v => v.dpr !== last.dpr)) {
+        out.push(`still stepping after 15 s: ${late.map(v => v.dpr).join(', ')}`);
+    }
+    if (last.fps < 50) {
+        out.push(`held at ×${last.dpr} at ${last.fps} fps`);
+    }
+    const state = await page.evaluate(() => window.dev_resolution.state());
+    if (!state.log || !(state.log.dpr < 1.7) || (state.log.dpr_min !== last.dpr)) {
+        out.push(`the play log's record: ${JSON.stringify(state.log)}, the ratio ×${last.dpr}`);
+    }
+    trace.lines.push('| cost gone:');
+    await page.evaluate(() => window.dev_resolution.slow(0));
+    const kept = await ratios_watch(page, 12, trace);
+    if (kept.some(v => v.dpr !== last.dpr)) {
+        out.push(`the ratio that fell behind was tried again within 12 s: ${kept.map(v => v.dpr).join(', ')}`);
+    }
+    trace.lines.push('| new world:');
+    await page.evaluate(() => window.dev_resolution.world(4));
+    const back = await ratios_watch(page, 30, trace);
+    if (back[back.length - 1].dpr !== 1.7) {
+        out.push(`not back at ×1.7 30 s into a new world: ${back.map(v => v.dpr).join(', ')}`);
+    }
+    // each step, down and up, drew its frame on the new canvas (never showing it cleared) and kept the scene
+    const steps = (await page.evaluate(() => window.dev_resolution.state())).steps;
+    for (const step of steps.filter(v => !v.drawn || !v.stars_kept)) {
+        out.push(`the step to ×${step.dpr}: ${step.drawn ? '' : 'left the canvas black '}${step.stars_kept ? '' : 'made the stars again'}`);
+    }
+    trace.lines.push(`| ${steps.length} steps drawn in their frame`);
+    return out;
+}
+
+async function check_sharp(page, trace)
+{
+    const out = [];
+    await scene_open(page, `&slow=${slow}`);
+    const seen = await ratios_watch(page, 10, trace);
+    if (seen[seen.length - 1].dpr >= 1.7) {
+        out.push('never stepped down before Sharp was chosen');
+    }
+    await page.click('#settings_button');
+    await page.click('#audio_overlay [data-setting="resolution"] [data-value="sharp"]');
+    const at_once = await page.evaluate(() => window.dev_resolution.state());
+    const pressed = await page.getAttribute('#audio_overlay [data-setting="resolution"] [data-value="sharp"]', 'aria-pressed');
+    await page.click('#close_audio');
+    trace.lines.push(`| Sharp: ×${at_once.dpr}`);
+    if ((at_once.dpr !== 1.7) || (at_once.mode !== 'sharp') || (pressed !== 'true')) {
+        out.push(`Sharp chosen: ×${at_once.dpr}, mode ${at_once.mode}, its button pressed ${pressed}`);
+    }
+    const kept = await ratios_watch(page, 12, trace);
+    if (kept.some(v => v.dpr !== 1.7)) {
+        out.push(`Sharp stepped: ${kept.map(v => v.dpr).join(', ')}`);
+    }
+    await scene_open(page, `&slow=${slow}`);
+    trace.lines.push('| reloaded:');
+    const reloaded = await ratios_watch(page, 6, trace);
+    const state = await page.evaluate(() => window.dev_resolution.state());
+    if ((state.mode !== 'sharp') || reloaded.some(v => v.dpr !== 1.7)) {
+        out.push(`after a reload: mode ${state.mode}, ${reloaded.map(v => v.dpr).join(', ')}`);
+    }
+    return out;
+}
+
+async function check_forced(page, trace)
+{
+    await scene_open(page, `&dpr=1.3&slow=${slow*2}`);
+    const seen = await ratios_watch(page, 10, trace);
+    const state = await page.evaluate(() => window.dev_resolution.state());
+    const want = [Math.round(viewport.width*1.3), Math.round(viewport.height*1.3)];
+    const out = seen.filter(v => v.dpr !== 1.3).slice(0, 1).map(v => `×${v.dpr} at ${v.s} s, forced ×1.3`);
+    if (state.canvas.join('x') !== want.join('x')) {
+        out.push(`canvas ${state.canvas.join(' × ')}, want ${want.join(' × ')}`);
+    }
+    return out;
+}
+
+async function check_futile(page, trace)
+{
+    await scene_open(page, '&stall=30');
+    const seen = await ratios_watch(page, 30, trace);
+    const out = [];
+    if (!seen.some(v => v.dpr < 1.7)) {
+        out.push('never tried a lower ratio');
+    }
+    const late = seen.filter(v => v.s > 20);
+    if (late.some(v => v.dpr !== 1.7)) {
+        out.push(`not back at ×1.7 and held after 20 s: ${late.map(v => v.dpr).join(', ')}`);
+    }
+    return out;
+}
+
+async function check_screen1(page, trace)
+{
+    await scene_open(page, `&slow=${slow*4}`);
+    const seen = await ratios_watch(page, 8, trace);
+    return seen.filter(v => v.dpr !== 1).slice(0, 1).map(v => `×${v.dpr} at ${v.s} s on a screen at 100%`);
+}
+
+async function scene_open(page, query)
+{
+    await page.goto(`file://${page_file}?${scene}${query}`);
+    await page.waitForFunction(() => window.dev_resolution && window.dev_state().player && (window.dev_state().state === 'playing'));
+}
+
+// The ratio once a second for `seconds`, each change put in the trace's lines as "3s×1.5 (24 fps)"
+async function ratios_watch(page, seconds, trace)
+{
+    const out = [];
+    let last = trace.dpr;
+    for (let s = 1; s <= seconds; ++s) {
+        await page.waitForTimeout(1000);
+        const state = await page.evaluate(() => window.dev_resolution.state());
+        out.push({s, dpr: state.dpr, fps: state.fps});
+        if (state.dpr !== last) {
+            trace.lines.push(`${s}s×${state.dpr} (${state.fps} fps)`);
+            last = state.dpr;
+        }
+    }
+    trace.dpr = last;
+    trace.lines.push(`→ ${out[out.length - 1].fps} fps`);
+    return out;
+}

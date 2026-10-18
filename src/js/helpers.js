@@ -96,16 +96,24 @@ function resize()
 {
     width = innerWidth;
     height = innerHeight;
-    dpr = Math.min(devicePixelRatio || 1, 1.7);
+    // the screen's pixel ratio up to 1.7, or a step under it while the frames fall behind (js/resolution.js)
+    dpr = resolution_dpr();
     // one that leaves the window as it was keeps the canvas (made again, it would be cleared and allocated anew), its
     // picture and its stars
-    const size = `${width}x${height}@${dpr}`;
+    const view = `${width}x${height}`;
+    const size = `${view}@${dpr}`;
     if (size === resize_last) {
         return;
     }
+    const same_view = resize_last.startsWith(`${view}@`);
     resize_last = size;
     canvas.width = Math.round(width*dpr);
     canvas.height = Math.round(height*dpr);
+    resolution_hold(performance.now());
+    // a new pixel ratio alone keeps the scene as it was: its camera, its stars
+    if (same_view) {
+        return;
+    }
     // A window smaller than 620 × 550 shows the scene scaled down, widened to the window's shape so it fills it
     scale = Math.min(1, width/620, height/550);
     W = width/scale;

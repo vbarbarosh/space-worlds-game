@@ -361,6 +361,84 @@ all. Frame with its raster, p50 at ×2.5, before → after: arcade Ion Reach
 EMP fronts (gradient rings, 12–20 ms while one crosses the screen), the
 explosions, the dynamic sprites (raiders, debris, pickups turn every frame).
 
+## 18 October: adaptive resolution
+
+The author's log (a 1536 × 794 window at 250%, Chrome with a graphics card)
+showed 27–46 fps in flight, lowest in Nova Forge and Cryosphere, while
+`work_ms` was about 4 ms a frame and `paint_ms` 2–3 ms: `frame_ms` (22–40 ms)
+was the frame waiting for the graphics card to fill the canvas, 3.5 million
+pixels at the cap of ×1.7. The canvas's pixel ratio now follows the frames
+(`src/js/resolution.js`), as Settings → Resolution → **Auto** (the default);
+**Sharp** keeps the old fixed ratio.
+
+- **Steps.** The screen's ratio up to ×1.7, then 1.5, 1.3, 1.15 and 1; never
+  under 1, and no step within 6% of the screen's ratio (×1.25: 1.25, 1.15,
+  1). A screen at 100% has nothing to step to. At the author's window:
+  3.5, 2.7, 2.1, 1.6 and 1.2 million pixels.
+- **What is measured.** Each frame of flight: the time since the last frame
+  and the game's own work in it (`work_ms`). Not in the menus, the station,
+  pause or the settings, nor with the tab hidden; after any of those, a
+  resize, a new world, a step or a frame over 250 ms, the frames of the next
+  second are not counted. Checked twice a second.
+- **Down a step** when the last 2 s of flight ran slower than about 54 fps, 18.5 ms (the
+  mean frame, the longest tenth left out: a garbage collection is not the
+  frame rate; a median would miss a mix of 16.7 and 33 ms frames, which
+  averages 45 fps) **and** the game's own work took under half of a frame.
+  When the script itself is slow, fewer pixels would not help, and the ratio
+  stays.
+- **Up a step** when the last 5 s kept up, no sooner than 10 s after a step
+  down: the mean frame as above at the screen's refresh (the lowest median of
+  a 2 s window seen, ×1.1) and at most 14 ms on a screen over 72 Hz, never
+  over 18.5 ms. A 60 Hz screen never shows a frame under 16.7 ms, so it is
+  tried: if the higher ratio falls behind again it steps back down.
+- **No see-saw.** A ratio that fell behind is not tried again for 3 minutes,
+  then 6, 12, up to 24. A new world forgets it all (Haven costs less than
+  Nova Forge), and so does a new screen ratio.
+- **No gain, no steps.** At ×1 and still behind, and not a tenth faster than
+  where the steps began, the pixels are not what is slow (a browser holding
+  the page to 30 fps on battery, a 30 Hz screen): the ratio goes back to where
+  it began and stays there until a new world.
+- **A step** is taken at the start of a frame, before anything is drawn:
+  `resize()` makes the canvas at the new size and the same frame draws on it,
+  so the screen never shows it cleared. A new ratio alone keeps the camera
+  and the stars (a new window size makes the stars again, as before). The sky
+  layer's copy and the still sprites' copies are made again at the new scale
+  in that frame, so it is a longer one; its time is not counted. The station's
+  hangar previews keep the screen's ratio.
+
+The play log records the ratio each record was drawn at (`dpr`, the mean over
+its frames, and `dpr_min`) and the setting in the session's `screen`
+(docs/play-log.md); `bin/play-log` shows them beside the frame rate. `bin/perf`
+measures at the ratio asked (`--dpr`), with Sharp.
+
+**Checked.** A headless browser has no graphics card to wait for, so the dev
+page stands one in: `&slow=20` makes each frame wait 20 ms for every million
+pixels of the canvas after its work, as a frame waits for the card; `&stall=30`
+waits 30 ms whatever the size. `bin/resolution-check` flies Nova Forge in an
+800 × 450 window at 200% (1360 × 765 at ×1.7, which headless Chromium keeps at
+60 fps):
+
+| Check | What happened |
+|---|---|
+| steady | nothing slow: ×1.7 for 20 s at 60 fps |
+| slow | `&slow=20`: ×1.7 → 1.5 at 3 s → 1.3 at 6 s, then held at 60 fps; the cost taken away, ×1.3 kept (the ×1.5 that fell behind waits 3 minutes); in a new world back to 1.5 at 7 s and 1.7 at 13 s. Each step drew its own frame on the new canvas and kept the stars; the play log's record holds the ratio |
+| sharp | Settings → Resolution → Sharp: ×1.7 at once, kept under `&slow`, and after a reload |
+| forced | `&dpr=1.3`: the canvas 1040 × 585 however slow |
+| futile | `&stall=30`: 1.7 → 1.5 → 1.3 → 1.15 → 1, no faster, back to ×1.7 at 14–15 s and held |
+| screen1 | a screen at 100%: ×1, nothing stepped |
+
+The check runs in real time: on a machine busy with other work the headless
+browser itself falls under 50 fps, and steady fails; run it again alone.
+
+`bin/perf` with Sharp draws as before: all 53 scenes at ×2, the untouched build
+and this one side by side on the same (busy) machine, the mean frame 17.5 and
+17.3 ms, every canvas 3264 × 1836; the controller's own work, a few numbers a
+frame and a sort of at most 2048 twice a second, is lost in the noise.
+
+**Not seen here.** The real graphics card: whether the frame rate the author
+saw comes back at ×1.3 (40% fewer pixels than ×1.7) or needs ×1.15 is for the
+next play log to show, in its `dpr` beside `fps`.
+
 ## Running it
 
     bin/build
@@ -371,6 +449,7 @@ explosions, the dynamic sprites (raiders, debris, pickups turn every frame).
     bin/perf --mode=shots --label=before     screenshots, then after a change:
     bin/perf --mode=shots --label=after
     bin/perf --compare=before,after
+    bin/resolution-check                     the adaptive resolution, in real time
 
 `--page=` measures another copy of the page (a build kept from before a
 change). The reports and screenshots go to `data/perf/`, which git ignores.

@@ -374,6 +374,9 @@ function page_clock()
         return ((t ^ (t >>> 14)) >>> 0)/4294967296;
     };
     localStorage.clear();
+    // the canvas at the pixel ratio asked for (--dpr, capped as the game caps it): the adaptive resolution would lower
+    // it on this machine's software raster
+    localStorage.setItem('pulse_drift_resolution', 'sharp');
     const request = window.requestAnimationFrame.bind(window);
     window.__vt = 0;
     window.requestAnimationFrame = function (callback) {

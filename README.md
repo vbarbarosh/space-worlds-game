@@ -112,12 +112,19 @@ Three modes:
                      of each other, gates and portals where the rules put
                      them, race courses clear of all of it; exit 1 on a
                      failure
+    bin/resolution-check
+                     the adaptive resolution in real time (about three
+                     minutes): the canvas's pixel ratio holds when frames
+                     keep up, steps down under a stand-in for a slow
+                     graphics card and holds where they keep up, comes back
+                     in a new world; Sharp, a forced ratio, a page held to
+                     30 fps; exit 1 on a failure
 
 `build/dev.html` is the developer mode: the game with a dev panel. It starts
 straight into any world, ship and weapon, and has time controls, cheats,
 enemy and target-dummy spawning, live upgrade levels and a sound board. The
 scene lives in the URL, e.g. `dev.html?world=3&ship=gunship&weapon=rail`; a world goes by number or file name (`world=ion-reach`).
-`&screen=station-arsenal` (or flight, combat, arcade, crowded, pause, menu,
+`&screen=station-arsenal` (or flight, combat, arcade, crowded, pause, settings, menu,
 map-plan, ...; the list is in src/js/dev/screen.js) opens that screen with the
 panel folded; with `&screen=arcade`, `&wave=2` starts the world at that wave
 (e.g. `dev.html?world=dustfall&screen=arcade&wave=2`), and
@@ -152,6 +159,11 @@ longest board offered) and `&cargo=all` puts all eleven goods in the hold for
 the CARGO MARKET; `&station=full` puts the station's header and NEXT strip at
 their longest (a very long station name, the hold full, salvage in the
 millions, the guide's longest step); `&screen=station-intel` opens TRADE INTEL.
+`&dpr=1.3` draws the canvas at that pixel ratio, whatever Settings → Resolution
+says; `&slow=20` stands in for a slow graphics card, each frame waiting 20 ms
+for every million pixels of the canvas, so Auto steps down;
+`&stall=30` waits 30 ms a frame whatever the canvas's size. The frame rate at
+the left edge shows the ratio in use (`×1.50`).
 
 The interface is the designer's UI kit (src/css/ui-kit.css): one root,
 `.ui-screen`, is a size container, so every layout rule is an `@container`

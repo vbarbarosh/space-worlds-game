@@ -29,7 +29,8 @@ their own, as they keep saves of their own.
   load, or die, so each record is in one world. A record holds the salvage on
   hand, salvage earned by source and spent by kind, XP by source, kills by
   raider type, damage dealt and taken (by cause), raider shots, dashes, pulses,
-  supplies used, deaths, the lowest hull, and the frame rate.
+  supplies used, deaths, the lowest hull, the frame rate, and the canvas's
+  pixel ratio.
 - **Events.** A world entered, a purchase, a sale, the kit when it changed, a
   rank, a contract's steps, a flagship killed, a race, an arcade wave and a
   world cleared, a death with its cause, the milestones (the top ship, every
@@ -84,6 +85,7 @@ can come without it. A reader skips fields it does not know.
 | `hull_low` | the lowest hull in the record, 0 to 1 of the ship's hull |
 | `fps` | frames a second in flight |
 | `frame_ms`, `work_ms`, `paint_ms` | milliseconds: the time between frames, the time a frame's work took, and the browser's time after it |
+| `dpr`, `dpr_min` | canvas pixels per CSS pixel |
 
 ### summary
 
@@ -107,7 +109,7 @@ can come without it. A reader skips fields it does not know.
 | `started`, `ended`, `end_reason` | `back to the main menu`, `page closed`, `another game started`, `an hour of play: goes on in the next session`, or `not closed: the page went away without notice` (a crash); `ended` is null while it is being played |
 | `played_s` | seconds of play |
 | `start` | `how` (`new`, `continue`, `load`, `after death`, `next race` (the Races mode), `continued` (the hourly roll), `after the log was cleared`), `world`, `salvage`, `xp`, `rank`, `ship` |
-| `screen`, `browser` | the window's size and pixel ratio, the user agent |
+| `screen`, `browser` | the window's size (`w`, `h`), the screen's pixel ratio (`dpr`) and Settings → Resolution (`resolution`: `auto`, `sharp`, or `forced 1.3` on the dev page's `&dpr=`; missing in logs of version 0.10.3 and before); the user agent |
 | `records[]`, `events[]` | below |
 | `dropped` | records and events dropped to keep the size (events: past 5000 a session) |
 
@@ -120,7 +122,7 @@ can come without it. A reader skips fields it does not know.
      "taken":{"shield":0,"hull":53},"taken_by":{"shot":53},"raider_shots":28,"hits_on_you":4,
      "dashes":3,"pulses":1,"supplies":{"emp":1},"deaths":0,"hull_low":0.41,
      "fps":59.8,"frame_ms":{"avg":16.7,"max":34,"over_33":1,"over_50":0,"over_100":0},
-     "work_ms":{"avg":3.1,"max":12.4},"paint_ms":{"avg":4.2,"max":15.8}}
+     "work_ms":{"avg":3.1,"max":12.4},"paint_ms":{"avg":4.2,"max":15.8},"dpr":1.43,"dpr_min":1.3}
 
 | Field | |
 | --- | --- |
@@ -143,6 +145,7 @@ can come without it. A reader skips fields it does not know.
 | `deaths`, `hull_low` | deaths in it; the lowest hull |
 | `fps`, `frame_ms`, `work_ms` | in flight only; frames over 33, 50 and 100 ms are counted; `work_ms` is the game's own script in `frame()`: update, the canvas calls that record the drawing, the HUD |
 | `paint_ms` | in flight only: from the end of `frame()` until the main thread is free again (a message posted then arrives): the browser's style, layout and paint, and on a software canvas the canvas's raster, which `work_ms` does not see. Whatever is left of `frame_ms` is waiting: for the screen's refresh, or for the graphics card. Missing in logs from before version 0.2.6 |
+| `dpr`, `dpr_min` | in flight only: the canvas's pixel ratio, the mean over the record's frames and the lowest. It is the screen's own up to 1.7, and with Settings → Resolution on Auto (the default) a step lower (1.5, 1.3, 1.15, 1) while the frames fall behind for the graphics card (docs/performance-2026-10-05.md, 18 October). A `dpr` under the session's `screen.dpr` (capped at 1.7) says the game drew fewer pixels to keep up. Missing in logs of version 0.10.3 and before |
 | `partial` | true on the last record of the session being played when the file was saved |
 
 `unlogged` is salvage or XP that moved without passing a hook the log knows (a
@@ -191,7 +194,7 @@ kit as it changed, the priciest purchases, when the game was maxed out and what
 the salvage did after, combat per world, deaths, contracts, flagships, races
 (the Races mode's each with its place, time, par, gap to the best rival,
 crashes and hull left, a summary per difficulty, and your place at each ring),
-the arcade's worlds, the frame rate, and notes on what stands out.
+the arcade's worlds, the frame rate with the canvas's pixel ratio, and notes on what stands out.
 
 In Python:
 

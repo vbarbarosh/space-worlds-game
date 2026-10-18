@@ -309,7 +309,7 @@ body:not(.in-game) .ui.hud .hud-top .toolbar {
   .ui.has-panel .scene-head h2 { margin: 0 auto 0 0; font: 700 20px/1.2 var(--font-ui); color: var(--text-1); }
   .ui.has-panel .s-settings .opts, .ui.has-panel .s-controls .menu-keys, .ui.has-panel .s-load .slots, .ui.has-panel .s-load .load-foot { position: static; transform: none; width: auto; }
   .ui.has-panel .s-settings .opts, .ui.has-panel .s-controls .menu-keys { padding: 0; border: 0; border-radius: 0; background: none; }
-  .ui.has-panel .s-controls .menu-keys, .ui.has-panel .s-load .slots { min-height: 0; overflow-y: auto; scrollbar-width: thin; }
+  .ui.has-panel .s-settings .opts, .ui.has-panel .s-controls .menu-keys, .ui.has-panel .s-load .slots { min-height: 0; overflow-y: auto; scrollbar-width: thin; }
   .ui.has-panel .s-load .slot { grid-template-columns: 44px minmax(0, 1fr) auto; gap: 12px; padding: 10px 12px; }
   .ui.has-panel .s-load .slot img { width: 44px; }
   .ui.has-panel .s-load .load-foot { flex-wrap: wrap; justify-content: flex-end; }

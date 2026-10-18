@@ -93,6 +93,8 @@ const screens = [
     // the chart of the worlds and their lanes
     {value: 'map-worlds', label: 'map-worlds'},
     {value: 'pause', label: 'pause'},
+    // the settings panel over the flight (the HUD's gear): every switch, Resolution among them
+    {value: 'settings', label: 'settings', phone: true},
     // the menu with a game to continue, its row open, and saved slots (the Load row); with Arcade open instead (the
     // tallest the rows get); a first launch, with no game to continue and no slots
     {value: 'menu', label: 'main-menu', query: '&slots=1', phone: true},
@@ -230,10 +232,11 @@ function layout_audit(selectors)
 {
     const out = {overlap: [], offscreen: [], cut: [], clipped: [], spill: [], hscroll: false, min_font: 99};
     const view = {width: innerWidth, height: innerHeight};
+    // what a closed <details> holds past its summary keeps its boxes, but is not drawn (the settings' Volume)
     function visible(v) {
         const r = v.getBoundingClientRect();
         const s = getComputedStyle(v);
-        return (r.width > 1) && (r.height > 1) && (s.visibility !== 'hidden') && (s.display !== 'none') && (Number(s.opacity) > 0.05) && !v.closest('[hidden]');
+        return (r.width > 1) && (r.height > 1) && (s.visibility !== 'hidden') && (s.display !== 'none') && (Number(s.opacity) > 0.05) && !v.closest('[hidden], details:not([open]) > :not(summary)');
     }
     function name(v) {
         const classes = (typeof v.className === 'string') && v.className.trim() ? `.${v.className.trim().split(/\s+/).slice(0, 2).join('.')}` : v.tagName.toLowerCase();

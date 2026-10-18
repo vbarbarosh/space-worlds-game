@@ -27,6 +27,10 @@ function dev_time_tick(now)
     else if (!dev_time.paused) {
         budget = real*dev_time.scale;
     }
+    // frames off the real clock (paused, stepped, slowed or sped up) say nothing of the frame rate (js/resolution.js)
+    if (dev_time.paused || (dev_time.steps > 0) || (dev_time.scale !== 1)) {
+        resolution_hold(performance.now());
+    }
     let ran = false;
     while (budget > 0.01) {
         const chunk = Math.min(budget, dev_chunk_ms);

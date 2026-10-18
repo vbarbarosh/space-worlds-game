@@ -32,6 +32,6 @@ at stations, takes contracts, trades between worlds and jumps through gates.
 - [agent/](agent/README.md): the instructions for a coding agent that plays
   the campaign as your rival.
 - [playtest-2026-10-05.md](playtest-2026-10-05.md): the arcade played by bots, judged, problems ranked.
-- [performance-2026-10-05.md](performance-2026-10-05.md): where a frame's time goes in every world, what was made faster, before and after.
+- [performance-2026-10-05.md](performance-2026-10-05.md): where a frame's time goes in every world, what was made faster, before and after; the adaptive resolution.
 - [designer/missiles.md](designer/missiles.md): the designer's brief for the
   homing missiles, their motors and module icons.

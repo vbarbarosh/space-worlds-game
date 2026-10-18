@@ -109,14 +109,15 @@ function hangar_preview_layout(preview, h)
     return preview.layout;
 }
 
-// At the game's pixel ratio (dpr, capped in resize)
+// At the screen's pixel ratio, capped as the flight's is, but never lowered with it: a small canvas, drawn sharp
 function hangar_preview_draw(canvas, preview, dt)
 {
     const w = canvas.clientWidth;
     const h = canvas.clientHeight;
-    if ((canvas.width !== Math.round(w*dpr)) || (canvas.height !== Math.round(h*dpr))) {
-        canvas.width = Math.round(w*dpr);
-        canvas.height = Math.round(h*dpr);
+    const ratio = resolution_screen_dpr();
+    if ((canvas.width !== Math.round(w*ratio)) || (canvas.height !== Math.round(h*ratio))) {
+        canvas.width = Math.round(w*ratio);
+        canvas.height = Math.round(h*ratio);
     }
     const layout = hangar_preview_layout(preview, h);
     if (!layout) {
@@ -155,7 +156,7 @@ function hangar_preview_draw(canvas, preview, dt)
     }
     preview.shots = preview.shots.filter(v => (v.life > 0) && (v.x > -20) && (v.x < w + 20) && (v.y > -20) && (v.y < h + 20));
     const draw = canvas.getContext('2d');
-    draw.setTransform(dpr, 0, 0, dpr, 0, 0);
+    draw.setTransform(ratio, 0, 0, ratio, 0, 0);
     draw.clearRect(0, 0, w, h);
     draw.save();
     draw.translate(cx, cy);
@@ -164,7 +165,7 @@ function hangar_preview_draw(canvas, preview, dt)
     sprite_flames(draw, anchors.flames.main, boost ? 1 : 0.4, '#90c9ff', Math.sin(clock*31)*0.08);
     draw.globalCompositeOperation = 'source-over';
     draw.restore();
-    const raster = sprite_raster(art.name, null, Math.min(512, 2**Math.ceil(Math.log2(size*dpr))));
+    const raster = sprite_raster(art.name, null, Math.min(512, 2**Math.ceil(Math.log2(size*ratio))));
     if (raster) {
         draw.drawImage(raster, cx - size/2, cy - size/2, size, size);
     }

@@ -299,7 +299,8 @@ function play_log_session_start(mode, how)
         end_reason: null,
         played_s: 0,
         start: {how, world: worlds[campaign.world].name, salvage, xp: play_log_xp_now(), rank: play_log_rank_name(), ship: current_ship().name},
-        screen: {w: innerWidth, h: innerHeight, dpr: devicePixelRatio || 1},
+        // the screen's pixel ratio, and Settings → Resolution (the canvas's own ratio is in each record)
+        screen: {w: innerWidth, h: innerHeight, dpr: devicePixelRatio || 1, resolution: resolution.forced ? `forced ${resolution.forced}` : resolution.mode},
         browser: navigator.userAgent,
         records: [],
         events: [],
@@ -403,6 +404,8 @@ function play_log_tally_reset()
     v.paint_frames = 0;
     v.paint_ms = 0;
     v.paint_max = 0;
+    v.dpr_sum = 0;
+    v.dpr_min = Infinity;
 }
 
 // The record of what was counted since the last; null when nothing was. Salvage or XP that moved past the hooks
@@ -460,6 +463,8 @@ function play_log_record_make(partial)
         frame_ms: {avg: v.frames ? Math.round((v.frame_ms/v.frames)*10)/10 : null, max: Math.round(v.frame_max), over_33: v.over_33, over_50: v.over_50, over_100: v.over_100},
         work_ms: {avg: v.frames ? Math.round((v.work_ms/v.frames)*100)/100 : null, max: Math.round(v.work_max*10)/10},
         paint_ms: {avg: v.paint_frames ? Math.round((v.paint_ms/v.paint_frames)*100)/100 : null, max: Math.round(v.paint_max*10)/10},
+        dpr: v.frames ? Math.round((v.dpr_sum/v.frames)*100)/100 : null,
+        dpr_min: v.frames ? v.dpr_min : null,
         ...(partial ? {partial: true} : {}),
     };
 }
@@ -528,6 +533,8 @@ function play_log_frame(interval, work)
             v.over_100 += (interval > 100) ? 1 : 0;
             v.work_ms += work;
             v.work_max = Math.max(v.work_max, work);
+            v.dpr_sum += dpr;
+            v.dpr_min = Math.min(v.dpr_min, dpr);
             play_log_after_t0 = performance.now();
             play_log_after.port2.postMessage(0);
         }

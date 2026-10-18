@@ -31,6 +31,7 @@ const dev_screen_options = [
     {value: 'map-local', label: 'Map: world map'},
     {value: 'map-worlds', label: 'Map: worlds and lanes'},
     {value: 'pause', label: 'Pause'},
+    {value: 'settings', label: 'Settings over the flight'},
     {value: 'menu', label: 'Main menu'},
 ];
 const dev_screen = new URLSearchParams(location.search).get('screen');
@@ -210,6 +211,10 @@ function dev_screen_open()
     if (dev_screen === 'pause') {
         dev_screen_play_log_set();
         toggle_pause();
+    }
+    // the panel the HUD's gear opens, as in flight, at the station or paused: every switch, the volumes folded
+    if (dev_screen === 'settings') {
+        toggle_audio_settings();
     }
 }
 

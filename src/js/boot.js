@@ -9,6 +9,8 @@ function frame(timestamp)
 {
     requestAnimationFrame(frame);
     const time0 = performance.now();
+    // a step of the canvas's pixel ratio, if the frames call for one, before anything is drawn (js/resolution.js)
+    resolution_frame(time0);
     const interval = timestamp - last_frame;
     const dt = Math.min(0.033, (interval/1000) || 0.016);
     last_frame = timestamp;
@@ -38,6 +40,8 @@ function frame(timestamp)
         last_render_state = state;
         performance_render_dirty = false;
     }
-    play_log_frame(interval, performance.now() - time0);
+    const work = performance.now() - time0;
+    resolution_frame_end(work);
+    play_log_frame(interval, work);
 }
 requestAnimationFrame(frame);
