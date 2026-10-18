@@ -46,8 +46,10 @@ Three modes:
   repairs, weapons, ships, supplies and modules at the station's depot (R); each world opens more of them, and
   what is not open yet says where it opens. A cleared world pays a fixed bonus, the weapon
   grows a tier, a cleared screen shows the world's numbers, and the depot opens before the next world. Score, combo and a best score (salvage left at the end scores 10 points each); no
-  stations or contracts. A save keeps the score, salvage and gear, and loading
-  it starts its world again from the first wave.
+  stations or contracts. A run has three lives, shown at the top of the HUD: a
+  death costs one and retries its world from the first wave, as you began it;
+  the last ends the run, its score against your best. A save keeps the score,
+  salvage, gear and lives, and loading it starts its world again from the first wave.
 - **Races**: ring races alone, at Easy, Normal or Hard, course after course
   from Haven through the eight worlds; the start ship, no raiders, the rocks
   as solid as ever. Two kinds: Steer, flown by hand, and Turbo, where the
@@ -111,7 +113,9 @@ panel folded; with `&screen=arcade`, `&wave=2` starts the world at that wave
 `&raiders=sniper,bulwark` brings a pack of three chasers and one raider of each kind named (interceptor,
 carrier, bulwark, sniper, minelayer) 640 m ahead.
 `&card_hud=1` puts cards in force over the gauges.
-`&screen=arcade-lost` shows a death on the world's last wave, with Retry for that world.
+`&screen=arcade-lost` shows a death on the world's last wave with two lives left, with Retry for that world
+(`&lives=1` the last one left), `arcade-over` the last life lost, the run over; `&long=1` gives either a very long
+world name and a huge score. With `&screen=arcade`, `&lives=n` sets the HUD's lives (0 to 3), the lost ones blinking.
 `&screen=arcade-pick` opens the break after the world at its three cards,
 `arcade-route` at the next world of two (`&cards=wager,overclock,prototype`
 draws those, `&cards=long` the longest texts, `&salvage=n`, `&route=0,2,1` a

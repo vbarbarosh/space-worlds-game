@@ -10,7 +10,8 @@ const dev_screen_options = [
     {value: 'arcade-pick', label: 'Arcade: the break, a card to take'},
     {value: 'arcade-route', label: 'Arcade: the break, the next world'},
     {value: 'arcade-finale', label: 'Arcade: finale'},
-    {value: 'arcade-lost', label: 'Arcade: lost, retry the world'},
+    {value: 'arcade-lost', label: 'Arcade: a life lost, retry the world'},
+    {value: 'arcade-over', label: 'Arcade: the last life lost, the run over'},
     {value: 'rocks', label: 'Facing a mining field'},
     {value: 'race', label: 'Race: lined up, the count'},
     {value: 'race-mid', label: 'Race: mid-race, the standings'},
@@ -40,6 +41,10 @@ const dev_screen_modules = new URLSearchParams(location.search).get('modules') |
 const dev_screen_play_log = new URLSearchParams(location.search).get('play_log');
 // &t=7.5 holds the finale (or a world's cleared screen) at one moment
 const dev_screen_time = new URLSearchParams(location.search).get('t');
+// &lives=n: the arcade's lives (with &screen=arcade, the ones lost blinking as after a retry), or those left after the
+// death of arcade-lost; &long=1 gives arcade-lost and arcade-over a very long world name and a huge score
+const dev_screen_lives = new URLSearchParams(location.search).get('lives');
+const dev_screen_long = new URLSearchParams(location.search).get('long') === '1';
 // &save=none, &slots=1 and &row=arcade: the menu with no game to continue, with saved slots (its Load row), with a row
 // open (dev_screen_menu_open)
 const dev_screen_save = new URLSearchParams(location.search).get('save');
@@ -81,6 +86,10 @@ function dev_screen_open()
         dev_screen_arcade_wave();
         dev_raiders_open();
         dev_break_card_hud();
+        if (dev_screen_lives !== null) {
+            arcade.lives = clamp(Math.round(Number(dev_screen_lives)) || 0, 0, arcade_lives);
+            arcade.life_flash = (arcade.lives < arcade_lives) ? arcade_life_flash : 0;
+        }
         return;
     }
     // the break between worlds (src/js/dev/arcade_break.js)
@@ -112,19 +121,12 @@ function dev_screen_open()
         arcade_finish(true);
         return;
     }
-    // a death on the last wave of the world, at the run's longest numbers: Retry the world, a new run, the menu
     if (dev_screen === 'arcade-lost') {
-        dev_arcade_start();
-        dev_screen_modules_set();
-        arcade.world = campaign.world;
-        arcade.world_start = {score, kills, run_time, snapshot: arcade_snapshot()};
-        arcade.wave = arcade_waves;
-        score = 1556825;
-        kills = 1700;
-        run_time = 5824;
-        salvage = 99455;
-        player.hp = 0;
-        finish(false);
+        dev_screen_arcade_death(clamp(Math.round(Number(dev_screen_lives ?? 2)) || 1, 1, arcade_lives - 1));
+        return;
+    }
+    if (dev_screen === 'arcade-over') {
+        dev_screen_arcade_death(0);
         return;
     }
     if (dev_screen === 'arcade-cleared') {
@@ -201,6 +203,38 @@ function dev_screen_open()
     if (dev_screen === 'pause') {
         dev_screen_play_log_set();
         toggle_pause();
+    }
+}
+
+// A death on the last wave of the world at the run's longest numbers, `left` lives after it: Retry the world, a new run,
+// the menu; with none left, the run over (its best a little above the score, unless &long=1). The best a death records
+// is the dev page's to show: its storage is put back after.
+function dev_screen_arcade_death(left)
+{
+    dev_arcade_start();
+    dev_screen_modules_set();
+    if (dev_screen_long) {
+        worlds[campaign.world].name = 'Kharadjanovskaya-Severomorskaya Outer Frontier Reach';
+    }
+    arcade.world = campaign.world;
+    arcade.world_start = {score, kills, run_time, snapshot: arcade_snapshot()};
+    arcade.wave = arcade_waves;
+    arcade.lives = left + 1;
+    score = dev_screen_long ? 987654321 : 1556825;
+    kills = 1700;
+    run_time = 5824;
+    salvage = 99455;
+    if (!left && !dev_screen_long) {
+        best = 3000000;
+    }
+    player.hp = 0;
+    const kept = localStorage.getItem('pulse_drift_best');
+    finish(false);
+    if (kept === null) {
+        localStorage.removeItem('pulse_drift_best');
+    }
+    else {
+        localStorage.setItem('pulse_drift_best', kept);
     }
 }
 

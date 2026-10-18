@@ -114,7 +114,7 @@ function arcade_break_fill()
 {
     const pick = arcade_break.step === 'pick';
     const here = arcade_level();
-    document.getElementById('brk_eyebrow').textContent = `Arcade · ${worlds[campaign.world].name} cleared · world ${here + 1} of ${arcade_worlds}`;
+    document.getElementById('brk_eyebrow').textContent = `Arcade · ${worlds[campaign.world].name} cleared · world ${here + 1} of ${arcade_worlds} · ${arcade_lives_text(arcade.lives)}`;
     document.getElementById('brk_title').textContent = pick ? 'Take a card' : (arcade_break.offers.length > 1) ? 'Choose the next world' : 'The way on';
     document.getElementById('brk_wallet').textContent = ui_number(salvage);
     for (const v of document.querySelectorAll('#brk_steps li')) {

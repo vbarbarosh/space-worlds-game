@@ -1,9 +1,13 @@
 // Arcade: one run through the eight worlds, three waves each, the world's flagship in the third; no stations, contracts or saves.
-const arcade = {active: false, world: -1, wave: 0, pause: 0, squad_timer: 0, squads: 0, phase: 0, slowmo: 0, depot_hint: false, marksman_hint: false, missile_hint: false, blasts: [], event: null, between_worlds: null, world_start: null, campaign_checkpoint: null, route: [0], seed: 0, cards: [], wind_used: false, flagship_escaped: false};
+const arcade = {active: false, world: -1, wave: 0, pause: 0, squad_timer: 0, squads: 0, phase: 0, slowmo: 0, depot_hint: false, marksman_hint: false, missile_hint: false, blasts: [], event: null, between_worlds: null, world_start: null, lives: 0, life_flash: 0, campaign_checkpoint: null, route: [0], seed: 0, cards: [], wind_used: false, flagship_escaped: false};
 const arcade_extent = [7200, 5600];
 const arcade_waves = 3;
 const arcade_radiation = 0.35;
 const arcade_wave_names = ['', 'SCOUTS', 'ASSAULT', 'FLAGSHIP'];
+// a run's lives: a death costs one and starts its world again (arcade_retry); the last one ends the run
+const arcade_lives = 3;
+// how long the life just lost blinks in the HUD after a retry, in seconds
+const arcade_life_flash = 2.4;
 // salvage left unspent when the run ends adds this many points each, so keeping it is a choice too
 const arcade_salvage_points = 10;
 // the depot sells ships at this share of the campaign's prices
@@ -92,7 +96,8 @@ addEventListener('keydown', function (event) {
 });
 sync_mode_note();
 
-// A run from world 1, or (from: an arcade save) resumed at the start of the world it was saved in
+// A run from world 1, or (from: an arcade save) resumed at the start of the world it was saved in, with the lives it
+// kept (a save from before lives, all of them)
 function arcade_start(world = 0, from = null)
 {
     if (from) {
@@ -100,6 +105,8 @@ function arcade_start(world = 0, from = null)
         difficulty = from.difficulty;
     }
     arcade.active = true;
+    arcade.lives = Number.isFinite(from?.lives) ? clamp(Math.round(from.lives), 1, arcade_lives) : arcade_lives;
+    arcade.life_flash = 0;
     arcade.world = -1;
     arcade.wave = 0;
     arcade.pause = 0;
@@ -116,6 +123,7 @@ function arcade_start(world = 0, from = null)
     document.body.classList.add('arcade');
     set_hidden(document.getElementById('arcade_depot'), true);
     document.getElementById('restart_button').innerHTML = '<span>New run</span>';
+    document.getElementById('restart_button').classList.remove('btn-primary');
     document.getElementById('result_sector_label').textContent = 'World reached';
     // A run starts as a resumed checkpoint made up on the spot; the campaign's own checkpoint is put back after.
     arcade.campaign_checkpoint = checkpoint;
@@ -150,7 +158,8 @@ function arcade_start(world = 0, from = null)
 }
 
 // The run as an arcade save keeps it: the world it is in, the score and salvage, modules, supplies, weapons and hull,
-// the route flown, the run's dice and the cards taken; a load starts that world again from its first wave
+// the route flown, the run's dice, the cards taken and the lives left; a load starts that world again from its first
+// wave
 function arcade_snapshot()
 {
     return {
@@ -167,6 +176,7 @@ function arcade_snapshot()
         route: [...arcade.route],
         seed: arcade.seed,
         cards: arcade.cards.map(v => ({...v})),
+        lives: arcade.lives,
     };
 }
 
@@ -230,12 +240,15 @@ function arcade_stop()
     document.body.classList.remove('arcade');
     set_hidden(document.getElementById('arcade_depot'), true);
     document.getElementById('restart_button').innerHTML = '<span>New expedition</span>';
+    document.getElementById('restart_button').classList.remove('btn-primary');
     document.getElementById('result_sector_label').textContent = 'Sector reached';
+    document.getElementById('result_score_label').textContent = 'Final score';
 }
 
 // Called from update() while a run is in flight.
 function arcade_update(dt)
 {
+    arcade.life_flash = Math.max(0, arcade.life_flash - dt);
     depot_shield_update(dt);
     // raiders with jobs do them, the mines tick and the packs hunt (arcade_raiders.js, arcade_pack.js)
     raider_jobs_update(dt);
@@ -1150,6 +1163,8 @@ function arcade_depot_close()
     }
 }
 
+// A won run opens the finale; a death costs a life: with lives left its screen offers to retry the world it came in
+// (Enter), the last one ends the run, its score against the best, and offers only a new run. Each records the best.
 function arcade_finish(won)
 {
     state = won ? 'won' : 'dead';
@@ -1165,25 +1180,64 @@ function arcade_finish(won)
         arcade_finale_open({score, best: previous, raiders: kills, time: run_time, salvage, kept});
         return;
     }
-    // a death sends you back to the start of the world you died in, not of the run: the first button, so Enter retries
+    arcade.lives = Math.max(0, arcade.lives - 1);
+    const over = arcade.lives <= 0;
     const retry = document.getElementById('retry_sector');
+    const restart = document.getElementById('restart_button');
     const name = worlds[campaign.world].name;
-    retry.innerHTML = `<span>Retry ${name}</span>`;
-    set_hidden(retry, !arcade.world_start?.snapshot);
+    const left = arcade_lives_text(arcade.lives);
+    retry.innerHTML = `<span>Retry ${ui_escape(name)}</span>`;
+    set_hidden(retry, over || !arcade.world_start?.snapshot);
+    restart.classList.toggle('btn-primary', over);
     set_hidden(el.result_overlay, false);
     for (const v of [el.loadout, el.inventory_button, el.mission, el.pause_button, el.touch_buttons, el.bossbar]) {
         set_hidden(v, true);
     }
     toasts_clear();
-    el.result_eyebrow.textContent = won ? 'ARCADE · FRONTIER CLEARED' : 'ARCADE · SIGNAL LOST';
-    el.result_title.textContent = won ? 'All eight worlds.' : 'One more run?';
-    el.result_description.textContent = won
-        ? `Eight worlds, eight flagships, ${format_time(run_time)}.`
-        : `You reached ${name}, wave ${arcade.wave} of ${arcade_waves}. Retry it from its first wave as you began it, or start a new run.${salvage ? ` Salvage kept: ◆ ${ui_number(salvage)}, +${ui_number(kept)} points.` : ''}`;
-    el.result_score.textContent = score.toLocaleString();
+    const reached = `You reached ${name}, wave ${arcade.wave} of ${arcade_waves}.`;
+    const salvage_line = salvage ? ` Salvage kept: ◆\u00a0${ui_number(salvage)}, +${ui_number(kept)} points.` : '';
+    el.result_eyebrow.textContent = over ? 'ARCADE · RUN OVER' : 'ARCADE · SIGNAL LOST';
+    el.result_title.textContent = over ? 'Run over.' : `${left[0].toUpperCase()}${left.slice(1)} left.`;
+    el.result_description.textContent = over
+        ? `No lives left. ${reached}${salvage_line}`
+        : `${reached} Retry it from its first wave as you began it, or start a new run.${(arcade.lives === 1) ? ' One more death ends the run.' : ''}${salvage_line}`;
+    document.getElementById('result_score_label').textContent = over ? 'Final score' : 'Score';
+    el.result_score.textContent = ui_number(score);
     el.result_sector.textContent = `${arcade_level() + 1} / ${arcade_worlds}`;
-    el.result_best.textContent = `${record ? 'NEW PERSONAL BEST · ' : 'PERSONAL BEST · '}${best.toLocaleString()}  /  ${kills} ELIMINATIONS · ${format_time(run_time)}`;
-    (arcade.world_start?.snapshot ? retry : document.getElementById('restart_button')).focus();
+    const note = arcade_best_note(score, previous);
+    el.result_best.textContent = `${record ? 'NEW PERSONAL BEST · ' : 'PERSONAL BEST · '}${ui_number(best)}${note ? ` · ${note.toUpperCase()}` : ''}  /  ${kills} ELIMINATIONS · ${format_time(run_time)}`;
+    (retry.classList.contains('hidden') ? restart : retry).focus();
+    arcade_update_hud();
+}
+
+// A death with lives left: the world it came in again from its first wave, as the run stood when that world began, but
+// with the lives the run has now, not those of the world's start; the life just lost blinks in the HUD
+function arcade_retry()
+{
+    const from = arcade.world_start?.snapshot;
+    if (!from || (arcade.lives <= 0)) {
+        return;
+    }
+    const lives = arcade.lives;
+    set_pause_icon(false);
+    arcade_stop();
+    arcade_start(from.world, {...from, lives});
+    arcade.life_flash = arcade_life_flash;
+}
+
+// "3 lives", "1 life"
+function arcade_lives_text(n)
+{
+    return `${n} ${(n === 1) ? 'life' : 'lives'}`;
+}
+
+// A score against the best before it: '' for a new best, else how far it is from it
+function arcade_best_note(total, previous)
+{
+    if (total > previous) {
+        return '';
+    }
+    return (total === previous) ? 'equals your best' : `${ui_number(previous - total)} to beat it`;
 }
 
 // A flagship's death plays at 30% speed for a moment; elsewhere the clock runs as it is.
@@ -1211,4 +1265,26 @@ function arcade_update_hud()
     const total = arcade_wave_size(arcade.wave);
     const left = spawn_left + enemies.filter(v => v.hp > 0).length;
     el.sector_progress.style.width = `${clamp((((arcade.wave - 1) + (1 - Math.min(1, left/Math.max(1, total))))/arcade_waves)*100, 0, 100)}%`;
+    arcade_lives_hud();
+}
+
+// The run's lives at the top of the HUD: a ship for each, the lost ones dim, the one just lost blinking a moment after a
+// retry; written only when they change
+let arcade_lives_shown = '';
+
+function arcade_lives_hud()
+{
+    const flash = arcade.life_flash > 0;
+    const key = `${arcade.lives}:${flash}`;
+    if (key === arcade_lives_shown) {
+        return;
+    }
+    arcade_lives_shown = key;
+    const lives = document.getElementById('lives');
+    lives.innerHTML = Array.from({length: arcade_lives}, function (_, i) {
+        const kind = (i < arcade.lives) ? '' : (flash && (i === arcade.lives)) ? ' is-lost is-going' : ' is-lost';
+        return `<svg class="life${kind}" viewBox="0 0 10 12" aria-hidden="true"><path d="M5 0.6 9.4 11.4 5 8.7 0.6 11.4z"/></svg>`;
+    }).join('');
+    lives.setAttribute('aria-label', `${arcade_lives_text(arcade.lives)} left`);
+    document.getElementById('lives_box').title = `${arcade_lives_text(arcade.lives)} left: a death retries the world, the last ends the run`;
 }

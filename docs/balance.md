@@ -616,6 +616,21 @@ before rocks and the Relic processor.
 
 - Where: `arcade_modes` in `src/js/arcade.js`; the menu's line for each mode
   is `sync_mode_note`.
+- **Lives:** a run has 3 on every row (`arcade_lives` in
+  `src/js/arcade.js`). A death costs one; with lives left its screen offers
+  to retry the world from its first wave, as the run stood when that world
+  began but with the lives the run has now (`arcade_retry`), and the HUD
+  blinks the one lost for 2.4 s (`arcade_life_flash`). The last ends the
+  run: its score is weighed against the best and recorded if it beats it
+  (`save_best`, as every death and the finale do). A save keeps the lives
+  (`arcade_snapshot`); one from before lives loads with all three. The bot
+  (bin/playtest) plays by the same lives. Before them it allowed three
+  deaths in each world, so the runs counted won below with deaths in two
+  worlds or more would be lost now. Measured with lives (NORMAL, seeds
+  1–12): 5 of 12 won instead of 8; of the 7 lost, 4 lost all three lives
+  in Eclipse and one in Verdant, as the old rule would have lost them too,
+  and 2 lost them across two worlds (Obsidian twice then Eclipse, Haven then
+  Eclipse twice).
 - A raider's hull is the first table's (`base_spawn_enemy`, without the
   campaign's ×2) × the mode's hull × (1 + growth × step) × the
   step's shop, so on NORMAL an Eclipse raider has ×2.05 and ×3 on top of the

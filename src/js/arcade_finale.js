@@ -141,7 +141,9 @@ function finale_build()
     document.getElementById('finale_burst').src = ship_parts_url('worlds/haven/warp-burst');
     document.getElementById('finale_ring').src = ship_parts_url('worlds/haven/warp-ring');
     const mode = document.querySelector(`[data-mode="${difficulty}"] .tile-name`)?.textContent || '';
-    document.getElementById('finale_eyebrow').textContent = mode ? `Arcade · ${mode}` : 'Arcade';
+    // a world's cleared screen says the lives the run has left too
+    const lives = (world < 0) ? '' : ` · ${arcade_lives_text(arcade.lives)}`;
+    document.getElementById('finale_eyebrow').textContent = `${mode ? `Arcade · ${mode}` : 'Arcade'}${lives}`;
     // the title's second word in the world's accent (the frontier's in cyan); --n lets a long title shrink to the window
     const name = (world < 0) ? 'FRONTIER' : worlds[world].name.toUpperCase();
     const letters = document.getElementById('finale_letters');
@@ -599,7 +601,7 @@ function finale_place_words(story, g, h, steps)
     const fill = finale_ease(finale_seg(story, ...steps.best));
     const record = total > run.best;
     document.getElementById('finale_best_bar').style.width = `${(run.best ? Math.min(1, total/run.best) : 1)*100*fill}%`;
-    document.getElementById('finale_best_note').innerHTML = record ? ((fill >= 1) ? '<span class="finale-new">NEW BEST</span>' : '') : (total === run.best) ? 'equals your best' : `${ui_number(run.best - total)} to beat it`;
+    document.getElementById('finale_best_note').innerHTML = record ? ((fill >= 1) ? '<span class="finale-new">NEW BEST</span>' : '') : arcade_best_note(total, run.best);
     document.getElementById('finale_best_label').textContent = `Personal best ${ui_number(record ? total : run.best)}`;
     // in world mode the flagships still ahead stay dim
     for (const [i, v] of [...document.querySelectorAll('#finale_flags img')].entries()) {

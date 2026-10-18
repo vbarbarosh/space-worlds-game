@@ -24,10 +24,10 @@ const usage = `usage: bin/playtest [--mode=normal] [--seeds=1,2,3] [--label=name
     (reactor, cooling, evasion, the missile modules, dash, speed, stabilizer), then the rest of the shop (magnet, relic
     processor, booster reservoir, radiation lining); EMPs up to three. Guns fire by themselves.
 
-    A death starts the world again from its first wave, as loading an arcade save does; three deaths in one world
-    end the run. The run says when the shop ran out (the Aurora Cruiser owned and every module at its cap, a
-    launcher's modules only with the launcher): the minute and the world. Results go to
-    data/playtest/<label>/<mode>-<seed>.json, and a table per run is printed.
+    A death with lives left starts the world again from its first wave, as the game's Retry does (arcade_retry); the
+    last of the run's lives (arcade_lives, 3) ends it lost, as it ends the game's run. The run says when the shop ran
+    out (the Aurora Cruiser owned and every module at its cap, a launcher's modules only with the launcher): the
+    minute and the world. Results go to data/playtest/<label>/<mode>-<seed>.json, and a table per run is printed.
 
     --minutes stops a run that takes longer than that on the wall clock, and says so.
     --gun buys that gun (plasma, scatter, ion, rail, missile, beam) at the first depot that can pay for it after a
@@ -439,12 +439,13 @@ function page_bot(options)
             shop();
         }
         else if ((state === 'dead') || (state === 'won') || ((state === 'finale') && (finale.world < 0))) {
+            // a death with lives left retries the world as the game's Retry does; the last one loses the run
             if (state === 'dead') {
                 B.deaths++;
                 world_entry().deaths++;
-                if (world_entry().deaths < 3) {
+                if (arcade.lives > 0) {
                     set_hidden(el.result_overlay, true);
-                    arcade_start(campaign.world, B.snapshot);
+                    arcade_retry();
                     return;
                 }
             }
