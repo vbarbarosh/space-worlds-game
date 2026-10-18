@@ -366,9 +366,11 @@ function arcade_front_raiders(f, kind, dt)
 }
 
 // How a pilot meets the front, for the bots (bin/playtest): the velocity to fly at (m/s), to keep to with raiders near
-// (firm); null while it is far, gone or past, or when it only shoves (Obsidian's: the fight matters more). In time, to
-// the middle of the nearest lane across from you, or into the lee of a rock near you, and still there; else straight
-// through it, against its way.
+// (firm); null while it does not need the stick: the front far, gone or past, or only shoving (Obsidian's: the fight
+// matters more), or the pilot well inside a lane or a rock's lee, where it fights on. It moves late, as a player does:
+// to the nearest lane across from you or into the lee of a rock near you once that takes all the time left (and 1.5 s
+// more), back to its middle when it drifts out; with no way there in time, straight through, against its way, just
+// before the front reaches you.
 function arcade_front_pilot()
 {
     const f = arcade.active && arcade_front;
@@ -378,26 +380,33 @@ function arcade_front_pilot()
     }
     const at = arcade_front_at(f, player);
     const eta = (at.s - f.pos)/f.speed;
-    if ((at.s < f.pos - f.width - 30) || (eta > 6)) {
+    if (at.s < f.pos - f.width - 30) {
         return null;
     }
     const speed = cruise_speed()*(kind.slow || 1);
     const spot = arcade_front_refuge(f, kind, at);
     if (spot) {
         const d = distance(spot, player);
-        if (d < 30) {
-            return {vx: 0, vy: 0, firm: true};
+        if (d < spot.leash) {
+            return null;
         }
-        if (d/speed < Math.max(0, eta) + f.width/f.speed*0.5) {
+        const need = d/speed;
+        if (need + 1.5 < eta) {
+            return null;
+        }
+        if (need < Math.max(0, eta) + f.width/f.speed*0.5) {
             return {vx: ((spot.x - player.x)/d)*speed, vy: ((spot.y - player.y)/d)*speed, firm: true};
         }
+    }
+    if (eta > 1) {
+        return null;
     }
     const dir = arcade_front_dir(f, player);
     return {vx: -dir.x*speed, vy: -dir.y*speed, firm: true};
 }
 
-// The safe spot nearest you: in the nearest lane, level with you; or 30 m into the lee of the nearest rock that the
-// front has not passed
+// The safe spot nearest you, and how far from it the pilot may stray (m): in the nearest lane, level with you, a
+// quarter of its width; or 30 m into the lee of the nearest rock that the front has not passed, half its radius
 function arcade_front_refuge(f, kind, at)
 {
     let best = null;
@@ -407,7 +416,7 @@ function arcade_front_refuge(f, kind, at)
         const d = distance(p, player);
         if (d < near) {
             near = d;
-            best = p;
+            best = {...p, leash: g.half*0.5};
         }
     }
     for (const v of kind.shelter ? f.rocks : []) {
@@ -418,7 +427,7 @@ function arcade_front_refuge(f, kind, at)
         const d = distance(p, player);
         if (d < near) {
             near = d;
-            best = p;
+            best = {...p, leash: v.rock.r*0.5};
         }
     }
     return best;

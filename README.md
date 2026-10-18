@@ -104,7 +104,8 @@ map-plan, ...; the list is in src/js/dev/screen.js) opens that screen with the
 panel folded; with `&screen=arcade`, `&wave=2` starts the world at its second wave
 (a world goal in every world, e.g. `dev.html?world=dustfall&screen=arcade&wave=2`), and
 `&raiders=sniper,bulwark` brings a pack of three chasers and one raider of each kind named (interceptor,
-carrier, bulwark, sniper, minelayer) 640 m ahead. `&screen=race` starts a ring race at its start line
+carrier, bulwark, sniper, minelayer) 640 m ahead. `&front=far|near|in` sets the world's sweeping front out
+at once, 1500 m off (its edge marker), 260 m off (in view) or over you. `&screen=race` starts a ring race at its start line
 (`race-mid` mid-race, `race-finish` over the line; `&race_place=1|2|3|last`,
 `&race_long=1`, `&race_left=1`, `&race_raiders=1` for its edge states), e.g.
 `dev.html?world=0&screen=race`; `&screen=race-results` shows the Races mode's
