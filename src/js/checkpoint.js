@@ -117,17 +117,17 @@ function checkpoint_without_feltmere(v)
         news.push(`BACK AT ${worlds[0].station.toUpperCase()}`);
     }
     if (Array.isArray(c.contracts)) {
-        const kept = c.contracts.filter(v => (v.world !== gone) && (v.issuer !== gone) && !(v.stages || []).some(vv => vv.world === gone));
+        const kept = c.contracts.filter(vv => (vv.world !== gone) && (vv.issuer !== gone) && !(vv.stages || []).some(vvv => vvv.world === gone));
         if (kept.length < c.contracts.length) {
             news.push(`ITS ${c.contracts.length - kept.length} CONTRACT${(c.contracts.length - kept.length > 1) ? 'S' : ''} DROPPED`);
         }
         c.contracts = kept;
     }
     if (Array.isArray(c.structures)) {
-        for (const s of c.structures.filter(v => v.world === gone)) {
+        for (const s of c.structures.filter(vv => vv.world === gone)) {
             refund += structure_kinds[s.kind]?.cost.salvage || 0;
         }
-        c.structures = c.structures.filter(v => v.world !== gone);
+        c.structures = c.structures.filter(vv => vv.world !== gone);
     }
     if (c.lines?.[gone]) {
         refund += transport_price;
@@ -140,7 +140,7 @@ function checkpoint_without_feltmere(v)
     }
     for (const key of ['visited', 'charted_whole']) {
         if (Array.isArray(c[key])) {
-            c[key] = c[key].filter(v => v !== gone);
+            c[key] = c[key].filter(vv => vv !== gone);
         }
     }
     if (Array.isArray(c.reputation)) {
@@ -161,11 +161,11 @@ function checkpoint_without_feltmere(v)
     const f = c.fleet;
     if (f && Array.isArray(f.ships) && (f.ships.includes(feltmere_gone.ship) || (f.ship_id === feltmere_gone.ship))) {
         refund += f.ships.includes(feltmere_gone.ship) ? feltmere_gone.ship_price : 0;
-        f.ships = f.ships.filter(v => v !== feltmere_gone.ship);
+        f.ships = f.ships.filter(vv => vv !== feltmere_gone.ship);
         delete f.loadouts?.[feltmere_gone.ship];
         if (f.ship_id === feltmere_gone.ship) {
-            const owned = ship_catalog.filter(v => f.ships.includes(v.id));
-            const best = owned.reduce((a, b) => ((b.price > a.price) ? b : a), ship_catalog.find(v => v.id === 'scout'));
+            const owned = ship_catalog.filter(vv => f.ships.includes(vv.id));
+            const best = owned.reduce((a, b) => ((b.price > a.price) ? b : a), ship_catalog.find(vv => vv.id === 'scout'));
             f.ship_id = best.id;
             if (!f.ships.includes(best.id)) {
                 f.ships.push(best.id);
@@ -187,7 +187,7 @@ function checkpoint_without_feltmere(v)
         delete c.cargo[feltmere_gone.berries];
         // out of the rocket, what the hold of the ship you fly now cannot carry is sold at Haven's price, the worlds'
         // own resources first
-        const room = ship_catalog.find(v => v.id === f?.ship_id)?.cargo || 40;
+        const room = ship_catalog.find(vv => vv.id === f?.ship_id)?.cargo || 40;
         let over = moved ? Object.values(c.cargo).reduce((a, b) => a + (Number.isInteger(b) ? b : 0), 0) - room : 0;
         for (let i = commodities.length - 1; (i >= 0) && (over > 0); --i) {
             const amount = Math.min(over, Number.isInteger(c.cargo[commodities[i].key]) ? c.cargo[commodities[i].key] : 0);

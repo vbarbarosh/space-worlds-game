@@ -156,7 +156,7 @@ for (const v of second_act) {
         target: v[3][0].target,
         reward: v[4],
         stages: v[3],
-        description: `${v[2]} ${v[3].map(v => v.title).join(' → ')}.`,
+        description: `${v[2]} ${v[3].map(vv => vv.title).join(' → ')}.`,
         level: 2,
     });
 }
@@ -740,7 +740,7 @@ function offered_jobs()
         m.description += ` ${m.stages.map(v => v.title).join(' → ')}.`;
     }
     // side missions written as files, in their world, until done
-    for (const v of side_missions.filter(v => (v.world === id) && !(campaign.sides_done || []).includes(v.file))) {
+    for (const v of side_missions.filter(vv => (vv.world === id) && !(campaign.sides_done || []).includes(vv.file))) {
         out.unshift({...clone(v), level, side: v.file});
     }
     return out;
@@ -921,7 +921,7 @@ function stage_description(v, m, index)
     }
     if (v.type === 'trade') {
         const key = v.commodity || m.commodity;
-        const good = commodities.find(v => v.key === key);
+        const good = commodities.find(vv => vv.key === key);
         // a world's own resource is only mined, in its rich rocks; a common good can be bought, but not where it is sold
         const source = resource_of(key)
             ? `the drones cut it from the rich rocks of ${worlds[resource_of(key).world].name}`

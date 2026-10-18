@@ -1,6 +1,6 @@
 // The story chapters written as files (src/missions/, read by bin/build into mission_files) take their places in the
 // story by number, ahead of the chapters still written in code; side missions are kept apart
-for (const v of mission_files.filter(v => v.number !== null)) {
+for (const v of mission_files.filter(vv => vv.number !== null)) {
     story.splice(v.number - 1, 0, mission_chapter(v));
 }
 // side missions (side-name.md): offered as contracts in their world until done (js/operations.js offered_jobs)

@@ -49,7 +49,7 @@ function preparation_plan(id)
     for (let i = 0; (i < 30) && ((weapons < worlds[id].attack) || (defense < worlds[id].defense)); ++i) {
         // only the levels on sale now: a later world opens the rest (src/js/tech.js)
         const candidates = upgrade_options.filter(
-            v => weights[v.key] && (levels[v.key] < module_open_cap(v)) && (['armor', 'shield'].includes(v.key) ? defense < worlds[id].defense : weapons < worlds[id].attack)
+            vv => weights[vv.key] && (levels[vv.key] < module_open_cap(vv)) && (['armor', 'shield'].includes(vv.key) ? defense < worlds[id].defense : weapons < worlds[id].attack)
         );
         candidates.sort(function (a, b) {
             const need_a = ['armor', 'shield'].includes(a.key) ? worlds[id].defense - defense : worlds[id].attack - weapons;

@@ -612,7 +612,7 @@ const boss_duel_kinds = {
             }
         },
         card: function (v, s, d) {
-            const left = d.nests.filter(v => v.v.hp > 0).length;
+            const left = d.nests.filter(vv => vv.v.hp > 0).length;
             if (!left) {
                 return {title: 'Destroy the Thorn Beetle', line: 'Its shield is down', target: v, eta: 'no nests left'};
             }
@@ -1364,7 +1364,7 @@ function boss_duel_nest(v, d, angle, grow)
     enemy.hp = enemy.max_hp = Math.round(v.max_hp*0.1);
     enemy.color = boss_duel_nest_color;
     enemy.duel_owner = v;
-    ore_nodes = ore_nodes.filter(v => distance(v, enemy) > v.r + 90);
+    ore_nodes = ore_nodes.filter(vv => distance(vv, enemy) > vv.r + 90);
     mark_mining_changed();
     ring(enemy.x, enemy.y, boss_duel_nest_color, 90, 0.6);
     d.nests.push({v: enemy, grow});

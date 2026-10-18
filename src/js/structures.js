@@ -407,7 +407,7 @@ function structure_damage(site, dt)
 // Every couple of minutes in a world with structures, a raid goes for one of them
 function structure_raids(dt)
 {
-    const here = structures_here().filter(v => v.built >= 1);
+    const here = structures_here().filter(vv => vv.built >= 1);
     if (!here.length) {
         return;
     }

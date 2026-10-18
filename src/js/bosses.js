@@ -1196,7 +1196,7 @@ const boss_attack_kinds = {
             if (k.t < p.tell) {
                 return false;
             }
-            s.pods = s.pods.filter(v => v.hp > 0);
+            s.pods = s.pods.filter(vv => vv.hp > 0);
             for (let i = s.pods.length; i < p.count; ++i) {
                 const pod = boss_summon_one('shooter', v.x, v.y);
                 pod.r = 15;
@@ -1313,8 +1313,8 @@ function boss_effects_update(v, s, dt)
             }
         }
     }
-    if (s.effects.some(v => v.t >= v.life)) {
-        s.effects = s.effects.filter(v => v.t < v.life);
+    if (s.effects.some(vv => vv.t >= vv.life)) {
+        s.effects = s.effects.filter(vv => vv.t < vv.life);
     }
 }
 
@@ -1355,7 +1355,7 @@ function boss_pods_update(v, s, dt)
     if (!s.pods.length) {
         return;
     }
-    const alive = s.pods.filter(v => v.hp > 0);
+    const alive = s.pods.filter(vv => vv.hp > 0);
     for (let i = 0; i < alive.length; ++i) {
         const a = s.spin*1.3 + (i*Math.PI*2)/alive.length;
         alive[i].x = v.x + Math.cos(a)*150;

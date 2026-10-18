@@ -382,7 +382,7 @@ function base_render_shop()
     el.shop_grid.replaceChildren();
     // What the guide says the next world needs stands out
     const wanted = new Set((guide_context().purchases || []).map(v => v.key));
-    for (const v of upgrade_options.concat(supply_options).filter(v => (shop_filter === 'all') || (v.shelf === shop_filter))) {
+    for (const v of upgrade_options.concat(supply_options).filter(vv => (shop_filter === 'all') || (vv.shelf === shop_filter))) {
         const is_supply = supplies[v.key] !== undefined;
         const level = is_supply ? supplies[v.key] : upgrades[v.key];
         const price = is_supply ? v.cost : module_cost(v);
@@ -430,7 +430,7 @@ function choose_upgrade(restored = false)
     set_hidden(el.bossbar, true);
     toasts_clear();
     if (!restored) {
-        for (const v of pickups.filter(v => (v.life > 0) && !v.cache)) {
+        for (const v of pickups.filter(vv => (vv.life > 0) && !vv.cache)) {
             collect_pickup(v, true);
         }
         pickups = [];

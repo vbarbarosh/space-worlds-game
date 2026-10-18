@@ -157,7 +157,7 @@ async function scene_measure(page, scene, mode, measured, out_dir)
         const png = await page.evaluate(() => document.getElementById('arena').toDataURL('image/png').split(',')[1]);
         fs.writeFileSync(path.join(out_dir, `${scene.value}-canvas.png`), Buffer.from(png, 'base64'));
         // and the HUD's text, every element of it, to compare the readouts too
-        const hud = await page.evaluate(() => [...document.querySelectorAll('#hud_root *')].map(vv => `${vv.id || vv.className}|${vv.textContent.trim().slice(0, 160)}|${vv.disabled ?? ''}|${vv.className}`).join('\n'));
+        const hud = await page.evaluate(() => [...document.querySelectorAll('#hud_root *')].map(v => `${v.id || v.className}|${v.textContent.trim().slice(0, 160)}|${v.disabled ?? ''}|${v.className}`).join('\n'));
         fs.writeFileSync(path.join(out_dir, `${scene.value}-hud.txt`), hud);
         return {scene: scene.value, shot};
     }

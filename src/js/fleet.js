@@ -219,7 +219,7 @@ function fleet_purchase(id, kind)
     }
     const f = ensure_career();
     const list = (kind === 'ship') ? ship_catalog : weapon_catalog;
-    const v = list.find(v => v.id === id);
+    const v = list.find(vv => vv.id === id);
     const owned = (kind === 'ship') ? f.ships : f.weapons;
     // one you own stays yours to fly or fit; a new one waits for its rank and its world
     if (!v || (!owned.includes(id) && ((pilot_rank() < v.rank) || !tech_open(v.opens)))) {
@@ -275,7 +275,7 @@ function upgrade_weapon(id)
 {
     const f = ensure_career();
     const level = f.weapon_levels[id] || 1;
-    const v = weapon_catalog.find(v => v.id === id);
+    const v = weapon_catalog.find(vv => vv.id === id);
     const cost = gun_tier_cost(v, level);
     if ((state !== 'upgrade') || !f.weapons.includes(id) || (level >= 5) || (salvage < cost)) {
         return;

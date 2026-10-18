@@ -57,7 +57,7 @@ function generate_environment()
                 offset: i*3.1,
                 type: (campaign.world === 3) ? 'storm' : 'flare',
             };
-            if (world_gates.every(v => distance(v, z) > z.r + 200)) {
+            if (world_gates.every(vv => distance(vv, z) > z.r + 200)) {
                 world_zones.push(z);
             }
         }

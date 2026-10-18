@@ -780,7 +780,7 @@ function ship_svg(v)
         return hangar_preview_html(v);
     }
     const points = ship_outline(v.shape)
-        .map(v => v.join(','))
+        .map(vv => vv.join(','))
         .join(' ');
     return `<svg viewBox="-38 -32 76 64" aria-label="${v.name}"><defs><linearGradient id="hull_${v.id}" x1="0" y1="0" x2=".7" y2="1"><stop stop-color="#dce6ee"/><stop offset=".4" stop-color="#8496a8"/><stop offset="1" stop-color="#293846"/></linearGradient></defs><polygon points="${points}" fill="url(#hull_${v.id})" stroke="#c8d5df" stroke-width=".7"/><path d="M19 0L-5 -5L-19 -3L-19 3L-5 5Z" fill="#c4d0d9"/><path d="M12 0L-4 -4L-7 0L-4 4Z" fill="${v.color}"/><path d="M-21 -7L-32 -7M-21 7L-32 7" stroke="${v.color}" stroke-width="3"/></svg>`;
 }
