@@ -32,14 +32,17 @@ const boss_duels = [
     {
         kind: 'chase',
         line: 'IT RUNS FOR A GATE · STOP IT BEFORE IT GETS THERE',
-        hull: 1.2,
+        hull: 1,
         escorts: [0.5, 0],
         // the seconds it needs to reach its gate unhurt, by mode (CHILL, NORMAL, OVERLOAD)
         run: [62, 46, 40],
-        // fans only in its first half (its ring, close behind it, was the most of what hurt a chaser), its ring after
+        // a runner fires less than a fighter: a longer gap, its fans in its first half, one ring after (its ring, close
+        // behind it, was the most of what hurt a chaser); with the gap of the campaign's Crescent and three fans
+        // first, the bot lost two of six runs in Haven (bin/playtest, NORMAL)
+        gap: 2,
         cycles: [
-            ['fan', 'fan', 'fan_wide'],
-            ['fan_wide', 'crescent', 'fan_wide', 'crescent'],
+            ['fan', 'fan'],
+            ['fan_wide', 'crescent', 'fan'],
         ],
         attacks: {
             crescent: {kind: 'ring', count: 18, gap: 1.2, weapon: 'plasma', speed: 125, rings: 2, every: 0.6, tell: 0.8, stall: 1.6},
@@ -77,8 +80,8 @@ const boss_duels = [
     {
         kind: 'shell',
         line: 'A SHELL TURNS ROUND ITS CORE · SHOOT THROUGH THE GAPS',
-        hull: 4,
-        escorts: [0.66, 0.33],
+        hull: 3.2,
+        escorts: [0.5, 0],
         // the shell's slots, filled or a gap, and its turn (rad/s); the second half's turns back every `flip` seconds
         shell: [
             {slots: [1, 1, 0, 1, 1, 0], turn: 0.32, flip: 0},
@@ -98,8 +101,8 @@ const boss_duels = [
     {
         kind: 'siege',
         line: 'ARMOUR STOPS YOUR SHOTS · HIT THE GLOWING WEAK POINT, THEN GO ROUND',
-        hull: 3.5,
-        escorts: [0.75, 0.25],
+        hull: 3,
+        escorts: [0.5, 0],
         // its rail sights from three emitters, not five, in both halves, and a longer gap between attacks: you are close
         // to it all the fight; the sights hold fire while you are out of their arc (frame)
         gap: 1.8,
@@ -275,8 +278,14 @@ function boss_duel_other_target(boss)
     return out;
 }
 
+// the flagship whose duel was on at the last frame (boss_duel_watch)
+let boss_duel_last = null;
+
 // Every arcade frame (arcade_flagship_update): a duel's parts go with its flagship, and a black hole it made surge
-// pulls as before once it is gone
+// pulls as before once it is gone. When the flagship falls, its own salvage is drawn in: a duel keeps you at its gap,
+// its weak point or its edge rather than at its hull, and with the flagship often the last ship, the world cleared at
+// once and its drop was lost (the bot's salvage at Haven's depot was 120 short). Only its own: drawing in all that lay
+// round gave the bot half as much again as the base at Haven's depot.
 function boss_duel_watch()
 {
     for (const v of enemies) {
@@ -285,11 +294,33 @@ function boss_duel_watch()
             explode(v.x, v.y, 34, boss_duel_heal_color, 0, 'spark');
         }
     }
+    const live = boss_duel_live();
     for (const h of black_holes) {
-        if (h.duel_strength && !boss_duel_live()) {
+        if (h.duel_strength && !live) {
             h.strength = h.duel_strength;
             h.duel_strength = 0;
         }
+    }
+    // a flagship left behind by a death (the world starts again) still has its hull: nothing is drawn in
+    if (!live && boss_duel_last && (boss_duel_last.hp <= 0)) {
+        boss_duel_draw_in(boss_duel_last);
+    }
+    boss_duel_last = live ? live.v : null;
+}
+
+// The flagship's drop (combat.js: within 50 m of where it fell, at most 160 m once scattered) comes to you, said once
+// over your ship; one that got away dropped none
+function boss_duel_draw_in(boss)
+{
+    const before = salvage;
+    for (const v of pickups) {
+        if ((v.life > 0) && (v.type === 'artifact') && (distance(v, boss) < 160)) {
+            collect_pickup(v, true);
+        }
+    }
+    if (salvage > before) {
+        label(player.x, player.y - 46, `◆ +${salvage - before} · SALVAGE DRAWN IN`, gold);
+        sfx('pickup');
     }
 }
 
@@ -652,14 +683,25 @@ const boss_duel_kinds = {
             if (s.exposed <= 0) {
                 return;
             }
-            // stunned: stars turning over the hull
+            // stunned: four-pointed stars turning over the hull, outlined so they stand out of its lights
             ctx.globalAlpha = 0.95;
             ctx.fillStyle = gold;
+            ctx.strokeStyle = '#2a1a05';
+            ctx.lineWidth = 1.5/zoom;
+            const size = 7/zoom;
             for (let i = 0; i < 5; ++i) {
                 const a = clock*3 + (i*Math.PI*2)/5;
+                const x = v.x + Math.cos(a)*v.r*0.85;
+                const y = v.y - v.r*1.05 + Math.sin(a)*v.r*0.25;
                 ctx.beginPath();
-                ctx.arc(v.x + Math.cos(a)*v.r*0.8, v.y - v.r*0.7 + Math.sin(a)*v.r*0.22, 4/zoom + 2, 0, Math.PI*2);
+                for (let j = 0; j < 8; ++j) {
+                    const r = (j % 2) ? size*0.35 : size;
+                    const b = clock*2 + (j*Math.PI)/4;
+                    ctx.lineTo(x + Math.cos(b)*r, y + Math.sin(b)*r);
+                }
+                ctx.closePath();
                 ctx.fill();
+                ctx.stroke();
             }
         },
         card: function (v, s, d) {
@@ -912,7 +954,10 @@ const boss_duel_kinds = {
         over: function (v, s, d) {
             if (d.glow) {
                 boss_glow(v.x, v.y, v.r*(1.1 + Math.sin(clock*12)*0.08), '#dff8ff', 0.45);
-                boss_duel_text('GLOWING · HIT IT', v.x, v.y - v.r*2.2, '#dff8ff');
+                // while its hull is exposed, the exposed timer over it says so already
+                if (s.exposed <= 0) {
+                    boss_duel_text('GLOWING · HIT IT', v.x, v.y - v.r*2.2, '#dff8ff');
+                }
             }
         },
         draw: function (v, s, d) {
@@ -965,6 +1010,12 @@ const boss_duel_kinds = {
         start: function (v, s, d) {
             const r = d.def.ring;
             d.c = {x: clamp((v.x + player.x)/2, Math.min(r, world.w/2), Math.max(world.w - r, world.w/2)), y: clamp((v.y + player.y)/2, Math.min(r, world.h/2), Math.max(world.h - r, world.h/2))};
+            // kept off the arena's edge, the centre could leave you at or outside the ring as it began: it comes toward you
+            // until you are well inside (the ring may then pass the edge, where the radiation is anyway)
+            const far = distance(player, d.c);
+            if (far > r*0.6) {
+                d.c = boss_duel_at(player, Math.atan2(d.c.y - player.y, d.c.x - player.x), r*0.6);
+            }
             d.r = r;
             d.heat = 0;
             d.step = 0;
@@ -1008,13 +1059,14 @@ const boss_duel_kinds = {
         },
         draw: function (v, s, d) {
             const c = d.c;
-            // outside, darkened; the wall of fire; its heat
+            // a dark band just outside, the wall of fire, its heat; the band, not the whole window outside the ring: a
+            // full-window fill each frame cost Nova Forge's flagship wave about 4 ms a frame on a software canvas
             ctx.globalAlpha = 0.38;
-            ctx.fillStyle = '#2a0802';
+            ctx.strokeStyle = '#2a0802';
+            ctx.lineWidth = 320;
             ctx.beginPath();
-            ctx.rect(camera.x - 50, camera.y - 50, W/zoom + 100, H/zoom + 100);
-            ctx.arc(c.x, c.y, d.r, 0, Math.PI*2, true);
-            ctx.fill('evenodd');
+            ctx.arc(c.x, c.y, d.r + 160, 0, Math.PI*2);
+            ctx.stroke();
             ctx.globalAlpha = 0.5 + Math.sin(clock*18)*0.12;
             ctx.strokeStyle = '#ff6a2a';
             ctx.lineWidth = 18;

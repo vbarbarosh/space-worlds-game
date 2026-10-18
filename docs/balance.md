@@ -509,13 +509,13 @@ before rocks and the Relic processor.
 | | Arcade | Campaign |
 |---|---|---|
 | Elite | from the mode's first elite world, the leader of every second squadron from wave 2: hull ×3, size ×1.35, shield 40 + 25 × step, drops a repair kit or an EMP; a trick of its world (below) | the target of an `elite` stage: hull ×3.5 (at least 600), armour +12% (at most 72%), shield ×1.6 (at least 80), speed ×0.8; carries missiles in Haven |
-| Flagship | 1500 × (1 + 0.6 × step) hull × the design's factor of the step's world on the map's order (Haven to Dustfall 1, Ion Reach 4.5, Obsidian 3, Cryosphere and Nova Forge 1.25, Eclipse 2.6), so any world's flagship at step 3 has Ion Reach's (CHILL ×0.8, OVERLOAD ×1.25); fights as its world's design (below); calls escorts at 66% and a last stand at 33%; on OVERLOAD, overdrive at 15% | 10500 hull, 19000 in Eclipse; three times the world's shield |
+| Flagship | 1500 × (1 + 0.6 × step) hull × its own world's duel factor, whichever step the route flies it at (Haven and Verdant 1, Dustfall 0.7, Ion Reach 3.2, Obsidian 3, Cryosphere 2.3, Nova Forge 1.5, Eclipse 4.5) (CHILL ×0.8, OVERLOAD ×1.25), × a card's factor; fights its world's duel (below); calls escorts and a last stand where its duel has it (66% and 33% for most); on OVERLOAD, overdrive at 15% | 10500 hull, 19000 in Eclipse; three times the world's shield |
 
 - Where: `arcade_elite_make`, `arcade_flagship_spawn`,
   `arcade_flagship_update` in `src/js/arcade.js`; `spawn_operation_enemy` in
   `src/js/operations.js`; `spawn_enemy` in `src/js/campaign.js`.
-- Every flagship, arcade and campaign, fights as its world's entry in
-  `boss_designs` (`src/js/bosses.js`) has it: a way of moving, a gun between
+- Every flagship fights as its world's entry in `boss_designs`
+  (`src/js/bosses.js`) has it, an arcade one as its duel changes it (below): a way of moving, a gun between
   attacks, and a cycle of attacks; below 50% hull it roars (1.4 s, a toast
   naming what changes) and runs a second cycle. Each attack shows a tell
   first: a drawn lane, aim lines, a dashed reach, a glow, a swirl. A big
@@ -527,15 +527,10 @@ before rocks and the Relic processor.
   the gap between attacks (CHILL ×0.8, OVERLOAD ×1.15, overdrive ×1.3 more),
   never the length of a tell. Drawn attacks aim where you are; only the gun
   between them leads you, as a raider's does.
-- An arcade flagship's hull carries its design's factor (`hull` in
-  `boss_designs`), so that with a mid kit it runs both its cycles before it
-  falls. Measured with a pilot that circles at 300 to 380 m (plasma at tier
-  4 to 5, two guns), NORMAL: Ion Reach 36 s instead of 13, Obsidian 24 s
-  instead of 17, Eclipse 37 s instead of 20; Cryosphere's plates and Nova
-  Forge's heat already held those fights 22 to 31 s. The campaign's
-  flagships keep their hull and fight as their world's design: with a
-  gunship (rail and two launchers at tier 3), the Ember flagship falls in
-  15 s and the Void Dreadnought in 28 s.
+- The campaign's flagships fight as their world's design, with their own
+  hull: with a gunship (rail and two launchers at tier 3), the Ember
+  flagship falls in 15 s and the Void Dreadnought in 28 s. The table is the
+  campaign's fight; the arcade's duels below change some of it.
 
   | World | Moves | Attacks | Below 50% | Exposed |
   |---|---|---|---|---|
@@ -547,6 +542,33 @@ before rocks and the Relic processor.
   | Cryosphere, the Frost Crystal | glides round you | ice plates turning round it stop your shots (4 of 6); a spiral of shards; icicles bursting round you; a frost nova that slows you | 5 plates turning faster, a three-arm spiral, more icicles | 2.6 s after the nova, the plates drawn in |
   | Nova Forge, the Furnace | lumbers in to 320 m | a sweeping flame from its vents that heats your guns; embers that leave burning slag; missiles; a flare | twin flames, more slag | 2.6 s after the flare |
   | Eclipse, the Eclipse Eye | hovers at 560 m; jumps | an eye beam turning after you at 0.4 rad/s, draining your pulse; a fan of rail lanes; a singularity pulling you in | two beams, wider fans, more jumps | 4.5 s while it holds the singularity |
+
+- In the arcade each flagship is a duel of its own, a way to win it besides
+  its hull (`boss_duels` in `src/js/boss_duels.js`): the line said as it
+  appears, the HUD's card says what to go for now and an edge marker points
+  at it off the screen. Its hull carries the duel's factor, for time to fight
+  the duel through both its halves. While the flagship turns your shots from
+  where you are (armour, blade, ice, a shut dome, a plate of its shell) and
+  it is the nearest raider, the guns take the nearest other raider within
+  650 m; a nest within 760 m is taken before the Beetle (`boss_duel_aim`).
+  A part of a duel (a nest) goes with its flagship. When the flagship falls,
+  its own drop (12 × 10 salvage) is drawn in (`boss_duel_watch`): a duel
+  keeps you at a gap, a weak point or the edge rather than at its hull, and
+  the flagship is often the last ship, so the world cleared at once and its
+  drop was lost (the bot's salvage at Haven's depot was 120 short). Drawing
+  in all the salvage lying round gave the bot half as much again as the base
+  there, so only the flagship's is.
+
+  | World | The duel | Its fight changes | Escorts |
+  |---|---|---|---|
+  | Haven, the Crescent | runs for the portal farthest from you 1.8 to 4.2 km off, there in 62, 46, 40 s unhurt (CHILL, NORMAL, OVERLOAD); each third of its hull lost slows it ×0.8 and opens it 2.5 s; at the gate it gets away: the wave goes on, no flagship bounty, the cleared screen says so | 2 s between attacks (the campaign's 1.1); two fans, then a wide fan, its ring and a fan; no strafe | 50%, no last stand |
+  | Verdant, the Thorn Beetle | 2, 3, 3 nests 600 m round it, unarmed, a tenth of its hull each; each heals it 1.5% of its hull a second; at half its hull 1, 2, 2 more sprout, healing 2.5 s later | as the campaign's | 50%, no last stand |
+  | Dustfall, the Sawtooth | its blade lets half of a shot through; a charge that ends on a rock stuns it 4.5, 3.6, 3.2 s, hits ×2; the rock in its lane is lit while it winds up | saw charge, hatch missiles, charge, flak; then two charges in a row, more missiles; two lancers at half | 40%, no last stand |
+  | Ion Reach, the Storm Wheel | a shell of six plates with two gaps turns round its core at 0.32 rad/s and stops your shots; below half eight plates, two gaps, 0.45 rad/s, turning back every 6 s; lit lanes show the gaps | its spokes become arcs: lightning out to 700 m across each plate's side, 16 a hit and your pulse drained, safe in the gaps; no pods | 50%, no last stand |
+  | Obsidian, the Iron Stair | stands still and turns its bow to you at 0.3 rad/s; armour stops your shots but at one weak point, each a quarter of its hull, opening in turn at its stern, a flank, the other flank, its bow; a broken one opens the hull 2 s | three rail sights, never five; they hold fire while you are more than 1.1 rad off its bow; 1.8 s between attacks | 50%, no last stand |
+  | Cryosphere, the Frost Crystal | ice lets 15% of a hit through; it glows (×1.5) after its spiral, while it gathers its nova and 3 s after it, and while it roars at half | no plates; its nova gathers 2.4 s (the campaign's 1.4) | 66%, 33% |
+  | Nova Forge, the Furnace | a ring of fire 1400 m round the fight closes to 620, 500, 440 m as it heats (75% of its hull lost and the time: 240 s, 150 s in its second half); outside it, 10 a hit and your guns heat 30 a second; it keeps inside | as the campaign's | 50%, 20% |
+  | Eclipse, the Eclipse Eye | keeps to the black hole's edge at 1.3 radii, its jumps too; its dome opens only while you are 1 to 1.8 radii from the hole's centre, 15% of a hit through otherwise; a surge makes the hole pull ×1.35 for 4.5 s, the dome wide open | a surge in place of the singularity | 66%, 33% |
 
 - Arcade elites have a trick of their world, every 5 to 7 s while you are
   within 750 m, of the same kinds (`elite_tricks`): Haven a three-bolt
