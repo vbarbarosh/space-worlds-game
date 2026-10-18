@@ -6,10 +6,9 @@ const path = require('node:path');
 const {chromium} = require('playwright');
 
 const data_dir = path.join(__dirname, '..', 'data', 'perf');
-// Every world in calm flight and in a heavy fight, and the arcade's worlds from Ion Reach on in their third wave (and
-// again with the world's front over you), at both zooms; a
-// mature campaign of 10, 50 and 100 structures in Haven, as many in the other worlds, raiders on them; and a ring race
-// in Haven and in Eclipse
+// Every world in calm flight and in a heavy fight, and the arcade's worlds from Ion Reach on in their third wave, at
+// both zooms; a mature campaign of 10, 50 and 100 structures in Haven, as many in the other worlds, raiders on them;
+// and a ring race in Haven and in Eclipse
 const scenes = [];
 for (const zoom of [1, 0.5]) {
     for (let world = 0; world < 8; ++world) {
@@ -18,8 +17,6 @@ for (const zoom of [1, 0.5]) {
     }
     for (const world of [3, 4, 5, 6, 7]) {
         scenes.push({value: `arcade-w${world}-z${zoom*100}`, kind: 'arcade', world, zoom});
-        // the same with the world's sweeping front kept over you (src/js/arcade_fronts.js)
-        scenes.push({value: `front-w${world}-z${zoom*100}`, kind: 'arcade', world, zoom, front: true});
     }
 }
 for (const buildings of [10, 50, 100]) {
@@ -47,8 +44,7 @@ const layer_names = [
     'render_projectiles', 'render_structures', 'render_transport', 'render_waypoints', 'render_survey_robot',
     'render_hostile_marks', 'render_enemies', 'render_explosions', 'render_pulse', 'render_pickups', 'render_equipment',
     'render_hazards', 'render_teleport', 'render_screen_controls', 'render_minimap', 'render_radar', 'render_arcade_goal',
-    'render_arcade_front', 'render_target_brackets', 'render_world_labels', 'render_radiation_edge', 'race_render_course',
-    'race_render_rivals',
+    'render_target_brackets', 'render_world_labels', 'render_radiation_edge', 'race_render_course', 'race_render_rivals',
 ];
 const modes = ['frames', 'raster', 'split', 'layers', 'profile', 'shots'];
 const usage = `usage: bin/perf [--dpr=2] [--size=1920x1080] [--difficulty=normal] [--mode=frames] [--label=name] [--frames=300] [--page=build/index.html] [--gpu] [--wrap=name,...] [scene...]
@@ -490,12 +486,11 @@ function page_install(options)
 
 // Runs inside the game's scope: starts the scene and sets what it does each frame. Calm: a slow circle by the keys.
 // A fight: 36 raiders of three times the hull kept in view, the pulse every 2 s and the EMP every 3 s, two missile
-// launchers, a rail gun and drones. The arcade: its third wave with the flagship, the pulse and the EMP as in a fight;
-// a front scene keeps the world's sweeping front over you as well. A campaign: calm flight among built structures,
-// half outposts and half platforms on the free spots nearest the ship, as many again in the other worlds, a transport
-// line, and 24 raiders kept round them, a third sent for one of them. The pulse and the EMP fire
-// only in play, as the player's keys do. A race: a ring race taken and started at green, your keys toward your next
-// ring. The ship never dies, nor do the structures and the transport.
+// launchers, a rail gun and drones. The arcade: its third wave with the flagship, the pulse and the EMP as in a fight.
+// A campaign: calm flight among built structures, half outposts and half platforms on the free spots nearest the ship,
+// as many again in the other worlds, a transport line, and 24 raiders kept round them, a third sent for one of them.
+// The pulse and the EMP fire only in play, as the player's keys do. A race: a ring race taken and started at green,
+// your keys toward your next ring. The ship never dies, nor do the structures and the transport.
 function page_scene(scene)
 {
     // the menu ran for as long as the page took to load: its clocks and seeds start again
@@ -622,15 +617,6 @@ function page_scene(scene)
         }
         if ((scene.kind === 'arcade') && (arcade.world === campaign.world) && (arcade.wave < 3)) {
             arcade_wave_start(3);
-        }
-        // the front over you, its middle on you, kept from fading (a rail world's is not in the third wave)
-        if (scene.front && (arcade.world === campaign.world)) {
-            if (!arcade_front) {
-                arcade_front_launch(arcade_front_kind());
-            }
-            arcade_front.fade = 0;
-            arcade_front.time = Math.max(arcade_front.time, 2);
-            arcade_front.pos = arcade_front_at(arcade_front, player).s + arcade_front.width*0.5;
         }
         pulse_t -= 1/60;
         emp_t -= 1/60;

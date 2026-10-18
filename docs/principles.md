@@ -136,10 +136,6 @@ so the eye sees the wave do the work.
   reaches it, less toward the rim, and sets off the missiles it reaches
   (`missile_waves_update` in `src/js/missiles.js`). Today the arcade's
   dying-ship blasts (`arcade_blast_from_kill`) still land at once.
-- An arcade world's sweeping front (a sandstorm, a solar flare, a ring out
-  of the black hole) is a band that crosses the arena: it bites you and the
-  raiders where it stands, and nowhere ahead of it
-  (`src/js/arcade_fronts.js`).
 - Where it lives: `src/js/pulse.js` (`pulse_fire`, `emp_fire`,
   `stasis_fire`, `stasis_scale`), `use_supply` in `src/js/upgrades.js`.
 
@@ -161,9 +157,8 @@ difficulty; none of that changes the campaign's rules.
   (`arcade_card_k`) are all 1.
 - Arcade-only effects: a kill shakes the screen by the size of what died
   (`arcade_kill_shake`), a flagship's death plays at 30% speed for a moment
-  (`arcade_time_step`), a ship that explodes hurts what is close to it
-  (`arcade_blast_from_kill`), and from Verdant on a world's front sweeps the
-  arena (`src/js/arcade_fronts.js`).
+  (`arcade_time_step`), and a ship that explodes hurts what is close to it
+  (`arcade_blast_from_kill`).
 - The pulse's chain rings are the pulse's own, in both modes; their score
   (×(1 + 0.5 × depth)) is arcade-only, and like your shots the pulse and its
   chains break ore rocks only in the arcade (`src/js/pulse.js`).

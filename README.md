@@ -109,8 +109,7 @@ map-plan, ...; the list is in src/js/dev/screen.js) opens that screen with the
 panel folded; with `&screen=arcade`, `&wave=2` starts the world at its second wave
 (a world goal in every world, e.g. `dev.html?world=dustfall&screen=arcade&wave=2`), and
 `&raiders=sniper,bulwark` brings a pack of three chasers and one raider of each kind named (interceptor,
-carrier, bulwark, sniper, minelayer) 640 m ahead. `&front=far|near|in` sets the world's sweeping front out
-at once, 1500 m off (its edge marker), 260 m off (in view) or over you.
+carrier, bulwark, sniper, minelayer) 640 m ahead.
 `&card_hud=1` puts cards in force over the gauges.
 `&screen=arcade-pick` opens the break after the world at its three cards,
 `arcade-route` at the next world of two (`&cards=wager,overclock,prototype`

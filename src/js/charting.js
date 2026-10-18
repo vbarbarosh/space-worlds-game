@@ -313,7 +313,6 @@ function map_things(every_layer = false)
         add('danger', v, 'raiders', null, '', {small: true});
     }
     arcade_event_marks(add);
-    arcade_front_marks(add);
     return out;
 }
 

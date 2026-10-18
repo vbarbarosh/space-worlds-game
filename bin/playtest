@@ -15,8 +15,7 @@ const usage = `usage: bin/playtest [--mode=normal] [--seeds=1,2,3] [--label=name
     clock and a seeded Math.random, as fast as the machine allows, and counts per world and wave what a run costs.
 
     How it flies: it holds 320 m from the nearest raider and circles it, steps aside from shots coming at it, picks
-    up salvage when fewer than three raiders are close, keeps off the radiation at the edge, meets a sweeping
-    front in a lane or a rock's lee when it can get there in time and crosses it head on when not; a world goal and a
+    up salvage when fewer than three raiders are close, keeps off the radiation at the edge; a world goal and a
     flagship's duel it flies as their pilots say (arcade_goal_pilot, boss_duel_pilot). The pulse at three
     raiders within 380 m, a dash past a missile within 220 m, the EMP at six within 550 m or below a third of its
     hull, stasis at eight, a repair kit below half. At the depot: a repair below 75% hull, two repair kits, then
@@ -304,19 +303,8 @@ function page_bot(options)
                 pulse();
             }
         }
-        // a front sweeping in (src/js/arcade_fronts.js): to a lane or a rock's lee in time, else straight through it
-        const front = arcade_front_pilot();
-        if (front) {
-            dx = front.vx - player.vx;
-            dy = front.vy - player.vy;
-            if (Math.hypot(dx, dy) < 30) {
-                dx = 0;
-                dy = 0;
-            }
-        }
         // a black hole's pull: away from it, unless a goal's plan keeps to the rim (it leans out against the pull itself)
-        // and no front has taken the stick from it
-        if (!(plan && plan.firm) || front) {
+        if (!(plan && plan.firm)) {
             for (const hole of black_holes) {
                 const d = Math.max(1, distance(hole, player));
                 if (d < hole.radius*1.6) {
