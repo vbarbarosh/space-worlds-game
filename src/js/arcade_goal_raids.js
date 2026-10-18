@@ -348,7 +348,7 @@ function arcade_courier_update(g, v)
                 }
             }
             show_toast('RELIEF CALLED', 'The post jumped away · a squadron jumps in', 3, 'danger');
-            arcade_squad_spawn(3 + Math.min(3, Math.floor(campaign.world/2)));
+            arcade_squad_spawn(3 + Math.min(3, Math.floor(arcade_level()/2)));
         }
         else {
             show_toast('COURIER ESCAPED', `${g.couriers_out}/${need} · the relief comes at ${need}`, 2.5, 'danger');

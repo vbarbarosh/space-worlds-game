@@ -1,4 +1,4 @@
-// Arcade raiders with jobs: five kinds, each asking a different move of you, met one a world from Haven to Obsidian and
+// Arcade raiders with jobs: five kinds, each asking a different move of you, met one a step of the run from Haven to Obsidian and
 // mixed into the squadrons (raider_squad_after). An INTERCEPTOR bursts faster than you cruise: turbo away or shoot it
 // down. A BULWARK turns a shield on its front to you that stops your shots: fly round to its back. A CARRIER stands off
 // and launches drones, tied to it by a thin line; they fall with it. A SNIPER fires from 700 m after a charge its red
@@ -6,8 +6,9 @@
 // pulse through them. Each shows its move before it makes it. The campaign never meets them: only the arcade's
 // squadrons bring them, and its raiders keep their ways.
 //
-// A kind (its name on the plate is in target_names): the world it opens in (Haven 0 .. Eclipse 7; a drone comes only from a carrier),
-// hull and speed as a + b × the world's threat level (as base_spawn_enemy's), the hit radius, the score, the blast of
+// A kind (its name on the plate is in target_names): the run's step it opens at (arcade_level: Haven 0 .. Eclipse 7,
+// whichever world the route flies there; a drone comes only from a carrier), hull and speed as a + b × the fight's
+// threat level (threat_wave, the step's, as the world's raiders have), the hit radius, the score, the blast of
 // its death (size, damage: arcade_blast_from_kill), the salvage it drops besides a raider's, how many at most at once
 // (`rail`: in a world of rail guns) and the toast the run's first one brings.
 const raider_kinds = {
@@ -18,9 +19,9 @@ const raider_kinds = {
     minelayer: {world: 4, hull: [45, 9], r: 18, speed: [100, 3], points: 120, blast: [50, 12], salvage: 1, cap: 2, rail: 1, title: 'MINE-LAYER', line: 'IT SEALS THE LANE AHEAD WITH MINES · NOT THAT WAY · A PULSE CLEARS THEM'},
     drone: {world: 99, hull: [8, 2], r: 7, speed: [170, 4], points: 20, blast: [18, 3], salvage: 0, cap: 99, rail: 99, title: '', line: ''},
 };
-// The share of squadrons that bring one (or, from Cryosphere on, up to two in a squadron of six or more), Haven to
-// Eclipse; CHILL brings 60% as many. A kind opens in its world from wave 2 (wave 1 is the scouts), in later worlds
-// from wave 1, and in its own world it comes twice as often as the others.
+// The share of squadrons that bring one (or, from step 5 on, up to two in a squadron of six or more), by the run's
+// step; CHILL brings 60% as many. A kind opens at its step from wave 2 (wave 1 is the scouts), at later steps from
+// wave 1, and at its own step it comes twice as often as the others.
 const raider_job_share = [0.4, 0.5, 0.55, 0.6, 0.5, 0.65, 0.7, 0.55];
 const raider_job_most = [1, 1, 1, 1, 1, 2, 2, 2];
 const raider_job_chill = 0.6;
@@ -95,8 +96,8 @@ function raider_kind_spawn(kind, x, y)
     const enemy = spawn_enemy(kind);
     const hull = (difficulty === 'chill') ? 0.8 : (difficulty === 'overload') ? 1.15 : 1;
     const pace = (difficulty === 'chill') ? 0.8 : (difficulty === 'overload') ? 1.2 : 1;
-    enemy.hp = enemy.max_hp = (k.hull[0] + k.hull[1]*wave)*hull;
-    enemy.speed = (k.speed[0] + k.speed[1]*wave)*pace;
+    enemy.hp = enemy.max_hp = (k.hull[0] + k.hull[1]*threat_wave())*hull;
+    enemy.speed = (k.speed[0] + k.speed[1]*threat_wave())*pace;
     enemy.r = k.r;
     enemy.x = clamp(x, 40, world.w - 40);
     enemy.y = clamp(y, 40, world.h - 40);
@@ -131,15 +132,15 @@ function raider_kind_spawn(kind, x, y)
     return enemy;
 }
 
-// The kinds a squadron of this world and wave may bring, each as often as it comes: none in Haven's first wave
+// The kinds a squadron of this step and wave may bring, each as often as it comes: none in Haven's first wave
 function raider_kinds_open()
 {
     const out = [];
     for (const [kind, k] of Object.entries(raider_kinds)) {
-        if ((k.world < campaign.world) || ((k.world === campaign.world) && (arcade.wave >= 2))) {
+        if ((k.world < arcade_level()) || ((k.world === arcade_level()) && (arcade.wave >= 2))) {
             out.push(kind);
         }
-        if ((k.world === campaign.world) && (arcade.wave >= 2)) {
+        if ((k.world === arcade_level()) && (arcade.wave >= 2)) {
             out.push(kind);
         }
     }
@@ -147,11 +148,11 @@ function raider_kinds_open()
 }
 
 // How many of a kind are alive, and whether one more may come: a rail world takes fewer of the slow-to-answer ones, and
-// the first worlds fewer at once (one in Haven, two in Verdant)
+// the first steps fewer at once (one in Haven, two at the second step)
 function raider_kind_room(kind)
 {
     const k = raider_kinds[kind];
-    const cap = Math.min((worlds[campaign.world].weapon === 'rail') ? k.rail : k.cap, campaign.world + 1);
+    const cap = Math.min((worlds[campaign.world].weapon === 'rail') ? k.rail : k.cap, arcade_level() + 1);
     let alive = 0;
     for (const v of enemies) {
         alive += ((v.hp > 0) && (v.type === kind)) ? 1 : 0;
@@ -166,10 +167,10 @@ function raider_squad_after(squad)
 {
     const free = squad.filter(v => !v.elite && !v.guard && !v.lurk && !v.anchor && !v.event_goal && (v.type !== 'tank'));
     const open = raider_kinds_open();
-    const share = raider_job_share[campaign.world]*((difficulty === 'chill') ? raider_job_chill : 1);
+    const share = raider_job_share[arcade_level()]*((difficulty === 'chill') ? raider_job_chill : 1);
     let count = 0;
     if (open.length && free.length && (Math.random() < share)) {
-        count = Math.min(free.length - 1, (squad.length >= 6) ? raider_job_most[campaign.world] : 1);
+        count = Math.min(free.length - 1, (squad.length >= 6) ? raider_job_most[arcade_level()] : 1);
     }
     const squadron = squad.slice();
     for (let i = 0; i < count; ++i) {
@@ -533,7 +534,7 @@ function raider_job_kill(enemy)
     }
     const k = raider_kinds[enemy.type];
     for (let i = 0; i < k.salvage; ++i) {
-        drop_pickup(enemy.x + rand(-30, 30), enemy.y + rand(-30, 30), 'artifact', 2 + Math.floor(wave/4));
+        drop_pickup(enemy.x + rand(-30, 30), enemy.y + rand(-30, 30), 'artifact', 2 + Math.floor(threat_wave()/4));
     }
     if (enemy.type === 'carrier') {
         let n = 0;

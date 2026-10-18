@@ -2,8 +2,8 @@
 // will be, to cut you off; two swing out to your flanks; the rest come in from behind you. Close by, each fights as its
 // type does. Hold still or circle in one place and they close a ring round you, with gaps between them to break out
 // through, its round drawn; closed, it holds a few seconds and breaks, and they fight close as their types do; fly
-// out of it and they hunt again. The worlds ease you in (pack_flanks, pack_rings): Haven's packs come from its second
-// wave, with a cut-off and the rest from behind, no flanks and no ring; Verdant's ring you, but no flanks yet, as
+// out of it and they hunt again. The run's steps ease you in (pack_flanks, pack_rings): Haven's packs come from its second
+// wave, with a cut-off and the rest from behind, no flanks and no ring; the second step's ring you, but no flanks yet, as
 // flanking was kept from both before; the rail worlds (Obsidian, Eclipse), where a slug crosses the screen in a
 // quarter second, have neither.
 // Raiders with jobs keep to their own (arcade_raiders.js); an elite keeps its trick, an escort its leader, a lurker
@@ -12,7 +12,7 @@
 // the types that hunt in a pack, and the fewest that make one
 const pack_types = ['chaser', 'shooter', 'splitter', 'lancer'];
 const pack_least = 3;
-// Haven to Eclipse: whether two of a pack take your flanks, and whether a pack rings you when you hold still
+// By the run's step (arcade_level: Haven 0, Obsidian 4, Eclipse 7 whatever the route): whether two of a pack take your flanks, and whether a pack rings you when you hold still
 const pack_flanks = [false, false, true, true, false, true, true, false];
 const pack_rings = [false, true, true, true, false, true, true, false];
 // how far out a flank swings, how far behind you the rest come in, and the distance from which each fights as its type
@@ -57,7 +57,7 @@ function pack_reset(run)
 // wave, its scouts
 function pack_form(squad)
 {
-    if ((campaign.world === 0) && (arcade.wave < 2)) {
+    if ((arcade_level() === 0) && (arcade.wave < 2)) {
         return;
     }
     const members = squad.filter(v => pack_types.includes(v.type) && !v.elite && !v.guard && !v.lurk && !v.anchor && !v.event_goal);
@@ -83,7 +83,7 @@ function pack_roles(group, here)
     for (let i = 0; i < alive.length; ++i) {
         const p = alive[i].pack;
         p.slot = i;
-        p.role = (i === 0) ? 'cut' : ((i <= 2) && pack_flanks[campaign.world]) ? 'flank' : 'rear';
+        p.role = (i === 0) ? 'cut' : ((i <= 2) && pack_flanks[arcade_level()]) ? 'flank' : 'rear';
         p.side = (i === 1) ? -1 : 1;
     }
 }
@@ -105,7 +105,7 @@ function pack_update(dt)
         if (group.mode === 'ring') {
             pack_ring_update(group, dt);
         }
-        else if (pack_watch.boxed && pack_rings[campaign.world] && !group.rest && (group.count >= pack_least) && group.members.some(v => distance(v, player) < pack_ring_reach)) {
+        else if (pack_watch.boxed && pack_rings[arcade_level()] && !group.rest && (group.count >= pack_least) && group.members.some(v => distance(v, player) < pack_ring_reach)) {
             pack_ring_start(group);
         }
     }
