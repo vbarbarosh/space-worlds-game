@@ -226,6 +226,7 @@ function update_explosions(dt)
     }
     update_hull_damage(dt);
     update_enemy_wounds(dt);
+    update_raider_trails(dt);
 }
 
 // Below a third of its hull your ship trails smoke and throws sparks.

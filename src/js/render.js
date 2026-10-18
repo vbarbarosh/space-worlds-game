@@ -272,6 +272,7 @@ function render()
     pack_render();
     render_hostile_marks();
     boss_render();
+    render_raider_trails();
     render_enemies();
     raider_jobs_render();
     race_render_rivals();
