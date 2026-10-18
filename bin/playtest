@@ -99,14 +99,17 @@ function run_table(run)
     const maxed = run.maxed ? `shop ran out at ${(run.maxed.run_time/60).toFixed(1)} min in ${run.maxed.world}` : 'shop never ran out';
     const lines = [`${run.mode} seed ${run.seed}: ${run.won ? 'won' : run.cut ? 'cut (time)' : 'lost'} · ${run.deaths} deaths · ${Math.round(run.run_time)} s · score ${run.score} · salvage left ${run.salvage_left} · ${maxed} · ${run.wall_seconds} s on the clock`];
     lines.push(`cards ${run.pick}: ${(run.cards || []).join(', ') || '-'} · route ${run.route_how}: ${(run.route || []).join(' > ')}`);
-    lines.push('world        hull lost (w1/w2/w3)   all dmg  kills  off-screen  salvage at depot  left after  deaths  time  goals  ship and guns  most from');
+    lines.push('world        hull lost (w1/w2/w3)   all dmg  kills  off-screen  salvage at depot  left after  deaths  time  goals  flagship  ship and guns  most from');
     for (const world of run.worlds) {
         const hull = world.waves.map(v => Math.round(v.hull)).join(' / ');
         const all = Math.round(world.waves.reduce((sum, v) => sum + v.hull + v.shield, 0));
         const sources = Object.entries(world.sources).sort((a, b) => b[1] - a[1]).slice(0, 2).map(v => `${v[0]} ${Math.round(v[1])}`).join(', ');
         // left after: the module levels and ships still to buy, and the salvage kept, after the depot
         const left = (world.levels_left === undefined) ? '-' : `${world.levels_left}+${world.ships_left} ◆${world.salvage_after_depot}`;
-        lines.push(`${world.name.padEnd(12)} ${hull.padEnd(22)} ${String(all).padStart(7)}  ${String(world.kills).padStart(5)}  ${String(world.off_screen).padStart(10)}  ${String(world.salvage_at_depot ?? '-').padStart(16)}  ${left.padStart(10)}  ${String(world.deaths).padStart(6)}  ${Math.round(world.time)} s  ${(world.goals || []).join(',') || '-'}  ${world.ship}: ${world.guns.join('+')}  ${sources}`);
+        // the flagship: the seconds it lived and the hull you lost meanwhile, over every try; how it ended
+        const f = world.flagship;
+        const flagship = f.time ? `${Math.round(f.time)} s ${Math.round(f.hull)} hp${f.escaped ? ' fled' : ''}` : '-';
+        lines.push(`${world.name.padEnd(12)} ${hull.padEnd(22)} ${String(all).padStart(7)}  ${String(world.kills).padStart(5)}  ${String(world.off_screen).padStart(10)}  ${String(world.salvage_at_depot ?? '-').padStart(16)}  ${left.padStart(10)}  ${String(world.deaths).padStart(6)}  ${Math.round(world.time)} s  ${(world.goals || []).join(',') || '-'}  ${flagship.padStart(8)}  ${world.ship}: ${world.guns.join('+')}  ${sources}`);
     }
     return lines.join('\n');
 }
@@ -159,7 +162,7 @@ function page_bot(options)
         if (current && (current.world === campaign.world)) {
             return current;
         }
-        const out = {world: campaign.world, name: worlds[campaign.world].name, ship: current_ship().id, guns: mounted_weapons().map(v => (v ? v.id : 'empty')), waves: [], sources: {}, kills: 0, off_screen: 0, deaths: 0, time: 0, salvage_at_depot: null, goals: [], earned: {}};
+        const out = {world: campaign.world, name: worlds[campaign.world].name, ship: current_ship().id, guns: mounted_weapons().map(v => (v ? v.id : 'empty')), waves: [], sources: {}, flagship: {time: 0, hull: 0, escaped: false}, kills: 0, off_screen: 0, deaths: 0, time: 0, salvage_at_depot: null, goals: [], earned: {}};
         B.worlds.push(out);
         return out;
     }
@@ -181,6 +184,9 @@ function page_bot(options)
             const lost = Math.max(0, hp0 - player.hp) + Math.max(0, shield0 - (player.shield || 0));
             entry.hull += Math.max(0, hp0 - player.hp);
             entry.shield += Math.max(0, shield0 - (player.shield || 0));
+            if (enemies.some(v => (v.type === 'boss') && (v.hp > 0))) {
+                world_entry().flagship.hull += Math.max(0, hp0 - player.hp);
+            }
             // where the hit came from: the function that called damage_player
             const caller = new Error().stack.split('\n').slice(2, 4).map(v => v.trim().split(' ')[1]).join('<');
             const sources = world_entry().sources;
@@ -425,6 +431,12 @@ function page_bot(options)
                 world_entry();
             }
             world_entry().time += 1/60;
+            if (enemies.some(v => (v.type === 'boss') && (v.hp > 0))) {
+                world_entry().flagship.time += 1/60;
+            }
+            if (arcade.flagship_escaped) {
+                world_entry().flagship.escaped = true;
+            }
             fly();
         }
         else if ((state === 'finale') && (finale.world >= 0)) {
