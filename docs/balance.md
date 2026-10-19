@@ -653,7 +653,7 @@ before rocks and the Relic processor.
 | | Arcade | Campaign |
 |---|---|---|
 | Elite | from the mode's first elite world, the leader of every second squadron from wave 2: hull ×3, size ×1.35, shield 40 + 25 × step, drops a repair kit or an EMP; a trick of its world (below) | the target of an `elite` stage: hull ×3.5 (at least 600), armour +12% (at most 72%), shield ×1.6 (at least 80), speed ×0.8; carries missiles in Haven |
-| Flagship | 1500 × (1 + 0.6 × step) hull × the design's factor of the step's world on the map's order (so any world's flagship at step 3 has Ion Reach's design) × its own duel's factor over its own design's, for its way to be won (so on the worlds' own order it is the duel's factor: Haven and Verdant 1, Dustfall 0.7, Ion Reach 3.2, Obsidian 3, Cryosphere 2.3, Nova Forge 1.5, Eclipse 4.5) (CHILL ×0.8, OVERLOAD ×1.25), × a card's factor; fights its world's duel (below); calls escorts and a last stand where its duel has it (66% and 33% for most); on OVERLOAD, overdrive at 15% | 10500 hull, 19000 in Eclipse; three times the world's shield |
+| Flagship | 1500 × (1 + 0.6 × step) hull × the design's factor of the step's world on the map's order (so any world's flagship at step 3 has Ion Reach's design) × its own duel's factor over its own design's, for its way to be won (so on the worlds' own order it is the duel's factor: Haven and Verdant 1, Dustfall 0.7, Ion Reach 2.6, Obsidian 3, Cryosphere 2.3, Nova Forge 1.5, Eclipse 4.5) (CHILL ×0.8, OVERLOAD ×1.25), × a card's factor; fights its world's duel (below); calls escorts and a last stand where its duel has it (66% and 33% for most); on OVERLOAD, overdrive at 15% | 10500 hull, 19000 in Eclipse; three times the world's shield |
 
 - Where: `arcade_elite_make`, `arcade_flagship_spawn`,
   `arcade_flagship_update` in `src/js/arcade.js`; `spawn_operation_enemy` in
@@ -708,7 +708,7 @@ before rocks and the Relic processor.
   | Haven, the Crescent | runs for the portal farthest from you 1.8 to 4.2 km off, there in 62, 46, 40 s unhurt (CHILL, NORMAL, OVERLOAD); each third of its hull lost slows it ×0.8 and opens it 2.5 s; at the gate it gets away: the wave goes on, no flagship bounty, the cleared screen says so | 2 s between attacks (the campaign's 1.1); two fans, then a wide fan, its ring and a fan; no strafe | 50%, no last stand |
   | Verdant, the Thorn Beetle | 2, 3, 3 nests 600 m round it, unarmed, a tenth of its hull each; while one stands grown, a shield round the Beetle stops every hit; at half its hull 1, 2, 2 more sprout, and the shield rises again 2.5 s later | as the campaign's | 50%, no last stand |
   | Dustfall, the Sawtooth | its blade lets half of a shot through; a charge that ends on a rock stuns it 4.5, 3.6, 3.2 s, hits ×2; the rock in its lane is lit while it winds up | saw charge, hatch missiles, charge, flak; then two charges in a row, more missiles; two lancers at half | 40%, no last stand |
-  | Ion Reach, the Storm Wheel | a shell of six plates with two gaps turns round its core at 0.32 rad/s and stops your shots; below half eight plates, two gaps, 0.45 rad/s, turning back every 6 s; lit lanes show the gaps | its spokes become arcs: lightning out to 700 m across each plate's side, 16 a hit and your pulse drained, safe in the gaps; no pods | 50%, no last stand |
+  | Ion Reach, the Storm Wheel | a shell of six plates with two gaps turns round its core at 0.32 rad/s and stops your shots; below half eight plates, two gaps, 0.45 rad/s, turning back every 6 s; lit lanes show the gaps | its spokes become arcs: lightning out to 700 m across each plate's side, 12 a hit and your pulse drained, safe in the gaps; no pods | 50%, no last stand |
   | Obsidian, the Iron Stair | stands still and turns its bow to you at 0.3 rad/s; armour stops your shots but at one weak point, each a quarter of its hull, opening in turn at its stern, a flank, the other flank, its bow; a broken one opens the hull 2 s | three rail sights, never five; they hold fire while you are more than 1.1 rad off its bow; 1.8 s between attacks | 50%, no last stand |
   | Cryosphere, the Frost Crystal | ice lets 15% of a hit through; it glows (×1.5) after its spiral, while it gathers its nova and 3 s after it, and while it roars at half | no plates; its nova gathers 2.4 s (the campaign's 1.4) | 66%, 33% |
   | Nova Forge, the Furnace | a ring of fire 1400 m round the fight closes to 620, 500, 440 m as it heats (75% of its hull lost and the time: 240 s, 150 s in its second half); outside it, 10 a hit and your guns heat 30 a second; it keeps inside | as the campaign's | 50%, 20% |
@@ -1189,6 +1189,23 @@ Each arcade world has its own size, station and rock pattern
 
 With those, the bot reached Eclipse in the cruiser in 10 runs of 12 (Free)
 and won 9 of 12 in Free (8 on the old map) and 6 of 12 on a Scroll lane (6).
+
+## The arcade's flagships against the author's runs
+
+The bot flies a flagship's duel as its pilot says (`boss_duel_pilot`) and so
+meets each about as well; it does not stand for a person. The author's play
+logs do: on 2026-10-18 (Overload) and 2026-10-19 (Standard), 4 of the 7
+deaths were to Ion Reach's Storm Wheel, met at the run's third or fourth step
+with twice Verdant's hull and its shell letting shots through the gaps only.
+Its hull factor came down from 3.2 to 2.6 and its arcs from 16 to 12 a hit;
+the bot's runs held (Free 8 of 12, Scroll 7 of 12, as before), the hull it
+lost to it about halved.
+
+Nova Forge's Furnace is light for its step on purpose (1.5): its ring closes in
+as the fight goes on, so a longer fight burns a slower pilot. At 2.6 the bot
+won 2 runs of 12, not 9. A full guns kit (the author's cruiser of four cannons)
+still takes it in seconds: what would slow that kit down without burning a
+weaker pilot is still open.
 
 ## Campaign pace
 

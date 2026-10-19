@@ -82,7 +82,9 @@ const boss_duels = [
     {
         kind: 'shell',
         line: 'A SHELL TURNS ROUND ITS CORE · SHOOT THROUGH THE GAPS',
-        hull: 3.2,
+        // 3.2 until 2026-10-19: met at the run's third or fourth step, it took 4 of the 7 deaths in the author's play
+        // logs (on Standard and Overload), its hull twice Verdant's and its shell letting shots through the gaps only
+        hull: 2.6,
         escorts: [0.5, 0],
         // the shell's slots, filled or a gap, and its turn (rad/s); the second half's turns back every `flip` seconds
         shell: [
@@ -95,8 +97,8 @@ const boss_duels = [
             ['arcs_long', 'volley', 'blink', 'arcs_long', 'volley', 'blink'],
         ],
         attacks: {
-            arcs: {kind: 'arcs', length: 700, tell: 1.3, time: 2.6, damage: 16, stall: 1.6},
-            arcs_long: {kind: 'arcs', length: 760, tell: 1.2, time: 3.2, damage: 16},
+            arcs: {kind: 'arcs', length: 700, tell: 1.3, time: 2.6, damage: 12, stall: 1.6},
+            arcs_long: {kind: 'arcs', length: 760, tell: 1.2, time: 3.2, damage: 12},
         },
         phase2: {title: 'THE SHELL SPINS UP', line: 'NARROWER GAPS · IT TURNS BACK AND FORTH · KEEP IN A GAP'},
     },
@@ -137,6 +139,8 @@ const boss_duels = [
     {
         kind: 'arena',
         line: 'THE FIRE CLOSES IN AS IT HEATS · STAY INSIDE THE RING',
+        // light for its step on purpose: its ring closes in as the fight goes on, so a longer one burns a slower pilot
+        // (at 2.6, about Cryosphere's, the bot won 2 of 12 runs, not 9; the author's cruiser of four cannons took it in 7 s)
         hull: 1.5,
         escorts: [0.5, 0.2],
         // the ring's radius cold and at full heat, by mode
