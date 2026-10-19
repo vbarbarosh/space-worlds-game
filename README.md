@@ -67,11 +67,13 @@ Three modes:
   strewn, in a band, a ring, a belt, columns or outcrops.
 
   The arcade comes in two kinds, picked on its menu row (T turns it): **Free**, as above, and **Scroll**, the same
-  run on a screen that moves on by itself, forward, left or right by the world, along a lane from one side of the
-  world to the other. Your ship flies anywhere in the view and the back edge pushes it on; the raiders come from
-  ahead and, once in, stay in the view. Waves 1 and 2 are flown over the lane's two halves (the screen waits at a
-  half's end for its wave, and hurries on between waves); the flagship comes where the lane ends, on a screen that
-  stands still. No portals, no wave-2 events, and the depot opens between worlds only. Each kind keeps its own best.
+  run on a screen that moves on by itself, up, down, left or right by the world, along a lane 12 to 16 km long (4 to
+  5 minutes), the world stretched along it with its rocks, caches, cliffs and storms spread along the way. Your ship
+  flies anywhere in the view and the back edge pushes it on; the raiders come from ahead and, once in, stay in the
+  view. The screen moves at one speed all the way: wave 1 comes over the lane's first half and wave 2 over its
+  second, squadron by squadron as the screen goes on, whatever is still fighting; it stops only where the lane ends,
+  for the flagship. No portals, no wave-2 events, and the depot opens between worlds only. Each kind keeps its own
+  best.
 - **Races**: ring races alone, at Easy, Normal or Hard, course after course
   from Haven through the eight worlds; the start ship, no raiders, the rocks
   as solid as ever. Two kinds: Steer, flown by hand, and Turbo, where the

@@ -279,7 +279,9 @@ function sync_arcade_card()
         const [value, unit] = hud_distance(distance(player, nearest));
         hud_html(document.getElementById('mc_distance'), `${value}<small>${unit}</small>`);
         // folded, the wave is said here (its name, or how many are near in a fight); unfolded, the card's kind says it
-        const eta = threat ? `${hud_near_count()} near` : duel ? duel.eta : hud_card_open ? `${left} left` : ui_sentence(arcade_wave_names[wave] || '');
+        // on a Scroll lane, with no fight on, how far the screen has yet to go to the flagship (arcade_scroll.js)
+        const to_end = (lane && !flagship && !arcade_scroll.held) ? hud_distance(arcade_scroll.length - arcade_scroll.s) : null;
+        const eta = threat ? `${hud_near_count()} near` : duel ? duel.eta : to_end ? `flagship in ${to_end.join(' ')}` : hud_card_open ? `${left} left` : ui_sentence(arcade_wave_names[wave] || '');
         hud_text(document.getElementById('mc_eta'), hud_card_open ? eta : `Wave ${wave}/${arcade_waves} · ${eta}`);
         const a = Math.atan2(nearest.y - player.y, nearest.x - player.x);
         document.getElementById('mc_arrow').style.transform = `rotate(${a + Math.PI/4}rad)`;

@@ -42,7 +42,13 @@ function generate_environment()
         recenter_mining_fields();
     }
     if ((campaign.world === 3) || (campaign.world === 6)) {
-        const positions = [
+        // round the station; on an arcade Scroll run's lane along it instead, one every 2.6 km, either side in turn
+        const lane = arcade.active && (arcade_scroll.kind === 'scroll');
+        const count = lane ? Math.round(arcade_shape().scroll/2600) : 0;
+        const positions = lane ? Array.from({length: count}, function (v, i) {
+            const p = arcade_lane_point((i + 0.5)*arcade_shape().scroll/count, ((i % 2) ? 1 : -1)*(350 + (i % 3)*150), world.w, world.h);
+            return [p.x - station.x, p.y - station.y];
+        }) : [
             [-1500, -1600],
             [1800, 900],
             [-1600, 1500],

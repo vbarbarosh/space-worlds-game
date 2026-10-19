@@ -1109,8 +1109,12 @@ const boss_duel_kinds = {
     },
     edge: {
         start: function (v, s, d) {
-            const hole = black_holes.reduce((best, h) => (!best || (distance(h, v) < distance(best, v))) ? h : best, null);
-            d.hole = hole || {x: clamp(v.x, 900, world.w - 900), y: clamp(v.y, 900, world.h - 900), radius: 700, strength: 0, virtual: true};
+            // on an arcade Scroll lane the hole is behind, beside the lane: the edge is a ring in the middle of the
+            // standing screen instead, as large as half the view's shorter side lets it be (arcade_scroll.js)
+            const lane = arcade_scroll_on() ? arcade_scroll_view() : null;
+            const hole = lane ? null : black_holes.reduce((best, h) => (!best || (distance(h, v) < distance(best, v))) ? h : best, null);
+            const ring = lane && {x: lane.x, y: lane.y, radius: clamp(Math.min(lane.w, lane.h)*0.5, 160, 700), strength: 0, virtual: true};
+            d.hole = hole || ring || {x: clamp(v.x, 900, world.w - 900), y: clamp(v.y, 900, world.h - 900), radius: 700, strength: 0, virtual: true};
             d.orbit = Math.atan2(v.y - d.hole.y, v.x - d.hole.x);
             d.side = (Math.random() < 0.5) ? -1 : 1;
             d.surge = 0;
@@ -1207,7 +1211,7 @@ const boss_duel_kinds = {
             }
             const h = d.hole;
             const a = Math.atan2(player.y - h.y, player.x - h.x);
-            return {title: 'Meet it at the hole\'s edge', line: 'Its dome opens only while you are there', target: boss_duel_at(h, a, h.radius*d.def.orbit), eta: 'dome shut', label: 'EDGE'};
+            return {title: h.virtual ? 'Meet it on the ring' : 'Meet it at the hole\'s edge', line: 'Its dome opens only while you are there', target: boss_duel_at(h, a, h.radius*d.def.orbit), eta: 'dome shut', label: 'EDGE'};
         },
         pilot: function (v, s, d) {
             // to the edge beside it, leaning out against the pull

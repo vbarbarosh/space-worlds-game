@@ -1148,30 +1148,42 @@ chooses the next world of two.
 ## The arcade's Scroll kind
 
 The arcade's second kind (`src/js/arcade_scroll.js`) flies the same run on a
-screen that moves on by itself, along a lane through each world. With no open
-space to spread the raiders out in, and every raider in the view within reach
-of its gun, the free arcade's numbers were too hard on a lane; these are the
-lane's own, each measured with the bot (`bin/playtest --kind=scroll`, NORMAL):
+screen that moves on by itself, up, down, left or right by the world (two
+worlds each), along a lane 12 to 16 km long: the world stretched along it, its
+rocks, caches, Dustfall's cliffs and the storms and flares spread along the way.
+The screen keeps one speed and stops only where the lane ends, for the
+flagship; the waves come by distance, squadron by squadron. Its own numbers,
+each measured with the bot (`bin/playtest --kind=scroll`, NORMAL, seeds 1–12):
 
 | On a lane | Value | In Free | Why |
 |---|---|---|---|
-| Raiders alive before the next squadron waits | 8 | 14 | 17 at once in Obsidian's and Eclipse's first waves |
-| Raider reload | ×1.35 | ×1 | shots were most of the damage, twice Free's |
+| The screen's pace | 54 m/s, all the way | - | one speed (the author: "it should always be the same"); it stops only at the lane's end |
+| A lane | 12 to 16 km (`scroll` in `arcade_shapes`) | - | 4 to 5 min; at 4.3 km it was over in a minute and a half ("about nothing", the author) |
+| A wave of a lane's half | Free's wave × the half's length / 2.3 km | - | its squadrons spread over the half, one as the screen gets far enough along for what is left |
+| Raiders alive before the next squadron waits | 12 | 14 | |
+| Raider reload | ×1.1 | ×1 | |
 | A bulwark's shield turn | ×0.6 | ×1 | the view's edges cut the circle round it short; a slow ship never got round, its wave held for hours of game time |
-| The lane's two stretches | 80 s | - | about as long as two waves take in Free; between waves the screen goes ×3 |
+| Rocks and caches along a lane | a field every 2 km, a cache every 1.8 km | 12 fields, 22 caches a world | a run earns about what it does in Free |
+| The radiation lining | refilled every 2.2 km (about 40 s) | at the station | no shelter to fly back to |
 
-A raider inside a black hole's reach is left to the hole, not held in the
-view (Eclipse's lane ends 650 m above it): held at the view's edge, it could
-neither fall in nor be reached. Farther from the hole (900 m) the bot won none
-of 12 runs: the raiders it swallows are much of the help there.
+The long lanes came out too easy or too hard by whole steps: with the short
+lanes' numbers (8 alive, reload ×1.35, a wave a 2.15 km, rocks and caches every
+700 and 400 m) the bot earned 2.5 times Free's and won 11 runs of 12, then all
+12 once its income was Free's; with Free's own (14, ×1) 2 of 12, all its deaths
+in Eclipse, whose raiders are the run's strongest. The numbers above win 6 of
+12, Eclipse still the hardest world, as in Free (8 of 12).
 
-Bot runs on 2026-10-19, seeds 1–6 a build: tank 6 of 6, mixed 5, evasion 2,
-guns 1 (14 of 24); Free, seeds 1–12, 8 of 12. With no room to dodge, the hull
-counts for more on a lane than in Free.
+Eclipse's hole stands beside its lane, 1.2 km off it, three quarters of the way
+along (the author: holes beside a lane, not across its end): passed during wave
+2, it bends shots and takes raiders. Its lane is 12 km, the shortest: at 15 km
+its second wave was 78 of the run's strongest raiders. Its flagship's dome opens
+at the edge of a ring in the middle of the standing screen, as large as the
+view lets it be, since the hole is behind by then. A raider inside a hole's
+reach is left to the hole, not held in the view: held at its edge, it could
+neither fall in nor be reached.
 
 Salvage the back edge reaches is carried along at it, not left behind: what a
-lane passes is its income, and with each piece left behind the bot reached
-Eclipse without the cruiser in every run.
+lane passes is its income.
 
 ## The arcade's world shapes
 

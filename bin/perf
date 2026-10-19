@@ -19,6 +19,11 @@ for (const zoom of [1, 0.5]) {
         scenes.push({value: `arcade-w${world}-z${zoom*100}`, kind: 'arcade', world, zoom});
     }
 }
+// An arcade Scroll run's long lane under way 3 km along (src/js/arcade_scroll.js), its world stretched with more on it:
+// Dustfall (its cliffs along the lane), Nova Forge (its flares), Eclipse (its hole beside the lane)
+for (const world of [2, 6, 7]) {
+    scenes.push({value: `scroll-w${world}`, kind: 'scroll', world, zoom: 1});
+}
 for (const buildings of [10, 50, 100]) {
     scenes.push({value: `campaign-w0-n${buildings}`, kind: 'campaign', world: 0, zoom: 1, buildings});
 }
@@ -503,7 +508,8 @@ function page_scene(scene)
     ui_timer = 0;
     explosion_seed = 1;
     difficulty = scene.difficulty;
-    if (scene.kind === 'arcade') {
+    if ((scene.kind === 'arcade') || (scene.kind === 'scroll')) {
+        arcade_kind_pick((scene.kind === 'scroll') ? 'scroll' : 'free');
         arcade_start(scene.world);
     }
     else {
@@ -575,10 +581,14 @@ function page_scene(scene)
     let spawned = 0;
     window.__perf.drive = function () {
         t += 1/60;
+        // a lane 3 km along: past its start, where Eclipse's planet by the depot costs as much as it does in Free
+        if ((scene.kind === 'scroll') && arcade_scroll_on() && (arcade_scroll.s < 3000)) {
+            arcade_scroll.s = 3000;
+        }
         player.hp = hull_max();
         player.radiation_dose = 0;
         player.energy = 100;
-        if (scene.kind !== 'arcade') {
+        if (!['arcade', 'scroll'].includes(scene.kind)) {
             patrol_timer = 60;
         }
         keys.clear();

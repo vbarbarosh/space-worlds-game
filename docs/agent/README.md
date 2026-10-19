@@ -171,7 +171,7 @@ Your part:
   `bin/captain dock` sends the pilot to the station; the depot opens as soon
   as its shield is down (no raider near the station), and `Launch` returns to the fight.
 - **A Scroll run** (the `Scroll` kind on the menu) is the same run on a screen
-  that moves on by itself, forward, left or right by the world: the ship stays
+  that moves on by itself, up, down, left or right by the world: the ship stays
   in the view, the raiders come from ahead, and the flagship waits where the
   lane ends. The depot opens between worlds only: mid-world, `dock` does
   nothing, and the pilot waits in the view's back half when the sky is clear.

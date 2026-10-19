@@ -76,11 +76,14 @@ function cliffs_generate()
             const a = (i/cliff_count)*Math.PI*2 + random()*0.7;
             const d = cliff_ring[0] + random()*(cliff_ring[1] - cliff_ring[0]);
             const r = cliff_size[0] + random()*(cliff_size[1] - cliff_size[0]);
-            // round the middle of the map, or where the world's shape sets the ring (arcade_shapes.js)
+            // round the middle of the map, or where the world's shape sets the ring (arcade_shapes.js); on a Scroll
+            // run's lane along it instead, either side in turn, each falling across the lane
             const middle = arcade_shape().cliffs || [0.5, 0.5];
-            const x = world.w*middle[0] + Math.cos(a)*d;
-            const y = world.h*middle[1] + Math.sin(a)*d*(world.h/world.w);
-            const fall = a + ((random() < 0.5) ? 1 : -1)*Math.PI/2 + (random() - 0.5)*0.6;
+            const lane = (arcade_scroll.kind === 'scroll') ? arcade_lane_point((i + 0.3 + random()*0.4)*arcade_shape().scroll/cliff_count, ((i % 2) ? 1 : -1)*(500 + random()*400), world.w, world.h) : null;
+            const across = lane && arcade_lane_point((i + 0.5)*arcade_shape().scroll/cliff_count, 0, world.w, world.h);
+            const x = lane ? lane.x : world.w*middle[0] + Math.cos(a)*d;
+            const y = lane ? lane.y : world.h*middle[1] + Math.sin(a)*d*(world.h/world.w);
+            const fall = lane ? Math.atan2(across.y - y, across.x - x) + (random() - 0.5)*0.6 : a + ((random() < 0.5) ? 1 : -1)*Math.PI/2 + (random() - 0.5)*0.6;
             const c = {rock: {x, y, r}, fall, rumble: 0, front: null, marks: 0, landed: 0, hit: [], crushed: 0, shape: [], rubble: []};
             const tip = cliff_point(c, r + cliff_reach, 0);
             if (![c.rock, tip].every(v => (Math.min(v.x, v.y, world.w - v.x, world.h - v.y) > r + 200))) {

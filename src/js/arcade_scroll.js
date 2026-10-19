@@ -1,45 +1,47 @@
 // The Arcade's second kind, Scroll (the menu's Arcade row: Free or Scroll, T turns it): the same run of eight worlds,
 // three waves, lives, depot and builds, flown on a screen that moves on by itself. Each world scrolls one way, forward
-// (up the screen), left or right (arcade_scroll_lanes), along a straight lane from near one edge of the world to near
-// the other; your ship flies anywhere inside the view, and the back edge pushes it on. The raiders come from ahead,
-// past the front edge, and fire only from inside the view; once in, none leaves it (the back edge carries it on), so
-// a wave is never left behind unseen. Wave 1 is flown over the lane's first half, wave 2 its second: the screen waits
-// at a stretch's end until its wave is down, and between waves hurries on to the next; the flagship comes only once
-// the lane has ended, on a screen that stands still, so a fight bound to a place (Obsidian's siege, Nova Forge's ring,
-// Eclipse's hole) is fought as in Free. No portals on a lane (they would throw you out of the view), and no wave-2
-// event (each is a chase across open space). The depot comes between worlds only: the lane passes the station, and
-// does not stop at it. With no shelter to fly back to, the radiation lining is refilled as each wave begins.
+// (up the screen), back (down it), left or right (arcade_scroll_lanes), along a straight lane 12 to 16 km long, the world stretched
+// along it (arcade_world_extent) with its rocks, caches, cliffs and storms spread along the way; your ship flies
+// anywhere inside the view, and the back edge pushes it on. The screen moves at one speed all the way and stops only
+// where the lane ends, for the flagship (the author, 2026-10-19: "the scroll speed should always be the same"). The
+// raiders come from ahead, past the front edge, and fire only from inside the view; once in, none leaves it (the back
+// edge carries it on). Wave 1 comes over the lane's first half, wave 2 over its second, each as the screen reaches
+// it, the raiders of the one before still fighting; the flagship comes where the lane ends, on a screen that stands
+// still, so a fight bound to a place (Obsidian's siege, Nova Forge's ring, Eclipse's hole) is fought as in Free. No
+// portals on a lane (they would throw you out of the view), and no wave-2 event (each is a chase across open space).
+// The depot comes between worlds only. With no shelter to fly back to, the radiation lining refills along the way.
 
 // The kinds as the menu names them, and the line under the cards
 const arcade_kinds = {
     free: {name: 'Free', note: 'Fly anywhere in the world; raiders come from every side; the station is the depot.'},
-    scroll: {name: 'Scroll', note: 'The screen moves on by itself, forward, left or right by the world; raiders come from ahead.'},
+    scroll: {name: 'Scroll', note: 'The screen moves on by itself, up, down, left or right by the world; raiders come from ahead.'},
 };
 // The ways a lane goes, as a heading on the screen
-const arcade_scroll_ways = {forward: {x: 0, y: -1}, left: {x: -1, y: 0}, right: {x: 1, y: 0}};
-// Each world's lane, Haven to Eclipse (campaign.world): its way, and where across the world it runs, a share of the
-// world's width (forward) or height (left, right), or (hole) this far above its black hole, wherever the world's shape
-// puts it (arcade_shapes.js). Dustfall's runs through the ring of its cliffs; Eclipse's ends 650 m above the hole, in
-// the ring where the flagship's dome opens, the core out of the view. Not farther: the raiders the hole swallows are
-// much of the help there, and 900 m above it the bot won none of 12 runs (650 m: 6 of 12)
+const arcade_scroll_ways = {forward: {x: 0, y: -1}, back: {x: 0, y: 1}, left: {x: -1, y: 0}, right: {x: 1, y: 0}};
+// Each world's lane, Haven to Eclipse (campaign.world): its way, two worlds each (the author: "not only left to
+// right"), and where across the world it runs, a share of the world's width (forward, back) or height (left, right).
+// Eclipse's hole stands beside its lane (hole: how far along it, a share, and how far to its side, m), not across its
+// end: passed on the way, as the author would have it, its pull bending shots and taking raiders that chase you
 const arcade_scroll_lanes = [
     {way: 'forward', across: 0.5},
     {way: 'right', across: 0.5},
-    {way: 'left', across: 0.5},
-    {way: 'left', across: 0.5},
-    {way: 'forward', across: 0.5},
+    {way: 'back', across: 0.5},
     {way: 'left', across: 0.5},
     {way: 'forward', across: 0.5},
-    {way: 'right', hole: 650},
+    {way: 'back', across: 0.5},
+    {way: 'right', across: 0.5},
+    {way: 'left', across: 0.5, hole: [0.75, -1200]},
 ];
 // The share of the lane each wave's stretch ends at: the first half, the second, and the flagship where it ends
 const arcade_scroll_stretches = [0.5, 1, 1];
-// The screen's pace, in m a second: one for every world, so a long world is a long lane (Nova Forge's 4.1 km about 75
-// s, Verdant's 8.3 km about 155 s); on the old 7.2 × 5.6 km map a lane of 4.3 km took 80 s, about as long as two
-// waves in Free
+// The screen's one pace, in m a second: a lane of 12 km about 3 min 40 s, of 16 km about 5 min
 const arcade_scroll_pace = 54;
-// Between waves the screen hurries on this many times its pace
-const arcade_scroll_hurry = 3;
+// A wave of a lane's stretch is the wave of a world in Free times its stretch over this many m: the raiders and what
+// they drop keep a run's income near Free's (over 2.15 km, a wave's raiders when the lanes were short, it was 2.5
+// times as much)
+const arcade_scroll_wave_m = 2300;
+// The radiation lining refills every this many m of the lane, about every 40 s
+const arcade_scroll_refill = 2200;
 // The lane's ends keep this far from the world's edges, so the view at either end shows the world, not past it
 const arcade_scroll_margin = 650;
 // Your ship keeps this far inside the view's edges, beyond its halo
@@ -50,10 +52,10 @@ const arcade_scroll_leash = 8;
 const arcade_scroll_ahead = 1400;
 // A squadron waits while this many raiders are alive on a lane (in Free, 14): with no open space to spread them out
 // in, a wave comes as a stream, not all at once (the bot lost Obsidian's and Eclipse's first waves to 17 at once)
-const arcade_scroll_crowd = 8;
+const arcade_scroll_crowd = 12;
 // A raider on a lane reloads this many times slower: every one of them is in the view, within reach of its gun, where
 // in Free most are not (Obsidian's and Eclipse's raiders shot the bot down twice as often on a lane)
-const arcade_scroll_reload = 1.35;
+const arcade_scroll_reload = 1.1;
 // A bulwark on a lane turns its shield to you this much slower (bulwark_turn): the view's edges cut short the circle
 // that takes you round to its back, and a slow ship (the bot's tank build, a gunship or cruiser) never got round it,
 // its wave held for hours of game time
@@ -62,8 +64,8 @@ const arcade_scroll_bulwark = 0.6;
 const arcade_scroll_spawn = 160;
 // kind: free or scroll, as the menu has it; on: a lane of a scroll run is flown; way: its heading; from: where the
 // view's middle starts; length: the lane's length; s: how far along it the view's middle is; pace: m a second;
-// held: the screen waits for the wave at its stretch's end
-const arcade_scroll = {kind: 'free', on: false, way: {x: 0, y: -1}, from: {x: 0, y: 0}, length: 0, s: 0, pace: 0, held: false};
+// held: the screen stands at the lane's end; refills: the lining's refills so far
+const arcade_scroll = {kind: 'free', on: false, way: {x: 0, y: -1}, from: {x: 0, y: 0}, length: 0, s: 0, pace: 0, held: false, refills: 0};
 
 for (const v of document.querySelectorAll('#intro [data-arcade-kind]')) {
     v.addEventListener('click', () => arcade_kind_pick(v.dataset.arcadeKind));
@@ -113,16 +115,15 @@ function arcade_scroll_world_start()
     const m = arcade_scroll_margin;
     arcade_scroll.way = way;
     if (way.y) {
-        arcade_scroll.from = {x: world.w*lane.across, y: world.h - m};
+        arcade_scroll.from = {x: world.w*lane.across, y: (way.y < 0) ? world.h - m : m};
         arcade_scroll.length = world.h - 2*m;
     }
     else {
-        // a lane by a hole ends at it, wherever the world's shape puts it
-        const hole = lane.hole && black_holes[0];
-        arcade_scroll.from = {x: (way.x > 0) ? m : world.w - m, y: hole ? clamp(hole.y - lane.hole, m, world.h - m) : world.h*lane.across};
-        arcade_scroll.length = hole ? Math.abs(hole.x - arcade_scroll.from.x) : world.w - 2*m;
+        arcade_scroll.from = {x: (way.x > 0) ? m : world.w - m, y: world.h*lane.across};
+        arcade_scroll.length = world.w - 2*m;
     }
     arcade_scroll.s = 0;
+    arcade_scroll.refills = 0;
     arcade_scroll.pace = arcade_scroll_pace;
     // nothing on a lane leaves the view at once: no portals, for you or the raiders; no course to the station
     portals = [];
@@ -151,18 +152,20 @@ function arcade_scroll_view()
     return {x: x + vw/2, y: y + vh/2, h: (way.y ? vh : vw)/2, w: (way.y ? vw : vh)/2};
 }
 
-// Each frame of a lane (update, before the camera): the screen moves on unless the wave holds it at its stretch's end,
-// then your ship is kept inside the view
+// Each frame of a lane (update, before the camera): the screen moves on at its one pace to the lane's end, the lining
+// refills along the way, then your ship is kept inside the view
 function arcade_scroll_update(dt)
 {
     if (!arcade_scroll_on()) {
         return;
     }
-    // a wave's stretch ends at its share of the lane; between waves the screen hurries on to the next
-    const between = arcade.pause > 0;
-    const end = arcade_scroll_end(arcade.wave + (between ? 1 : 0));
-    arcade_scroll.held = arcade_scroll.s >= end;
-    arcade_scroll.s = Math.min(end, arcade_scroll.s + arcade_scroll.pace*(between ? arcade_scroll_hurry : 1)*dt);
+    arcade_scroll.s = Math.min(arcade_scroll.length, arcade_scroll.s + arcade_scroll.pace*dt);
+    arcade_scroll.held = arcade_scroll.s >= arcade_scroll.length;
+    const refills = Math.floor(arcade_scroll.s/arcade_scroll_refill);
+    if (refills > arcade_scroll.refills) {
+        arcade_scroll.refills = refills;
+        player.radiation_dose = 0;
+    }
     arcade_scroll_keep(player, ship_halo() + arcade_scroll_inset, 0, true);
     arcade_scroll_pickups();
     // and never under the HUD's blocks (the bottom panel, the card, the minimap): where it would come under one it
@@ -196,10 +199,17 @@ function arcade_scroll_pickups()
     }
 }
 
-// Where wave n's stretch of the lane ends, in m along it
+// Where wave n's stretch of the lane ends, in m along it (0 before the first)
 function arcade_scroll_end(n)
 {
-    return arcade_scroll.length*arcade_scroll_stretches[clamp(n, 1, arcade_waves) - 1];
+    return (n < 1) ? 0 : arcade_scroll.length*arcade_scroll_stretches[Math.min(n, arcade_waves) - 1];
+}
+
+// The seconds to the lining's next refill on a lane (radiation_alert); none past the lane's end
+function arcade_scroll_refill_in()
+{
+    const next = (arcade_scroll.refills + 1)*arcade_scroll_refill;
+    return (next > arcade_scroll.length) ? null : (next - arcade_scroll.s)/arcade_scroll.pace;
 }
 
 // Whether wave n may begin (arcade_update): off a lane always; on one, once the screen has come to where the wave
@@ -207,6 +217,42 @@ function arcade_scroll_end(n)
 function arcade_scroll_ready(n)
 {
     return !arcade_scroll_on() || (arcade_scroll.s >= arcade_scroll_end(n - 1));
+}
+
+// The next wave of a lane comes as the screen reaches its stretch (arcade_update), whether the one before is down or
+// not: its raiders still fight on; true when it came
+function arcade_scroll_waves()
+{
+    if (!arcade_scroll_on() || (arcade.wave >= arcade_waves) || (arcade_scroll.s < arcade_scroll_end(arcade.wave))) {
+        return false;
+    }
+    arcade.pause = 0;
+    arcade_wave_start(arcade.wave + 1);
+    return true;
+}
+
+// Whether a lane's next squadron may come (arcade_squads_update): its wave's raiders are spread over its stretch, so
+// one comes only once the screen is far enough along it for what is still to come (a whole wave came in its first
+// 30 s, and the screen then flew 45 s through nothing); off a lane, always
+function arcade_scroll_squad_due()
+{
+    if (!arcade_scroll_on() || (arcade.wave >= arcade_waves)) {
+        return true;
+    }
+    const start = arcade_scroll_end(arcade.wave - 1);
+    const progress = clamp((arcade_scroll.s - start)/Math.max(1, arcade_scroll_end(arcade.wave) - start), 0, 1);
+    return spawn_left > (arcade.wave_total || 0)*(1 - progress) - 0.5;
+}
+
+// How many raiders a wave of a lane brings: the world's wave in Free (base) times its stretch over arcade_scroll_wave_m;
+// the flagship's wave as in Free
+function arcade_scroll_wave_size(n, base)
+{
+    if (!arcade_scroll_on() || (n >= arcade_waves)) {
+        return base;
+    }
+    const stretch = arcade_scroll_end(n) - arcade_scroll_end(n - 1);
+    return Math.round(base*stretch/arcade_scroll_wave_m);
 }
 
 // Keeps a ship within the view, `side` m in from its edges, and as far ahead as `ahead` past the front edge; for

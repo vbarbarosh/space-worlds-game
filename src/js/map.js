@@ -1,7 +1,7 @@
 function base_generate_map()
 {
     // the arcade's worlds have shapes of their own (arcade_shapes.js)
-    const extent = arcade.active ? arcade_shape().extent : world_extents[campaign.world];
+    const extent = arcade.active ? arcade_world_extent() : world_extents[campaign.world];
     world.w = extent[0];
     world.h = extent[1];
     scenery = [];
@@ -83,16 +83,21 @@ function base_generate_map()
     // the caches round the station, which is the map's middle but in the arcade (arcade_shapes.js); there as far out as
     // on its old 7.2 × 5.6 km map, so a run finds as much near where it starts whatever its world's shape (spread over
     // the map's middle, away from a station at an end or a rim, the bot's runs earned a quarter less)
-    const hub = arcade.active ? {x: world.w*arcade_shape().station[0], y: world.h*arcade_shape().station[1]} : {x: world.w/2, y: world.h/2};
+    // On a Scroll run's long lane they lie along it instead, one every arcade_lane_cache_gap
+    const station_at = arcade.active ? arcade_station_at() : [0.5, 0.5];
+    const hub = {x: world.w*station_at[0], y: world.h*station_at[1]};
     const reach = (arcade.active ? 5600 : Math.min(world.w, world.h))*0.37;
-    for (let i = 0; i < 22; ++i) {
+    const lane = arcade.active && (arcade_scroll.kind === 'scroll');
+    const caches = lane ? Math.round(arcade_shape().scroll/arcade_lane_cache_gap) : 22;
+    for (let i = 0; i < caches; ++i) {
         let x;
         let y;
         for (let j = 0; j < 60; ++j) {
             const a = (i/22)*Math.PI*2 + wave*0.35;
             const r = 550 + seeded()*reach;
-            x = clamp(hub.x + Math.cos(a)*r, 180, world.w - 180);
-            y = clamp(hub.y + Math.sin(a)*r, 180, world.h - 180);
+            const along = lane ? arcade_lane_point((i + seeded())*arcade_shape().scroll/caches, (seeded() - 0.5)*1600, world.w, world.h) : null;
+            x = clamp(along ? along.x : hub.x + Math.cos(a)*r, 180, world.w - 180);
+            y = clamp(along ? along.y : hub.y + Math.sin(a)*r, 180, world.h - 180);
             if (safe_point(x, y)) {
                 break;
             }
@@ -118,9 +123,9 @@ function base_generate_map()
             cache: true,
         });
     }
-    // twelve fields: the arcade's in its world's pattern (arcade_shapes.js), the campaign's strewn, the first near the
-    // station
-    const field_count = arcade.active ? arcade_field_total : 12;
+    // twelve fields: the arcade's in its world's pattern (arcade_shapes.js), along a Scroll run's lane one every
+    // arcade_lane_field_gap; the campaign's strewn, the first near the station
+    const field_count = !arcade.active ? 12 : lane ? Math.round(arcade_shape().scroll/arcade_lane_field_gap) : arcade_field_total;
     for (let i = 0; i < field_count; ++i) {
         let x;
         let y;

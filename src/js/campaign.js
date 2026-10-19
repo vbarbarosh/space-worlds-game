@@ -164,7 +164,7 @@ function visual_base_generate_map()
     current_sector().color = w.color;
     current_sector().mix = w.mix;
     // the campaign's station in the map's middle; the arcade's where its world's shape puts it (arcade_shapes.js)
-    const at = arcade.active ? arcade_shape().station : [0.5, 0.5];
+    const at = arcade.active ? arcade_station_at() : [0.5, 0.5];
     station = {x: world.w*at[0], y: world.h*at[1]};
     // A gate faces the world it leads to, as the galaxy chart draws it, 60% of the way to the map's edge
     // (docs/placement.md); the arcade has none: they lead nowhere there

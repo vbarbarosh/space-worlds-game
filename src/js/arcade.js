@@ -1,5 +1,5 @@
 // Arcade: one run through the eight worlds, three waves each, the world's flagship in the third; no stations, contracts or saves.
-const arcade = {active: false, world: -1, wave: 0, pause: 0, squad_timer: 0, squads: 0, phase: 0, slowmo: 0, depot_hint: false, marksman_hint: false, missile_hint: false, blasts: [], event: null, between_worlds: null, world_start: null, lives: 0, life_flash: 0, campaign_checkpoint: null, route: [0], seed: 0, cards: [], wind_used: false, flagship_escaped: false, owned: {}, fitted: [], reactor: 0, evade: 0};
+const arcade = {active: false, world: -1, wave: 0, pause: 0, squad_timer: 0, squads: 0, phase: 0, slowmo: 0, depot_hint: false, marksman_hint: false, missile_hint: false, blasts: [], event: null, between_worlds: null, world_start: null, lives: 0, life_flash: 0, campaign_checkpoint: null, route: [0], seed: 0, cards: [], wind_used: false, flagship_escaped: false, owned: {}, fitted: [], reactor: 0, evade: 0, wave_total: 0};
 const arcade_waves = 3;
 const arcade_radiation = 0.35;
 const arcade_wave_names = ['', 'SCOUTS', 'ASSAULT', 'FLAGSHIP'];
@@ -306,6 +306,10 @@ function arcade_update(dt)
         cliffs_hint();
         return;
     }
+    // on a Scroll lane the next wave comes as the screen reaches it, the one before down or not (arcade_scroll.js)
+    if (arcade_scroll_waves()) {
+        return;
+    }
     if (arcade.pause > 0) {
         // on a Scroll lane the next wave waits for the screen to reach its stretch (arcade_scroll.js)
         arcade.pause = arcade_scroll_ready(arcade.wave + 1) ? arcade.pause - dt : Math.max(arcade.pause, dt);
@@ -341,7 +345,9 @@ function arcade_wave_start(n)
     arcade.squads = 0;
     phase_index = n;
     phase_timer = 0;
-    spawn_left = arcade_wave_size(n);
+    // a Scroll lane's wave by the length of its stretch (arcade_scroll.js)
+    spawn_left = arcade_scroll_wave_size(n, arcade_wave_size(n));
+    arcade.wave_total = spawn_left;
     // a world begins clear of the last one's mines and packs
     if (n === 1) {
         raider_jobs_reset(false);
@@ -376,7 +382,7 @@ function arcade_squads_update(dt)
 {
     arcade.squad_timer -= dt;
     const alive = enemies.filter(v => v.hp > 0).length;
-    if ((spawn_left <= 0) || (arcade.squad_timer > 0) || (alive > (arcade_scroll_on() ? arcade_scroll_crowd : 14))) {
+    if ((spawn_left <= 0) || (arcade.squad_timer > 0) || (alive > (arcade_scroll_on() ? arcade_scroll_crowd : 14)) || !arcade_scroll_squad_due()) {
         return;
     }
     const size = Math.min(spawn_left, 3 + Math.min(3, Math.floor(arcade_level()/2)) + (arcade.wave - 1) + arcade_mode().squad);

@@ -8,6 +8,8 @@ const page_file = path.join(__dirname, '..', 'build', 'dev.html');
 const modes = [
     {value: '', label: 'campaign'},
     {value: '&screen=arcade', label: 'arcade'},
+    // an arcade Scroll run's long world, stretched along its lane (src/js/arcade_shapes.js)
+    {value: '&screen=arcade&kind=scroll', label: 'scroll'},
 ];
 // The rules of docs/placement.md, in metres
 const rules = {
@@ -28,7 +30,7 @@ const rules = {
 };
 const usage = `usage: bin/map-check
 
-    Opens every world of build/dev.html in the campaign and in the arcade, reads the map the game generated
+    Opens every world of build/dev.html in the campaign, in the arcade and on its Scroll lanes, reads the map the game generated
     (window.dev_state) and checks it against docs/placement.md: R's docking and jumping ranges and the portals'
     rings never touch, gates face the worlds they lead to and stand far out, portal pairs span a real distance and
     keep apart from each other and the station, no gravity well or solid lies on any of them; the campaign's race
@@ -50,7 +52,11 @@ async function main()
     const failures = [];
     try {
         const page = await browser.newPage({viewport: {width: 1280, height: 720}});
-        page.on('pageerror', v => failures.push(`page error: ${v.message}`));
+        // a page error counts as a failure and is said where it happens (it was counted and never shown)
+        page.on('pageerror', function (v) {
+            console.log(`FAIL page error: ${v.stack || v.message}`);
+            failures.push(`page error: ${v.message}`);
+        });
         for (const mode of modes) {
             for (let world = 0; world < 8; ++world) {
                 await page.goto(`file://${page_file}?world=${world}${mode.value}`);
