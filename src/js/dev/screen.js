@@ -290,6 +290,10 @@ function dev_screen_menu_open()
         set_hidden(el.continue_row, true);
     }
     menu_open();
+    // &kind=scroll: the Arcade row with Scroll picked
+    if (dev_scenario.kind === 'scroll') {
+        arcade_kind_pick('scroll');
+    }
     // &race_kind=turbo: the Races row with Turbo picked
     if (dev_race_params.get('race_kind')) {
         race_mode_kind_pick(dev_race_params.get('race_kind'));
@@ -653,5 +657,11 @@ function dev_screen_arcade_wave()
     }
     arcade.world = campaign.world;
     arcade.world_start = {score, kills, run_time};
+    // a Scroll run (&kind=scroll): its lane, the screen where the wave before ended
+    arcade_scroll_world_start();
+    if (arcade_scroll_on()) {
+        arcade_scroll.s = arcade_scroll_end(dev_screen_wave - 1);
+        update_camera(0, true);
+    }
     arcade_wave_start(dev_screen_wave);
 }

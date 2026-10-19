@@ -233,6 +233,8 @@ function update(dt, frame_dt = dt)
     if (!update_player_navigation(dt, previous_player)) {
         return;
     }
+    // an arcade lane of the Scroll kind moves the view on and keeps you in it (arcade_scroll.js)
+    arcade_scroll_update(dt);
     update_camera(dt);
     pointer.x = pointer.screen_x/zoom + camera.x;
     pointer.y = pointer.screen_y/zoom + camera.y;

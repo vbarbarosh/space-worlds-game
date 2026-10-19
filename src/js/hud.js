@@ -260,6 +260,8 @@ function sync_arcade_card()
     const threat = hud_threat();
     const flagship = enemies.some(v => (v.hp > 0) && (v.type === 'boss'));
     const at_depot = (distance(player, station) < station_reach) && !depot_shield_up();
+    // a Scroll lane does not stop at the depot: it opens between worlds (arcade_scroll.js)
+    const lane = arcade_scroll_on();
     const kind_el = document.getElementById('mc_kind');
     hud_text(kind_el, (arcade.pause > 0) ? `Wave ${wave} of ${arcade_waves} · clear` : `Wave ${wave} of ${arcade_waves} · ${ui_sentence(arcade_wave_names[wave] || '')}`);
     kind_el.classList.toggle('eyebrow--red', !!threat);
@@ -267,7 +269,7 @@ function sync_arcade_card()
     // a flagship's duel says how it is won (boss_duels.js)
     const duel = flagship ? boss_duel_card() : null;
     hud_text(document.getElementById('mc_title'), (arcade.pause > 0)
-        ? 'Wave clear: repair at the depot or wait for the next'
+        ? (lane ? 'Wave clear: the screen moves on to the next' : 'Wave clear: repair at the depot or wait for the next')
         : duel ? duel.title : flagship ? `Destroy the flagship of ${worlds[id].name}` : `Destroy ${left} raider${(left === 1) ? '' : 's'}`);
     const nearest = threat || duel?.target || enemies.filter(v => v.hp > 0).sort((a, b) => distance(a, player) - distance(b, player))[0];
     const dist = document.getElementById('mc_dist');
@@ -282,7 +284,7 @@ function sync_arcade_card()
         const a = Math.atan2(nearest.y - player.y, nearest.x - player.x);
         document.getElementById('mc_arrow').style.transform = `rotate(${a + Math.PI/4}rad)`;
     }
-    const key = threat ? 'fight' : at_depot ? 'depot' : 'calm';
+    const key = threat ? 'fight' : lane ? 'lane' : at_depot ? 'depot' : 'calm';
     if (key !== hud_card_key) {
         hud_card_key = key;
         const acts = document.getElementById('mc_acts');

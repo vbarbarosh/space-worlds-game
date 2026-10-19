@@ -486,13 +486,15 @@ function render_drifting_debris()
 }
 
 // One alert per threshold crossed on the way down, and one on arriving in a radioactive world; the alerts start over
-// once the shield is back above 60%. From 25% left the screen edge pulses, from 0% faster and red.
+// once the shield is back above 60%. From 25% left the screen edge pulses, from 0% faster and red. On an arcade
+// Scroll lane, where no station or gate is in reach, they say what refills it there: the next wave (arcade_scroll.js).
 function radiation_alert(rate)
 {
     const left = 100 - (player.radiation_dose || 0);
+    const lane = arcade_scroll_on();
     if (rate && (radiation_briefed_world !== campaign.world)) {
         radiation_briefed_world = campaign.world;
-        show_toast('RADIOACTIVE WORLD', `RAD SHIELD LASTS ABOUT ${format_time(left/rate)} OUT HERE · STATIONS RECHARGE IT`, 4);
+        show_toast('RADIOACTIVE WORLD', `RAD SHIELD LASTS ABOUT ${format_time(left/rate)} OUT HERE · ${lane ? 'IT REFILLS AS EACH WAVE BEGINS' : 'STATIONS RECHARGE IT'}`, 4);
     }
     if (left > 60) {
         player.radiation_alert = null;
@@ -503,7 +505,12 @@ function radiation_alert(rate)
         player.radiation_alert = level;
         const time = format_time(left/rate);
         const share = `SHIELD ${Math.round(left)}%`;
-        const alerts = {
+        const alerts = lane ? {
+            50: [`RADIATION · ${share}`, `ABOUT ${time} LEFT · IT REFILLS WITH THE NEXT WAVE`],
+            25: [`RADIATION DANGER · ${share}`, `ABOUT ${time} LEFT · CLEAR THE WAVE`],
+            10: [`RADIATION CRITICAL · ${share}`, 'THE HULL BURNS WHEN IT RUNS OUT · CLEAR THE WAVE'],
+            0: ['HULL EXPOSED', 'RADIATION IS BURNING THE HULL · UNTIL THE NEXT WAVE BEGINS'],
+        } : {
             50: [`RADIATION · ${share}`, `ABOUT ${time} LEFT · PLAN YOUR WAY OUT`],
             25: [`RADIATION DANGER · ${share}`, `ABOUT ${time} LEFT · HEAD FOR THE STATION OR A GATE`],
             10: [`RADIATION CRITICAL · ${share}`, 'LEAVE NOW · THE HULL BURNS WHEN IT RUNS OUT'],

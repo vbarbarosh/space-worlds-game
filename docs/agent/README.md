@@ -73,8 +73,9 @@ screen you read, or press by label.
 
 - **The menu**: a row opens in place, and only its button starts. `New campaign`
   then `Start campaign` for the story game; `Continue campaign` then `Play`
-  resumes a saved one. `Arcade` opens three difficulty tiles (`Chill`,
-  `Standard`, `Overload`), then `Start arcade` is the action game; see below.
+  resumes a saved one. `Arcade` opens its two kinds (`Free`, `Scroll`) and
+  three difficulty tiles (`Chill`, `Standard`, `Overload`), then `Start
+  arcade` is the action game; see below.
 - **At a station** (the screen is `upgrade_overlay`, and time stands still):
   - CONTRACTS lists the contracts you can take: `Accept`. You can
     hold up to three. A finished one is collected here with
@@ -169,6 +170,11 @@ Your part:
   Slipstream, the pulse and its reactor); each row says what it does here. Mid-world,
   `bin/captain dock` sends the pilot to the station; the depot opens as soon
   as its shield is down (no raider near the station), and `Launch` returns to the fight.
+- **A Scroll run** (the `Scroll` kind on the menu) is the same run on a screen
+  that moves on by itself, forward, left or right by the world: the ship stays
+  in the view, the raiders come from ahead, and the flagship waits where the
+  lane ends. The depot opens between worlds only: mid-world, `dock` does
+  nothing, and the pilot waits in the view's back half when the sky is clear.
 - **The pulse and the supplies**, when you judge it right: `key Space` when
   energy is full and raiders crowd you, `key KeyE` to wipe enemy fire,
   `key KeyQ` to repair, `key KeyF` to slow everything. The pilot also uses

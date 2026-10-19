@@ -3,7 +3,7 @@ function save_best()
     const previous = best;
     best = Math.max(best, score);
     try {
-        localStorage.setItem('pulse_drift_best', String(best));
+        localStorage.setItem(arcade_best_key(), String(best));
     }
     catch {
     }

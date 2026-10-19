@@ -6,6 +6,7 @@ const path = require('node:path');
 const {chromium} = require('playwright');
 
 const data_dir = path.join(__dirname, '..', 'data', 'playtest');
+const kinds = ['free', 'scroll'];
 const modes = ['chill', 'normal', 'overload'];
 const picks = ['boon', 'gamble', 'trade', 'random', 'none'];
 const routes = ['low', 'high', 'random'];
@@ -28,13 +29,14 @@ const builds = {
         'speed', 'pulse', 'reactor', 'dash', 'speed', 'homing', 'homing', 'dash',
     ],
 };
-const usage = `usage: bin/playtest [--mode=normal] [--seeds=1,2,3] [--label=name] [--page=build/index.html] [--minutes=20] [--gun=id] [--pick=boon] [--route=low] [--build=mixed|guns|tank|evasion|key,...]
+const usage = `usage: bin/playtest [--mode=normal] [--kind=free] [--seeds=1,2,3] [--label=name] [--page=build/index.html] [--minutes=20] [--gun=id] [--pick=boon] [--route=low] [--build=mixed|guns|tank|evasion|key,...]
 
     A bot plays arcade runs of build/index.html (a copy with a hook, in data/playtest/) in Chromium, on a virtual
     clock and a seeded Math.random, as fast as the machine allows, and counts per world and wave what a run costs.
 
     How it flies: it holds 320 m from the nearest raider and circles it, steps aside from shots coming at it, picks
-    up salvage when fewer than three raiders are close, keeps off the radiation at the edge; a flagship's duel it
+    up salvage when fewer than three raiders are close, keeps off the radiation at the edge (on a Scroll lane, off
+    the view's edges, and the salvage it picks up is in the view); a flagship's duel it
     flies as its pilot says (boss_duel_pilot). The pulse at three raiders within 380 m, a dash past a missile within
     220 m, the EMP at six within 550 m or below a third of its hull, stasis at eight, a repair kit below half. At the
     depot: a repair below 75% hull, two repair kits, then the build its reactor's power holds (src/js/arcade_power.js:
@@ -47,7 +49,11 @@ const usage = `usage: bin/playtest [--mode=normal] [--seeds=1,2,3] [--label=name
     A death with lives left starts the world again from its first wave, as the game's Retry does (arcade_retry); the
     last of the run's lives (arcade_lives, 3) ends it lost, as it ends the game's run. The run says when the shop ran
     out (the Aurora Cruiser owned and every module level owned, a launcher's modules only with the launcher): the
-    minute and the world. Results go to data/playtest/<label>/<mode>-<seed>.json, and a table per run is printed.
+    minute and the world. Results go to data/playtest/<label>/<mode>-<seed>.json (<mode>-scroll-<seed>.json for a
+    Scroll run), and a table per run is printed.
+
+    --kind plays the arcade's Free runs (the default) or its Scroll runs, on a screen that moves on by itself
+    (src/js/arcade_scroll.js).
 
     --minutes stops a run that takes longer than that on the wall clock, and says so.
     --gun buys that gun (plasma, scatter, ion, rail, missile, beam) at the first depot that can pay for it after a
@@ -67,11 +73,12 @@ cli(main);
 async function main()
 {
     const options = Object.fromEntries(process.argv.slice(2).map(v => v.replace(/^--/, '').split('=')));
-    if (Object.keys(options).some(v => !['mode', 'seeds', 'label', 'page', 'minutes', 'gun', 'pick', 'route', 'build'].includes(v)) || !picks.includes(options.pick || 'boon') || !routes.includes(options.route || 'low')) {
+    if (Object.keys(options).some(v => !['mode', 'kind', 'seeds', 'label', 'page', 'minutes', 'gun', 'pick', 'route', 'build'].includes(v)) || !kinds.includes(options.kind || 'free') || !picks.includes(options.pick || 'boon') || !routes.includes(options.route || 'low')) {
         console.log(usage);
         process.exit(2);
     }
     const mode = options.mode || 'normal';
+    const kind = options.kind || 'free';
     const seeds = (options.seeds || '1').split(',').map(Number);
     const minutes = Number(options.minutes || 20);
     if (!modes.includes(mode) || seeds.some(v => !Number.isInteger(v))) {
@@ -94,7 +101,7 @@ async function main()
             await page.addInitScript(page_clock);
             await page.goto(`file://${hooked}`);
             await page.waitForTimeout(400);
-            await page.evaluate(v => window.__t(v), `(${page_bot})(${JSON.stringify({mode, seed, gun: options.gun || null, pick: options.pick || 'boon', route: options.route || 'low', build: builds[options.build || 'mixed'] || options.build.split(',')})})`);
+            await page.evaluate(v => window.__t(v), `(${page_bot})(${JSON.stringify({mode, kind, seed, gun: options.gun || null, pick: options.pick || 'boon', route: options.route || 'low', build: builds[options.build || 'mixed'] || options.build.split(',')})})`);
             const time0 = Date.now();
             while (!await page.evaluate(() => window.__bot.done) && (Date.now() - time0 < minutes*60000)) {
                 await page.waitForTimeout(1000);
@@ -102,7 +109,7 @@ async function main()
             const run = await page.evaluate(() => window.__bot.report());
             run.wall_seconds = Math.round((Date.now() - time0)/1000);
             run.cut = !run.done;
-            fs.writeFileSync(path.join(out_dir, `${mode}-${seed}.json`), JSON.stringify(run, null, 1));
+            fs.writeFileSync(path.join(out_dir, `${mode}-${(kind === 'scroll') ? 'scroll-' : ''}${seed}.json`), JSON.stringify(run, null, 1));
             console.log(run_table(run));
             runs.push(run);
             await page.close();
@@ -119,7 +126,7 @@ async function main()
 function run_table(run)
 {
     const maxed = run.maxed ? `shop ran out at ${(run.maxed.run_time/60).toFixed(1)} min in ${run.maxed.world}` : 'shop never ran out';
-    const lines = [`${run.mode} seed ${run.seed}: ${run.won ? 'won' : run.cut ? 'cut (time)' : 'lost'} · ${run.deaths} deaths · ${Math.round(run.run_time)} s · score ${run.score} · salvage left ${run.salvage_left} · ${maxed} · ${run.wall_seconds} s on the clock`];
+    const lines = [`${run.mode}${(run.kind === 'scroll') ? ' scroll' : ''} seed ${run.seed}: ${run.won ? 'won' : run.cut ? 'cut (time)' : 'lost'} · ${run.deaths} deaths · ${Math.round(run.run_time)} s · score ${run.score} · salvage left ${run.salvage_left} · ${maxed} · ${run.wall_seconds} s on the clock`];
     lines.push(`cards ${run.pick}: ${(run.cards || []).join(', ') || '-'} · route ${run.route_how}: ${(run.route || []).join(' > ')}`);
     lines.push('world        hull lost (w1/w2/w3)   all dmg  kills  off-screen  salvage at depot  left after  power  deaths  time  flagship  ship and guns  most from');
     for (const world of run.worlds) {
@@ -210,8 +217,10 @@ function page_bot(options)
             if (enemies.some(v => (v.type === 'boss') && (v.hp > 0))) {
                 world_entry().flagship.hull += Math.max(0, hp0 - player.hp);
             }
-            // where the hit came from: the function that called damage_player
-            const caller = new Error().stack.split('\n').slice(2, 4).map(v => v.trim().split(' ')[1]).join('<');
+            // where the hit came from: the function that called damage_player, and from the update a ram or a shot and
+            // the raider's type
+            const cause = (typeof args[2] === 'string') ? ` ${args[2]}${args[3]?.type ? ` ${args[3].type}` : (args[3]?.from ? ` ${args[3].from}` : '')}` : '';
+            const caller = new Error().stack.split('\n').slice(2, 4).map(v => v.trim().split(' ')[1]).join('<') + cause;
             const sources = world_entry().sources;
             sources[caller] = (sources[caller] || 0) + lost;
         }
@@ -287,11 +296,22 @@ function page_bot(options)
         if (hostile.some(v => v.missile && (distance(v, player) < 220))) {
             dash();
         }
+        // on a Scroll lane (src/js/arcade_scroll.js) only what is in the view can be reached, and with nothing to do
+        // it waits in the view's back half
+        const lane = arcade_scroll_on();
+        const vw = W/zoom;
+        const vh = H/zoom;
         if (near(600) < 3) {
-            const pickup = pickups.reduce((best, v) => (!best || (distance(v, player) < distance(best, player))) ? v : best, null);
+            const reach = lane ? pickups.filter(v => !arcade_scroll_unseen(v)) : pickups;
+            const pickup = reach.reduce((best, v) => (!best || (distance(v, player) < distance(best, player))) ? v : best, null);
             if (pickup && (distance(pickup, player) < 900)) {
                 dx = pickup.x - player.x;
                 dy = pickup.y - player.y;
+            }
+            else if (!nearest && lane) {
+                const view = arcade_scroll_view();
+                dx = view.x - arcade_scroll.way.x*view.h*0.4 - player.x;
+                dy = view.y - arcade_scroll.way.y*view.h*0.4 - player.y;
             }
             else if (!nearest) {
                 dx = world.w/2 - player.x;
@@ -329,9 +349,16 @@ function page_bot(options)
                 }
             }
         }
-        const edge = 420;
-        dx += (player.x < edge) ? 2 : (player.x > world.w - edge) ? -2 : 0;
-        dy += (player.y < edge) ? 2 : (player.y > world.h - edge) ? -2 : 0;
+        if (lane) {
+            const edge = 160;
+            dx += (player.x < camera.x + edge) ? 2 : (player.x > camera.x + vw - edge) ? -2 : 0;
+            dy += (player.y < camera.y + edge) ? 2 : (player.y > camera.y + vh - edge) ? -2 : 0;
+        }
+        else {
+            const edge = 420;
+            dx += (player.x < edge) ? 2 : (player.x > world.w - edge) ? -2 : 0;
+            dy += (player.y < edge) ? 2 : (player.y > world.h - edge) ? -2 : 0;
+        }
         steer(dx, dy);
         if ((player.energy >= 100) && (near(380) >= 3)) {
             pulse();
@@ -526,7 +553,7 @@ function page_bot(options)
         }
     }
     B.report = function () {
-        return {mode: options.mode, seed: options.seed, gun: options.gun, pick: options.pick, route_how: options.route, cards: B.cards, route: (arcade.route || []).map(v => worlds[v].name), done: B.done, won: B.won, deaths: B.deaths, run_time, score, salvage_left: salvage, maxed: B.maxed, kit: {ship: current_ship().id, guns: mounted_weapons().map(v => (v ? v.id : 'empty')), upgrades: {...upgrades}, owned: {...arcade.owned}, power: [arcade_power_used(), arcade_power_capacity()]}, worlds: B.worlds};
+        return {mode: options.mode, kind: options.kind, seed: options.seed, gun: options.gun, pick: options.pick, route_how: options.route, cards: B.cards, route: (arcade.route || []).map(v => worlds[v].name), done: B.done, won: B.won, deaths: B.deaths, run_time, score, salvage_left: salvage, maxed: B.maxed, kit: {ship: current_ship().id, guns: mounted_weapons().map(v => (v ? v.id : 'empty')), upgrades: {...upgrades}, owned: {...arcade.owned}, power: [arcade_power_used(), arcade_power_capacity()]}, worlds: B.worlds};
     };
     const base_frame = frame;
     frame = function () {
@@ -547,6 +574,7 @@ function page_bot(options)
             window.requestAnimationFrame(frame);
         }
     };
+    arcade_kind_pick(options.kind);
     arcade_start(0);
     window.requestAnimationFrame(frame);
 }

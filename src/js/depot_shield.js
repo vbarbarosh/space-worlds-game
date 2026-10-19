@@ -5,10 +5,11 @@ const depot_shield_reach = station_size/2 + 900;
 const depot_shield_radius = station_size/2 + 60;
 const depot_shield = {level: 0, hits: []};
 
-// Raiders near the station: the shield is up
+// Raiders near the station: the shield is up; never on a Scroll lane, which passes the closed depot by
+// (arcade_scroll.js)
 function depot_shield_wanted()
 {
-    return arcade.active && enemies.some(v => (v.hp > 0) && (distance(v, station) < depot_shield_reach));
+    return arcade.active && !arcade_scroll_on() && enemies.some(v => (v.hp > 0) && (distance(v, station) < depot_shield_reach));
 }
 
 // Up, or rising: the depot is closed

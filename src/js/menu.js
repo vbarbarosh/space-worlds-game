@@ -56,7 +56,7 @@ addEventListener('keydown', on_menu_key);
 menu_controls_fill();
 
 // C, N, A, R, L, S and ? pick their row; the arrows move between the rows; 1 2 3 pick a difficulty in the open
-// Arcade or Races;
+// Arcade or Races, T its kind;
 // Enter plays the open row; Esc closes Load, Settings or Controls, or folds the open row
 function on_menu_key(event)
 {
@@ -79,7 +79,11 @@ function on_menu_key(event)
         menu_fold();
         return;
     }
-    // T turns the Races row's kind, Steer or Turbo
+    // T turns the open row's kind: the Arcade's Free or Scroll, the Races' Steer or Turbo
+    if ((menu_open_row === 'arcade') && (event.key.toLowerCase() === 't')) {
+        arcade_kind_pick((arcade_scroll.kind === 'scroll') ? 'free' : 'scroll');
+        return;
+    }
     if ((menu_open_row === 'races') && (event.key.toLowerCase() === 't')) {
         race_mode_kind_pick((race_mode.kind === 'turbo') ? 'steer' : 'turbo');
         return;
@@ -175,7 +179,7 @@ function menu_launch(mode)
     }
     menu_launching = true;
     menu_arcade.launch = 0;
-    const titles = {continue: document.getElementById('continue_title').textContent, campaign: 'New campaign', arcade: `Arcade · ${menu_arcade.level.name}`, races: `Races · ${race_mode_kinds[race_mode.kind].name} · ${race_mode_levels[race_mode.level].name}`};
+    const titles = {continue: document.getElementById('continue_title').textContent, campaign: 'New campaign', arcade: `Arcade · ${arcade_kinds[arcade_scroll.kind].name} · ${menu_arcade.level.name}`, races: `Races · ${race_mode_kinds[race_mode.kind].name} · ${race_mode_levels[race_mode.level].name}`};
     document.getElementById('menu_go_title').textContent = titles[mode];
     document.getElementById('intro').classList.add('launching');
     setTimeout(() => menu_start(mode), menu_launch_ms);

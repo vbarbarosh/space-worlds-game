@@ -1315,6 +1315,10 @@ boss_attack_kinds.surge = {
 // 3 km off, away from you, when none is
 function boss_duel_gate(v)
 {
+    // on an arcade Scroll lane: just past the front edge (arcade_scroll.js)
+    if (arcade_scroll_on()) {
+        return arcade_scroll_gate();
+    }
     let best = null;
     for (const p of portals) {
         const far = distance(p, v);

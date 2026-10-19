@@ -97,6 +97,11 @@ function update_camera(dt, snap = false)
         race_view_camera(dt, snap);
         return;
     }
+    // an arcade lane of the Scroll kind: the view moves on by itself (js/arcade_scroll.js)
+    if (arcade_scroll_on()) {
+        arcade_scroll_camera();
+        return;
+    }
     const vw = W/zoom;
     const vh = H/zoom;
     const tx = clamp(player.x - vw/2, 0, Math.max(0, world.w - vw));

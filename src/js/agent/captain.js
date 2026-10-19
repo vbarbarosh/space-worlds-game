@@ -81,10 +81,11 @@ function captain_news_since(n)
     return captain_news.filter(v => v.n > n);
 }
 
-// In the arcade: fly to the station and open the depot as soon as no raider is close.
+// In the arcade: fly to the station and open the depot as soon as no raider is close; not on a Scroll lane, where the
+// depot opens between worlds only (src/js/arcade_scroll.js)
 function captain_dock()
 {
-    captain_pilot.dock = arcade.active;
+    captain_pilot.dock = arcade.active && !arcade_scroll_on();
     return captain_pilot.dock;
 }
 
@@ -186,8 +187,12 @@ function captain_arcade_pilot()
         y += ((nearest.y - player.y)/d)*band + ((nearest.x - player.x)/d)*side*0.7;
     }
     else {
-        const pickup = pickups.filter(v => v.life > 0).sort((a, b) => distance(a, player) - distance(b, player))[0];
-        const target = pickup || station;
+        // on a Scroll lane (src/js/arcade_scroll.js) only what is in the view is in reach, and the place to wait is the
+        // view's back half, not the station
+        const lane = arcade_scroll_on();
+        const pickup = pickups.filter(v => (v.life > 0) && !(lane && arcade_scroll_unseen(v))).sort((a, b) => distance(a, player) - distance(b, player))[0];
+        const view = lane ? arcade_scroll_view() : null;
+        const target = pickup || (lane ? {x: view.x - arcade_scroll.way.x*view.h*0.4, y: view.y - arcade_scroll.way.y*view.h*0.4} : station);
         x += (target.x - player.x)/Math.max(1, distance(target, player));
         y += (target.y - player.y)/Math.max(1, distance(target, player));
     }
@@ -229,9 +234,12 @@ function captain_arcade_pilot()
         x += ((repair.x - player.x)/Math.max(1, distance(repair, player)))*2;
         y += ((repair.y - player.y)/Math.max(1, distance(repair, player)))*2;
     }
-    const margin = 400;
-    x += (player.x < margin) ? 1 : (player.x > world.w - margin) ? -1 : 0;
-    y += (player.y < margin) ? 1 : (player.y > world.h - margin) ? -1 : 0;
+    // off the world's edges; on a Scroll lane, off the view's
+    const lane_edges = arcade_scroll_on();
+    const margin = lane_edges ? 160 : 400;
+    const box = lane_edges ? {x: camera.x, y: camera.y, w: W/zoom, h: H/zoom} : {x: 0, y: 0, w: world.w, h: world.h};
+    x += (player.x < box.x + margin) ? 1 : (player.x > box.x + box.w - margin) ? -1 : 0;
+    y += (player.y < box.y + margin) ? 1 : (player.y > box.y + box.h - margin) ? -1 : 0;
     if ((player.hp < hull_max()*0.45) && supplies.medkit) {
         use_supply('medkit');
     }

@@ -110,6 +110,8 @@ function arcade_start(world = 0, from = null)
     if (from) {
         world = from.world;
         difficulty = from.difficulty;
+        // a save from before the kinds is a Free run
+        arcade_kind_pick(from.kind || 'free');
     }
     arcade.active = true;
     arcade.lives = Number.isFinite(from?.lives) ? clamp(Math.round(from.lives), 1, arcade_lives) : arcade_lives;
@@ -189,16 +191,18 @@ function arcade_snapshot()
         seed: arcade.seed,
         cards: arcade.cards.map(v => ({...v})),
         lives: arcade.lives,
+        kind: arcade_scroll.kind,
     };
 }
 
-// One line under the menu's difficulty switch on what the mode does.
+// One line under the menu's difficulty switch on what the mode does: one line in the row, so the row with its kind
+// cards above still leaves Load, Settings and Controls in a 1280x720 window
 function sync_mode_note()
 {
     document.getElementById('mode_note').textContent = {
         chill: 'Slower, weaker raiders; hits hurt a third less.',
-        normal: 'Arcade: every raider fires, squadrons are bigger, elites from Haven on, repairs mostly at the depot.',
-        overload: 'Faster, tougher raiders. Arcade: they grow with your weapon and drop no repairs; flagships go into overdrive.',
+        normal: 'Every raider fires; bigger squadrons, elites from Haven on.',
+        overload: 'Tougher raiders that grow with your gun; no repairs; overdrive.',
     }[difficulty] || '';
 }
 
@@ -207,10 +211,11 @@ function arcade_mode()
     return arcade_modes[difficulty] || arcade_modes.normal;
 }
 
-// A factor on a raider's reload: slower in the arcade for a missile (arcade_reloads), as it is for others
+// A factor on a raider's reload: slower in the arcade for a missile (arcade_reloads), as it is for others, and slower
+// on a Scroll lane (arcade_scroll_reload)
 function arcade_reload(enemy)
 {
-    return arcade.active ? (arcade_reloads[enemy.weapon] || 1)*arcade_card_k.raider_fire : 1;
+    return arcade.active ? (arcade_reloads[enemy.weapon] || 1)*arcade_card_k.raider_fire*(arcade_scroll_on() ? arcade_scroll_reload : 1) : 1;
 }
 
 // Whether a repair may drop: always outside the arcade; in it, as often as the mode allows.
@@ -245,6 +250,7 @@ function arcade_hull_scale(enemy)
 function arcade_stop()
 {
     arcade.active = false;
+    arcade_scroll.on = false;
     arcade.between_worlds = null;
     arcade_event_end();
     raider_jobs_reset();
@@ -265,6 +271,8 @@ function arcade_update(dt)
     depot_shield_update(dt);
     // raiders with jobs do them, the mines tick and the packs hunt (arcade_raiders.js, arcade_pack.js)
     raider_jobs_update(dt);
+    // on a Scroll lane the raiders left behind are held just out of sight (arcade_scroll.js)
+    arcade_scroll_raiders();
     // a broken cliff rumbles and falls, between waves too (arcade_cliffs.js)
     cliffs_update(dt);
     for (const enemy of enemies) {
@@ -293,12 +301,15 @@ function arcade_update(dt)
         arcade.world_start = {score, kills, run_time, snapshot: arcade_snapshot()};
         arcade_cards_world_start();
         arcade_gravity_world_start();
+        // a Scroll run: the world's lane, the view at its start and you at its back (arcade_scroll.js)
+        arcade_scroll_world_start();
         arcade_wave_start(1);
         cliffs_hint();
         return;
     }
     if (arcade.pause > 0) {
-        arcade.pause -= dt;
+        // on a Scroll lane the next wave waits for the screen to reach its stretch (arcade_scroll.js)
+        arcade.pause = arcade_scroll_ready(arcade.wave + 1) ? arcade.pause - dt : Math.max(arcade.pause, dt);
         if (arcade.pause <= 0) {
             arcade_wave_start(arcade.wave + 1);
         }
@@ -310,7 +321,7 @@ function arcade_update(dt)
     arcade_flagship_update();
     if (!arcade.depot_hint && (salvage > 0)) {
         arcade.depot_hint = true;
-        show_toast('SALVAGE ◆', 'SPEND IT AT THE STATION · FLY IN AND PRESS R', 3.5);
+        show_toast('SALVAGE ◆', arcade_scroll_on() ? 'SPEND IT AT THE DEPOT · AFTER THIS WORLD' : 'SPEND IT AT THE STATION · FLY IN AND PRESS R', 3.5);
     }
     if ((spawn_left > 0) || enemies.some(v => v.hp > 0)) {
         return;
@@ -339,7 +350,12 @@ function arcade_wave_start(n)
     if (n === arcade_waves) {
         arcade_flagship_spawn();
     }
-    if (n === 2) {
+    // a Scroll lane has no shelter to fly back to: the lining is full as each wave begins
+    if (arcade_scroll_on()) {
+        player.radiation_dose = 0;
+    }
+    // a wave-2 event is a chase across open space: none on a Scroll lane
+    if ((n === 2) && !arcade_scroll_on()) {
         arcade_event_start();
     }
     else {
@@ -355,12 +371,13 @@ function arcade_wave_size(n)
     return Math.round((10 + arcade_level() + (n - 1)*4 + arcade_mode().wave)*arcade_card_k.raiders);
 }
 
-// Raiders come in squadrons from one side, not one by one; a squadron waits while the sky is crowded.
+// Raiders come in squadrons from one side, not one by one; a squadron waits while the sky is crowded (on a Scroll
+// lane sooner: arcade_scroll_crowd).
 function arcade_squads_update(dt)
 {
     arcade.squad_timer -= dt;
     const alive = enemies.filter(v => v.hp > 0).length;
-    if ((spawn_left <= 0) || (arcade.squad_timer > 0) || (alive > 14)) {
+    if ((spawn_left <= 0) || (arcade.squad_timer > 0) || (alive > (arcade_scroll_on() ? arcade_scroll_crowd : 14))) {
         return;
     }
     const size = Math.min(spawn_left, 3 + Math.min(3, Math.floor(arcade_level()/2)) + (arcade.wave - 1) + arcade_mode().squad);
@@ -386,7 +403,10 @@ function arcade_squad_form(size)
 {
     const type = (arcade.wave === 1) ? ((Math.random() < 0.7) ? 'chaser' : 'shooter') : enemy_type();
     const pattern = arcade_squad_pattern(type, size);
-    const angle = Math.random()*Math.PI*2;
+    // on a Scroll lane a squadron comes from ahead, past the front edge, at a place across it (arcade_scroll.js)
+    const ahead = arcade_scroll_on() ? arcade_scroll_squad_spot(rand(-1, 1)) : null;
+    const angle = ahead ? ahead.angle : Math.random()*Math.PI*2;
+    const far = ahead ? ahead.far : 640;
     const elite = (arcade_level() >= arcade_mode().elite_world) && (arcade.wave >= 2) && ((arcade.squads % 2 === 1) || !!arcade_card_k.elites);
     arcade.squads++;
     if (pattern === 'ambush') {
@@ -394,20 +414,21 @@ function arcade_squad_form(size)
         return;
     }
     if ((pattern === 'wall') || (pattern === 'convoy')) {
-        arcade_squad_escorted(pattern, size, angle, elite);
+        arcade_squad_escorted(pattern, size, angle, elite, far);
         return;
     }
     const mix = arcade_squad_mix(type, size);
     // in Dustfall a share of them warp in under a cliff (arcade_cliffs.js), in one line
-    const spot = cliff_squad_spot();
+    const spot = !ahead && cliff_squad_spot();
     if (spot) {
         arcade_squad_line(type, size, Math.atan2(spot.y - player.y, spot.x - player.x), elite, mix, distance(spot, player));
         return;
     }
-    const sides = (pattern === 'pincer') ? [angle, angle + Math.PI] : [angle];
+    // a pincer: the line split to both sides of you; on a lane, to the two front corners
+    const sides = (pattern !== 'pincer') ? [{angle, far}] : ahead ? [arcade_scroll_squad_spot(-1), arcade_scroll_squad_spot(1)] : [{angle, far}, {angle: angle + Math.PI, far}];
     for (let i = 0; i < sides.length; ++i) {
         const count = (sides.length === 1) ? size : (i === 0) ? Math.ceil(size/2) : Math.floor(size/2);
-        arcade_squad_line(type, count, sides[i], elite && (i === 0), mix);
+        arcade_squad_line(type, count, sides[i].angle, elite && (i === 0), mix, sides[i].far);
     }
 }
 
@@ -458,11 +479,12 @@ function arcade_squad_line(type, size, angle, elite, mix = null, far = 640)
 }
 
 // A tank, two in a squadron of seven or more, leading the rest: a wall puts shooters in a row behind it, a convoy
-// puts chasers round it. They keep their places while their leader lives and you keep away (arcade_role_steer).
-function arcade_squad_escorted(pattern, size, angle, elite)
+// puts chasers round it, 640 m from you (or `far`). They keep their places while their leader lives and you keep away
+// (arcade_role_steer).
+function arcade_squad_escorted(pattern, size, angle, elite, far = 640)
 {
-    const cx = player.x + Math.cos(angle)*640;
-    const cy = player.y + Math.sin(angle)*640;
+    const cx = player.x + Math.cos(angle)*far;
+    const cy = player.y + Math.sin(angle)*far;
     const heading = angle + Math.PI;
     const leaders = (size >= 7) ? 2 : 1;
     const escorts = size - leaders;
@@ -508,9 +530,13 @@ function arcade_squad_ambush(size, elite)
     }
 }
 
-// The rocks a lancer can hide by: 450 to 1000 m from you, the nearest first
+// The rocks a lancer can hide by: 450 to 1000 m from you, the nearest first; on a Scroll lane, those ahead
+// (arcade_scroll_ambush_rocks)
 function arcade_ambush_rocks()
 {
+    if (arcade_scroll_on()) {
+        return arcade_scroll_ambush_rocks().sort((a, b) => distance(a, player) - distance(b, player));
+    }
     return ore_nodes.filter(v => (distance(v, player) > 450) && (distance(v, player) < 1000)).sort((a, b) => distance(a, player) - distance(b, player));
 }
 
@@ -526,7 +552,8 @@ function arcade_squad_warp(type, x, y, i)
 
 // A raider's way by its place in a squadron, after its type has chosen one (update): an escort keeps its place by its
 // leader, at the leader's pace, until the leader dies or you come within 300 m; an anchored raider stays put; a
-// lurker waits still, turned to you, until you come within 420 m, it is hit or 25 s pass; a raider with a job does it
+// lurker waits still, turned to you, until you come within 420 m, it is hit, 25 s pass or a Scroll lane's back edge
+// passes it (arcade_scroll_behind); a raider with a job does it
 // (raider_job_steer); a pack's raider hunts by its role (arcade_pack_steer). Turns the raider (angle) and returns how
 // fast it moves.
 function arcade_role_steer(v, move, d)
@@ -543,7 +570,7 @@ function arcade_role_steer(v, move, d)
         return raider_job_steer(v, move, d);
     }
     if (v.lurk) {
-        if ((d > 420) && (v.hp >= v.max_hp) && ((v.shield || 0) >= (v.max_shield || 0)) && (v.age < 25)) {
+        if ((d > 420) && (v.hp >= v.max_hp) && ((v.shield || 0) >= (v.max_shield || 0)) && (v.age < 25) && !arcade_scroll_behind(v)) {
             // a lancer charges at the end of its count: hold the count while it waits
             v.charge_cd = Math.max(v.charge_cd, 1.5);
             return 0;
@@ -667,6 +694,8 @@ function arcade_flagship_update()
 function arcade_flagship_spawn()
 {
     const enemy = spawn_enemy('boss');
+    // on a Scroll lane, ahead of you in the view
+    arcade_scroll_flagship(enemy);
     const scale = (difficulty === 'chill') ? 0.8 : (difficulty === 'overload') ? 1.25 : 1;
     // by the run's step, as the shop's factor on it (arcade_shop_flagship) is the step's: the design's factor of the
     // step's world in the map's order, so a flagship has the step's hull whichever world it is; times how much more its
@@ -784,9 +813,14 @@ function arcade_weapon_take(weapon)
 }
 
 // R at the station opens the depot, unless raiders are close: the depot is a shop, not a hiding place. From afar, R
-// sets the course to the station, as in the campaign.
+// sets the course to the station, as in the campaign. On a Scroll run it only says the depot comes between worlds.
 function arcade_interact()
 {
+    // a Scroll run's lane does not stop at the station: the depot opens between worlds
+    if (arcade_scroll_on()) {
+        show_toast('DEPOT', 'IT OPENS BETWEEN WORLDS · THE SCREEN MOVES ON', 2);
+        return;
+    }
     if (distance(player, station) > station_reach) {
         station_course();
         return;

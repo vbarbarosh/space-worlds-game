@@ -39,6 +39,8 @@ function dev_scenario_from_url()
         god: flag('god', true),
         energy: flag('energy', false),
         spawns: flag('spawns', false),
+        // the arcade's kind: kind=scroll for a run on a lane that scrolls by itself
+        kind: (params.get('kind') === 'scroll') ? 'scroll' : 'free',
     };
 }
 
@@ -60,6 +62,9 @@ function dev_scenario_save()
     params.set('god', dev_scenario.god ? '1' : '0');
     params.set('energy', dev_scenario.energy ? '1' : '0');
     params.set('spawns', dev_scenario.spawns ? '1' : '0');
+    if (dev_scenario.kind === 'scroll') {
+        params.set('kind', 'scroll');
+    }
     history.replaceState(null, '', `${location.pathname}?${params.toString()}`);
 }
 
@@ -116,6 +121,7 @@ function dev_scenario_start()
 function dev_arcade_start()
 {
     difficulty = dev_scenario.difficulty;
+    arcade_kind_pick(dev_scenario.kind);
     arcade_start(dev_scenario.world);
     dev_scenario_save();
     dev_panel_refresh();

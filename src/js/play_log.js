@@ -293,6 +293,8 @@ function play_log_session_start(mode, how)
         run: campaign.log_run,
         // the Races mode's own: easy, normal or hard
         difficulty: race_mode.active ? race_mode.level : difficulty,
+        // the arcade's Free or Scroll, the Races' Steer or Turbo
+        kind: arcade.active ? arcade_scroll.kind : race_mode.active ? race_mode.kind : null,
         game: {version: build_info.version, built: build_info.time},
         started: new Date().toISOString(),
         ended: null,

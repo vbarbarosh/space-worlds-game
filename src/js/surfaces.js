@@ -695,7 +695,7 @@ function render_world_station()
         ctx.drawImage(asset.layer, station.x - box/2, station.y - box/2, box, box);
     }
     depot_shield_draw();
-    world_label(station.x, station.y + station_size/2 + 70, arcade.active ? 'DEPOT' : w.station.toUpperCase(), arcade.active ? (depot_shield_up() ? 'Shielded · clear the raiders' : 'R repairs and weapons') : 'Station · R dock', w.accent);
+    world_label(station.x, station.y + station_size/2 + 70, arcade.active ? 'DEPOT' : w.station.toUpperCase(), arcade.active ? (arcade_scroll_on() ? 'Opens between worlds' : depot_shield_up() ? 'Shielded · clear the raiders' : 'R repairs and weapons') : 'Station · R dock', w.accent);
     ctx.restore();
 }
 

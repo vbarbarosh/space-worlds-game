@@ -254,7 +254,9 @@ const raider_job_ticks = {
     },
     // its shield turns to you, slower than you fly round it from close by
     bulwark: function (v, job, dt) {
-        job.aim = turn_toward(job.aim, Math.atan2(player.y - v.y, player.x - v.x), (bulwark_turn[difficulty] || bulwark_turn.normal)*dt);
+        // slower on an arcade Scroll lane, where there is less room to fly round it (arcade_scroll_bulwark)
+        const turn = (bulwark_turn[difficulty] || bulwark_turn.normal)*(arcade_scroll_on() ? arcade_scroll_bulwark : 1);
+        job.aim = turn_toward(job.aim, Math.atan2(player.y - v.y, player.x - v.x), turn*dt);
     },
     // in range, its bays glow, then two drones leave them; one more pair a while after, while it has room for them
     carrier: function (v, job, dt, d) {
@@ -327,7 +329,12 @@ const raider_job_ticks = {
             return;
         }
         job.t = sniper_gap[difficulty] || sniper_gap.normal;
+        const count = hostile.length;
         enemy_fire(v, job.aim);
+        // out of sight on an arcade Scroll lane it holds its fire (arcade_scroll_unseen): no slug
+        if (hostile.length === count) {
+            return;
+        }
         const slug = hostile[hostile.length - 1];
         slug.damage = sniper_damage*raider_hit_scale(v);
         slug.sniper = true;

@@ -60,6 +60,13 @@ Three modes:
   death costs one and retries its world from the first wave, as you began it;
   the last ends the run, its score against your best. A save keeps the score,
   salvage, gear and lives, and loading it starts its world again from the first wave.
+
+  The arcade comes in two kinds, picked on its menu row (T turns it): **Free**, as above, and **Scroll**, the same
+  run on a screen that moves on by itself, forward, left or right by the world, along a lane from one side of the
+  world to the other. Your ship flies anywhere in the view and the back edge pushes it on; the raiders come from
+  ahead and, once in, stay in the view. Waves 1 and 2 are flown over the lane's two halves (the screen waits at a
+  half's end for its wave, and hurries on between waves); the flagship comes where the lane ends, on a screen that
+  stands still. No portals, no wave-2 events, and the depot opens between worlds only. Each kind keeps its own best.
 - **Races**: ring races alone, at Easy, Normal or Hard, course after course
   from Haven through the eight worlds; the start ship, no raiders, the rocks
   as solid as ever. Two kinds: Steer, flown by hand, and Turbo, where the
@@ -99,7 +106,8 @@ Three modes:
                      minute each) and counts per world and wave the hull
                      lost, kills off the screen and salvage left, flying
                      a build of modules (--build=mixed, guns, tank or
-                     evasion); tables and JSON in data/playtest/
+                     evasion), Free or Scroll runs (--kind=scroll);
+                     tables and JSON in data/playtest/
     bin/play-log     a play log saved from the pause panel (Download play log)
                      as a report: time, income and spending per world, the
                      kit as it changed, when the shop ran out, deaths, frame
@@ -127,7 +135,7 @@ scene lives in the URL, e.g. `dev.html?world=3&ship=gunship&weapon=rail`; a worl
 `&screen=station-arsenal` (or flight, combat, arcade, crowded, pause, settings, menu,
 map-plan, ...; the list is in src/js/dev/screen.js) opens that screen with the
 panel folded; with `&screen=arcade`, `&wave=2` starts the world at that wave
-(e.g. `dev.html?world=dustfall&screen=arcade&wave=2`), and
+(e.g. `dev.html?world=dustfall&screen=arcade&wave=2`), `&kind=scroll` makes it a Scroll run, on the world's lane, and
 `&raiders=sniper,bulwark` brings a pack of three chasers and one raider of each kind named (interceptor,
 carrier, bulwark, sniper, minelayer) 640 m ahead.
 `&card_hud=1` puts cards in force over the gauges.

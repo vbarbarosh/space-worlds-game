@@ -12,6 +12,9 @@ const screens = [
     {value: 'flight', label: 'hud-calm', phone: true},
     {value: 'combat', label: 'hud-combat', phone: true},
     {value: 'arcade', label: 'hud-arcade', phone: true},
+    // a Scroll run's lane (src/js/arcade_scroll.js): Haven's, forward; Eclipse's flagship where its lane ends, by the hole
+    {value: 'arcade', label: 'hud-arcade-scroll', query: '&kind=scroll', phone: true},
+    {value: 'arcade', label: 'hud-arcade-scroll-edge', world: 'eclipse', query: '&kind=scroll&wave=3', phone: true},
     // the flagships' duels' cards and markers (src/js/boss_duels.js), each at its third wave
     {value: 'arcade', label: 'hud-arcade-chase', world: 'haven', query: '&wave=3', phone: true},
     {value: 'arcade', label: 'hud-arcade-nests', world: 'verdant', query: '&wave=3', phone: true},
@@ -104,6 +107,8 @@ const screens = [
     // tallest the rows get); a first launch, with no game to continue and no slots
     {value: 'menu', label: 'main-menu', query: '&slots=1', phone: true},
     {value: 'menu', label: 'main-menu-arcade', query: '&slots=1&row=arcade', phone: true},
+    // with Scroll picked: its card lit, its longer line under the cards
+    {value: 'menu', label: 'main-menu-arcade-scroll', query: '&slots=1&row=arcade&kind=scroll', phone: true},
     {value: 'menu', label: 'main-menu-first', query: '&save=none', phone: true},
     // Load (six slots, the longest names), Settings and Controls: beside the rows, or a panel over them in a narrow window
     {value: 'menu', label: 'main-menu-load', query: '&slots=1&row=load', phone: true},

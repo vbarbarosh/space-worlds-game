@@ -235,6 +235,9 @@ its edges and says each thing once, in the least room and for the least time.
 - **Text in the world** (`label` in `src/js/combat.js`) does not pile up: the
   same text close by starts again, amounts of the same thing add up (+6 and
   +4 make +10), another text stands a line above.
+- **A view that moves on its own** (a race's, an arcade Scroll lane's) never
+  puts the ship under a block of the HUD: where it would come under one, the
+  ship slides out toward the middle of the screen (`race_view_place`).
 - No setting for any of it: one HUD, as clear as it can be.
 - Where it lives: `src/js/hud.js`, `src/css/hud-ui.css`, the layout section of
   `src/css/ui-kit.css`; `bin/layout-check` holds the crowded screen (`crowded`:

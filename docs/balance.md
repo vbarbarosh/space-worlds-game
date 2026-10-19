@@ -13,6 +13,8 @@ Two modes share one combat core and differ in tuning:
   [The arcade's route and cards](#the-arcades-route-and-cards)), so its
   numbers go by the run's **step** (0 for the first world flown to 7 for
   Eclipse), which is the world's index on the map's order.
+  Its Scroll kind, on a screen that moves on by itself, has a few numbers of
+  its own ([The arcade's Scroll kind](#the-arcades-scroll-kind)).
 - **Campaign** (stations, contracts, trade): raiders come in patrols, the
   world's armour and shields are met at full strength, and the pace is set by
   contracts and ranks.
@@ -1142,6 +1144,30 @@ chooses the next world of two.
   early or late ended there more often than not (above), and before the
   flagship's hull went by the step, Ion Reach flown third had a flagship of
   26 730 and ended three runs of eight.
+
+## The arcade's Scroll kind
+
+The arcade's second kind (`src/js/arcade_scroll.js`) flies the same run on a
+screen that moves on by itself, along a lane through each world. With no open
+space to spread the raiders out in, and every raider in the view within reach
+of its gun, the free arcade's numbers were too hard on a lane; these are the
+lane's own, each measured with the bot (`bin/playtest --kind=scroll`, NORMAL):
+
+| On a lane | Value | In Free | Why |
+|---|---|---|---|
+| Raiders alive before the next squadron waits | 8 | 14 | 17 at once in Obsidian's and Eclipse's first waves |
+| Raider reload | ×1.35 | ×1 | shots were most of the damage, twice Free's |
+| A bulwark's shield turn | ×0.6 | ×1 | the view's edges cut the circle round it short; a slow ship never got round, its wave held for hours of game time |
+| The lane's two stretches | 80 s | - | about as long as two waves take in Free; between waves the screen goes ×3 |
+
+A raider inside a black hole's reach is left to the hole, not held in the
+view (Eclipse's lane ends 650 m above it): held at the view's edge, it could
+neither fall in nor be reached. Farther from the hole (900 m) the bot won none
+of 12 runs: the raiders it swallows are much of the help there.
+
+Bot runs on 2026-10-19, seeds 1–6 a build: tank 6 of 6, mixed 5, evasion 2,
+guns 1 (14 of 24); Free, seeds 1–12, 8 of 12. With no room to dodge, the hull
+counts for more on a lane than in Free.
 
 ## Campaign pace
 
