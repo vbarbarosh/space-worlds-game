@@ -582,7 +582,8 @@ function raider_target_past_shield(target)
     let near = far;
     for (const v of enemies) {
         const d = distance(v, player);
-        if ((v !== target) && (v.hp > 0) && (d < near) && !raider_shield_faces(v, player)) {
+        // on a Scroll lane only one on the screen (the guns' rule, update.js)
+        if ((v !== target) && (v.hp > 0) && (d < near) && !raider_shield_faces(v, player) && (!arcade_scroll_on() || in_view(v, 0))) {
             best = v;
             near = d;
         }

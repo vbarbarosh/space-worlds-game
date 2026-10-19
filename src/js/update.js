@@ -242,14 +242,26 @@ function update(dt, frame_dt = dt)
     update_camera(dt);
     pointer.x = pointer.screen_x/zoom + camera.x;
     pointer.y = pointer.screen_y/zoom + camera.y;
+    // The guns aim at what is on the screen first, as zoomed now (the author, 2026-10-20: on a Scroll lane they fired
+    // past its edge): the nearest raider in view, one out of it only when none is in it, and on a lane never
+    const lane = arcade_scroll_on();
     let target = null;
     let near = Infinity;
+    let seen = false;
     for (let i = 0, end = enemies.length; i < end; ++i) {
         const v = enemies[i];
+        if (v.hp <= 0) {
+            continue;
+        }
+        const visible = in_view(v, 0);
+        if (lane && !visible) {
+            continue;
+        }
         const d = distance(v, player);
-        if ((d < near) && (v.hp > 0)) {
+        if ((visible && !seen) || ((visible === seen) && (d < near))) {
             near = d;
             target = v;
+            seen = visible;
         }
     }
     // the guns pass over an arcade bulwark that has its shield to you, for a raider they can hurt (arcade_raiders.js)
@@ -265,7 +277,7 @@ function update(dt, frame_dt = dt)
         for (const piece of drifting_debris) {
             const d = distance(piece, player);
             const closing = ((player.x - piece.x)*(piece.vx - player.vx) + (player.y - piece.y)*(piece.vy - player.vy)) > 0;
-            if ((d < 450) && closing && (d < near)) {
+            if ((d < 450) && closing && (d < near) && (!lane || in_view(piece, 0))) {
                 near = d;
                 target = piece;
             }
@@ -276,7 +288,7 @@ function update(dt, frame_dt = dt)
         for (let i = 0; i < ore_nodes.length; ++i) {
             const v = ore_nodes[i];
             const d = distance(v, player);
-            if ((v.hp > 0) && (d < 650) && (d < near) && ((v.type !== 'cliff') || cliff_idle_target(v))) {
+            if ((v.hp > 0) && (d < 650) && (d < near) && ((v.type !== 'cliff') || cliff_idle_target(v)) && (!lane || in_view(v, 0))) {
                 near = d;
                 target = v;
             }
