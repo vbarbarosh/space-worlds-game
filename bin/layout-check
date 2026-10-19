@@ -36,9 +36,14 @@ const screens = [
     {value: 'arcade-cleared', label: 'arcade-cleared'},
     // the depot before the next world (src/js/arcade_power.js): nothing installed, the reactor's power empty; a gunship's
     // power full with levels owned left spare (No power), and those levels after a Wisp Scout is taken, its smaller
-    // reactor taking the newest out, said under the filters; every module's row with its power, pips and Remove/Install
-    {value: 'arcade-depot', label: 'arcade-depot', world: 'dustfall', phone: true},
-    {value: 'arcade-depot', label: 'arcade-depot-full', world: 'ion-reach', query: '&ship=gunship&modules=damage:3,armor:2,shield:2,spread:1,rate:1,drone:2,magnet:3', phone: true},
+    // reactor taking the newest out, said under the filters; every module's row with its power, pips and Remove/Install.
+    // hover: the pointer runs over every item, and nothing of the depot may move or change size meanwhile (the salvage
+    // after a purchase, Need, the ship's preview fit the room kept for them): with little salvage (Need on most), and
+    // with the header at its widest (long), where an "after 12 310" wider than its room once widened the wallet and
+    // wrapped the title a line (the author's depot after Ion Reach, 2026-10-19)
+    {value: 'arcade-depot', label: 'arcade-depot', world: 'dustfall', phone: true, hover: true},
+    {value: 'arcade-depot', label: 'arcade-depot-full', world: 'ion-reach', query: '&ship=gunship&modules=damage:3,armor:2,shield:2,spread:1,rate:1,drone:2,magnet:3', phone: true, hover: true},
+    {value: 'arcade-depot', label: 'arcade-depot-long', world: 'ion-reach', query: '&ship=gunship&long=1', phone: true, hover: true},
     {value: 'arcade-depot', label: 'arcade-depot-swap', world: 'ion-reach', query: '&ship=gunship&modules=damage:3,armor:2,shield:2,spread:1,rate:1,drone:2,magnet:3&swap=scout', phone: true},
     // the break between worlds (src/js/arcade_break.js): three cards; the longest texts with a price out of reach; a
     // gamble won in the world just cleared; the next world of two on the route's map, after a route of its own; one
@@ -142,7 +147,7 @@ const usage = `usage: bin/layout-check [screen...]
     the arcade's cleared screens at three phone sizes too (two upright, one on its side), and checks the
     interface holds together: HUD blocks do not overlap, panels stay in the window, every button of the screen
     on top is whole on screen and clear of the others, no control cuts its own text, no text sticks out of its
-    box, the page never scrolls sideways. Screenshots and report.json go to data/layout-check/.
+    box, the page never scrolls sideways; on the depot, nothing moves as the pointer runs over its items. Screenshots and report.json go to data/layout-check/.
     Exits 1 on any failure.
 
     screens: ${[...new Set(screens.map(v => v.value))].join(', ')}`;
@@ -175,8 +180,10 @@ async function main()
                 await page.screenshot({path: shot});
                 const audit = await page.evaluate(layout_audit, selectors);
                 const under = screen.ship ? await page.evaluate(ship_audit) : [];
+                const jumps = screen.hover ? await page.evaluate(hover_audit) : [];
                 const failures = [
                     ...under.map(v => `ship under ${v}`),
+                    ...jumps.map(v => `jump ${v}`),
                     ...audit.overlap.map(v => `overlap ${v}`),
                     ...audit.offscreen.map(v => `off ${v}`),
                     ...audit.cut.map(v => `cut ${v}`),
@@ -199,6 +206,32 @@ async function main()
     if (failed) {
         process.exit(1);
     }
+}
+
+// Runs in the page: the depot's blocks that move or change size as the pointer runs over the items of its list, each
+// with the first item that moved it; the depot's own mouseover is what the pointer sets off, and the layout is read
+// back at once after each
+function hover_audit()
+{
+    const watched = ['.depot-top', '.depot-top > *', '.depot-filters', '#arcade_depot_list', '.depot-side', '.depot-side > *'];
+    const blocks = watched.flatMap(v => [...document.querySelectorAll(`#arcade_depot ${v}`)].map((vv, i) => ({name: `${v}${(i > 0) ? `[${i}]` : ''}`, element: vv})));
+    function box(v) {
+        const r = v.getBoundingClientRect();
+        return [r.left, r.top, r.width, r.height].map(Math.round).join(',');
+    }
+    const before = blocks.map(v => box(v.element));
+    const moved = new Map();
+    for (const item of document.querySelectorAll('#arcade_depot_list [data-item]')) {
+        item.dispatchEvent(new MouseEvent('mouseover', {bubbles: true}));
+        for (const [i, v] of blocks.entries()) {
+            const now = box(v.element);
+            if ((now !== before[i]) && !moved.has(v.name)) {
+                moved.set(v.name, `${v.name} [${before[i]} → ${now}] on ${item.dataset.item}`);
+            }
+        }
+    }
+    document.getElementById('arcade_depot_list').dispatchEvent(new MouseEvent('mouseleave'));
+    return [...moved.values()];
 }
 
 // Runs in the page: the HUD's blocks (and the window's edges) your ship's halo comes under; the news line and the

@@ -44,7 +44,8 @@ const dev_screen_play_log = new URLSearchParams(location.search).get('play_log')
 // &t=7.5 holds the finale (or a world's cleared screen) at one moment
 const dev_screen_time = new URLSearchParams(location.search).get('t');
 // &lives=n: the arcade's lives (with &screen=arcade, the ones lost blinking as after a retry), or those left after the
-// death of arcade-lost; &long=1 gives arcade-lost and arcade-over a very long world name and a huge score
+// death of arcade-lost; &long=1 gives arcade-lost and arcade-over a very long world name and a huge score, and the
+// depot (arcade-depot) its header at its widest
 const dev_screen_lives = new URLSearchParams(location.search).get('lives');
 const dev_screen_long = new URLSearchParams(location.search).get('long') === '1';
 // &save=none, &slots=1 and &row=arcade: the menu with no game to continue, with saved slots (its Load row), with a row
@@ -424,6 +425,14 @@ function dev_screen_depot_open()
     fleet.ship_id = dev_scenario.ship;
     player.r = current_ship().radius;
     salvage = 375;
+    // &long=1: the header at its widest: a seven-digit score, raiders and time in the thousands, salvage in five digits
+    if (dev_screen_long) {
+        arcade.world_start = {score: 0, kills: 0, run_time: 0};
+        score = 9876543;
+        kills = 1337;
+        run_time = 3599;
+        salvage = 12345;
+    }
     arcade_world_clear();
     dev_screen_modules_set();
     finale_leave('depot');

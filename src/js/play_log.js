@@ -329,7 +329,9 @@ function play_log_session_end(reason)
     if (!play_log_session) {
         return;
     }
-    play_log_record_close();
+    // another game started: its reset has already set the salvage to its own start, so what the old one had left is not
+    // salvage spent (it was the old game's end: an arcade run scores it, a campaign keeps it in its save)
+    play_log_record_close(reason === 'another game started');
     play_log_session.ended = new Date().toISOString();
     play_log_session.end_reason = reason;
     play_log_index.open = null;
@@ -409,8 +411,9 @@ function play_log_tally_reset()
 }
 
 // The record of what was counted since the last; null when nothing was. Salvage or XP that moved past the hooks
-// shows as 'unlogged', so the sums always match the balance
-function play_log_record_make(partial)
+// shows as 'unlogged', so the sums always match the balance; but not after a reset (play_log_record_close): the
+// balance then is another game's, and the record keeps the old game's as the hooks counted it
+function play_log_record_make(partial, reset = false)
 {
     const v = play_log_tally;
     if ((v.s < 0.5) && !v.deaths) {
@@ -418,7 +421,9 @@ function play_log_record_make(partial)
     }
     const earned = {...v.earned};
     const spent = {...v.spent};
-    const drift = salvage - play_log_salvage_expected;
+    const drift = reset ? 0 : salvage - play_log_salvage_expected;
+    // XP is the campaign's (play_log_xp_now)
+    const xp_now = !reset ? play_log_xp_now() : (play_log_session?.mode === 'campaign') ? play_log_xp_expected : null;
     if (drift > 0) {
         earned.unlogged = (earned.unlogged || 0) + drift;
     }
@@ -426,7 +431,6 @@ function play_log_record_make(partial)
         spent.unlogged = (spent.unlogged || 0) - drift;
     }
     const xp = {...v.xp};
-    const xp_now = play_log_xp_now();
     if (xp_now !== null) {
         const xp_drift = xp_now - play_log_xp_expected;
         if (xp_drift) {
@@ -441,7 +445,7 @@ function play_log_record_make(partial)
         world: v.world,
         flight_s: Math.round(v.flight_s),
         docked_s: Math.round(v.docked_s),
-        salvage,
+        salvage: reset ? play_log_salvage_expected : salvage,
         earned,
         spent,
         xp_total: xp_now,
@@ -478,12 +482,13 @@ function play_log_rounded(amount_by_key)
     return out;
 }
 
-function play_log_record_close()
+// reset: the salvage was reset by another game starting, and its drop is no spending
+function play_log_record_close(reset = false)
 {
     if (!play_log_session) {
         return;
     }
-    const record = play_log_record_make(false);
+    const record = play_log_record_make(false, reset);
     if (record) {
         play_log_session.records.push(record);
     }

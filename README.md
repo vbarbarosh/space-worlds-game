@@ -136,7 +136,7 @@ carrier, bulwark, sniper, minelayer) 640 m ahead.
 world name and a huge score. With `&screen=arcade`, `&lives=n` sets the HUD's lives (0 to 3), the lost ones blinking.
 `&screen=arcade-depot` opens the depot before the next world (`&modules=damage:3,armor:2` owned and installed in that
 order while the reactor's power lasts, `&ship=gunship` the ship flown, `&swap=scout` a ship taken there, its smaller
-reactor taking out the newest levels).
+reactor taking out the newest levels, `&long=1` its header at its widest).
 `&screen=arcade-pick` opens the break after the world at its three cards,
 `arcade-route` at the next world of two (`&cards=wager,overclock,prototype`
 draws those, `&cards=long` the longest texts, `&salvage=n`, `&route=0,2,1` a

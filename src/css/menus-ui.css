@@ -652,6 +652,7 @@ body:not(.in-game) .ui.hud .hud-top .toolbar {
 .ui .depot-top {
     flex: none;
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: 18px;
     padding: 24px 0 14px;
@@ -722,10 +723,13 @@ body:not(.in-game) .ui.hud .hud-top .toolbar {
     color: var(--gold);
 }
 
+/* what the item under the pointer leaves (after 12 310, need 1 200): its room kept whether it shows or not, the widest
+   it gets, so the pointer running down the list never moves the header (bin/layout-check, hover) */
 .ui .depot-wallet .after {
-    min-width: 70px;
+    min-width: 12ch;
     font: 600 12px/1 var(--font-mono);
     color: var(--text-3);
+    white-space: nowrap;
 }
 
 .ui .depot-wallet .after b {
@@ -1274,10 +1278,6 @@ body:not(.in-game) .ui.hud .hud-top .toolbar {
 @container screen (max-width: 1100px) {
     .ui .depot {
         grid-template-columns: minmax(0, 1fr) 300px;
-    }
-
-    .ui .depot-top {
-        flex-wrap: wrap;
     }
 
     .ui .depot-stats {
