@@ -24,6 +24,9 @@ The author's decisions where the project differs from the rulebook:
   screen stays dark.
 - `notes/audit-*.md` stays committed (DOC-10 leaves an audit note
   untracked).
+- `prototypes/` keeps earlier prototypes for history, one HTML file each,
+  as they were: not built, not linted, never changed (the rulebook's
+  layout has no such folder).
 
 <!-- rules: begin https://github.com/vbarbarosh/rules 42ed865a7b8ff15fc4de6bb6fc94d6fc4daf233b 2026-10-10 -->
 

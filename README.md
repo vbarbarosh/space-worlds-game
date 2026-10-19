@@ -225,6 +225,9 @@ for the dev page.
     src/agent.html   what the agent's page adds: storage of its own, the captain hook
     src/js/agent/    the captain hook: the game state as JSON and the news
 
+Earlier prototypes are kept as they were in `prototypes/`, one HTML file
+each, listed in [prototypes/README.md](prototypes/README.md).
+
 Code: [vbarbarosh/rules](https://github.com/vbarbarosh/rules).
 
 ## License
