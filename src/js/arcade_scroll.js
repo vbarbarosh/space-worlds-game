@@ -34,12 +34,26 @@ const arcade_scroll_lanes = [
 ];
 // The share of the lane each wave's stretch ends at: the first half, the second, and the flagship where it ends
 const arcade_scroll_stretches = [0.5, 1, 1];
-// The screen's one pace, in m a second: a lane of 12 km about 3 min 40 s, of 16 km about 5 min
-const arcade_scroll_pace = 54;
+// The screen's one pace, in m a second: a lane of 12 km under 3 min, of 16 km under 4 (at 54 m/s, 6 min a world; the
+// author: "feels very boring")
+const arcade_scroll_pace = 72;
+// The middle worlds' lanes are busier: a wave brings this share more raiders, and this many more come at once, from
+// the run's second step to its seventh; not in Haven, where the run's first ship would fall to them (the bot did in
+// half its runs), nor in Eclipse, the hardest as it is (the author's run: a kill every 3 to 4 s, in Dustfall 3 to 11
+// raider shots a minute and no hull lost)
+const arcade_scroll_busy = 0.5;
+const arcade_scroll_busy_crowd = 4;
+// A formation (arcade_scroll_formation): the share of a lane's squadrons that come as one, as a line sweeping across
+// the screen or as a V flying down the lane through it, and how fast each crosses the screen, m a second; its places
+// this many m apart
+const arcade_scroll_formations = 0.6;
+const arcade_scroll_sweep = 170;
+const arcade_scroll_dive = 150;
+const arcade_scroll_rank = 85;
 // A wave of a lane's stretch is the wave of a world in Free times its stretch over this many m: the raiders and what
 // they drop keep a run's income near Free's (over 2.15 km, a wave's raiders when the lanes were short, it was 2.5
 // times as much)
-const arcade_scroll_wave_m = 2300;
+const arcade_scroll_wave_m = 3100;
 // The radiation lining refills every this many m of the lane, about every 40 s
 const arcade_scroll_refill = 2200;
 // The lane's ends keep this far from the world's edges, so the view at either end shows the world, not past it
@@ -231,6 +245,64 @@ function arcade_scroll_waves()
     return true;
 }
 
+// How much busier the run's step makes a lane: 1 + arcade_scroll_busy between the first step and the last, else 1
+function arcade_scroll_busy_k()
+{
+    const step = arcade_level();
+    return ((step > 0) && (step < arcade_worlds - 1)) ? 1 + arcade_scroll_busy : 1;
+}
+
+// How many raiders may be alive on a lane before a squadron waits (arcade_squads_update)
+function arcade_scroll_crowd_now()
+{
+    return arcade_scroll_crowd + Math.round(arcade_scroll_busy_crowd*(arcade_scroll_busy_k() - 1)/arcade_scroll_busy);
+}
+
+// A squadron as a formation on a lane (arcade_squad_form), arcade_scroll_formations of the time; false when it comes
+// as it would anyway. A sweep: a line coming in at one side of the screen's front half and flying across it to the
+// other; a V: its point ahead, flying down the lane through the screen against its way. Each raider fires as it does
+// anywhere; the formation keeps its places, and a raider of it is gone once it has flown out of the view.
+function arcade_scroll_formation(type, size, elite, mix)
+{
+    if (Math.random() >= arcade_scroll_formations) {
+        return false;
+    }
+    const view = arcade_scroll_view();
+    const way = arcade_scroll.way;
+    function place(along, across) {
+        return {x: view.x + way.x*along - way.y*across, y: view.y + way.y*along + way.x*across};
+    }
+    const sweep = Math.random() < 0.55;
+    const side = (Math.random() < 0.5) ? -1 : 1;
+    const row = view.h*rand(0.15, 0.7);
+    for (let i = 0; i < size; ++i) {
+        const kind = (mix && (i % 2 === 1)) ? mix : type;
+        // the V's places: its point, then left and right of it, a rank back each
+        const k = Math.ceil(i/2)*((i % 2) ? -1 : 1);
+        const p = sweep ? place(row, side*(view.w + 60 + i*arcade_scroll_rank)) : place(view.h + 120 + Math.abs(k)*arcade_scroll_rank*0.8, k*arcade_scroll_rank);
+        const enemy = arcade_squad_warp(kind, p.x, p.y, i);
+        // its own way over the screen's, in the world
+        const rx = sweep ? -way.y*-side*arcade_scroll_sweep : -way.x*arcade_scroll_dive;
+        const ry = sweep ? way.x*-side*arcade_scroll_sweep : -way.y*arcade_scroll_dive;
+        enemy.path = {rx, ry, entered: false};
+        if (elite && (i === 0)) {
+            arcade_elite_make(enemy);
+        }
+    }
+    return true;
+}
+
+// A formation's raider on a lane (arcade_role_steer): flies the screen's way at its pace and its own across it, at
+// whatever speed that takes; returns the move as a share of its speed
+function arcade_scroll_path_steer(v)
+{
+    const pace = arcade_scroll.held ? 0 : arcade_scroll.pace;
+    const vx = arcade_scroll.way.x*pace + v.path.rx;
+    const vy = arcade_scroll.way.y*pace + v.path.ry;
+    v.angle = Math.atan2(vy, vx);
+    return Math.hypot(vx, vy)/Math.max(1, v.speed);
+}
+
 // Whether a lane's next squadron may come (arcade_squads_update): its wave's raiders are spread over its stretch, so
 // one comes only once the screen is far enough along it for what is still to come (a whole wave came in its first
 // 30 s, and the screen then flew 45 s through nothing); off a lane, always
@@ -252,7 +324,7 @@ function arcade_scroll_wave_size(n, base)
         return base;
     }
     const stretch = arcade_scroll_end(n) - arcade_scroll_end(n - 1);
-    return Math.round(base*stretch/arcade_scroll_wave_m);
+    return Math.round(base*stretch/arcade_scroll_wave_m*arcade_scroll_busy_k());
 }
 
 // Keeps a ship within the view, `side` m in from its edges, and as far ahead as `ahead` past the front edge; for
@@ -304,6 +376,15 @@ function arcade_scroll_raiders()
         return;
     }
     for (const v of enemies) {
+        // a formation's raider flies through: once in the view and out of it again, it is gone, no points
+        if ((v.hp > 0) && v.path) {
+            const inside = !arcade_scroll_unseen(v);
+            v.path.entered = v.path.entered || inside;
+            if (v.path.entered && !inside) {
+                v.hp = 0;
+            }
+            continue;
+        }
         if ((v.hp > 0) && !v.lurk && !black_holes.some(vv => distance(v, vv) < vv.radius)) {
             arcade_scroll_keep(v, v.r + arcade_scroll_leash, arcade_scroll_ahead + v.r + arcade_scroll_leash, false);
         }
@@ -366,6 +447,16 @@ function arcade_scroll_flagship(v)
     const view = arcade_scroll_view();
     v.x = clamp(view.x + arcade_scroll.way.x*view.h*0.55, 90, world.w - 90);
     v.y = clamp(view.y + arcade_scroll.way.y*view.h*0.55, 90, world.h - 90);
+}
+
+// A flagship's hull on a lane: a duel bound to a hole (Eclipse's Eye) fights round a ring at the lane's end, with no
+// hole to swallow the raiders round it, and has this share of its hull (at its whole hull the bot lost 1100 hull a
+// run to it, and Eclipse took 20 lives in 12 runs)
+const arcade_scroll_ring_hull = 0.7;
+
+function arcade_scroll_flagship_k()
+{
+    return (arcade_scroll_on() && (boss_duel_design()?.kind === 'edge')) ? arcade_scroll_ring_hull : 1;
 }
 
 // Haven's Crescent on a lane (boss_duel_gate): it runs for a gate just past the front edge, as there are no portals

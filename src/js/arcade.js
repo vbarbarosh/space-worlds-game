@@ -382,7 +382,7 @@ function arcade_squads_update(dt)
 {
     arcade.squad_timer -= dt;
     const alive = enemies.filter(v => v.hp > 0).length;
-    if ((spawn_left <= 0) || (arcade.squad_timer > 0) || (alive > (arcade_scroll_on() ? arcade_scroll_crowd : 14)) || !arcade_scroll_squad_due()) {
+    if ((spawn_left <= 0) || (arcade.squad_timer > 0) || (alive > (arcade_scroll_on() ? arcade_scroll_crowd_now() : 14)) || !arcade_scroll_squad_due()) {
         return;
     }
     const size = Math.min(spawn_left, 3 + Math.min(3, Math.floor(arcade_level()/2)) + (arcade.wave - 1) + arcade_mode().squad);
@@ -397,7 +397,8 @@ function arcade_squad_spawn(size)
 {
     const first = enemies.length;
     arcade_squad_form(size);
-    raider_squad_after(enemies.slice(first));
+    // a Scroll lane's formation keeps its places: no jobs and no pack for it (arcade_scroll.js)
+    raider_squad_after(enemies.slice(first).filter(v => !v.path));
 }
 
 // How a squadron comes, by the type the world's mix draws for it: a line of one type, as it always did; a pincer, the
@@ -423,6 +424,10 @@ function arcade_squad_form(size)
         return;
     }
     const mix = arcade_squad_mix(type, size);
+    // on a Scroll lane most squadrons come as a formation across the screen (arcade_scroll.js)
+    if (ahead && arcade_scroll_formation(type, size, elite, mix)) {
+        return;
+    }
     // in Dustfall a share of them warp in under a cliff (arcade_cliffs.js), in one line
     const spot = !ahead && cliff_squad_spot();
     if (spot) {
@@ -563,6 +568,10 @@ function arcade_squad_warp(type, x, y, i)
 // fast it moves.
 function arcade_role_steer(v, move, d)
 {
+    // a Scroll lane's formation keeps to its way across the screen (arcade_scroll.js)
+    if (v.path) {
+        return arcade_scroll_path_steer(v);
+    }
     if (v.event_goal) {
         return arcade_event_steer(v);
     }
@@ -708,6 +717,8 @@ function arcade_flagship_spawn()
     // its gaps only), so Ion Reach's duel flown at step 2 is not a step-3 fight on a step-2 kit; and a card's factor
     const duel = boss_duel_hull(campaign.world)/boss_designs[campaign.world].hull;
     enemy.hp = Math.round(1500*(1 + arcade_level()*0.6)*scale*boss_designs[arcade_level()].hull*duel*arcade_card_k.flagship);
+    // on a Scroll lane a duel bound to a hole is fought round a ring, with no hole to swallow raiders (arcade_scroll.js)
+    enemy.hp = Math.round(enemy.hp*arcade_scroll_flagship_k());
     enemy.max_hp = enemy.hp;
     boss_spawned = true;
     boss_defeated = false;

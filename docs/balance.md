@@ -1157,11 +1157,13 @@ each measured with the bot (`bin/playtest --kind=scroll`, NORMAL, seeds 1–12):
 
 | On a lane | Value | In Free | Why |
 |---|---|---|---|
-| The screen's pace | 54 m/s, all the way | - | one speed (the author: "it should always be the same"); it stops only at the lane's end |
-| A lane | 12 to 16 km (`scroll` in `arcade_shapes`) | - | 4 to 5 min; at 4.3 km it was over in a minute and a half ("about nothing", the author) |
-| A wave of a lane's half | Free's wave × the half's length / 2.3 km | - | its squadrons spread over the half, one as the screen gets far enough along for what is left |
-| Raiders alive before the next squadron waits | 12 | 14 | |
+| The screen's pace | 72 m/s, all the way | - | one speed (the author: "it should always be the same"); it stops only at the lane's end; at 54 m/s a world took 6 min ("feels very boring") |
+| A lane | 12 to 16 km (`scroll` in `arcade_shapes`) | - | 3 to 4 min; at 4.3 km it was over in a minute and a half ("about nothing", the author) |
+| A wave of a lane's half | Free's wave × the half's length / 3.1 km, ×1.5 from the second world to the seventh | - | its squadrons spread over the half, one as the screen gets far enough along for what is left; the middle worlds busier (the author's run: a kill every 3 to 4 s, no hull lost in Dustfall), not Haven's first ship nor Eclipse |
+| Raiders alive before the next squadron waits | 12, 16 in the middle worlds | 14 | |
 | Raider reload | ×1.1 | ×1 | |
+| Formations | 6 squadrons of 10: a line sweeping across the screen (170 m/s) or a V flying down it (150 m/s) | - | firing as they pass, gone once out of the view, no points |
+| The Eclipse Eye's hull | ×0.7 | ×1 | it fights round a ring at the lane's end, with no hole swallowing the raiders round it |
 | A bulwark's shield turn | ×0.6 | ×1 | the view's edges cut the circle round it short; a slow ship never got round, its wave held for hours of game time |
 | Rocks and caches along a lane | a field every 2 km, a cache every 1.8 km | 12 fields, 22 caches a world | a run earns about what it does in Free |
 | The radiation lining | refilled every 2.2 km (about 40 s) | at the station | no shelter to fly back to |
@@ -1171,7 +1173,8 @@ lanes' numbers (8 alive, reload ×1.35, a wave a 2.15 km, rocks and caches every
 700 and 400 m) the bot earned 2.5 times Free's and won 11 runs of 12, then all
 12 once its income was Free's; with Free's own (14, ×1) 2 of 12, all its deaths
 in Eclipse, whose raiders are the run's strongest. The numbers above win 6 of
-12, Eclipse still the hardest world, as in Free (8 of 12).
+12, Eclipse still the hardest world, as in Free (8 of 12). With the faster screen, the formations and the busier
+middle (kills a minute 37 to 50 there, from 28 to 39) the bot wins 6 of 12 too.
 
 Eclipse's hole stands beside its lane, 1.2 km off it, three quarters of the way
 along (the author: holes beside a lane, not across its end): passed during wave

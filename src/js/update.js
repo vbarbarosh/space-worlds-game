@@ -418,7 +418,7 @@ function update(dt, frame_dt = dt)
         }
         // an escort keeps its place in its squadron, a lurker waits in the rocks, a pack hunts together, a raider with a
         // job does it, a freighter keeps to its way, an anchored raider stays put (arcade_role_steer)
-        if (v.guard || v.lurk || v.pack || v.job || v.event_goal || v.anchor) {
+        if (v.guard || v.lurk || v.pack || v.job || v.event_goal || v.anchor || v.path) {
             move = arcade_role_steer(v, move, d);
             heading = v.angle;
         }

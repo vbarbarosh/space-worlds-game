@@ -140,7 +140,8 @@ function arcade_station_at()
     }
     const [w, h] = arcade_world_extent();
     const way = arcade_lane_way();
-    const back = arcade_scroll_margin + 700;
+    // behind where the lane starts, so the screen leaves it behind at once
+    const back = arcade_scroll_margin - 350;
     if (way.y) {
         return [shape.station[0], (way.y < 0) ? 1 - back/h : back/h];
     }
