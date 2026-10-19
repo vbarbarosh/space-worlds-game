@@ -17,11 +17,13 @@ body.race-mode #combo_box {
 
 /* nor anything a race has no use for: no supplies (the start ship has none), drones or builds, so no quick bar (a route
    is still set with Ctrl); no pulse (a race waives the world's price of a turbo in pulse, and a pulse would make you
-   crash-proof for a moment), so no pulse gauge or touch PULSE; no inventory (Tab), no map behind the minimap (OPEN J),
+   crash-proof for a moment), so no pulse gauge or touch PULSE; no shield gauge (a race's hits are crashes, which go
+   past the shield); no inventory (Tab), no map behind the minimap (OPEN J),
    no raiders to rate a threat by, no coordinates to plan by */
 body.race-mode #loadout,
 body.race-mode #inventory_button,
 body.race-mode #pulse_gauge,
+body.race-mode #shield_gauge,
 body.race-mode #touch_pulse,
 body.race-mode .ui.hud .minimap .mm-open,
 body.race-mode .ui .mission .where .threat,

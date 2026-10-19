@@ -35,6 +35,14 @@ shows a health bar (its armour or energy, and how much is left as it is hit).
 - The first part is the section above.
 - The bar shows what is left of the thing's hull; a shield shows as a ring
   round it.
+- Your ship's shield has its own blue gauge beside the hull's, and its ring
+  round the ship. Shots, missiles and blasts hit the shield first and the
+  hull only once it is gone; a crash (a raider's ram, a rock, debris, a
+  cliff's falling rock) goes past it, straight to the hull
+  (`damage_crashes` in `src/js/combat.js`). It mends once 5 s pass with no
+  hit, and the gauge glows while it does (`shield_mending` in
+  `src/js/helpers.js`). Every ship has one, the Wisp Scout's the smallest
+  (15).
 - Today, where the code keeps it and where it does not:
   - **Raiders:** solid, damaged by shots, a bar over the hull once hit, a
     shield ring while they have shields. A flagship has the bar at the top

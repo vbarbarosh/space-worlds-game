@@ -481,13 +481,17 @@ function hud_apply(element, kind, value)
     hud_markup.set(element, {html: value, first: element.firstChild});
 }
 
-// The bottom status: the ship and its guns, magnet, shield and radiation; hull turns red when low
+// The bottom status: the ship and its guns, magnet, shield and radiation; hull turns red when low, the shield's gauge
+// glows while it mends and dims on a ship with none
 function sync_ship_status()
 {
     hud_text(document.getElementById('ship_name'), current_ship().name);
     hud_text(document.getElementById('ship_guns'), guns_text());
     hud_text(document.getElementById('rad_readout'), `Rad ${Math.round(radiation_protection()*100)}%`);
     document.getElementById('hull_gauge').classList.toggle('is-low', player.hp < hull_max()*0.3);
+    const shield_gauge = document.getElementById('shield_gauge');
+    shield_gauge.classList.toggle('is-none', shield_max() === 0);
+    shield_gauge.classList.toggle('is-mending', shield_mending());
     document.getElementById('turbo_gauge').classList.toggle('is-ready', !player.turbo_active && (player.dash_cd <= 0));
     document.getElementById('combo_box').classList.toggle('is-hot', combo > 1);
 }

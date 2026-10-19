@@ -10,6 +10,10 @@ function base_update_hud()
     }
     hud_html(el.health_text, `${Math.ceil(player.hp)} <small>/ ${hull_max()}</small>`);
     el.health_fill.style.width = `${(player.hp/hull_max())*100}%`;
+    // a ship with no shield says so, rather than 0 / 0
+    const shield = shield_max();
+    hud_html(el.shield_text, shield ? `${Math.ceil(player.shield)} <small>/ ${shield}</small>` : 'None');
+    el.shield_fill.style.width = `${shield ? (player.shield/shield)*100 : 0}%`;
     hud_text(el.pulse_text, (player.energy >= 100) ? 'Ready' : `${Math.floor(player.energy)}%`);
     el.pulse_fill.style.width = `${player.energy}%`;
     // short values only, so the gauge keeps one line: while thrusting the seconds left, lit
@@ -115,7 +119,7 @@ function update(dt, frame_dt = dt)
     stasis_time = Math.max(0, stasis_time - dt);
     bodies_frame();
     player.since_hit += dt;
-    if (player.since_hit > 5) {
+    if (player.since_hit > shield_mend_delay) {
         player.shield = Math.min(
             shield_max(),
             player.shield + dt*(5 + upgrades.shield*2)*(current_world_rules().shield + ((campaign.world === 5) ? upgrades.cooling*0.15 : 0))

@@ -534,9 +534,39 @@ body.arcade .ui.hud .minimap .mm-open {
     margin-left: auto;
 }
 
-/* the ship panel is its three gauges: the ship and its guns are in the station */
+/* the ship panel is its four gauges: the ship and its guns are in the station */
 .ui .hud-bottom .shipstat .line {
     display: none;
+}
+
+.ui .hud-bottom .shipstat {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    max-width: 760px;
+}
+
+/* the shield beside the hull: it glows while it mends, and a ship with none shows the word, dimmed */
+.ui .gauge--shield.is-mending .fill {
+    animation: shield-mending 1.2s ease-in-out infinite alternate;
+}
+
+.ui .gauge--shield.is-none .val {
+    color: var(--text-3);
+}
+
+@keyframes shield-mending {
+    from {
+        opacity: 0.6;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ui .gauge--shield.is-mending .fill {
+        animation: none;
+    }
 }
 
 /* in a fight the screen's edges glow red */
@@ -797,7 +827,12 @@ body.in-fight .vignette {
         --size: 42px;
     }
 
-    /* each gauge's value under its name: a third of a phone holds 100 / 100 whole, not beside the name */
+    /* the four gauges two by two: a quarter of a phone is too narrow for 100 / 100 */
+    .ui.hud .hud-bottom .shipstat {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    /* each gauge's value under its name: half of a phone holds 100 / 100 whole, not beside the name */
     .ui.hud .shipstat .gauge {
         grid-template-columns: minmax(0, 1fr);
         gap: 5px;

@@ -10,6 +10,8 @@ for (const id of [
     'combo',
     'health_text',
     'health_fill',
+    'shield_text',
+    'shield_fill',
     'pulse_text',
     'pulse_fill',
     'dash_text',

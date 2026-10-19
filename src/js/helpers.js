@@ -28,10 +28,19 @@ function initial_upgrades()
 }
 
 // the shield's capacitors and the ship's own, and an arcade card's factor (arcade_cards.js)
+// The shield mends once this many seconds have passed with no hit (update.js), at 5 + 2 a module level a second
+const shield_mend_delay = 5;
+
 function shield_max()
 {
     const shield = upgrades.shield*25 + current_ship().shield;
     return (arcade_card_k.shield === 1) ? shield : Math.round(shield*arcade_card_k.shield);
+}
+
+// The shield fills again now: no hit for shield_mend_delay and room to fill
+function shield_mending()
+{
+    return (player.since_hit > shield_mend_delay) && (player.shield < shield_max());
 }
 
 function dash_cooldown()

@@ -7,7 +7,8 @@ const ship_scout = {
         rank: 0,
         opens: 0,
         hull: 100,
-        shield: 0,
+        // every ship has a shield, the scout a small one: the gauge beside the hull is never a dead one at the start
+        shield: 15,
         speed: 1,
         handling: 1,
         cargo: 40,

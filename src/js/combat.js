@@ -423,6 +423,11 @@ function base_damage_enemy(enemy, damage)
     }
 }
 
+// What a ship crashes into: a raider's ram, a rock, debris, a cliff's falling rock. A crash goes past the shield, straight
+// to the hull; shots, missiles, blasts and the rest hit the shield first (the author, 2026-10-19: "if I crash into
+// something, the shield won't help")
+const damage_crashes = new Set(['ram', 'rock', 'debris', 'rockfall']);
+
 // blast: a missile's wave or a ship's explosion, which a dash's grace (dash_grace, the arcade's) does not cover; cause
 // and by, what hit you and the shot or raider that did, go to the play log (play_log_hurt)
 function damage_player(amount, blast = false, cause = 'other', by = null)
@@ -437,7 +442,7 @@ function damage_player(amount, blast = false, cause = 'other', by = null)
     let damage = amount*multiplier*share*(1 - upgrades.armor*armor_cut())*arcade_card_k.taken;
     player.since_hit = 0;
     const shield_before = player.shield;
-    const absorbed = Math.min(player.shield, damage);
+    const absorbed = damage_crashes.has(cause) ? 0 : Math.min(player.shield, damage);
     player.shield -= absorbed;
     shield_hit_show(player, shield_before);
     damage -= absorbed;
