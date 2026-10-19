@@ -42,11 +42,12 @@ const world_ion_reach = {
         energy: 0,
         inertial: false,
         solid: false,
-        summary: 'Fast projectiles · storm charging · shield surges',
+        summary: 'Fast projectiles · storm charging · arc pylons',
         details: [
             'All projectiles travel 35% faster. Shields recharge twice as fast outside combat.',
             'Marked storm fields run a 16-second cycle: calm, three seconds of warning, then four seconds of discharge.',
             'Inside an active discharge, pulse charges at 14 per second while shields lose 12 per second. Charging costs shield strength, leaving you exposed to enemy fire.',
+            'Arc pylons strike a ship inside their ring for 18, shield first, after a 1.1-second charge you can fly clear of. Violet charge fields, most beside a pylon, fill your pulse 12 per second.',
         ],
         prepare: 'Shield capacitors and pulse reactors let you use the storms to your advantage.',
     },

@@ -544,8 +544,10 @@ body.arcade .ui.hud .minimap .mm-open {
     max-width: 760px;
 }
 
-/* the shield beside the hull: it glows while it mends, and a ship with none shows the word, dimmed */
-.ui .gauge--shield.is-mending .fill {
+/* the shield beside the hull: it glows while it mends, and a ship with none shows the word, dimmed; the pulse glows
+   the same while a charge field fills it (Ion Reach) */
+.ui .gauge--shield.is-mending .fill,
+.ui .gauge--pulse.is-charging .fill {
     animation: shield-mending 1.2s ease-in-out infinite alternate;
 }
 
@@ -564,7 +566,8 @@ body.arcade .ui.hud .minimap .mm-open {
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .ui .gauge--shield.is-mending .fill {
+    .ui .gauge--shield.is-mending .fill,
+    .ui .gauge--pulse.is-charging .fill {
         animation: none;
     }
 }

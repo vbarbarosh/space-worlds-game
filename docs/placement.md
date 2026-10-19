@@ -123,6 +123,13 @@ start line on the five places along it (298 m from its middle).
   hull, a gate's or a portal's ring and a beacon**; the rocks of a field that
   would not are left out. A solid in a ring stops the ship short of it.
   *Checked.*
+- **Ion Reach's arc pylons and charge fields keep their reach out of the
+  shelter and 150 m beyond every range above, out of every pull and storm,
+  and no race ring lies in a pylon's;** two pylons' rings stand 400 m apart,
+  so one charges at you at a time. A pylon strikes where you fly, never
+  where you dock, jump or race to. *Checked*; placed by `pylons_generate`,
+  `src/js/ion_pylons.js` (round the station, or along a Scroll lane from
+  1.8 km past its start to 1.2 km before its end).
 - Built structures keep the code's own distances: a defence platform 1.1 km
   from the station, 700 m from a gate, 300 m from a portal; an outpost on a
   mining field (`structure_spot_ok`, `src/js/structures.js`). Storm and flare

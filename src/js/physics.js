@@ -170,6 +170,7 @@ function render_world_fields()
             }
         }
     }
+    render_pylons();
     if (campaign.world === 1) {
         const f = world_flow(player);
         const a = Math.atan2(f.y, f.x);

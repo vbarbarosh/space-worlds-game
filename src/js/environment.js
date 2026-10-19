@@ -68,6 +68,8 @@ function generate_environment()
             }
         }
     }
+    // Ion Reach's arc pylons and charge fields, clear of the storms (ion_pylons.js)
+    pylons_generate();
     if (player) {
         player.heat = 0;
         player.overheated = false;

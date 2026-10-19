@@ -153,7 +153,8 @@ function captain_pilot_tick()
 }
 
 // Keep raiders at gun range (the guns aim on their own), sidestep their fire, collect pickups when the sky is clear,
-// keep off gravity wells; repair, EMP and pulse when survival needs them, since the agent thinks too slowly for that.
+// keep off gravity wells and arc pylons; repair, EMP and pulse when survival needs them, since the agent thinks too
+// slowly for that.
 function captain_arcade_pilot()
 {
     let x = 0;
@@ -226,6 +227,14 @@ function captain_arcade_pilot()
         if (d < gravity_reach(hole)*0.9) {
             x += ((player.x - hole.x)/d)*3;
             y += ((player.y - hole.y)/d)*3;
+        }
+    }
+    // out of an arc pylon's ring (Ion Reach, js/ion_pylons.js), where it strikes
+    for (const v of pylons) {
+        const d = Math.max(1, distance(v, player));
+        if (d < pylon_reach + 80) {
+            x += ((player.x - v.x)/d)*3;
+            y += ((player.y - v.y)/d)*3;
         }
     }
     const hurt = player.hp < hull_max()*0.5;

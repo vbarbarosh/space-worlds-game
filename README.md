@@ -44,7 +44,11 @@ Three modes:
   of fire closes in as it heats, and the Eclipse Eye's dome opens only while
   you are at the black hole's edge with it. Eclipse is the gravity world: its
   black hole bends every shot, slings a ship that passes close, and swallows
-  the raiders you lead into it. A ship that explodes hurts what is close to it. The salvage you collect buys
+  the raiders you lead into it. Ion Reach is the lightning world, here and in
+  the campaign: an arc pylon strikes a ship that comes inside its ring once a
+  gold ring has closed on it (1.1 s to get clear; 18, the shield first), and
+  violet charge fields, most of them beside a pylon, fill the pulse while you
+  stay in them. A ship that explodes hurts what is close to it. The salvage you collect buys
   repairs, weapons, ships, supplies and modules at the station's depot (R); each world opens more of them, and
   what is not open yet says where it opens. A module level bought is yours for the run but works only installed,
   and the ship's reactor powers only so many: its own power (Wisp Scout 4 up to Aurora Cruiser 8) and one more for
@@ -68,7 +72,7 @@ Three modes:
 
   The arcade comes in two kinds, picked on its menu row (T turns it): **Free**, as above, and **Scroll**, the same
   run on a screen that moves on by itself, up, down, left or right by the world, along a lane 12 to 16 km long (3 to
-  4 minutes), the world stretched along it with its rocks, caches, cliffs and storms spread along the way. Your ship
+  4 minutes), the world stretched along it with its rocks, caches, cliffs, storms and pylons spread along the way. Your ship
   flies anywhere in the view and the back edge pushes it on; the raiders come from ahead and, once in, stay in the
   view, but most squadrons come as a formation, a line sweeping across the screen or a V flying down it, firing as
   they pass and gone once through. The screen moves at one speed all the way: wave 1 comes over the lane's first
@@ -133,8 +137,9 @@ Three modes:
     bin/map-check    every world's map, campaign and arcade, against
                      docs/placement.md: no two things R acts on within reach
                      of each other, gates and portals where the rules put
-                     them, race courses clear of all of it; exit 1 on a
-                     failure
+                     them, race courses clear of all of it, Ion Reach's
+                     pylons and charge fields out of every range; exit 1 on
+                     a failure
     bin/resolution-check
                      the adaptive resolution in real time (about three
                      minutes): the canvas's pixel ratio holds when frames
@@ -154,6 +159,8 @@ panel folded; with `&screen=arcade`, `&wave=2` starts the world at that wave
 `&raiders=sniper,bulwark` brings a pack of three chasers and one raider of each kind named (interceptor,
 carrier, bulwark, sniper, minelayer) 640 m ahead.
 `&card_hud=1` puts cards in force over the gauges.
+With Ion Reach (`world=ion-reach`, flight or arcade, Free or Scroll), `&pylon=calm|charge|strike|field` puts your ship
+by an arc pylon at that moment (`&speed=0.1` to watch it, `&god=0` for the strike to land).
 `&screen=arcade-lost` shows a death on the world's last wave with two lives left, with Retry for that world
 (`&lives=1` the last one left), `arcade-over` the last life lost, the run over; `&long=1` gives either a very long
 world name and a huge score. With `&screen=arcade`, `&lives=n` sets the HUD's lives (0 to 3), the lost ones blinking.

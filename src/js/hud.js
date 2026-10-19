@@ -482,7 +482,7 @@ function hud_apply(element, kind, value)
 }
 
 // The bottom status: the ship and its guns, magnet, shield and radiation; hull turns red when low, the shield's gauge
-// glows while it mends and dims on a ship with none
+// glows while it mends and dims on a ship with none, the pulse's glows while a charge field fills it (ion_pylons.js)
 function sync_ship_status()
 {
     hud_text(document.getElementById('ship_name'), current_ship().name);
@@ -492,6 +492,7 @@ function sync_ship_status()
     const shield_gauge = document.getElementById('shield_gauge');
     shield_gauge.classList.toggle('is-none', shield_max() === 0);
     shield_gauge.classList.toggle('is-mending', shield_mending());
+    document.getElementById('pulse_gauge').classList.toggle('is-charging', (player.energy < 100) && !!charge_field_in());
     document.getElementById('turbo_gauge').classList.toggle('is-ready', !player.turbo_active && (player.dash_cd <= 0));
     document.getElementById('combo_box').classList.toggle('is-hot', combo > 1);
 }

@@ -149,6 +149,22 @@ ships. "Modes" is arcade, campaign or both.
 - Not solid. Both modes in those two worlds. Where: `generate_environment`,
   `zone_state` in `src/js/environment.js`; `src/js/flight.js`.
 
+### Arc pylons and charge fields (Ion Reach)
+
+- The world's own trick, to learn to stay clear of and to dare. An arc pylon
+  is a knot of charge with its reach drawn round it (230 m): a ship inside
+  sets it charging, a gold ring closing in and a dashed line to the ship for
+  1.1 s, then the bolt strikes what is still inside for 18, the shield first
+  (play log cause `lightning`); a ship that got clear sees it strike the empty
+  rim. It rests 2.4 s, then charges again. A charge field (violet, 170 m)
+  fills the pulse 12 a second while you are in it. Two pylons of three have a
+  field beside them, most of it inside the pylon's ring; a few lie alone.
+- Not solid; not damageable; drawn as light. Raiders are neither struck nor
+  charged. Both modes, Ion Reach only (8 pylons round the campaign's station,
+  6 round the arcade's depot or along its Scroll lane), none in the Races
+  mode. Where: `src/js/ion_pylons.js`; numbers in
+  [balance.md](balance.md#ion-reachs-arc-pylons-and-charge-fields).
+
 ### Currents and planetary pull
 
 - Verdant's currents carry ships, raiders and pickups; Obsidian's planet pulls

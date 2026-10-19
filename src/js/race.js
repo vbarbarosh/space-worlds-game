@@ -192,8 +192,9 @@ function race_pace(id, skill, level = 1)
 }
 
 // A point of the course is clear: inside the map, out of the station's shelter, 150 m beyond the reach of every gate,
-// portal and beacon, out of every gravity pull, and a ship's width clear of rocks, drifting debris and structures (with
-// rocks false, of structures only: the Turbo race clears the rocks off its track)
+// portal, beacon and arc pylon (Ion Reach: a ring is never where one strikes), out of every gravity pull, and a ship's
+// width clear of rocks, drifting debris and structures (with rocks false, of structures only: the Turbo race clears the
+// rocks off its track)
 function race_spot_clear(p, r, rocks = true)
 {
     const margin = 150;
@@ -217,6 +218,9 @@ function race_spot_clear(p, r, rocks = true)
         return false;
     }
     if (black_holes.some(v => distance(p, v) < gravity_reach(v) + r + 100)) {
+        return false;
+    }
+    if (pylons.some(v => distance(p, v) < pylon_reach + r + margin)) {
         return false;
     }
     if (rocks && ore_nodes.some(v => (v.hp > 0) && (distance(p, v) < v.r + r + ship))) {

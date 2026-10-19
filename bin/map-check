@@ -27,6 +27,9 @@ const rules = {
     scan: 120, // a survey beacon scans a ship this close
     race_rings: [7, 10], // a race course's rings, fewest and most
     race_turn: 25, // degrees a race course turns at each ring at least, so its line needs steering
+    pylon_apart: 400, // two arc pylons' rings (Ion Reach) at least this far apart, so one charges at you at a time
+    pylons_least: 5, // Ion Reach has this many arc pylons at least, and fields_least charge fields
+    fields_least: 3,
 };
 const usage = `usage: bin/map-check
 
@@ -37,8 +40,10 @@ const usage = `usage: bin/map-check
     courses (js/race.js) keep their rings and start line out of every range, rock and pull, their legs off gravity,
     portals and the station, and turn at each ring; the Races mode's Turbo track of each difficulty (js/race_rail.js)
     keeps its width clear of structures, gates, beacons and pulls; arcade Dustfall's cliffs and the rubble each leaves
-    once it falls stand a ship's width clear of the station, gates, portals and beacons, as every solid. Exits 1 on
-    any failure.`;
+    once it falls stand a ship's width clear of the station, gates, portals and beacons, as every solid; Ion Reach's
+    arc pylons and charge fields (js/ion_pylons.js) are there, and their reach keeps out of the station's shelter, 150 m
+    beyond every range, out of the pulls and the storms, a pylon's 400 m from another's, and no race ring in one.
+    Exits 1 on any failure.`;
 
 cli(main);
 
@@ -68,7 +73,8 @@ async function main()
                     found.push(...tracks.filter(v => v.room !== 0.6).map(v => `turbo track (${v.level}): clear across ${(v.room === null) ? 'none' : v.room} of its width, need 0.6`));
                 }
                 const title = `${mode.label} ${world + 1} ${map.world_name}`;
-                console.log(`${found.length ? 'FAIL' : 'ok  '} ${title.padEnd(22)} ${map.gates.length} gates, ${map.portals.length} portals${map.arcade ? '' : `, ${map.races.filter(Boolean).length} race courses`}${found.length ? `\n     ${found.join('\n     ')}` : ''}`);
+                const pylons = map.pylons.length ? `, ${map.pylons.length} arc pylons, ${map.charge_fields.length} charge fields` : '';
+                console.log(`${found.length ? 'FAIL' : 'ok  '} ${title.padEnd(22)} ${map.gates.length} gates, ${map.portals.length} portals${map.arcade ? '' : `, ${map.races.filter(Boolean).length} race courses`}${pylons}${found.length ? `\n     ${found.join('\n     ')}` : ''}`);
                 failures.push(...found.map(v => `${title}: ${v}`));
             }
         }
@@ -148,6 +154,7 @@ function check_map(map)
         const need = map.station_size/2 + 400 + rules.zone_apart;
         fail('combat zone near the station', distance(station, map.combat_zone), need);
     }
+    out.push(...check_pylons(map, things));
     // a cliff's rubble (arcade Dustfall) is a solid of the map once the cliff falls: it keeps the same room
     const rubble = map.cliffs.flatMap(v => v.rubble.map(vv => ({...vv, kind: 'cliff rubble'})));
     const solids = [...map.ore.map(v => ({...v, kind: v.cliff ? 'cliff' : 'rock'})), ...rubble, ...map.debris];
@@ -200,6 +207,9 @@ function check_races(map, things, solids)
             for (const v of map.holes) {
                 fail(`${spot.label} in the pull at ${v.x},${v.y}`, distance(spot, v), v.reach + spot.r);
             }
+            for (const v of map.pylons) {
+                fail(`${spot.label} in the reach of the arc pylon at ${v.x},${v.y}`, distance(spot, v), v.reach + spot.r + rules.margin);
+            }
             for (const v of solids) {
                 fail(`${v.kind} at ${v.x},${v.y} in the ${spot.label}`, distance(spot, v), v.r + spot.r + map.ship_radius*2);
             }
@@ -225,6 +235,48 @@ function check_races(map, things, solids)
             if ((i > 1) && (turn < rules.race_turn)) {
                 out.push(`${name} turns ${Math.round(turn)}° at ring ${i}, need ${rules.race_turn}°`);
             }
+        }
+    }
+    return out;
+}
+
+// Ion Reach's arc pylons and charge fields (js/ion_pylons.js): there, and each one's reach (a pylon strikes inside it,
+// a field fills the pulse) out of the station's shelter, 150 m beyond every range where a key acts, out of every pull
+// and every storm; two pylons' rings rules.pylon_apart apart
+function check_pylons(map, things)
+{
+    const out = [];
+    function fail(text, d, need) {
+        if (d < need - 1) {
+            out.push(`${text}: ${Math.round(d)} m, need ${Math.round(need)} m`);
+        }
+    }
+    if (map.world_name === 'Ion Reach') {
+        if (map.pylons.length < rules.pylons_least) {
+            out.push(`${map.pylons.length} arc pylons, need ${rules.pylons_least}`);
+        }
+        if (map.charge_fields.length < rules.fields_least) {
+            out.push(`${map.charge_fields.length} charge fields, need ${rules.fields_least}`);
+        }
+    }
+    const shelter = map.station_size/2 + 400;
+    const pylons = map.pylons.map((v, i) => ({...v, label: `arc pylon ${i + 1}`, range: v.reach}));
+    const fields = map.charge_fields.map((v, i) => ({...v, label: `charge field ${i + 1}`, range: v.r}));
+    for (const v of [...pylons, ...fields]) {
+        fail(`${v.label} in the station's shelter`, distance(v, map.station), shelter + v.range + rules.margin);
+        for (const thing of things.slice(1)) {
+            fail(`${v.label} and ${thing.label} ranges touch`, distance(v, thing), thing.range + v.range + rules.margin);
+        }
+        for (const hole of map.holes) {
+            fail(`${v.label} in the pull at ${hole.x},${hole.y}`, distance(v, hole), hole.reach + v.range);
+        }
+        for (const storm of map.storms) {
+            fail(`${v.label} in the storm at ${storm.x},${storm.y}`, distance(v, storm), storm.r + v.range);
+        }
+    }
+    for (let i = 0; i < pylons.length; ++i) {
+        for (let j = i + 1; j < pylons.length; ++j) {
+            fail(`${pylons[i].label} and ${pylons[j].label} rings too near`, distance(pylons[i], pylons[j]), pylons[i].range + pylons[j].range + rules.pylon_apart);
         }
     }
     return out;

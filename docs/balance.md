@@ -248,8 +248,8 @@ below). That gives, in the campaign at NORMAL:
   | Nova Forge | 1073 / 817 | 1314 / 1455 |
 
   A ram, a flagship's fire (its beams, pools, rings of shots), a flare, a
-  vent and a rock keep the whole hit and 0.85 s for any hit, as in the
-  campaign.
+  vent, an arc pylon's strike and a rock keep the whole hit and 0.85 s for
+  any hit, as in the campaign.
 - Crashes: an ore rock costs hull above 110 m/s, up to 24
   (`resolve_solid_ore` in `src/js/flight.js`); drifting debris costs
   8 + 2.2% of the closing speed, up to 40 (`src/js/expedition.js`).
@@ -1078,6 +1078,47 @@ shoot what flies over it (`src/js/arcade_cliffs.js`; the campaign has none).
   fall caught the bot. With the last quarter open to any shot (the first
   try), 14 falls of 21 came down on no raider, shot through by fire at
   raiders round them, and two caught the bot (30 each).
+
+## Ion Reach's arc pylons and charge fields
+
+Ion Reach's own trick, in the campaign and in both kinds of the arcade
+(`src/js/ion_pylons.js`; none in the Races mode). The world rules' summary
+and the arcade's route card say it (Arc pylons), and the arcade's arrival says
+it once: ARC PYLONS · THEY STRIKE A SHIP INSIDE THEIR RING · VIOLET FIELDS
+FILL YOUR PULSE.
+
+- **Where:** 8 pylons round the campaign's station 2.6 to 4.4 km out, 6 round
+  the arcade's depot 1.5 to 2.7 km out (`pylon_rings`); on a Scroll lane one
+  every 1.7 km (`pylon_lane_gap`) from 1.8 km along to 1.2 km before its end,
+  150 to 300 m either side of its middle in turn (`pylon_lane_across`), 6 on
+  Ion Reach's 13 km. Out of the shelter, every range, pull and storm
+  ([placement.md](placement.md#round-them)); two pylons' rings 400 m apart.
+- **A pylon:** reach 230 m (`pylon_reach`). A ship inside sets it charging
+  for 1.1 s (`pylon_charge`: a gold ring closes on it, a dashed line runs to
+  the ship, the status line counts down); then the bolt strikes a ship still
+  inside for 18 (`pylon_damage`, the shield first, cause `lightning`; ×0.65
+  CHILL, ×1.2 OVERLOAD, less the armour), else the empty rim. It rests 2.4 s
+  (`pylon_rest`). A careless pass costs one strike: a Wisp Scout's whole
+  shield (15) and 3 hull; a ship that stays in a ring loses 18 every 3.5 s.
+  A dash's grace and the pulse's moment cover it, as they cover a shot.
+- **A charge field:** 170 m (`charge_field_r`), the pulse +12 a second
+  (`charge_field_rate`), ready from empty in about 8 s; a storm's discharge
+  gives 14 a second, 4 s in 16, for 12 shield a second. Two pylons of three
+  have one 150 m off their middle (`charge_field_beside`), all of it in the
+  ring but a crescent 90 m wide at its far rim; one field in six pylons' worth
+  lies alone. It fills the pulse, not the shield: the shield is what a strike
+  takes first, so a field that filled it would cancel its own risk.
+- Raiders are neither struck nor charged.
+- Measured (`bin/playtest`'s bot, NORMAL, Ion Reach its fourth world, no
+  Ion Reach death in any run before or after). The bot as it was, blind to
+  the pylons: struck for 13 to 25 in Free (seeds 1 to 3) and 38 to 63 on a
+  Scroll lane (seeds 1, 2) a world, out of 199 to 450 taken there. Steering
+  out of a ring as it steers out of a pull (as now): Free seeds 1 to 9 no
+  strike, Ion Reach's hull lost a mean of 194 against 169 before (all damage
+  352 against 314; seeds 8 and 9 met no pylon and ran the same), within the
+  seeds' spread of 0 to 576; Scroll seeds 1 and 2 hull 45 and 52 against 21
+  and 95, one strike in two runs. The bot does not seek the fields; a pilot
+  who does trades a strike now and then for a pulse every 8 s.
 
 ## The arcade's route and cards
 

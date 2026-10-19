@@ -213,6 +213,8 @@ function update_world_environment(dt)
             }
         }
     }
+    // Ion Reach's arc pylons strike and its charge fields fill the pulse (ion_pylons.js)
+    pylons_update(dt);
     update_expedition_environment(dt);
     // asteroids are solid in every world: anything that looks like an object is one
     resolve_solid_ore();

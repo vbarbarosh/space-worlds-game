@@ -36,7 +36,8 @@ const usage = `usage: bin/playtest [--mode=normal] [--kind=free] [--seeds=1,2,3]
 
     How it flies: it holds 320 m from the nearest raider and circles it, steps aside from shots coming at it, picks
     up salvage when fewer than three raiders are close, waits by the station when none is, keeps off the radiation
-    at the edge (on a Scroll lane, off the view's edges, and the salvage it picks up is in the view); a flagship's
+    at the edge (on a Scroll lane, off the view's edges, and the salvage it picks up is in the view), out of black
+    holes' pulls and Ion Reach's arc pylons' rings (it does not seek the charge fields); a flagship's
     duel it flies as its pilot says (boss_duel_pilot). The pulse at three raiders within 380 m, a dash past a missile within
     220 m, the EMP at six within 550 m or below a third of its hull, stasis at eight, a repair kit below half. At the
     depot: a repair below 75% hull, two repair kits, then the build its reactor's power holds (src/js/arcade_power.js:
@@ -134,7 +135,7 @@ function run_table(run)
     const maxed = run.maxed ? `shop ran out at ${(run.maxed.run_time/60).toFixed(1)} min in ${run.maxed.world}` : 'shop never ran out';
     const lines = [`${run.mode}${(run.kind === 'scroll') ? ' scroll' : ''}${run.idle ? ' idle' : ''} seed ${run.seed}: ${run.won ? 'won' : run.cut ? 'cut (time)' : 'lost'} · ${run.deaths} deaths · ${Math.round(run.run_time)} s · score ${run.score} · salvage left ${run.salvage_left} · ${maxed} · ${run.wall_seconds} s on the clock`];
     lines.push(`cards ${run.pick}: ${(run.cards || []).join(', ') || '-'} · route ${run.route_how}: ${(run.route || []).join(' > ')}`);
-    lines.push('world        hull lost (w1/w2/w3)   all dmg  kills  off-screen  salvage at depot  left after  power  deaths  time  quiet  crowd  flagship  ship and guns  most from');
+    lines.push('world        hull lost (w1/w2/w3)   all dmg  kills  off-screen  salvage at depot  left after  power  deaths  time  flagship  ship and guns  most from');
     for (const world of run.worlds) {
         const hull = world.waves.map(v => Math.round(v.hull)).join(' / ');
         const all = Math.round(world.waves.reduce((sum, v) => sum + v.hull + v.shield, 0));
@@ -146,10 +147,7 @@ function run_table(run)
         const flagship = f.time ? `${Math.round(f.time)} s ${Math.round(f.hull)} hp${f.escaped ? ' fled' : ''}` : '-';
         // the power the build draws after the depot, and what the reactor holds
         const power = world.power ? `${world.power[0]}/${world.power[1]}` : '-';
-        // waves 1 and 2: the seconds with under 3 raiders in play, and how many are in play on average
-        const quiet = `${Math.round(world.quiet || 0)} s`;
-        const crowd = world.wave_time ? (world.crowd/world.wave_time).toFixed(1) : '-';
-        lines.push(`${world.name.padEnd(12)} ${hull.padEnd(22)} ${String(all).padStart(7)}  ${String(world.kills).padStart(5)}  ${String(world.off_screen).padStart(10)}  ${String(world.salvage_at_depot ?? '-').padStart(16)}  ${left.padStart(10)}  ${power.padStart(5)}  ${String(world.deaths).padStart(6)}  ${Math.round(world.time)} s  ${quiet.padStart(5)}  ${crowd.padStart(5)}  ${flagship.padStart(8)}  ${world.ship}: ${world.guns.join('+')}  ${sources}`);
+        lines.push(`${world.name.padEnd(12)} ${hull.padEnd(22)} ${String(all).padStart(7)}  ${String(world.kills).padStart(5)}  ${String(world.off_screen).padStart(10)}  ${String(world.salvage_at_depot ?? '-').padStart(16)}  ${left.padStart(10)}  ${power.padStart(5)}  ${String(world.deaths).padStart(6)}  ${Math.round(world.time)} s  ${flagship.padStart(8)}  ${world.ship}: ${world.guns.join('+')}  ${sources}`);
     }
     return lines.join('\n');
 }
@@ -201,7 +199,7 @@ function page_bot(options)
         if (current && (current.world === campaign.world)) {
             return current;
         }
-        const out = {world: campaign.world, name: worlds[campaign.world].name, ship: current_ship().id, guns: mounted_weapons().map(v => (v ? v.id : 'empty')), waves: [], sources: {}, flagship: {time: 0, hull: 0, escaped: false}, kills: 0, off_screen: 0, deaths: 0, time: 0, quiet: 0, crowd: 0, wave_time: 0, salvage_at_depot: null, earned: {}};
+        const out = {world: campaign.world, name: worlds[campaign.world].name, ship: current_ship().id, guns: mounted_weapons().map(v => (v ? v.id : 'empty')), waves: [], sources: {}, flagship: {time: 0, hull: 0, escaped: false}, kills: 0, off_screen: 0, deaths: 0, time: 0, salvage_at_depot: null, earned: {}};
         B.worlds.push(out);
         return out;
     }
@@ -361,6 +359,15 @@ function page_bot(options)
                     dx = dx/s + ((player.x - hole.x)/d)*3;
                     dy = dy/s + ((player.y - hole.y)/d)*3;
                 }
+            }
+        }
+        // an arc pylon's ring (Ion Reach, src/js/ion_pylons.js): out of it, as a pilot struck once keeps out
+        for (const v of pylons) {
+            const d = Math.max(1, distance(v, player));
+            if (d < pylon_reach + 80) {
+                const s = Math.hypot(dx, dy) || 1;
+                dx = dx/s + ((player.x - v.x)/d)*3;
+                dy = dy/s + ((player.y - v.y)/d)*3;
             }
         }
         if (lane) {
@@ -533,15 +540,6 @@ function page_bot(options)
                 world_entry();
             }
             world_entry().time += 1/60;
-            // waves 1 and 2 as they are flown: how many raiders are in play, and the seconds with under 3 (quiet)
-            if ((arcade.wave >= 1) && (arcade.wave < arcade_waves) && (arcade.pause <= 0)) {
-                const n = enemies.filter(v => (v.hp > 0) && !v.anchor).length;
-                world_entry().wave_time += 1/60;
-                world_entry().crowd += n/60;
-                if (n < 3) {
-                    world_entry().quiet += 1/60;
-                }
-            }
             if (enemies.some(v => (v.type === 'boss') && (v.hp > 0))) {
                 world_entry().flagship.time += 1/60;
             }

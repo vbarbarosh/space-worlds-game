@@ -21,6 +21,11 @@ glance.
 - A cliff is a rock of `ore_nodes` (type `cliff`), drawn in full colour with a
   dark outline and a cast shadow, larger than any rock, so it can never pass for
   the dim scenery; its fall zone is drawn on the ground, not as a body.
+- **Fields** are neither: a black hole's pull, Ion Reach's storms, and its arc
+  pylons and charge fields act on a ship inside a ring drawn round them, and
+  ships and shots pass through them. A pylon is drawn as light (a glowing knot
+  with no dark outline and no shadow), not as a body, so it never reads as a
+  solid you could shoot down (`src/js/ion_pylons.js`).
 - Where it lives: `src/js/bodies.js` (what is solid, the separation),
   `resolve_solid_ore` in `src/js/flight.js` (your ship against rocks),
   `block_hostile_ore` (enemy shots on rocks), `src/js/evasion.js` (the
@@ -36,8 +41,8 @@ shows a health bar (its armour or energy, and how much is left as it is hit).
 - The bar shows what is left of the thing's hull; a shield shows as a ring
   round it.
 - Your ship's shield has its own blue gauge beside the hull's, and its ring
-  round the ship. Shots, missiles and blasts hit the shield first and the
-  hull only once it is gone; a crash (a raider's ram, a rock, debris, a
+  round the ship. Shots, missiles, blasts and an arc pylon's strike hit the
+  shield first and the hull only once it is gone; a crash (a raider's ram, a rock, debris, a
   cliff's falling rock) goes past it, straight to the hull
   (`damage_crashes` in `src/js/combat.js`). It mends once 5 s pass with no
   hit, and the gauge glows while it does (`shield_mending` in

@@ -304,6 +304,7 @@ function arcade_update(dt)
         arcade_scroll_world_start();
         arcade_wave_start(1);
         cliffs_hint();
+        pylons_hint();
         return;
     }
     // on a Scroll lane the next wave comes as the screen reaches it, the one before down or not (arcade_scroll.js)
