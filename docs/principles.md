@@ -9,7 +9,7 @@ A thing in space is either solid or background, and you can tell which at a
 glance.
 
 - **Solid:** asteroids and ore rocks, Dustfall's cliffs and their rubble (arcade),
-  drifting debris and wrecks, built outposts and platforms, the convoy's
+  Obsidian's magnetic spires, drifting debris and wrecks, built outposts and platforms, the convoy's
   freighter, every hull (yours and the raiders'). Shots stop on them, and ships
   collide with them: a hit pushes the ship off, and above cruising speed it
   costs hull.
@@ -26,6 +26,13 @@ glance.
   ships and shots pass through them. A pylon is drawn as light (a glowing knot
   with no dark outline and no shadow), not as a body, so it never reads as a
   solid you could shoot down (`src/js/ion_pylons.js`).
+- A **body with a field round it** is both: Obsidian's magnetic spire is a
+  solid (a needle of dark glass with a dark outline and a cast shadow: ships
+  crash into it as into a rock, raiders steer round it, every shot stops on
+  it, drifting debris glances off it) and its field is a field (a ring with
+  lines of force running in: inside it ships are drawn in and shots bent
+  toward the spire). Its field bends shots as Eclipse's hole does, so a shot
+  fired along a line shown first keeps to it (`src/js/obsidian_spires.js`).
 - Where it lives: `src/js/bodies.js` (what is solid, the separation),
   `resolve_solid_ore` in `src/js/flight.js` (your ship against rocks),
   `block_hostile_ore` (enemy shots on rocks), `src/js/evasion.js` (the
@@ -63,6 +70,11 @@ shows a health bar (its armour or energy, and how much is left as it is hit).
     (`ore_hp_bar` in `src/js/surfaces.js`) shows the rock's hp once it is below
     full, so in the campaign it shows only after raider fire; what a rock still
     holds shows as the field's label (`field_reserves_text`).
+  - **Obsidian's magnetic spires:** solid, and nothing damages them: every
+    shot stops on one and does it no harm, as your shots on the campaign's
+    rocks do none, so a spire has no bar. It is the world's rock, the cover
+    the world gives both sides; a spire shot down would leave the world
+    without its trick (`src/js/obsidian_spires.js`).
   - **Dustfall's cliffs** (arcade): solid; your shots, the pulse and your
     missiles wear one down to its crack (a quarter left: primed), and the
     crack gives only to the guns aimed at it, so a cliff falls when you mean

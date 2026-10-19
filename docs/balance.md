@@ -263,7 +263,8 @@ below). That gives, in the campaign at NORMAL:
   vent, an arc pylon's strike and a rock keep the whole hit and 0.85 s for
   any hit, as in the campaign.
 - Crashes: an ore rock costs hull above 110 m/s, up to 24
-  (`resolve_solid_ore` in `src/js/flight.js`); drifting debris costs
+  (`resolve_solid_ore` in `src/js/flight.js`), and an Obsidian spire the
+  same (`spire_resolve`, `src/js/obsidian_spires.js`); drifting debris costs
   8 + 2.2% of the closing speed, up to 40 (`src/js/expedition.js`).
 
 ## Weapons
@@ -1136,6 +1137,47 @@ FILL YOUR PULSE.
   seeds' spread of 0 to 576; Scroll seeds 1 and 2 hull 45 and 52 against 21
   and 95, one strike in two runs. The bot does not seek the fields; a pilot
   who does trades a strike now and then for a pulse every 8 s.
+
+## Obsidian's magnetic spires
+
+Obsidian's own trick, in the campaign and in both kinds of the arcade
+(`src/js/obsidian_spires.js`; none in the Races mode). The world rules'
+summary and the arcade's route card say it (Magnetic spires), and the arcade's
+arrival says it once: MAGNETIC SPIRES · THEY PULL SHIPS AND DRAW SHOTS IN ·
+KEEP ONE BETWEEN YOU AND THE GUNS. It harms no one by itself: it is cover, for
+both sides, and a pull to fly against.
+
+- **Where:** 7 spires round the campaign's station 2.4 to 4.4 km out, 6 round
+  the arcade's depot 1.4 to 3 km out (`spire_rings`); on a Scroll lane one
+  every 1.6 km (`spire_lane_gap`) from 1.6 km along to 1.2 km before its end,
+  120 to 260 m either side of its middle in turn (`spire_lane_across`), 8 on
+  Obsidian's 16 km. Out of the shelter, every range, pull and storm, off the
+  rock fields ([placement.md](placement.md#round-them)); two fields 300 m
+  apart (`spire_apart`).
+- **The spire:** solid, 40 m (`spire_r`), never damaged. A crash costs what
+  a rock's does: above 110 m/s, (speed − 80) × 0.055 up to 24, past the
+  shield (cause `rock`).
+- **The field:** 280 m (`spire_reach`). It draws ships in at 30 m/s at the
+  spire's foot, nothing at the rim (`spire_pull`; yours over the hull's
+  traction, as the planet's pull, and not while braking; a raider's slowed by
+  stasis; a flagship and an anchored raider hold their place). A Wisp Scout
+  cruises at 228 m/s here. It bends a shot's way by `spire_bend` (0.012) ×
+  the share of the way across the line to the spire × (1 − d/280)², radians a
+  metre, the same curve at any speed: a shot whose line passes within about
+  70 m of the middle curves into the spire and stops, at 100 to 130 m it is
+  whipped round 85 to 100°, at 160 m 47°, at 200 m 14°, at 250 m 1°. A
+  flagship's and a marksman's shots keep their line (their tell) and still
+  stop on it; missiles steer themselves.
+- Measured (`bin/playtest`'s bot, NORMAL, seeds 1 to 6, Obsidian its fifth
+  world). Before the spires: Free hull lost a mean of 434 there (all damage
+  613), no death, 82 s; Scroll 1098 (1452), 5 deaths in 6 runs, 298 s. The
+  bot flying off a spire's body only: Free 351 (589), no death, 111 s; Scroll
+  1079 (1474), 3 deaths, 349 s, 30 hull in crashes on spires over 6 runs. The
+  bot keeping out of the fields, as now (its fire bends there): Free 276
+  (518), no death, 110 s; Scroll 1089 (1504), 4 deaths, 331 s, no crash. The
+  hull lost is no higher; the waves take longer (Free waves 1 and 2 about
+  20 s more, the shots of both sides drawn into spires), and in one Free run
+  of six the flagship's duel ran 115 s against 41.
 
 ## The arcade's route and cards
 

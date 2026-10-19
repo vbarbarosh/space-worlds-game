@@ -275,6 +275,7 @@ function map_things(every_layer = false)
         add('danger', v, 'storm', (v.type === 'storm') ? null : '#9dff9b', (v.type === 'storm') ? 'ION STORM' : 'RADIATION', {reach: v.r, ring: (v.type === 'storm') ? '#a77bff' : '#ff9469'});
     }
     pylons_marks(add);
+    spires_marks(add);
     for (const field of mining_fields) {
         if (!ore_nodes.some(v => (v.hp > 0) && (v.field === field.id))) {
             continue;
@@ -686,7 +687,7 @@ function render_map_legend()
         ['gates', [['world-gate', 'World gate'], ['jump-gate', 'Jump gate']]],
         ['mining', [['mining-field', 'Ore field'], ['mining-field-rich', 'Rich field']]],
         ['yours', [['station', 'Station'], ['outpost', 'Outpost'], ['platform', 'Defense platform'], ['transport', 'Transport']]],
-        ['danger', [['black-hole', 'Black hole'], ['storm', 'Storm / radiation'], ['pylon', 'Arc pylon'], ['charge-field', 'Charge field'], ['raiders', 'Raiders seen']]],
+        ['danger', [['black-hole', 'Black hole'], ['storm', 'Storm / radiation'], ['pylon', 'Arc pylon'], ['charge-field', 'Charge field'], ['spire', 'Magnetic spire'], ['raiders', 'Raiders seen']]],
         ['contracts', [['beacon', 'Scan beacon']]],
     ];
     const out = document.createElement('div');

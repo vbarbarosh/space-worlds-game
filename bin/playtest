@@ -37,7 +37,8 @@ const usage = `usage: bin/playtest [--mode=normal] [--kind=free] [--seeds=1,2,3]
     How it flies: it holds 320 m from the nearest raider and circles it, steps aside from shots coming at it, picks
     up salvage when fewer than three raiders are close, waits by the station when none is, keeps off the radiation
     at the edge (on a Scroll lane, off the view's edges, and the salvage it picks up is in the view), out of black
-    holes' pulls and Ion Reach's arc pylons' rings (it does not seek the charge fields); a flagship's
+    holes' pulls and Ion Reach's arc pylons' rings (it does not seek the charge fields), off Obsidian's magnetic
+    spires (it does not seek their cover); a flagship's
     duel it flies as its pilot says (boss_duel_pilot). The pulse at three raiders within 380 m, a dash past a missile within
     220 m, the EMP at six within 550 m or below a third of its hull, stasis at eight, a repair kit below half. At the
     depot: a repair below 75% hull, two repair kits, then the build its reactor's power holds (src/js/arcade_power.js:
@@ -368,6 +369,15 @@ function page_bot(options)
         for (const v of pylons) {
             const d = Math.max(1, distance(v, player));
             if (d < pylon_reach + 80) {
+                const s = Math.hypot(dx, dy) || 1;
+                dx = dx/s + ((player.x - v.x)/d)*3;
+                dy = dy/s + ((player.y - v.y)/d)*3;
+            }
+        }
+        // a magnetic spire (Obsidian, src/js/obsidian_spires.js): out of its field, where its fire bends into the spire
+        for (const v of spires) {
+            const d = Math.max(1, distance(v, player));
+            if (d < spire_reach + 40) {
                 const s = Math.hypot(dx, dy) || 1;
                 dx = dx/s + ((player.x - v.x)/d)*3;
                 dy = dy/s + ((player.y - v.y)/d)*3;

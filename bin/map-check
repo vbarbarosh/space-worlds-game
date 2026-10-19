@@ -30,6 +30,8 @@ const rules = {
     pylon_apart: 400, // two arc pylons' rings (Ion Reach) at least this far apart, so one charges at you at a time
     pylons_least: 5, // Ion Reach has this many arc pylons at least, and fields_least charge fields
     fields_least: 3,
+    spire_apart: 300, // two magnetic spires' fields (Obsidian) at least this far apart: one cover, one pull at a time
+    spires_least: 5, // Obsidian has this many magnetic spires at least
 };
 const usage = `usage: bin/map-check
 
@@ -42,7 +44,9 @@ const usage = `usage: bin/map-check
     keeps its width clear of structures, gates, beacons and pulls; arcade Dustfall's cliffs and the rubble each leaves
     once it falls stand a ship's width clear of the station, gates, portals and beacons, as every solid; Ion Reach's
     arc pylons and charge fields (js/ion_pylons.js) are there, and their reach keeps out of the station's shelter, 150 m
-    beyond every range, out of the pulls and the storms, a pylon's 400 m from another's, and no race ring in one.
+    beyond every range, out of the pulls and the storms, a pylon's 400 m from another's, and no race ring in one;
+    Obsidian's magnetic spires (js/obsidian_spires.js) are there, their field keeps out of the same, 300 m from
+    another's, their solid body a ship's width clear of every rock, and no race ring or leg crosses a field.
     Exits 1 on any failure.`;
 
 cli(main);
@@ -74,7 +78,8 @@ async function main()
                 }
                 const title = `${mode.label} ${world + 1} ${map.world_name}`;
                 const pylons = map.pylons.length ? `, ${map.pylons.length} arc pylons, ${map.charge_fields.length} charge fields` : '';
-                console.log(`${found.length ? 'FAIL' : 'ok  '} ${title.padEnd(22)} ${map.gates.length} gates, ${map.portals.length} portals${map.arcade ? '' : `, ${map.races.filter(Boolean).length} race courses`}${pylons}${found.length ? `\n     ${found.join('\n     ')}` : ''}`);
+                const spires = map.spires.length ? `, ${map.spires.length} magnetic spires` : '';
+                console.log(`${found.length ? 'FAIL' : 'ok  '} ${title.padEnd(22)} ${map.gates.length} gates, ${map.portals.length} portals${map.arcade ? '' : `, ${map.races.filter(Boolean).length} race courses`}${pylons}${spires}${found.length ? `\n     ${found.join('\n     ')}` : ''}`);
                 failures.push(...found.map(v => `${title}: ${v}`));
             }
         }
@@ -158,6 +163,8 @@ function check_map(map)
     // a cliff's rubble (arcade Dustfall) is a solid of the map once the cliff falls: it keeps the same room
     const rubble = map.cliffs.flatMap(v => v.rubble.map(vv => ({...vv, kind: 'cliff rubble'})));
     const solids = [...map.ore.map(v => ({...v, kind: v.cliff ? 'cliff' : 'rock'})), ...rubble, ...map.debris];
+    // a drifting piece passes by and glances off a spire (spire_deflect): only what stands still is checked round one
+    out.push(...check_spires(map, things, solids.filter(v => !map.debris.includes(v))));
     if (!map.arcade) {
         out.push(...check_races(map, things, solids));
     }
@@ -210,6 +217,9 @@ function check_races(map, things, solids)
             for (const v of map.pylons) {
                 fail(`${spot.label} in the reach of the arc pylon at ${v.x},${v.y}`, distance(spot, v), v.reach + spot.r + rules.margin);
             }
+            for (const v of map.spires) {
+                fail(`${spot.label} in the field of the magnetic spire at ${v.x},${v.y}`, distance(spot, v), v.reach + spot.r + rules.margin);
+            }
             for (const v of solids) {
                 fail(`${v.kind} at ${v.x},${v.y} in the ${spot.label}`, distance(spot, v), v.r + spot.r + map.ship_radius*2);
             }
@@ -227,6 +237,9 @@ function check_races(map, things, solids)
             }
             for (const v of map.portals) {
                 fail(`${name} leg ${i} crosses portal ${v.label}`, segment_distance(v, a, b), v.r + map.ship_radius);
+            }
+            for (const v of map.spires) {
+                fail(`${name} leg ${i} crosses the field of the magnetic spire at ${v.x},${v.y}`, segment_distance(v, a, b), v.reach);
             }
             fail(`${name} leg ${i} crosses the station`, segment_distance(map.station, a, b), map.station_size/2 + 100);
         }
@@ -277,6 +290,45 @@ function check_pylons(map, things)
     for (let i = 0; i < pylons.length; ++i) {
         for (let j = i + 1; j < pylons.length; ++j) {
             fail(`${pylons[i].label} and ${pylons[j].label} rings too near`, distance(pylons[i], pylons[j]), pylons[i].range + pylons[j].range + rules.pylon_apart);
+        }
+    }
+    return out;
+}
+
+// Obsidian's magnetic spires (js/obsidian_spires.js): there, and each one's field (it pulls ships and bends shots) out
+// of the station's shelter, 150 m beyond every range where a key acts, out of every pull and every storm; two fields
+// rules.spire_apart apart; the spire itself is solid, so every rock leaves a ship's width round it
+function check_spires(map, things, solids)
+{
+    const out = [];
+    function fail(text, d, need) {
+        if (d < need - 1) {
+            out.push(`${text}: ${Math.round(d)} m, need ${Math.round(need)} m`);
+        }
+    }
+    if ((map.world_name === 'Obsidian') && (map.spires.length < rules.spires_least)) {
+        out.push(`${map.spires.length} magnetic spires, need ${rules.spires_least}`);
+    }
+    const shelter = map.station_size/2 + 400;
+    const spires = map.spires.map((v, i) => ({...v, label: `magnetic spire ${i + 1}`}));
+    for (const v of spires) {
+        fail(`${v.label} in the station's shelter`, distance(v, map.station), shelter + v.reach + rules.margin);
+        for (const thing of things.slice(1)) {
+            fail(`${v.label} and ${thing.label} ranges touch`, distance(v, thing), thing.range + v.reach + rules.margin);
+        }
+        for (const hole of map.holes) {
+            fail(`${v.label} in the pull at ${hole.x},${hole.y}`, distance(v, hole), hole.reach + v.reach);
+        }
+        for (const storm of map.storms) {
+            fail(`${v.label} in the storm at ${storm.x},${storm.y}`, distance(v, storm), storm.r + v.reach);
+        }
+        for (const solid of solids) {
+            fail(`${solid.kind} at ${solid.x},${solid.y} on the ${v.label}`, distance(v, solid), v.r + solid.r + map.ship_radius*2);
+        }
+    }
+    for (let i = 0; i < spires.length; ++i) {
+        for (let j = i + 1; j < spires.length; ++j) {
+            fail(`${spires[i].label} and ${spires[j].label} fields too near`, distance(spires[i], spires[j]), spires[i].reach + spires[j].reach + rules.spire_apart);
         }
     }
     return out;

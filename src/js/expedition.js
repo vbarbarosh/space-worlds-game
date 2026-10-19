@@ -358,6 +358,8 @@ function update_expedition_environment(dt)
             drifting_debri.vx = Math.cos(a)*40;
             drifting_debri.vy = Math.sin(a)*40;
         }
+        // Obsidian's spires are solid: a piece that drifts onto one glances off it (obsidian_spires.js)
+        spire_deflect(drifting_debri);
         // the way the ship flew this frame, as seen from the piece
         const start = {x: previous.x - old.x, y: previous.y - old.y};
         const end = {x: player.x - drifting_debri.x, y: player.y - drifting_debri.y};

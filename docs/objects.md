@@ -165,6 +165,24 @@ ships. "Modes" is arcade, campaign or both.
   mode. Where: `src/js/ion_pylons.js`; numbers in
   [balance.md](balance.md#ion-reachs-arc-pylons-and-charge-fields).
 
+### Magnetic spires (Obsidian)
+
+- The world's own trick: cover that both sides use. A spire is a needle of
+  dark glass (40 m) with its field drawn round it (280 m), lines of force
+  running in. Inside the field it draws ships in (30 m/s at its foot, nothing
+  at the rim; yours unless you hold B, raiders too, a flagship aside) and
+  bends every shot toward itself, yours and the raiders': one passing within
+  about 70 m curves into the spire and stops there, one passing 100 to 160 m
+  off is turned aside 50 to 100°. So a spire between you and a raider's guns
+  covers you, and a raider behind one is covered from yours. A flagship's and
+  a marksman's shots keep to the line their tell showed, and still stop on it.
+- Solid: ships crash into it as into a rock (above 110 m/s it costs hull, up
+  to 24, play log cause `rock`), raiders steer round it, drifting debris
+  glances off it. Not damageable, no bar. Both modes, Obsidian only (7 round
+  the campaign's station, 6 round the arcade's depot, 8 along its Scroll
+  lane), none in the Races mode. Where: `src/js/obsidian_spires.js`; numbers
+  in [balance.md](balance.md#obsidians-magnetic-spires).
+
 ### Currents and planetary pull
 
 - Verdant's currents carry ships, raiders and pickups; Obsidian's planet pulls

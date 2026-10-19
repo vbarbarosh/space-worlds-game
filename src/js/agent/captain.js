@@ -153,8 +153,8 @@ function captain_pilot_tick()
 }
 
 // Keep raiders at gun range (the guns aim on their own), sidestep their fire, collect pickups when the sky is clear,
-// keep off gravity wells and arc pylons; repair, EMP and pulse when survival needs them, since the agent thinks too
-// slowly for that.
+// keep off gravity wells, arc pylons and magnetic spires; repair, EMP and pulse when survival needs them, since the
+// agent thinks too slowly for that.
 function captain_arcade_pilot()
 {
     let x = 0;
@@ -235,6 +235,15 @@ function captain_arcade_pilot()
         if (d < pylon_reach + 80) {
             x += ((player.x - v.x)/d)*3;
             y += ((player.y - v.y)/d)*3;
+        }
+    }
+    // off a magnetic spire (Obsidian, js/obsidian_spires.js): it is solid, and its field draws the ship in and bends
+    // the guns' fire into it
+    for (const v of spires) {
+        const d = Math.max(1, distance(v, player));
+        if (d < spire_reach) {
+            x += ((player.x - v.x)/d)*2;
+            y += ((player.y - v.y)/d)*2;
         }
     }
     const hurt = player.hp < hull_max()*0.5;

@@ -1,6 +1,6 @@
 // Evasive thrusters (the module evasive, 0-3): ahead along the ship's course, the nearest solid thing in its path (an
-// asteroid, debris, a raider, the convoy's freighter) pushes the steering sideways, away from it, harder the closer it
-// is. They only steer: thrust and speed stay the pilot's.
+// asteroid, an Obsidian spire, debris, a raider, the convoy's freighter) pushes the steering sideways, away from it,
+// harder the closer it is. They only steer: thrust and speed stay the pilot's.
 const evasion_reach = [0, 250, 400, 550];
 const evasion_push = [0, 0.7, 1.1, 1.7];
 
@@ -49,6 +49,7 @@ function evasion_obstacles()
             out.push(v);
         }
     }
+    out.push(...spires);
     out.push(...drifting_debris);
     for (const v of enemies) {
         if (v.hp > 0) {

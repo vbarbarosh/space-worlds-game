@@ -130,6 +130,15 @@ start line on the five places along it (298 m from its middle).
   where you dock, jump or race to. *Checked*; placed by `pylons_generate`,
   `src/js/ion_pylons.js` (round the station, or along a Scroll lane from
   1.8 km past its start to 1.2 km before its end).
+- **Obsidian's magnetic spires keep their field out of the shelter and 150 m
+  beyond every range above, out of every pull and storm; no race ring lies in
+  a field and no race leg crosses one;** two fields stand 300 m apart, and
+  every rock leaves a ship's width round a spire's solid body. A spire pulls
+  and covers where you fly and fight, never where you dock, jump or race.
+  *Checked*; placed by `spires_generate`, `src/js/obsidian_spires.js` (round
+  the station 2.4 to 4.4 km out, round the arcade's depot 1.4 to 3 km out, or
+  along a Scroll lane from 1.6 km past its start to 1.2 km before its end,
+  120 to 260 m either side of its middle).
 - Built structures keep the code's own distances: a defence platform 1.1 km
   from the station, 700 m from a gate, 300 m from a portal; an outpost on a
   mining field (`structure_spot_ok`, `src/js/structures.js`). Storm and flare

@@ -42,11 +42,12 @@ const world_obsidian = {
         energy: 0,
         inertial: false,
         solid: true,
-        summary: 'Heavy handling · planetary pull · reinforced armor',
+        summary: 'Heavy handling · planetary pull · magnetic spires',
         details: [
             'Cruise speed is 20% lower and projectiles travel 18% slower.',
             'Black-hole attraction is 65% stronger. The industrial planet also creates a gentle orbital pull. Click-to-move compensates while flying.',
             'Ore rocks provide solid cover. Each phase-armor level blocks 15% incoming damage here instead of 12%.',
+            'Magnetic spires draw ships in within 280 m and bend passing shots into themselves, yours and the raiders\' alike: keep one between you and the guns. They are solid and cannot be destroyed.',
         ],
         prepare: 'Upgrade Slipstream and Phase armor. Gravity-rated industrial hulls resist the pull. Fit at least 30% radiation protection.',
     },

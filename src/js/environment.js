@@ -70,6 +70,8 @@ function generate_environment()
     }
     // Ion Reach's arc pylons and charge fields, clear of the storms (ion_pylons.js)
     pylons_generate();
+    // Obsidian's magnetic spires, clear of the same (obsidian_spires.js)
+    spires_generate();
     if (player) {
         player.heat = 0;
         player.overheated = false;

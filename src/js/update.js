@@ -564,6 +564,13 @@ function update(dt, frame_dt = dt)
                 }
             }
         }
+        // Obsidian's spires: every shot stops on one (obsidian_spires.js)
+        if ((b.life > 0) && spires.length && spire_stops_shot(b, {x: px, y: py})) {
+            if (b.missile) {
+                missile_detonate(b);
+            }
+            continue;
+        }
         if (b.life > 0) {
             for (const piece of drifting_debris) {
                 if ((Math.abs(piece.x - b.x) < piece.r + 60) && (Math.abs(piece.y - b.y) < piece.r + 60) && (segment_distance(piece, {x: px, y: py}, b) < piece.r + b.r)) {
@@ -592,7 +599,7 @@ function update(dt, frame_dt = dt)
         b.x += b.vx*enemy_dt;
         b.y += b.vy*enemy_dt;
         b.life -= enemy_dt;
-        if (block_hostile_ore(b, previous)) {
+        if (block_hostile_ore(b, previous) || (spires.length && spire_stops_shot(b, previous))) {
             if (b.missile) {
                 missile_detonate(b);
             }

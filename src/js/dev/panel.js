@@ -29,6 +29,8 @@ window.dev_state = function () {
         pylons: pylons.map(v => ({x: Math.round(v.x), y: Math.round(v.y), reach: pylon_reach, phase: v.phase})),
         charge_fields: charge_fields.map(v => ({x: Math.round(v.x), y: Math.round(v.y), r: v.r, beside: !!v.pylon})),
         storms: world_zones.map(v => ({x: Math.round(v.x), y: Math.round(v.y), r: v.r})),
+        // Obsidian's magnetic spires, their solid body and their field's reach (obsidian_spires.js)
+        spires: spires.map(v => ({x: Math.round(v.x), y: Math.round(v.y), r: v.r, reach: spire_reach})),
         escort: escort ? {x: escort.x, y: escort.y, hp: escort.hp, active: escort.active} : null, formation: !!formation.leader,
         races: arcade.active ? [] : race_variants.map((v, i) => race_course_make(campaign.world, i)),
         race: {phase: race.phase, clock: race.clock, place: race.place, prize: race.prize, racers: race.racers.map(v => ({name: v.name, you: v.you, next: v.next, time: v.time, out: v.out, x: Math.round(v.x), y: Math.round(v.y), speed: Math.round(Math.hypot(v.vx || 0, v.vy || 0))}))},
@@ -110,6 +112,7 @@ function dev_panel_init()
         }
         dev_screen_open();
         dev_pylon_open();
+        dev_spire_open();
     }, 0);
 }
 

@@ -20,8 +20,8 @@ for (const zoom of [1, 0.5]) {
     }
 }
 // An arcade Scroll run's long lane under way 3 km along (src/js/arcade_scroll.js), its world stretched with more on it:
-// Dustfall (its cliffs along the lane), Nova Forge (its flares), Eclipse (its hole beside the lane)
-for (const world of [2, 6, 7]) {
+// Dustfall (its cliffs along the lane), Obsidian (its spires), Nova Forge (its flares), Eclipse (its hole beside the lane)
+for (const world of [2, 4, 6, 7]) {
     scenes.push({value: `scroll-w${world}`, kind: 'scroll', world, zoom: 1});
 }
 for (const buildings of [10, 50, 100]) {

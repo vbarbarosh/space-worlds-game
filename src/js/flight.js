@@ -26,6 +26,10 @@ function fly_in_world(dt, dx, dy)
             drift.y += ((p.y - player.y)/d)*pull;
         }
     }
+    // Obsidian's magnetic spires draw the ship in as the planet does (obsidian_spires.js)
+    if (!braking) {
+        spire_drift(drift, ship.traction);
+    }
     let target = player.angle;
     if (input > 0.04) {
         target = Math.atan2(dy - (auto ? drift.y/speed : 0), dx - (auto ? drift.x/speed : 0));
@@ -215,9 +219,12 @@ function update_world_environment(dt)
     }
     // Ion Reach's arc pylons strike and its charge fields fill the pulse (ion_pylons.js)
     pylons_update(dt);
+    // Obsidian's magnetic spires draw ships in and bend shots (obsidian_spires.js)
+    spires_update(dt);
     update_expedition_environment(dt);
-    // asteroids are solid in every world: anything that looks like an object is one
+    // asteroids are solid in every world: anything that looks like an object is one; so are Obsidian's spires
     resolve_solid_ore();
+    spire_resolve();
 }
 
 // The most a ship flies in a frame: a longer way is a jump (a portal, the dock), not a flight to sweep for rocks

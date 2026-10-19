@@ -192,9 +192,9 @@ function race_pace(id, skill, level = 1)
 }
 
 // A point of the course is clear: inside the map, out of the station's shelter, 150 m beyond the reach of every gate,
-// portal, beacon and arc pylon (Ion Reach: a ring is never where one strikes), out of every gravity pull, and a ship's
-// width clear of rocks, drifting debris and structures (with rocks false, of structures only: the Turbo race clears the
-// rocks off its track)
+// portal, beacon, arc pylon (Ion Reach: a ring is never where one strikes) and magnetic spire (Obsidian: never where
+// one pulls you off the line), out of every gravity pull, and a ship's width clear of rocks, drifting debris and
+// structures (with rocks false, of structures only: the Turbo race clears the rocks off its track)
 function race_spot_clear(p, r, rocks = true)
 {
     const margin = 150;
@@ -223,6 +223,9 @@ function race_spot_clear(p, r, rocks = true)
     if (pylons.some(v => distance(p, v) < pylon_reach + r + margin)) {
         return false;
     }
+    if (spires.some(v => distance(p, v) < spire_reach + r + margin)) {
+        return false;
+    }
     if (rocks && ore_nodes.some(v => (v.hp > 0) && (distance(p, v) < v.r + r + ship))) {
         return false;
     }
@@ -238,10 +241,14 @@ function race_ship_width()
     return 2*Math.max(...ship_catalog.map(v => v.radius));
 }
 
-// A leg of the course is clear: it never crosses a gravity pull, a portal's ring or the station
+// A leg of the course is clear: it never crosses a gravity pull, a magnetic spire's field (Obsidian: the spire is solid
+// and its field pulls), a portal's ring or the station
 function race_leg_clear(a, b)
 {
     if (black_holes.some(v => segment_distance(v, a, b) < gravity_reach(v) + 60)) {
+        return false;
+    }
+    if (spires.some(v => segment_distance(v, a, b) < spire_reach + 60)) {
         return false;
     }
     if (portals.some(v => segment_distance(v, a, b) < v.r + race_ship_width() + 40)) {

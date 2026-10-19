@@ -1,5 +1,5 @@
 // One rule for what is solid: what a shot can hit, a ship can crash into, and raiders follow it too. Solid are the
-// asteroids, built structures, the convoy's freighter and every hull; no two of them overlap. Raiders steer round the
+// asteroids, Obsidian's spires, built structures, the convoy's freighter and every hull; no two of them overlap. Raiders steer round the
 // asteroids and structures ahead of them, and are pushed out of anything they still touch.
 let bodies_static = [];
 // the ore nodes the frame began with: bodies_static starts with every one of them still alive
@@ -20,7 +20,8 @@ const bodies_numbers = {
     pr: 0,
 };
 
-// Once a frame: the solid things that do not fly (asteroids, structures, the freighter as three circles along its hull)
+// Once a frame: the solid things that do not fly (asteroids, Obsidian's spires, structures, the freighter as three
+// circles along its hull)
 function bodies_frame()
 {
     const bodies = [];
@@ -30,6 +31,7 @@ function bodies_frame()
         }
     }
     bodies_static_ore = {list: ore_nodes, count: bodies.length};
+    bodies.push(...spires);
     if (!arcade.active) {
         for (const v of structures_here()) {
             if (v.hp > 0) {
