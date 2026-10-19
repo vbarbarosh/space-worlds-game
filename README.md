@@ -114,8 +114,10 @@ Three modes:
                      minute each) and counts per world and wave the hull
                      lost, kills off the screen and salvage left, flying
                      a build of modules (--build=mixed, guns, tank or
-                     evasion), Free or Scroll runs (--kind=scroll);
-                     tables and JSON in data/playtest/
+                     evasion), Free or Scroll runs (--kind=scroll),
+                     or idle, no key pressed (--idle, in
+                     data/playtest/<mode>-idle/); tables and JSON in
+                     data/playtest/
     bin/play-log     a play log saved from the pause panel (Download play log)
                      as a report: time, income and spending per world, the
                      kit as it changed, when the shop ran out, deaths, frame

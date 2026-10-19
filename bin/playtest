@@ -29,7 +29,7 @@ const builds = {
         'speed', 'pulse', 'reactor', 'dash', 'speed', 'homing', 'homing', 'dash',
     ],
 };
-const usage = `usage: bin/playtest [--mode=normal] [--kind=free] [--seeds=1,2,3] [--label=name] [--page=build/index.html] [--minutes=20] [--gun=id] [--pick=boon] [--route=low] [--build=mixed|guns|tank|evasion|key,...]
+const usage = `usage: bin/playtest [--mode=normal] [--kind=free] [--seeds=1,2,3] [--label=name] [--page=build/index.html] [--minutes=20] [--gun=id] [--pick=boon] [--route=low] [--build=mixed|guns|tank|evasion|key,...] [--idle]
 
     A bot plays arcade runs of build/index.html (a copy with a hook, in data/playtest/) in Chromium, on a virtual
     clock and a seeded Math.random, as fast as the machine allows, and counts per world and wave what a run costs.
@@ -66,14 +66,18 @@ const usage = `usage: bin/playtest [--mode=normal] [--kind=free] [--seeds=1,2,3]
     order), the higher, or one at random.
 
     --build picks the bot's build (mixed, the default; guns; tank; evasion: see the builds in this file), or gives its
-    own order: module keys, a key a level (damage,damage,armor is Hotter plasma 1 and 2, then Phase armor 1).`;
+    own order: module keys, a key a level (damage,damage,armor is Hotter plasma 1 and 2, then Phase armor 1).
+
+    --idle flies with no key pressed: no steering, dodge, dash, pulse, EMP, stasis or repair kit, the ship left to its
+    guns' fire and, on a Scroll lane, to the screen's back edge carrying it on; the depot and the break go as above.
+    Its results go to data/playtest/<mode>-idle/ unless --label says otherwise.`;
 
 cli(main);
 
 async function main()
 {
     const options = Object.fromEntries(process.argv.slice(2).map(v => v.replace(/^--/, '').split('=')));
-    if (Object.keys(options).some(v => !['mode', 'kind', 'seeds', 'label', 'page', 'minutes', 'gun', 'pick', 'route', 'build'].includes(v)) || !kinds.includes(options.kind || 'free') || !picks.includes(options.pick || 'boon') || !routes.includes(options.route || 'low')) {
+    if (Object.keys(options).some(v => !['mode', 'kind', 'seeds', 'label', 'page', 'minutes', 'gun', 'pick', 'route', 'build', 'idle'].includes(v)) || (options.idle !== undefined) || !kinds.includes(options.kind || 'free') || !picks.includes(options.pick || 'boon') || !routes.includes(options.route || 'low')) {
         console.log(usage);
         process.exit(2);
     }
@@ -81,11 +85,13 @@ async function main()
     const kind = options.kind || 'free';
     const seeds = (options.seeds || '1').split(',').map(Number);
     const minutes = Number(options.minutes || 20);
+    // --idle takes no value: the bot presses no key while flying
+    const idle = 'idle' in options;
     if (!modes.includes(mode) || seeds.some(v => !Number.isInteger(v))) {
         console.log(usage);
         process.exit(2);
     }
-    const out_dir = path.join(data_dir, options.label || mode);
+    const out_dir = path.join(data_dir, options.label || (idle ? `${mode}-idle` : mode));
     fs.mkdirSync(out_dir, {recursive: true});
     const html = fs.readFileSync(options.page || path.join(__dirname, '..', 'build', 'index.html'), 'utf8');
     const at = html.lastIndexOf('})();');
@@ -101,7 +107,7 @@ async function main()
             await page.addInitScript(page_clock);
             await page.goto(`file://${hooked}`);
             await page.waitForTimeout(400);
-            await page.evaluate(v => window.__t(v), `(${page_bot})(${JSON.stringify({mode, kind, seed, gun: options.gun || null, pick: options.pick || 'boon', route: options.route || 'low', build: builds[options.build || 'mixed'] || options.build.split(',')})})`);
+            await page.evaluate(v => window.__t(v), `(${page_bot})(${JSON.stringify({mode, kind, seed, gun: options.gun || null, pick: options.pick || 'boon', route: options.route || 'low', idle, build: builds[options.build || 'mixed'] || options.build.split(',')})})`);
             const time0 = Date.now();
             while (!await page.evaluate(() => window.__bot.done) && (Date.now() - time0 < minutes*60000)) {
                 await page.waitForTimeout(1000);
@@ -126,7 +132,7 @@ async function main()
 function run_table(run)
 {
     const maxed = run.maxed ? `shop ran out at ${(run.maxed.run_time/60).toFixed(1)} min in ${run.maxed.world}` : 'shop never ran out';
-    const lines = [`${run.mode}${(run.kind === 'scroll') ? ' scroll' : ''} seed ${run.seed}: ${run.won ? 'won' : run.cut ? 'cut (time)' : 'lost'} · ${run.deaths} deaths · ${Math.round(run.run_time)} s · score ${run.score} · salvage left ${run.salvage_left} · ${maxed} · ${run.wall_seconds} s on the clock`];
+    const lines = [`${run.mode}${(run.kind === 'scroll') ? ' scroll' : ''}${run.idle ? ' idle' : ''} seed ${run.seed}: ${run.won ? 'won' : run.cut ? 'cut (time)' : 'lost'} · ${run.deaths} deaths · ${Math.round(run.run_time)} s · score ${run.score} · salvage left ${run.salvage_left} · ${maxed} · ${run.wall_seconds} s on the clock`];
     lines.push(`cards ${run.pick}: ${(run.cards || []).join(', ') || '-'} · route ${run.route_how}: ${(run.route || []).join(' > ')}`);
     lines.push('world        hull lost (w1/w2/w3)   all dmg  kills  off-screen  salvage at depot  left after  power  deaths  time  flagship  ship and guns  most from');
     for (const world of run.worlds) {
@@ -262,6 +268,11 @@ function page_bot(options)
         }
     }
     function fly() {
+        // --idle: no key at all, the guns firing by themselves
+        if (options.idle) {
+            keys.clear();
+            return;
+        }
         // an anchored raider (a flagship's nest) is the duel's (below), not one to circle
         const alive = enemies.filter(v => (v.hp > 0) && !v.anchor);
         function near(r) {
@@ -553,7 +564,7 @@ function page_bot(options)
         }
     }
     B.report = function () {
-        return {mode: options.mode, kind: options.kind, seed: options.seed, gun: options.gun, pick: options.pick, route_how: options.route, cards: B.cards, route: (arcade.route || []).map(v => worlds[v].name), done: B.done, won: B.won, deaths: B.deaths, run_time, score, salvage_left: salvage, maxed: B.maxed, kit: {ship: current_ship().id, guns: mounted_weapons().map(v => (v ? v.id : 'empty')), upgrades: {...upgrades}, owned: {...arcade.owned}, power: [arcade_power_used(), arcade_power_capacity()]}, worlds: B.worlds};
+        return {mode: options.mode, kind: options.kind, idle: options.idle, seed: options.seed, gun: options.gun, pick: options.pick, route_how: options.route, cards: B.cards, route: (arcade.route || []).map(v => worlds[v].name), done: B.done, won: B.won, deaths: B.deaths, run_time, score, salvage_left: salvage, maxed: B.maxed, kit: {ship: current_ship().id, guns: mounted_weapons().map(v => (v ? v.id : 'empty')), upgrades: {...upgrades}, owned: {...arcade.owned}, power: [arcade_power_used(), arcade_power_capacity()]}, worlds: B.worlds};
     };
     const base_frame = frame;
     frame = function () {
