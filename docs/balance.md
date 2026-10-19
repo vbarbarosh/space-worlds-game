@@ -774,7 +774,9 @@ before rocks and the Relic processor.
 - **Lives:** a run has 3 on every row (`arcade_lives` in
   `src/js/arcade.js`). A death costs one; with lives left its screen offers
   to retry the world from its first wave, as the run stood when that world
-  began but with the lives the run has now (`arcade_retry`), and the HUD
+  began but with the lives the run has now (`arcade_retry`); the depot opens
+  first, with that world's salvage and kit, and its button (Retry <world>)
+  starts it, so another kit can be tried (the author, 2026-10-19); the HUD
   blinks the one lost for 2.4 s (`arcade_life_flash`). The last ends the
   run: its score is weighed against the best and recorded if it beats it
   (`save_best`, as every death and the finale do). A save keeps the lives

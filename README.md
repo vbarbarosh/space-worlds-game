@@ -61,8 +61,8 @@ Three modes:
   bot's runs ([docs/balance.md](docs/balance.md#the-arcades-power-budget)). A cleared world pays a fixed bonus, the weapon
   grows a tier, a cleared screen shows the world's numbers, and the depot opens before the next world. Score, combo and a best score (salvage left at the end scores 10 points each); no
   stations or contracts. A run has three lives, shown at the top of the HUD: a
-  death costs one and retries its world from the first wave, as you began it;
-  the last ends the run, its score against your best. A save keeps the score,
+  death costs one and retries its world from the first wave, as you began it, the depot opening first so you can try
+  another kit; the last ends the run, its score against your best. A save keeps the score,
   salvage, gear and lives, and loading it starts its world again from the first wave.
 
   Each arcade world has a shape of its own: its size (from Nova Forge's 5.4 ×

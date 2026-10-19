@@ -1,5 +1,5 @@
 // Arcade: one run through the eight worlds, three waves each, the world's flagship in the third; no stations, contracts or saves.
-const arcade = {active: false, world: -1, wave: 0, pause: 0, squad_timer: 0, squads: 0, phase: 0, slowmo: 0, depot_hint: false, marksman_hint: false, missile_hint: false, blasts: [], event: null, between_worlds: null, world_start: null, lives: 0, life_flash: 0, campaign_checkpoint: null, route: [0], seed: 0, cards: [], wind_used: false, flagship_escaped: false, owned: {}, fitted: [], reactor: 0, evade: 0, wave_total: 0, trial: false};
+const arcade = {active: false, world: -1, wave: 0, pause: 0, squad_timer: 0, squads: 0, phase: 0, slowmo: 0, depot_hint: false, marksman_hint: false, missile_hint: false, blasts: [], event: null, between_worlds: null, world_start: null, lives: 0, life_flash: 0, campaign_checkpoint: null, route: [0], seed: 0, cards: [], wind_used: false, flagship_escaped: false, owned: {}, fitted: [], reactor: 0, evade: 0, wave_total: 0, trial: false, retry_depot: false};
 const arcade_waves = 3;
 const arcade_radiation = 0.35;
 const arcade_wave_names = ['', 'SCOUTS', 'ASSAULT', 'FLAGSHIP'];
@@ -114,6 +114,7 @@ function arcade_start(world = 0, from = null)
     }
     arcade.active = true;
     arcade.trial = false;
+    arcade.retry_depot = false;
     arcade.lives = Number.isFinite(from?.lives) ? clamp(Math.round(from.lives), 1, arcade_lives) : arcade_lives;
     arcade.life_flash = 0;
     arcade.world = -1;
@@ -911,7 +912,8 @@ function arcade_depot_fill()
     const fresh = document.getElementById('arcade_depot_new');
     fresh.innerHTML = opened.length ? `<b>New on sale</b> ${opened.map(ui_escape).join(', ')}` : '';
     set_hidden(fresh, !opened.length);
-    document.getElementById('arcade_depot_launch').innerHTML = `<span>${(next === null) ? 'Back to the fight' : `Launch to ${worlds[next].name}`}</span><span class="key">Enter</span>`;
+    const launch = arcade.retry_depot ? `Retry ${worlds[here].name}` : (next === null) ? 'Back to the fight' : `Launch to ${worlds[next].name}`;
+    document.getElementById('arcade_depot_launch').innerHTML = `<span>${launch}</span><span class="key">Enter</span>`;
     const tabs = [{value: 'all', label: 'All'}, {value: 'repairs', label: 'Repairs'}, {value: 'weapons', label: 'Weapons'}, {value: 'ships', label: 'Ships'}, ...module_shelves];
     document.getElementById('arcade_depot_tabs').innerHTML = tabs.map(v => `<button type="button" class="${(v.value === arcade_depot_view.tab) ? 'is-active' : ''}" data-tab="${v.value}">${module_shelves.includes(v) ? `<i class="depot-dot depot-dot--${v.value}"></i>` : ''}${v.label}</button>`).join('');
     arcade_depot_render_list();
@@ -1322,6 +1324,11 @@ function arcade_depot_close()
     state = 'playing';
     const cleared = arcade.between_worlds;
     arcade.between_worlds = null;
+    // a retry's depot (arcade_retry): the world starts as it would, no station to undock from
+    if (arcade.retry_depot) {
+        arcade.retry_depot = false;
+        return;
+    }
     if (cleared) {
         // the route goes on to it now: the jump's half way puts you there
         const next = cleared.next ?? cleared.world + 1;
@@ -1370,7 +1377,7 @@ function arcade_finish(won)
     el.result_title.textContent = over ? 'Run over.' : `${left[0].toUpperCase()}${left.slice(1)} left.`;
     el.result_description.textContent = over
         ? `No lives left. ${reached}${salvage_line}`
-        : `${reached} Retry it from its first wave as you began it, or start a new run.${(arcade.lives === 1) ? ' One more death ends the run.' : ''}${salvage_line}`;
+        : `${reached} Retry opens the depot first, with what you had as the world began: change the kit, then fly it again from its first wave. Or start a new run.${(arcade.lives === 1) ? ' One more death ends the run.' : ''}${salvage_line}`;
     document.getElementById('result_score_label').textContent = over ? 'Final score' : 'Score';
     el.result_score.textContent = ui_number(score);
     el.result_sector.textContent = `${arcade_level() + 1} / ${arcade_worlds}`;
@@ -1381,7 +1388,9 @@ function arcade_finish(won)
 }
 
 // A death with lives left: the world it came in again from its first wave, as the run stood when that world began, but
-// with the lives the run has now, not those of the world's start; the life just lost blinks in the HUD
+// with the lives the run has now, not those of the world's start; the life just lost blinks in the HUD. The depot
+// opens first, with that world's salvage and kit, so another kit can be tried (the author, 2026-10-19: "they killed
+// me, I can take something else and fly again"); its Retry button starts the world
 function arcade_retry()
 {
     const from = arcade.world_start?.snapshot;
@@ -1393,6 +1402,8 @@ function arcade_retry()
     arcade_stop();
     arcade_start(from.world, {...from, lives});
     arcade.life_flash = arcade_life_flash;
+    arcade.retry_depot = true;
+    arcade_depot_open();
 }
 
 // "3 lives", "1 life"
