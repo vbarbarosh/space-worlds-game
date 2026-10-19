@@ -1,5 +1,5 @@
 // Arcade: one run through the eight worlds, three waves each, the world's flagship in the third; no stations, contracts or saves.
-const arcade = {active: false, world: -1, wave: 0, pause: 0, squad_timer: 0, squads: 0, phase: 0, slowmo: 0, depot_hint: false, marksman_hint: false, missile_hint: false, blasts: [], event: null, between_worlds: null, world_start: null, lives: 0, life_flash: 0, campaign_checkpoint: null, route: [0], seed: 0, cards: [], wind_used: false, flagship_escaped: false, owned: {}, fitted: [], reactor: 0, evade: 0, wave_total: 0};
+const arcade = {active: false, world: -1, wave: 0, pause: 0, squad_timer: 0, squads: 0, phase: 0, slowmo: 0, depot_hint: false, marksman_hint: false, missile_hint: false, blasts: [], event: null, between_worlds: null, world_start: null, lives: 0, life_flash: 0, campaign_checkpoint: null, route: [0], seed: 0, cards: [], wind_used: false, flagship_escaped: false, owned: {}, fitted: [], reactor: 0, evade: 0, wave_total: 0, trial: false};
 const arcade_waves = 3;
 const arcade_radiation = 0.35;
 const arcade_wave_names = ['', 'SCOUTS', 'ASSAULT', 'FLAGSHIP'];
@@ -113,6 +113,7 @@ function arcade_start(world = 0, from = null)
         arcade_kind_pick(from.kind || 'free');
     }
     arcade.active = true;
+    arcade.trial = false;
     arcade.lives = Number.isFinite(from?.lives) ? clamp(Math.round(from.lives), 1, arcade_lives) : arcade_lives;
     arcade.life_flash = 0;
     arcade.world = -1;

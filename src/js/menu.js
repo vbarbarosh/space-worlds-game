@@ -114,7 +114,8 @@ function menu_scene(name)
 {
     menu_open_row = ['continue', 'campaign', 'arcade', 'races'].includes(name) ? name : '';
     menu_row_scene = menu_open_row || menu_row_scene;
-    // a narrow window shows Load, Settings and Controls as a panel over the rows (menus-ui.css)
+    // a narrow window shows Load, Settings and Controls as a panel over the rows (menus-ui.css); the try-out panel
+    // (arcade_trial.js) steps aside for them
     document.getElementById('intro').classList.toggle('has-panel', menu_panel_scenes.includes(name));
     for (const v of document.querySelectorAll('#menu_modes .fold')) {
         v.classList.toggle('on', v.dataset.scene === name);
@@ -172,20 +173,22 @@ function menu_fold()
 }
 
 // The launch: the scene zooms, a flash, "Starting · …", then the game
-function menu_launch(mode)
+// world: the world a try-out flies (mode 'trial', arcade_trial.js)
+function menu_launch(mode, world = 0)
 {
     if (menu_launching || ((mode === 'continue') && !checkpoint)) {
         return;
     }
     menu_launching = true;
     menu_arcade.launch = 0;
-    const titles = {continue: document.getElementById('continue_title').textContent, campaign: 'New campaign', arcade: `Arcade · ${arcade_kinds[arcade_scroll.kind].name} · ${menu_arcade.level.name}`, races: `Races · ${race_mode_kinds[race_mode.kind].name} · ${race_mode_levels[race_mode.level].name}`};
+    const arcade_title = `${arcade_kinds[arcade_scroll.kind].name} · ${menu_arcade.level.name}`;
+    const titles = {continue: document.getElementById('continue_title').textContent, campaign: 'New campaign', arcade: `Arcade · ${arcade_title}`, races: `Races · ${race_mode_kinds[race_mode.kind].name} · ${race_mode_levels[race_mode.level].name}`, trial: `Try ${worlds[world].name} · ${arcade_title}`};
     document.getElementById('menu_go_title').textContent = titles[mode];
     document.getElementById('intro').classList.add('launching');
-    setTimeout(() => menu_start(mode), menu_launch_ms);
+    setTimeout(() => menu_start(mode, world), menu_launch_ms);
 }
 
-function menu_start(mode)
+function menu_start(mode, world = 0)
 {
     set_pause_icon(false);
     if (mode === 'continue') {
@@ -197,6 +200,9 @@ function menu_start(mode)
     }
     else if (mode === 'races') {
         race_mode_launch();
+    }
+    else if (mode === 'trial') {
+        arcade_trial_start(world);
     }
     else {
         arcade_start();
@@ -318,6 +324,7 @@ function menu_level_sync(mode)
     stage.classList.toggle('over', mode === 'overload');
     stage.style.setProperty('--dc', menu_arcade.level.color);
     document.getElementById('menu_dname').textContent = menu_arcade.level.name;
+    menu_try_sync();
 }
 
 // The arcade preview: swarms come in from the edges, the ship turns to the nearest and fires tracer streams, kills

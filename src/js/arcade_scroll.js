@@ -103,6 +103,7 @@ function arcade_kind_pick(kind)
         v.setAttribute('aria-pressed', String(v.dataset.arcadeKind === arcade_scroll.kind));
     }
     document.getElementById('arcade_kind_note').textContent = arcade_kinds[arcade_scroll.kind].note;
+    menu_try_sync();
     try {
         best = Number(localStorage.getItem(arcade_best_key())) || 0;
     }

@@ -1,5 +1,9 @@
 function save_best()
 {
+    // a try-out of a world from the menu (arcade_trial.js) is not a run: it keeps no best
+    if (arcade.active && arcade.trial) {
+        return false;
+    }
     const previous = best;
     best = Math.max(best, score);
     try {

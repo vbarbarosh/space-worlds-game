@@ -150,6 +150,90 @@ body:not(.in-game) .ui.hud .hud-top .toolbar {
     }
 }
 
+/* the developers' try-out panel (js/arcade_trial.js), in the top right corner over the scene: a planet a world, four
+   to a row; it steps aside for Load, Settings and Controls, and in a window under 980 px wide, where the modes need the
+   room (a phone on its side) */
+.ui .menu-try {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px 12px 12px;
+    border-radius: 12px;
+    border: 1px dashed var(--line-2);
+    background: rgba(8, 16, 30, 0.72);
+}
+
+.ui .menu-try .try-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.ui .menu-try .try-head small {
+    font: 500 11px/1.2 var(--font-mono);
+    color: var(--text-3);
+    white-space: nowrap;
+}
+
+.ui .menu-try .try-worlds {
+    display: grid;
+    grid-template-columns: repeat(4, 80px);
+    gap: 6px;
+}
+
+.ui .menu-try .try-world {
+    all: unset;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 2px;
+    border-radius: 8px;
+    cursor: pointer;
+    font: 500 11px/1.1 var(--font-ui);
+    color: var(--text-2);
+    text-align: center;
+    transition: background 0.15s, color 0.15s;
+}
+
+.ui .menu-try .try-world img {
+    width: 34px;
+    height: 34px;
+}
+
+.ui .menu-try .try-world span {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ui .menu-try .try-world:hover,
+.ui .menu-try .try-world:focus-visible {
+    background: rgba(108, 248, 236, 0.12);
+    color: var(--text-1);
+}
+
+.ui .menu-try .try-world:focus-visible {
+    outline: 2px solid var(--cyan);
+}
+
+#intro.has-panel .menu-try {
+    display: none;
+}
+
+@container screen (max-width: 980px) {
+    .ui .menu-try {
+        display: none;
+    }
+}
+
 /* the modes: one family of rows; Continue is the big one */
 .ui .modes { display: flex; flex-direction: column; gap: 10px; }
 .ui .mode { all: unset; box-sizing: border-box; display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; align-items: center; gap: 14px;

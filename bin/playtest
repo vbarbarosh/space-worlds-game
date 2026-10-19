@@ -537,7 +537,9 @@ function page_bot(options)
         if (state === 'playing') {
             if (!B.snapshot || (B.snapshot.world !== campaign.world)) {
                 B.snapshot = arcade_snapshot();
-                world_entry();
+                // the kit the run brings into the world, after the depot: what a try-out of it starts with
+                // (src/js/arcade_trial.js)
+                world_entry().kit = {fleet: B.snapshot.fleet, owned: B.snapshot.owned, fitted: B.snapshot.fitted, reactor: B.snapshot.reactor, supplies: B.snapshot.supplies};
             }
             world_entry().time += 1/60;
             if (enemies.some(v => (v.type === 'boss') && (v.hp > 0))) {

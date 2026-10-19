@@ -151,6 +151,11 @@ Three modes:
                      in a new world; Sharp, a forced ratio, a page held to
                      30 fps; exit 1 on a failure
 
+The main menu's top right corner holds a developers' panel, **Try a world** (src/js/arcade_trial.js): a click on a
+planet starts an arcade run straight in that world, of the kind and level the Arcade row has, at its step, with the
+kit a bot's won run brought into it (bin/playtest records it per world as `kit`); it keeps no best, and hides in a
+window under 980 px wide.
+
 `build/dev.html` is the developer mode: the game with a dev panel. It starts
 straight into any world, ship and weapon, and has time controls, cheats,
 enemy and target-dummy spawning, live upgrade levels and a sound board. The
