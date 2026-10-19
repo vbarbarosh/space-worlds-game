@@ -52,7 +52,7 @@ const arcade_scroll_dive = 150;
 const arcade_scroll_rank = 85;
 // A wave of a lane's stretch is the wave of a world in Free times its stretch over this many m: the raiders and what
 // they drop keep a run's income near Free's (over 2.15 km, a wave's raiders when the lanes were short, it was 2.5
-// times as much)
+// times as much); at 2400 (30% more raiders) the bot lost 7 runs of 8, in the middle worlds too
 const arcade_scroll_wave_m = 3100;
 // The radiation lining refills every this many m of the lane, about every 40 s
 const arcade_scroll_refill = 2200;
@@ -85,8 +85,15 @@ const arcade_scroll_bulwark = 0.6;
 const arcade_scroll_spawn = 160;
 // kind: free or scroll, as the menu has it; on: a lane of a scroll run is flown; way: its heading; from: where the
 // view's middle starts; length: the lane's length; s: how far along it the view's middle is; pace: m a second;
-// held: the screen stands at the lane's end; refills: the lining's refills so far
-const arcade_scroll = {kind: 'free', on: false, way: {x: 0, y: -1}, from: {x: 0, y: 0}, length: 0, s: 0, pace: 0, held: false, refills: 0};
+// held: the screen stands at the lane's end; refills: the lining's refills so far; rush: the factor on the pace now
+// (arcade_scroll_rushing); idle: the seconds with nothing left to fight
+const arcade_scroll = {kind: 'free', on: false, way: {x: 0, y: -1}, from: {x: 0, y: 0}, length: 0, s: 0, pace: 0, held: false, refills: 0, rush: 1, idle: 0};
+// With nothing left to fight before the next wave (no raider in play, the wave's own all sent), the screen rushes on
+// this many times its pace to where the next fight is, once no salvage lies in the view or after
+// arcade_scroll_rush_wait s (the author, 2026-10-19: "a couple of seconds on an empty screen", after the last wave
+// before the flagship, which waits at the lane's end)
+const arcade_scroll_rush_k = 6;
+const arcade_scroll_rush_wait = 4;
 
 for (const v of document.querySelectorAll('#intro [data-arcade-kind]')) {
     v.addEventListener('click', () => arcade_kind_pick(v.dataset.arcadeKind));
@@ -151,6 +158,8 @@ function arcade_scroll_world_start()
     portals = [];
     waypoint = null;
     arcade_scroll.held = false;
+    arcade_scroll.rush = 1;
+    arcade_scroll.idle = 0;
     const back = arcade_scroll_view();
     player.x = arcade_scroll.from.x - way.x*back.h*0.3;
     player.y = arcade_scroll.from.y - way.y*back.h*0.3;
@@ -181,7 +190,8 @@ function arcade_scroll_update(dt)
     if (!arcade_scroll_on()) {
         return;
     }
-    arcade_scroll.s = Math.min(arcade_scroll.length, arcade_scroll.s + arcade_scroll.pace*dt);
+    arcade_scroll.rush = arcade_scroll_rushing(dt) ? arcade_scroll_rush_k : 1;
+    arcade_scroll.s = Math.min(arcade_scroll.length, arcade_scroll.s + arcade_scroll.pace*arcade_scroll.rush*dt);
     arcade_scroll.held = arcade_scroll.s >= arcade_scroll.length;
     const refills = Math.floor(arcade_scroll.s/arcade_scroll_refill);
     if (refills > arcade_scroll.refills) {
@@ -201,22 +211,33 @@ function arcade_scroll_update(dt)
     player.y = camera.y + (at.y - oy)/k;
 }
 
-// Salvage, repairs and caches the back edge reaches are carried along at it, as the raiders are, not left behind out
-// of reach: what a lane passes is the run's income there, and with each left behind the bot reached Eclipse with
-// no cruiser in 11 runs of 11. What lies beside the view is left where it is.
+// The screen rushes on now (arcade_scroll_rush_k): nothing left to fight before the next wave, and no salvage in the
+// view, or none picked up for arcade_scroll_rush_wait s
+function arcade_scroll_rushing(dt)
+{
+    const empty = (arcade.wave >= 1) && (arcade.wave < arcade_waves) && (spawn_left <= 0) && !enemies.some(v => v.hp > 0);
+    arcade_scroll.idle = empty ? arcade_scroll.idle + dt : 0;
+    return empty && (!pickups.some(v => !arcade_scroll_unseen(v)) || (arcade_scroll.idle > arcade_scroll_rush_wait));
+}
+
+// Salvage, repairs and caches the back edge has passed are gone (the author, 2026-10-19: they piled up along the
+// bottom edge, under the panel; "better they vanish, if I don't make it in time, than all gather on the edge"). What
+// lies beside the view is left where it is. While the screen rushes on (arcade_scroll_rushing) what comes into the
+// view is drawn to you, so a rush skips the empty way, not its caches: without that, the bot came to its depots with
+// a quarter less and won 1 run of 8
 function arcade_scroll_pickups()
 {
     const view = arcade_scroll_view();
     const way = arcade_scroll.way;
-    for (const v of pickups) {
-        const dx = v.x - view.x;
-        const dy = v.y - view.y;
-        const along = dx*way.x + dy*way.y;
-        const across = dy*way.x - dx*way.y;
-        const back = -view.h + arcade_scroll_inset;
-        if ((along < back) && (Math.abs(across) < view.w)) {
-            v.x = view.x + way.x*back - way.y*across;
-            v.y = view.y + way.y*back + way.x*across;
+    for (let i = pickups.length - 1; i >= 0; --i) {
+        const v = pickups[i];
+        const along = (v.x - view.x)*way.x + (v.y - view.y)*way.y;
+        if (along < -view.h - arcade_scroll_gone) {
+            pickups.splice(i, 1);
+        }
+        else if ((arcade_scroll.rush > 1) && !arcade_scroll_unseen(v)) {
+            v.x = player.x;
+            v.y = player.y;
         }
     }
 }
@@ -365,7 +386,8 @@ function arcade_scroll_wave_size(n, base)
 // Keeps a ship within the view, `side` m in from its edges, and as far ahead as `ahead` past the front edge; for
 // your ship (moving: it has a speed of its own), a speed out through an edge is stopped there, and the back edge
 // carries it on at the screen's pace
-function arcade_scroll_keep(v, side, ahead, moving)
+// free_behind: the back edge does not hold it (a raider, which is gone once past it: arcade_scroll_raiders)
+function arcade_scroll_keep(v, side, ahead, moving, free_behind = false)
 {
     const view = arcade_scroll_view();
     const way = arcade_scroll.way;
@@ -374,7 +396,7 @@ function arcade_scroll_keep(v, side, ahead, moving)
     const dy = v.y - view.y;
     const along = dx*way.x + dy*way.y;
     const across = dy*way.x - dx*way.y;
-    const a = clamp(along, -view.h + side, view.h - side + ahead);
+    const a = clamp(along, free_behind ? -Infinity : -view.h + side, view.h - side + ahead);
     const c = clamp(across, -view.w + side, view.w - side);
     if ((a === along) && (c === across)) {
         return;
@@ -386,7 +408,7 @@ function arcade_scroll_keep(v, side, ahead, moving)
     }
     const va = v.vx*way.x + v.vy*way.y;
     const vc = v.vy*way.x - v.vx*way.y;
-    const pace = arcade_scroll.held ? 0 : arcade_scroll.pace;
+    const pace = arcade_scroll.held ? 0 : arcade_scroll.pace*arcade_scroll.rush;
     const na = (a > along) ? Math.max(va, pace) : (a < along) ? Math.min(va, pace) : va;
     const nc = (c !== across) ? 0 : vc;
     v.vx = way.x*na - way.y*nc;
@@ -401,8 +423,9 @@ function arcade_scroll_camera()
     camera.y = view.y - H/zoom/2;
 }
 
-// The raiders of a lane (arcade_update): kept inside the view's back and sides, so the back edge carries a slow one
-// on; ahead, no farther than arcade_scroll_ahead past the front edge. A lancer lying in wait stays by its rock, and
+// The raiders of a lane (arcade_update): kept inside the view's sides; ahead, no farther than arcade_scroll_ahead past
+// the front edge; one the back edge leaves behind is gone, unkilled, as a formation's is (the author, 2026-10-19: the
+// back edge dragged them along, piled under the panel). A lancer lying in wait stays by its rock, and
 // one inside a black hole's reach is the hole's: held at the view's edge 110 m from Eclipse's core, a raider the
 // hole was pulling in neither fell nor could be reached, and its wave never ended
 function arcade_scroll_raiders()
@@ -421,10 +444,17 @@ function arcade_scroll_raiders()
             continue;
         }
         if ((v.hp > 0) && !v.lurk && !black_holes.some(vv => distance(v, vv) < vv.radius)) {
-            arcade_scroll_keep(v, v.r + arcade_scroll_leash, arcade_scroll_ahead + v.r + arcade_scroll_leash, false);
+            if (arcade_scroll_behind(v, v.r + arcade_scroll_gone)) {
+                v.hp = 0;
+                continue;
+            }
+            arcade_scroll_keep(v, v.r + arcade_scroll_leash, arcade_scroll_ahead + v.r + arcade_scroll_leash, false, true);
         }
     }
 }
+
+// A raider or a pickup the back edge has passed this far is gone: out of the view, not dragged along at its edge
+const arcade_scroll_gone = 60;
 
 // A raider out of the view holds its fire on a lane (enemy_fire): nothing hits you from where you cannot see
 function arcade_scroll_unseen(v)
@@ -437,15 +467,15 @@ function arcade_scroll_unseen(v)
     return (v.x < camera.x) || (v.x > camera.x + vw) || (v.y < camera.y) || (v.y > camera.y + vh);
 }
 
-// A raider the back edge of a lane has passed: a lancer lying in wait there wakes, rather than hold its wave up
-// out of sight (arcade_role_steer)
-function arcade_scroll_behind(v)
+// A raider the back edge of a lane has passed, by `past` m: a lancer lying in wait there wakes, rather than hold its
+// wave up out of sight (arcade_role_steer); one past it by its radius and arcade_scroll_gone is gone
+function arcade_scroll_behind(v, past = 0)
 {
     if (!arcade_scroll_on()) {
         return false;
     }
     const view = arcade_scroll_view();
-    return (v.x - view.x)*arcade_scroll.way.x + (v.y - view.y)*arcade_scroll.way.y < -view.h;
+    return (v.x - view.x)*arcade_scroll.way.x + (v.y - view.y)*arcade_scroll.way.y < -view.h - past;
 }
 
 // Where a squadron warps in on a lane (arcade_squad_form): past the front edge, at a place across it (-1 to 1), as

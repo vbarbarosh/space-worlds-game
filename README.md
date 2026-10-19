@@ -73,9 +73,11 @@ Three modes:
   The arcade comes in two kinds, picked on its menu row (T turns it): **Free**, as above, and **Scroll**, the same
   run on a screen that moves on by itself, up, down, left or right by the world, along a lane 12 to 16 km long (3 to
   4 minutes), the world stretched along it with its rocks, caches, cliffs, storms and pylons spread along the way. Your ship
-  flies anywhere in the view and the back edge pushes it on; the raiders come from ahead and, once in, stay in the
-  view, but most squadrons come as a formation, a line sweeping across the screen or a V flying down it, firing as
-  they pass and gone once through. The screen moves at one speed all the way: wave 1 comes over the lane's first
+  flies anywhere in the view and the back edge pushes it on; the raiders come from ahead, and one the back edge leaves
+  behind is gone, as is salvage it passes; most squadrons come as a formation, a line sweeping across the screen or a
+  V flying down it, firing as they pass and gone once through. With nothing left to fight before the next wave, the
+  screen rushes on (×6) to it, drawing what comes into view to you, once no salvage lies in view (or after 4 s).
+  Otherwise the screen moves at one speed all the way: wave 1 comes over the lane's first
   half and wave 2 over its second, squadron by squadron as the screen goes on, whatever is still fighting (busier in
   the middle worlds); the view never empties: while fewer than 3 raiders are in play (4 in the second wave) the
   wave's next squadron comes at once, and once the first wave has sent all its own, the second comes on early (not

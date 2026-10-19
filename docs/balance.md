@@ -1216,6 +1216,8 @@ each measured with the bot (`bin/playtest --kind=scroll`, NORMAL, seeds 1–12):
 | Raiders alive before the next squadron waits | 12, 16 in the middle worlds | 14 | |
 | Raider reload | ×1.1 | ×1 | |
 | Raiders kept in play | 3 in wave 1, 4 in wave 2: the wave's next squadron at once (at most 2 s after the last), topping the lane up to two past it; once wave 1 has sent all its own, wave 2 comes on early; the lane's raiders as many as before; not wave 2 of the run's last world | - | the view never empties (the author: "as if I went out for a walk", "when there are none it is boring", a screenshot of an empty lane between waves); a fixed number (the author: not "the faster you work, the more work you are given") |
+| The back edge | lets go: a raider 60 m behind is gone, unkilled; salvage passed is lost | - | the author: they piled up under the panel |
+| Nothing left to fight | the screen rushes on ×6 to the next wave, drawing salvage in view to you, once none lies in view or after 4 s | - | the author: "a couple of seconds on an empty screen" |
 | Formations | 6 squadrons of 10: a line sweeping across the screen (170 m/s) or a V flying down it (150 m/s) | - | firing as they pass, gone once out of the view, no points |
 | The Eclipse Eye's hull | ×0.7 | ×1 | it fights round a ring at the lane's end, with no hole swallowing the raiders round it |
 | A bulwark's shield turn | ×0.6 | ×1 | the view's edges cut the circle round it short; a slow ship never got round, its wave held for hours of game time |
@@ -1264,8 +1266,18 @@ view lets it be, since the hole is behind by then. A raider inside a hole's
 reach is left to the hole, not held in the view: held at its edge, it could
 neither fall in nor be reached.
 
-Salvage the back edge reaches is carried along at it, not left behind: what a
-lane passes is its income.
+The back edge lets go (2026-10-19, the author: raiders and salvage piled up
+under the panel): a raider it leaves 60 m behind is gone, unkilled, and
+salvage it passes is lost. Alone, it cost the bot little (8 runs of 8 won).
+With nothing left to fight before the next wave (no raider in play, the
+wave's own all sent), the screen rushes on at 6 times its pace to it, once
+no salvage lies in the view or after 4 s, drawing what comes into the view to
+you (the author: "a couple of seconds on an empty screen" before the
+flagship). Measured (seeds 1–8): a world takes 25–35% less time (Haven 201 s
+to 140 s, Eclipse 257 s to 153 s); the bot comes to its first depots with
+10–25% less salvage (the rocks it no longer passes slowly) and wins 5 runs of
+8 (6 of 8 before both changes). Without drawing the salvage in, it came with a
+quarter less and won 1 of 8; with 30% more raiders a lane instead, 1 of 8.
 
 ## The arcade's world shapes
 
