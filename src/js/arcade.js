@@ -377,17 +377,25 @@ function arcade_wave_size(n)
 }
 
 // Raiders come in squadrons from one side, not one by one; a squadron waits while the sky is crowded (on a Scroll
-// lane sooner: arcade_scroll_crowd).
+// lane sooner: arcade_scroll_crowd). On a lane short of raiders (arcade_scroll_short) the next comes at once, whatever
+// the distance flown.
 function arcade_squads_update(dt)
 {
     arcade.squad_timer -= dt;
     const alive = enemies.filter(v => v.hp > 0).length;
-    if ((spawn_left <= 0) || (arcade.squad_timer > 0) || (alive > (arcade_scroll_on() ? arcade_scroll_crowd_now() : 14)) || !arcade_scroll_squad_due()) {
+    const short = arcade_scroll_short(alive);
+    if (short) {
+        arcade.squad_timer = Math.min(arcade.squad_timer, arcade_scroll_floor_gap);
+    }
+    if ((spawn_left <= 0) || (arcade.squad_timer > 0) || (alive > (arcade_scroll_on() ? arcade_scroll_crowd_now() : 14)) || (!short && !arcade_scroll_squad_due())) {
         return;
     }
-    const size = Math.min(spawn_left, 3 + Math.min(3, Math.floor(arcade_level()/2)) + (arcade.wave - 1) + arcade_mode().squad);
-    arcade_squad_spawn(size);
-    spawn_left -= size;
+    // one the floor calls tops the lane up to two past it, no more: a full squadron there piled up 6 to 9 raiders from
+    // Obsidian on, and the bot lost every run
+    const full = 3 + Math.min(3, Math.floor(arcade_level()/2)) + (arcade.wave - 1) + arcade_mode().squad;
+    const size = short ? Math.min(full, Math.max(3, arcade_scroll_floor() + 2 - alive)) : full;
+    arcade_squad_spawn(Math.min(spawn_left, size));
+    spawn_left -= Math.min(spawn_left, size);
     arcade.squad_timer = Math.max(2.6, 5.5 - arcade_level()*0.3)*arcade_mode().gap;
 }
 

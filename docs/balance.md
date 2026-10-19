@@ -1162,6 +1162,7 @@ each measured with the bot (`bin/playtest --kind=scroll`, NORMAL, seeds 1–12):
 | A wave of a lane's half | Free's wave × the half's length / 3.1 km, ×1.5 from the second world to the seventh | - | its squadrons spread over the half, one as the screen gets far enough along for what is left; the middle worlds busier (the author's run: a kill every 3 to 4 s, no hull lost in Dustfall), not Haven's first ship nor Eclipse |
 | Raiders alive before the next squadron waits | 12, 16 in the middle worlds | 14 | |
 | Raider reload | ×1.1 | ×1 | |
+| Raiders kept in play | 3 in wave 1, 4 in wave 2: the wave's next squadron at once (at most 2 s after the last), topping the lane up to two past it; once wave 1 has sent all its own, wave 2 comes on early; the lane's raiders as many as before; not wave 2 of the run's last world | - | the view never empties (the author: "as if I went out for a walk", "when there are none it is boring", a screenshot of an empty lane between waves); a fixed number (the author: not "the faster you work, the more work you are given") |
 | Formations | 6 squadrons of 10: a line sweeping across the screen (170 m/s) or a V flying down it (150 m/s) | - | firing as they pass, gone once out of the view, no points |
 | The Eclipse Eye's hull | ×0.7 | ×1 | it fights round a ring at the lane's end, with no hole swallowing the raiders round it |
 | A bulwark's shield turn | ×0.6 | ×1 | the view's edges cut the circle round it short; a slow ship never got round, its wave held for hours of game time |
@@ -1175,6 +1176,31 @@ lanes' numbers (8 alive, reload ×1.35, a wave a 2.15 km, rocks and caches every
 in Eclipse, whose raiders are the run's strongest. The numbers above win 6 of
 12, Eclipse still the hardest world, as in Free (8 of 12). With the faster screen, the formations and the busier
 middle (kills a minute 37 to 50 there, from 28 to 39) the bot wins 6 of 12 too.
+
+The view kept in play (2026-10-19, seeds 1–4 before, 1–8 after; `quiet` is
+the seconds of waves 1 and 2 with under 3 raiders in play, `crowd` how many
+are in play on average, both new columns of `bin/playtest`):
+
+| World | quiet before | after | crowd before | after | hull lost before | after |
+|---|---|---|---|---|---|---|
+| Haven | 96 s | 13 s | 1.9 | 3.8 | 93 | 206 |
+| Verdant | 118 s | 42 s | 2.3 | 3.0 | 87 | 135 |
+| Dustfall | 111 s | 28 s | 2.4 | 3.5 | 284 | 327 |
+| Ion Reach | 107 s | 33 s | 2.2 | 3.3 | 36 | 186 |
+| Obsidian | 130 s | 42 s | 2.4 | 3.6 | 235 | 769 |
+| Cryosphere | 123 s | 28 s | 2.5 | 3.7 | 115 | 251 |
+| Nova Forge | 58 s | 18 s | 4.6 | 4.0 | 125 | 185 |
+| Eclipse | 160 s | 30 s | 3.5 | 4.4 | 1392 | 1590 |
+
+Runs won: 3 of 4 before, 6 of 8 after, Eclipse the hardest world as before.
+The tries on the way: 5 kept in play and 2 more in wave 2, full squadrons, 7
+in play on average and the bot fell in Haven; one more every two steps of the
+run, 6 to 9 in play from Obsidian on and every run lost; reinforcements once a
+wave's own were out (the faster you kill, the more come), turned down by the
+author; Eclipse's second wave brought on early, before its hole, every run of 8
+lost there. An idle ship (`--idle`, no key pressed) dies in every world on a
+lane, before and after: the lanes were never a walk for a ship left alone,
+but for one that flies they were, between squadrons.
 
 Eclipse's hole stands beside its lane, 1.2 km off it, three quarters of the way
 along (the author: holes beside a lane, not across its end): passed during wave

@@ -67,6 +67,13 @@ const arcade_scroll_ahead = 1400;
 // A squadron waits while this many raiders are alive on a lane (in Free, 14): with no open space to spread them out
 // in, a wave comes as a stream, not all at once (the bot lost Obsidian's and Eclipse's first waves to 17 at once)
 const arcade_scroll_crowd = 12;
+// The view never empties (the author, 2026-10-19: "killing them is fun, but when there are none it is boring", "as if
+// I went out for a walk"): while fewer raiders than the floor (arcade_scroll_floor) are in play before the screen
+// reaches its stretch's end, the wave's next squadron comes at once, at most this many s after the last, whatever
+// the distance flown. The wave's raiders stay as many as they were: no reinforcements (the author: "the number of
+// enemies should be fixed", not "the faster you work, the more work you are given")
+const arcade_scroll_floor_base = 3;
+const arcade_scroll_floor_gap = 2;
 // A raider on a lane reloads this many times slower: every one of them is in the view, within reach of its gun, where
 // in Free most are not (Obsidian's and Eclipse's raiders shot the bot down twice as often on a lane)
 const arcade_scroll_reload = 1.1;
@@ -234,10 +241,18 @@ function arcade_scroll_ready(n)
 }
 
 // The next wave of a lane comes as the screen reaches its stretch (arcade_update), whether the one before is down or
-// not: its raiders still fight on; true when it came
+// not: its raiders still fight on; or sooner, when the one before has sent all its own and the view runs short of
+// raiders (arcade_scroll_floor), so a quick pilot does not fly an empty stretch to it (the author's screenshot: "Wave
+// clear: the screen moves on to the next" over an empty screen). Not the flagship's: it waits for the lane's end; nor
+// in the run's last world, whose second wave is the run's strongest raiders and meets Eclipse's hole on the way:
+// brought on before it, the bot lost every run of 8 there. True when it came
 function arcade_scroll_waves()
 {
-    if (!arcade_scroll_on() || (arcade.wave >= arcade_waves) || (arcade_scroll.s < arcade_scroll_end(arcade.wave))) {
+    if (!arcade_scroll_on() || (arcade.wave >= arcade_waves)) {
+        return false;
+    }
+    const early = (spawn_left <= 0) && (arcade.wave + 1 < arcade_waves) && (arcade_level() < arcade_worlds - 1) && (enemies.filter(v => v.hp > 0).length < arcade_scroll_floor());
+    if ((arcade_scroll.s < arcade_scroll_end(arcade.wave)) && !early) {
         return false;
     }
     arcade.pause = 0;
@@ -256,6 +271,25 @@ function arcade_scroll_busy_k()
 function arcade_scroll_crowd_now()
 {
     return arcade_scroll_crowd + Math.round(arcade_scroll_busy_crowd*(arcade_scroll_busy_k() - 1)/arcade_scroll_busy);
+}
+
+// How many raiders a lane keeps in play: 3 in the first wave, 4 in the second, in every world: the later worlds' own
+// squadrons, bigger and closer together, fill their lanes past it anyway (with one more every two steps of the run,
+// the bot had 6 to 9 in play from Obsidian on and lost every run; with 5 and two more, it fell in Haven, 7 in play
+// on average where it had 2)
+function arcade_scroll_floor()
+{
+    return arcade_scroll_floor_base + (arcade.wave - 1);
+}
+
+// A lane's wave is short of raiders: fewer than its floor in play, and the screen not yet at its stretch's end (the
+// flagship's wave as in Free)
+function arcade_scroll_short(alive)
+{
+    if (!arcade_scroll_on() || (arcade.wave < 1) || (arcade.wave >= arcade_waves)) {
+        return false;
+    }
+    return (alive < arcade_scroll_floor()) && (arcade_scroll.s < arcade_scroll_end(arcade.wave));
 }
 
 // A squadron as a formation on a lane (arcade_squad_form), arcade_scroll_formations of the time; false when it comes

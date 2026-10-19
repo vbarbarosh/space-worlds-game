@@ -73,7 +73,10 @@ Three modes:
   view, but most squadrons come as a formation, a line sweeping across the screen or a V flying down it, firing as
   they pass and gone once through. The screen moves at one speed all the way: wave 1 comes over the lane's first
   half and wave 2 over its second, squadron by squadron as the screen goes on, whatever is still fighting (busier in
-  the middle worlds); it stops only where the lane ends, for the flagship. No portals, no wave-2 events, and the depot opens between worlds only. Each kind keeps its own
+  the middle worlds); the view never empties: while fewer than 3 raiders are in play (4 in the second wave) the
+  wave's next squadron comes at once, and once the first wave has sent all its own, the second comes on early (not
+  in the run's last world); a lane's raiders stay as many as they were; it stops only where the lane ends, for the
+  flagship. No portals, no wave-2 events, and the depot opens between worlds only. Each kind keeps its own
   best.
 - **Races**: ring races alone, at Easy, Normal or Hard, course after course
   from Haven through the eight worlds; the start ship, no raiders, the rocks
@@ -112,7 +115,9 @@ Three modes:
                      docs/performance-2026-10-05.md
     bin/playtest     a bot plays arcade runs on a virtual clock (about a
                      minute each) and counts per world and wave the hull
-                     lost, kills off the screen and salvage left, flying
+                     lost, kills off the screen, salvage left and, for
+                     waves 1 and 2, the seconds with under 3 raiders in
+                     play and how many are in play, flying
                      a build of modules (--build=mixed, guns, tank or
                      evasion), Free or Scroll runs (--kind=scroll),
                      or idle, no key pressed (--idle, in
