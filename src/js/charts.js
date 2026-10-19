@@ -141,8 +141,11 @@ function render_local_chart(parent)
 
 function local_map_bounds()
 {
+    // the whole world at one scale both ways: the chart's proportions, the world in their middle and space past its
+    // edges round it (a long world, the arcade's Verdant, was stretched to the chart)
     if (local_map_mode === 'whole') {
-        return {x: 0, y: 0, w: world.w, h: world.h};
+        const k = Math.max(world.w/960, world.h/620);
+        return {x: (world.w - 960*k)/2, y: (world.h - 620*k)/2, w: 960*k, h: 620*k};
     }
     const w = Math.min(world.w, 4900);
     const h = Math.min(world.h, 3300);

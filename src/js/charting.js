@@ -476,6 +476,13 @@ function render_chart_local(map)
         draw.fillText(text, x, y);
     }
     render_chart_ground(draw, b, sx, sy, 960, 620, 80);
+    // past the world's edges (the whole of a world not of the chart's proportions) the chart is dark
+    const edge = {x: -b.x*sx, y: -b.y*sy, w: world.w*sx, h: world.h*sy};
+    draw.fillStyle = '#060a14e6';
+    draw.fillRect(0, 0, 960, Math.max(0, edge.y));
+    draw.fillRect(0, edge.y + edge.h, 960, Math.max(0, 620 - edge.y - edge.h));
+    draw.fillRect(0, 0, Math.max(0, edge.x), 620);
+    draw.fillRect(edge.x + edge.w, 0, Math.max(0, 960 - edge.x - edge.w), 620);
     const things = map_things();
     draw.save();
     draw.setLineDash([5, 5]);
@@ -548,8 +555,14 @@ function render_minimap()
     const h = Math.round(box.height - 10);
     const top = 16;
     const mh = h - top;
-    const sx = w/world.w;
-    const sy = mh/world.h;
+    // the world at one scale both ways, in the middle of the box: a long world (the arcade's Verdant, 9.6 × 4.4 km)
+    // as long as it is, not stretched to the box
+    const sx = Math.min(w/world.w, mh/world.h);
+    const sy = sx;
+    const gw = Math.round(world.w*sx);
+    const gh = Math.round(world.h*sy);
+    const gx = Math.round((w - gw)/2);
+    const gy = Math.round((mh - gh)/2);
     ctx.save();
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     // see-through, so the world's corner under it still shows; a raider under it makes it fainter still
@@ -565,34 +578,34 @@ function render_minimap()
     ctx.fillText(worlds[campaign.world].name.toUpperCase(), x, y + 7);
     // the ground is drawn again only when the chart or the size changes
     const fog_ready = !!(sprite('map/fog') && sprite_raster('map/fog', null, 256));
-    const key = `${campaign.world}:${w}:${mh}:${world.w}:${world.h}:${fog_ready}`;
+    const key = `${campaign.world}:${gw}:${gh}:${world.w}:${world.h}:${fog_ready}`;
     const stale = !minimap_ground || (minimap_ground.key !== key) || ((minimap_ground.version !== chart_version) && (time - minimap_ground.at > 1));
     if (stale) {
         const canvas = document.createElement('canvas');
-        canvas.width = w*2;
-        canvas.height = mh*2;
+        canvas.width = gw*2;
+        canvas.height = gh*2;
         const draw = canvas.getContext('2d');
         draw.scale(2, 2);
-        render_chart_ground(draw, {x: 0, y: 0, w: world.w, h: world.h}, sx, sy, w, mh, 0);
+        render_chart_ground(draw, {x: 0, y: 0, w: world.w, h: world.h}, sx, sy, gw, gh, 0);
         minimap_ground = {key, canvas, version: chart_version, at: time};
     }
     ctx.save();
-    ctx.translate(x, y + top);
+    ctx.translate(x + gx, y + top + gy);
     ctx.beginPath();
-    ctx.rect(0, 0, w, mh);
+    ctx.rect(0, 0, gw, gh);
     ctx.clip();
-    ctx.drawImage(minimap_ground.canvas, 0, 0, w, mh);
+    ctx.drawImage(minimap_ground.canvas, 0, 0, gw, gh);
     function point(v) {
         return {x: v.x*sx, y: v.y*sy};
     }
     // a jammer blinds it: the ground under a haze and the event's name, nothing on it but the jammer if the radar sees it
     if (arcade_event_blind()) {
         ctx.fillStyle = '#3a2f22e6';
-        ctx.fillRect(0, 0, w, mh);
+        ctx.fillRect(0, 0, gw, gh);
         ctx.font = 'bold 9px ui-monospace,monospace';
         ctx.textAlign = 'center';
         ctx.fillStyle = '#ffb36e';
-        ctx.fillText('JAMMED', w/2, mh/2 + 3);
+        ctx.fillText('JAMMED', gw/2, gh/2 + 3);
         for (const v of enemies) {
             if ((v.hp > 0) && radar_sees(v)) {
                 const p = point(v);
