@@ -117,7 +117,7 @@ can come without it. A reader skips fields it does not know.
 
     {"t":60,"s":53,"at":"…","world":"Haven","flight_s":47,"docked_s":6,"salvage":970,
      "earned":{"contract":290,"race":190,"sell ore":80},"spent":{"trade":24},
-     "xp_total":262,"xp":{"kill":14,"contract":206},"rank":"Courier",
+     "xp_total":1180,"xp":{"kill":392,"contract":290},"rank":"Courier",
      "kills":{"chaser":2,"shooter":2,"lancer":1},"elite_kills":0,"dealt":1180,
      "taken":{"shield":0,"hull":53},"taken_by":{"shot":53},"raider_shots":28,"hits_on_you":4,
      "dashes":3,"pulses":1,"supplies":{"emp":1},"deaths":0,"hull_low":0.41,
@@ -133,7 +133,7 @@ can come without it. A reader skips fields it does not know.
 | `salvage` | on hand at its end |
 | `earned` | by source: `pickups` (wreck and cache salvage), `contract`, `story` (a story chapter), `race`, `goal`, `world bonus` (arcade), `swallowed` (a raider the arcade's Eclipse hole took), `sell <cargo>` (ore, cells, relics, commodities), `transport` (a transport line's sales), `refund` (a structure still building when you left), `unlogged` |
 | `spent` | by kind: `ship`, `gun`, `gun tier`, `module`, `supply`, `repair` (arcade), `card` (arcade, a card's price), `drone`, `drone tier`, `builder`, `structure`, `transport line`, `trade` (commodities bought), `tow` (the tug after a death), `unlogged` |
-| `xp_total`, `xp`, `rank` | campaign only (null in the arcade): XP at the end, earned by source (`kill`, `contract`, `unlogged`), the rank |
+| `xp_total`, `xp`, `rank` | campaign only (null in the arcade): XP at the end, earned by source (`kill`, `contract`, `unlogged`), the rank. `kill` is the hull of the raiders destroyed, `contract` the pay of the contracts collected (since 2026-10-19; before, 2 to 6 a kill and 28% of the pay + 18 a stage, and a save from then has its XP rescaled once when it loads, which can show as `unlogged`) |
 | `kills` | by raider type: `chaser`, `shooter`, `lancer`, `tank`, `splitter`, `shard`, `boss` |
 | `elite_kills` | of those, elites |
 | `dealt` | damage your side dealt to raiders' shields and hulls: guns, pulse, EMP, missiles, drones, platforms, arcade chain blasts |

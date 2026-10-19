@@ -304,8 +304,11 @@ function render_station_goals(parent)
     career.className = 'goal-panel';
     const career_head = `<div class="career-head"><div><h3 class="h-section">${rank_names[rank]}</h3>${next ? `<p class="small">next: ${rank_names[rank + 1]}</p>` : ''}</div><span class="readout">${ui_number(campaign.xp)}${next ? `<small> / ${ui_number(next)} XP</small>` : ''}</span></div>`;
     const career_bar = next ? ui_progress_html(10, Math.floor(((campaign.xp - from)/(next - from))*10), '') : '';
-    const career_text = (rank < 5)
-        ? `Earn ${ui_number(Math.max(0, rank_thresholds[5] - campaign.xp))} XP to license the Aurora Cruiser. The hangar and arsenal show what each rank unlocks, and each new world opens more.`
+    // the next rank that licenses something, and what
+    const licence = rank_names.findIndex((v, i) => (i > rank) && [...ship_catalog, ...weapon_catalog].some(vv => vv.rank === i));
+    const licensed = [...ship_catalog, ...weapon_catalog].filter(v => v.rank === licence).map(v => v.name);
+    const career_text = (licence > 0)
+        ? `Next licence${(licensed.length > 1) ? 's' : ''}: ${licensed.join(', ').replace(/, ([^,]*)$/, ' and $1')} at ${rank_names[licence]}, ${ui_number(Math.max(0, rank_thresholds[licence] - campaign.xp))} XP away. XP is the hull of every raider you destroy, so a heavy one counts for more, and each contract as much as it pays. Each new world opens more ships and guns.`
         : tech_open(Math.max(...ship_catalog.map(v => v.opens), ...weapon_catalog.map(v => v.opens)))
             ? 'Every ship and gun is yours to fly.'
             : 'Every licence is yours; new worlds open more ships and guns.';

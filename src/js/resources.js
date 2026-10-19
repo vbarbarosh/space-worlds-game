@@ -151,13 +151,13 @@ function cargo_collect(pickup, quiet)
     }
 }
 
-// Experience for a kill, by the raider's type; it counts toward the pilot rank that licenses ships.
+// Experience for a kill: the raider's hull, as it was born, so a raider counts as much as it took to break (a Haven
+// chaser 58, an Eclipse tank 550, an elite commander 600 or more, a flagship 10 500); it counts toward the pilot rank
+// that licenses ships. A splitter's shards carry their own small hulls; the Leviathan, whose hull no gun can scratch,
+// counts as the tank it is built on (lure_update).
 function kill_xp(enemy)
 {
-    if (enemy.child) {
-        return 1;
-    }
-    return {boss: 60, tank: 6, lancer: 4, shooter: 3, splitter: 3}[enemy.type] || 2;
+    return Math.round(enemy.max_hp);
 }
 
 function kill_xp_grant(enemy)
@@ -166,7 +166,7 @@ function kill_xp_grant(enemy)
     const xp = kill_xp(enemy);
     campaign.xp += xp;
     play_log_xp('kill', xp);
-    label(enemy.x, enemy.y + 22, `+${xp} XP`, blue);
+    label(enemy.x, enemy.y + 22, `+${ui_number(xp)} XP`, blue);
     if (pilot_rank() > old_rank) {
         show_toast('PILOT PROMOTED', `${rank_names[pilot_rank()].toUpperCase()} / NEW HANGAR AND ARSENAL LICENSES`, 5);
     }

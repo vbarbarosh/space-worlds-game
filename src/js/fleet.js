@@ -107,10 +107,28 @@ const weapon_catalog = [
 ];
 // A gun goes on sale in the world its `opens` names (src/js/tech.js): the cannon and the shotgun in Haven, the ion gun in
 // Verdant, the railgun and the Seeker in Ion Reach, before Obsidian's armour asks for one of them, the beam in Obsidian.
-// Licences follow the story (docs/balance.md): Vanguard (the gunship, the rail and the Seeker) with chapter 4, before
-// Obsidian's armour; Ace (the beam) with chapter 6; Commander (the cruiser) as act I ends; Admiral and Legend in act II
-const rank_thresholds = [0, 120, 420, 1100, 2400, 4200, 7000, 10500];
+// Licences follow the story (docs/balance.md): XP is mostly the hull of the raiders you destroy (kill_xp), so the
+// thresholds grow with the worlds' raiders: Courier with chapter 1, Pathfinder with chapter 2, Vanguard (the gunship,
+// the rail and the Seeker) with chapter 4, before Obsidian's armour; Ace (the beam) with chapter 6; Commander (the
+// cruiser) with chapter 8, as act I ends; Admiral and Legend in act II
+const rank_thresholds = [0, 1000, 6000, 30000, 95000, 220000, 600000, 1200000];
 const rank_names = ['Cadet', 'Courier', 'Pathfinder', 'Vanguard', 'Ace', 'Commander', 'Admiral', 'Legend'];
+// The thresholds before a kill counted its hull (2 to 6 XP a raider, 60 a flagship): a save from then is taken along
+// them to the ones above, so it keeps its rank and its way to the next (career_xp_rescale)
+const rank_thresholds_by_type = [0, 120, 420, 1100, 2400, 4200, 7000, 10500];
+
+// What a licence asks, where a ship or gun shows it: the rank and its XP ("Vanguard · 12 000 XP")
+function rank_need_text(rank)
+{
+    return `${rank_names[rank]} · ${xp_need_text(rank)}`;
+}
+
+// The XP a rank asks and yours, beside the rank's badge ("12 000 XP · you 8 400")
+function xp_need_text(rank)
+{
+    return `${ui_number(rank_thresholds[rank])} XP · you ${ui_number(campaign.xp)}`;
+}
+
 function ensure_career()
 {
     if (!campaign.fleet) {
@@ -129,9 +147,26 @@ function ensure_career()
     if (!Number.isFinite(campaign.xp)) {
         campaign.xp = (campaign.completed || 0)*70;
     }
+    if (!campaign.xp_hull) {
+        campaign.xp = career_xp_rescale(campaign.xp);
+        campaign.xp_hull = true;
+    }
     campaign.reputation = campaign.reputation || worlds.map(() => 0);
     campaign.expedition = campaign.expedition || 1;
     return f;
+}
+
+// XP counted by the raider's type, as it was before the hull counted (rank_thresholds_by_type), in today's: the same
+// share of the way between the same two ranks, and past Legend the same multiple of it
+function career_xp_rescale(xp)
+{
+    const from = rank_thresholds_by_type;
+    const to = rank_thresholds;
+    const i = from.findLastIndex(v => xp >= v);
+    if (i === from.length - 1) {
+        return Math.round(xp*to[i]/from[i]);
+    }
+    return Math.round(to[i] + (xp - from[i])*(to[i + 1] - to[i])/(from[i + 1] - from[i]));
 }
 
 function pilot_rank()

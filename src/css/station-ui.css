@@ -511,6 +511,17 @@
     white-space: nowrap;
 }
 
+/* the XP a licence asks and yours, beside its rank's badge; on a ship card on a line of its own under it */
+.ui .ship-xp {
+    font: 600 11px/1 var(--font-mono);
+    color: var(--text-2);
+    white-space: nowrap;
+}
+
+.ui .ship-row > .ship-xp {
+    flex-basis: 100%;
+}
+
 .ui .ship-empty {
     font: 600 11px/1 var(--font-mono);
     color: var(--red-2);

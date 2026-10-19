@@ -18,7 +18,9 @@ function lure_update(m)
         const v = spawn_operation_enemy(m, 'tank', point);
         v.leviathan = true;
         v.r = 80;
-        v.hp = v.max_hp = 1e9;
+        // no gun can scratch it: its hull is out of reach, and its full hull the tank's it is built on, which the bars
+        // read as whole and a kill counts as experience (kill_xp)
+        v.hp = 1e9;
         v.speed = leviathan_speed;
         v.weapon = null;
         show_toast('LEVIATHAN', 'GUNS CANNOT HURT IT · LEAD IT INTO THE BLACK HOLE', 4);

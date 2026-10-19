@@ -106,7 +106,7 @@ function preparation_plan(id)
             const fit = weapon_catalog.filter(v => (f.weapons.includes(v.id) || tech_open(v.opens)) && (gun_armour_share(v, id, levels.damage) + 0.001 >= gate_armour_share)).sort((a, b) => a.price - b.price);
             const gun = fit.find(v => gun_fits_ship(v)) || fit[0];
             if (gun) {
-                const needs = [!f.weapons.includes(gun.id) && (pilot_rank() < gun.rank) ? rank_names[gun.rank] : '', gun_fits_ship(gun) ? '' : `a ${gun.size} mount`].filter(Boolean);
+                const needs = [!f.weapons.includes(gun.id) && (pilot_rank() < gun.rank) ? rank_need_text(gun.rank) : '', gun_fits_ship(gun) ? '' : `a ${gun.size} mount`].filter(Boolean);
                 out.push({
                     key: 'gun',
                     title: `A gun that bites: ${gun.name} (ARSENAL${needs.length ? `; ${needs.join(', ')}` : ''})`,
@@ -122,7 +122,7 @@ function preparation_plan(id)
     if (hull && (radiation_protection(current_ship(), levels.radshield) + 0.001 < needed)) {
         out.push({
             key: 'hull',
-            title: `Protected hull: ${hull.name} (HANGAR; ${rank_names[hull.rank]})`,
+            title: `Protected hull: ${hull.name} (HANGAR; ${(!ensure_career().ships.includes(hull.id) && (pilot_rank() < hull.rank)) ? rank_need_text(hull.rank) : rank_names[hull.rank]})`,
             level: 1,
             price: ensure_career().ships.includes(hull.id) ? 0 : hull.price,
             group: 'defense',

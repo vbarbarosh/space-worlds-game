@@ -79,14 +79,14 @@ and an armour share and shield that every raider there carries.
 A raider's hull grows with the world's `wave` (`base_spawn_enemy` in
 `src/js/combat.js`):
 
-| Type | Hull | Speed | Score | XP |
-|---|---|---|---|---|
-| chaser | 22 + 7·wave | 90 + 5·wave | 80 | 2 |
-| tank | 80 + 13·wave | 53 + 2·wave | 140 | 6 |
-| shooter | 38 + 9·wave | 70 + 2·wave | 100 | 3 |
-| splitter | 52 + 10·wave | 90 + 5·wave | 110 | 3 |
-| lancer | 35 + 9·wave | 100 | 80 | 4 |
-| shard (from a splitter) | 12 + 3·wave | 150 + 3·wave | 80 | 1 |
+| Type | Hull | Speed | Score |
+|---|---|---|---|
+| chaser | 22 + 7·wave | 90 + 5·wave | 80 |
+| tank | 80 + 13·wave | 53 + 2·wave | 140 |
+| shooter | 38 + 9·wave | 70 + 2·wave | 100 |
+| splitter | 52 + 10·wave | 90 + 5·wave | 110 |
+| lancer | 35 + 9·wave | 100 | 80 |
+| shard (from a splitter) | 12 + 3·wave | 150 + 3·wave | 80 |
 
 In the campaign every raider but a flagship carries twice that hull
 (`campaign_raider_hull` in `src/js/campaign.js`; the arcade scales its own,
@@ -204,8 +204,20 @@ below). That gives, in the campaign at NORMAL:
 - Ramming you costs 16 hull, a tank 25, a flagship 35 (`src/js/update.js`).
 - The difficulty switch scales raiders at spawn: CHILL 0.8 speed and hull,
   OVERLOAD 1.2 speed and 1.15 hull (`base_spawn_enemy`).
-- Score and XP: `base_damage_enemy` in `src/js/combat.js` and `kill_xp` in
-  `src/js/resources.js`. A flagship scores 5000 and gives 60 XP.
+- Score: `base_damage_enemy` in `src/js/combat.js`; a flagship scores 5000.
+- XP (campaign only): a kill gives the raider's full hull as it was born,
+  its "energy" (`kill_xp` in `src/js/resources.js`), so a raider counts as
+  much as it took to break: at NORMAL a Haven chaser 58, a Haven shooter 94,
+  a Verdant tank 238, an Eclipse chaser 254 and tank 550, a splitter's shard
+  30 to 114; a contract's raiders more by its level (12% a level past the
+  first), an elite commander 3.5 times its type and 600 at least (Dustfall's
+  Marauder captain 1015, Obsidian's commander 1379); a flagship its hull,
+  10 500 (Eclipse's 19 000), 8% more a tier of the story's front (the Helios
+  warship of chapter 15 16 380, the reborn dreadnought of chapter 16 29 640).
+  The difficulty's hull factor counts too: CHILL 0.8, OVERLOAD 1.15. The
+  Leviathan, which no gun can hurt, counts as the tank it is built on. A
+  shield does not count. Before, a kill gave 2 to 6 by its type (a shard 1,
+  a flagship 60), the same in Haven as in Eclipse.
 
 ## Your ship
 
@@ -1303,16 +1315,28 @@ weaker pilot is still open.
   `src/js/checkpoint.js`).
   Before, the flight resumed at the last autosave with the hull and the
   radiation dose saved there, which could die again at once, over and over.
-- Ranks license ships and guns: XP from kills (table above) and from
-  contracts.
+- Ranks license ships and guns: a ship or gun needs its rank's XP. XP is
+  the hull of every raider you destroy (Raiders, above), so it comes from
+  fights, a heavy raider and a far world's counting for more, and a
+  contract's pay on top, as much XP as salvage (`guide_base_claim_contract`
+  in `src/js/operations.js`). The HANGAR, the ARSENAL and the guide name
+  the rank a locked ship or gun needs, its XP and yours ("Vanguard · 30 000
+  XP · you 8 400"); the GOALS tab names the next licences and how far they
+  are.
 
 | Rank | Cadet | Courier | Pathfinder | Vanguard | Ace | Commander | Admiral | Legend |
 |---|---|---|---|---|---|---|---|---|
-| XP | 0 | 120 | 420 | 1100 | 2400 | 4200 | 7000 | 10500 |
+| XP | 0 | 1 000 | 6 000 | 30 000 | 95 000 | 220 000 | 600 000 | 1 200 000 |
+| Licenses | Wisp Scout, Pulse cannon | Kestrel Courier, Shard shotgun | Viper Interceptor, Mule Prospector, Ion disruptor | Bastion Gunship, Lance railgun, Seeker launcher | Flux beam | Aurora Cruiser | | |
 
 - Where: `rank_thresholds`, `rank_names` in `src/js/fleet.js`. The world
   that opens a ship or gun is a second condition (What each world opens,
   above); in the story both come together.
+- Before a kill counted its hull (2 to 6 XP a kill, a flagship 60; a
+  contract 28% of its pay + 18 a stage) the thresholds were 120, 420, 1100,
+  2400, 4200, 7000 and 10 500. A save from then keeps its rank: its XP is
+  taken along the old thresholds to the new ones, the same share of the way
+  between the same two ranks (`career_xp_rescale`).
 - The licences follow the story. A story pilot (the campaign bot, below)
   reaches Courier with chapter 1, Pathfinder with chapter 2, Vanguard
   (gunship, Lance railgun, Seeker) with chapter 4, before Obsidian's 50%
@@ -1320,6 +1344,30 @@ weaker pilot is still open.
   chapter 6 and Commander (Aurora Cruiser) with chapter 8, as act I ends.
   Before (120 / 380 / 800 / 1450 / 2500), Commander came with chapter 6 and
   nothing was left to license for the last ten chapters.
+- Measured (2026-10-19, the hull XP and these thresholds; a campaign bot
+  rebuilt for it, since the one of 2026-10-12 was not kept: it follows the
+  chapters with the game's guided flight, fights what comes within 700 m,
+  docks for repairs below 30% hull or 80% of its radiation lining, buys what
+  the gates ask, takes a local side contract when it cannot pay, and spends
+  the rest on a sturdier ship, a better gun, tiers and modules; NORMAL, seeds
+  1 to 3, 160 game minutes). Chapters 1 to 7 take 33 to 36 minutes, chapter 8
+  about 15. The XP at the end of each chapter, much the same in the three
+  runs: 1 300, 10 000, 17 000, 53 000, 78 000, 117 000, 162 000, then 270 000
+  to 360 000 after the Void Dreadnought (19 000 of it) and the interceptions
+  home; act II adds 20 000 (chapter 9) to 400 000 a chapter. Kills are 97% of
+  act I's XP (the Ember flagship and the Dreadnought 29 500 of it), contracts
+  3%; before, 51 to 56% kills and the rest contracts. The ranks came with
+  chapters 1, 2, 4, 6 and 8 in all three runs, Admiral with chapter 11 or 12
+  and Legend with 14 (one run stuck in chapter 11; the bot's chapter
+  14 took 28 to 42 minutes, so a pilot quicker there gets Legend with 15 or
+  16). The same bot under the old XP (the kills and contracts of its runs
+  replayed) reached Ace with chapter 5,
+  Commander with 7, Admiral with 8 to 10 and Legend with 11 or 12: a chapter
+  earlier than the bot of 2026-10-12, which was faster. With 30% fewer kills
+  every rank of act I but Ace still comes with its chapter (Ace with 7);
+  with 30% more, Ace comes with 5. Commander comes with chapter 8 either
+  way: 220 000 is past what chapters 1 to 7 give and short of what chapter 8
+  adds.
 - Measured (2026-10-12, a bot playing the campaign as a story pilot on a
   virtual clock with the game's own guided flight: it follows the chapters,
   buys what the gates ask, takes side contracts when it cannot pay, and

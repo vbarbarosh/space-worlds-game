@@ -91,7 +91,10 @@ Three modes:
   ([docs/goals.md](docs/goals.md#the-races-mode)).
 - **Campaign**: the stations, contracts, trading and story chapters; see
   [docs/scenario/](docs/scenario/README.md). Ranks license ships and guns, and
-  each world reached opens more ships, guns and module levels, as in the arcade
+  a rank is experience: the hull of every raider you destroy (a Haven chaser
+  58, an Eclipse tank 550, a flagship 10 500) and a contract's pay, so a ship
+  is earned in fights; the HANGAR and ARSENAL say what each needs and what you
+  have. Each world reached opens more ships, guns and module levels, as in the arcade
   ([docs/balance.md](docs/balance.md), What each world opens).
 
 ## Commands
@@ -183,8 +186,10 @@ row, `&slots=1` adds six saved slots (the Load row, and its scene with
 `&row=load`), `&save=none` a first launch with no game to continue.
 `&kit=start` leaves you only the start ship and gun (and the ones in the
 URL), so the HANGAR and ARSENAL show what a later world opens. It keeps
-its own storage and never touches the game's save. `&contracts=full` crowds
-the station's CONTRACTS (three taken, among them a very long title, and the
+its own storage and never touches the game's save. `&xp=8400` sets the
+pilot's experience (else a Legend's, every licence held), so the HANGAR and
+ARSENAL show the licences a rank still holds back, with the XP each needs.
+`&contracts=full` crowds the station's CONTRACTS (three taken, among them a very long title, and the
 longest board offered) and `&cargo=all` puts all eleven goods in the hold for
 the CARGO MARKET; `&station=full` puts the station's header and NEXT strip at
 their longest (a very long station name, the hold full, salvage in the

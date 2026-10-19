@@ -77,6 +77,8 @@ const screens = [
     {value: 'station-arsenal', label: 'station-arsenal', phone: true},
     // the start kit in Haven: guns for sale beside guns a later world opens, their lock badges
     {value: 'station-arsenal', label: 'station-arsenal-locked', query: '&kit=start', phone: true},
+    // the beam on sale in Obsidian but not licensed: its rank, the XP it asks and yours at their longest
+    {value: 'station-arsenal', label: 'station-arsenal-licence', world: 'obsidian', query: '&kit=start&xp=94999', phone: true},
     {value: 'station-outfit', label: 'station-modules', phone: true},
     // modules at level 1: their next levels wait for Verdant to Obsidian
     {value: 'station-outfit', label: 'station-modules-locked', query: '&modules=damage:1,shield:1,armor:1,rate:1,spread:1,turbo_tank:1,magnet:1', phone: true},
@@ -84,6 +86,8 @@ const screens = [
     {value: 'pause', label: 'pause-log-full', query: '&play_log=full'},
     {value: 'pause', label: 'pause-log-empty', query: '&play_log=empty'},
     {value: 'station-career', label: 'station-goals', phone: true},
+    // a pilot one XP short of Commander: the readout's longest numbers, the next licences named
+    {value: 'station-career', label: 'station-goals-xp', query: '&xp=219999', phone: true},
     {value: 'station-market', label: 'station-market', phone: true},
     // all eleven goods in the hold: every card of the market, each with its picture
     {value: 'station-market', label: 'station-market-all', query: '&cargo=all', phone: true},
@@ -94,6 +98,10 @@ const screens = [
     {value: 'station-hangar', label: 'station-hangar', phone: true},
     // six ships: the one you fly, ships for sale and ships a later world opens, their bars, mounts and chips
     {value: 'station-hangar', label: 'station-hangar-locked', query: '&kit=start', phone: true},
+    // the cruiser on sale in Cryosphere but not licensed, one XP short: its licence row at its longest; in Haven at no
+    // XP, every ship's but the scout's, most of them under a world's lock
+    {value: 'station-hangar', label: 'station-hangar-licence', world: 'cryosphere', query: '&kit=start&xp=219999', phone: true},
+    {value: 'station-hangar', label: 'station-hangar-licence-none', query: '&kit=start&xp=0', phone: true},
     {value: 'map-plan', label: 'map-mission-plan'},
     // three contracts and the goal, each row its picture, one contract's title very long
     {value: 'map-plan', label: 'map-mission-plan-full', query: '&contracts=full'},

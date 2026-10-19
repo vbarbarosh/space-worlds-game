@@ -816,7 +816,8 @@ function guide_base_claim_contract(id)
     if (m.side) {
         campaign.sides_done = [...(campaign.sides_done || []), m.side];
     }
-    const xp = Math.round(m.reward*0.28) + (m.stages?.length || 1)*18;
+    // a contract's experience is its pay: the raiders you destroy on the way bring the most of it (kill_xp)
+    const xp = m.reward;
     play_log_contract('claimed', m, {xp});
     campaign.xp += xp;
     play_log_xp('contract', xp);
@@ -1047,10 +1048,10 @@ function render_hangar_card(parent, v)
                         : `BUY · ◆ ${v.price}`;
     const c = card(parent, v.name, v.description, '', action, () => fleet_purchase(v.id, 'ship'),
         selected || locked || oversize || (!owned && (salvage < v.price)), selected ? 'active' : '');
-    // the kit's button writes its label in sentence case: the world keeps its name
-    const label = closed && c.querySelector('.foot .btn > span');
+    // the kit's button writes its label in sentence case: the world and the rank keep their names
+    const label = locked && c.querySelector('.foot .btn > span');
     if (label) {
-        label.textContent = tech_lock_text(v.opens);
+        label.textContent = closed ? tech_lock_text(v.opens) : `Requires ${rank_names[v.rank]}`;
     }
     const art = document.createElement('div');
     art.className = 'fleet-silhouette';
@@ -1065,6 +1066,10 @@ function render_hangar_card(parent, v)
     c.querySelector('p.small')?.classList.add('clamp');
     c.querySelector('.h-card').insertAdjacentHTML('beforebegin', `<div class="meta">${ui_badge(v.role)}${selected ? ui_badge('Flying', 'cyan') : owned ? ui_badge('Yours') : ''}</div>`);
     foot.insertAdjacentHTML('beforebegin', hangar_specs_html(v, owned));
+    // a ship your rank does not license yet: the XP it asks and yours, whether or not its world is open
+    if (!owned && (pilot_rank() < v.rank)) {
+        foot.insertAdjacentHTML('beforebegin', `<div class="ship-row" title="XP: the hull of every raider you destroy, and each contract as much as it pays"><span class="eyebrow eyebrow--muted">Licence</span><span class="badge badge--locked">${ui_lock_svg}${rank_names[v.rank]}</span><span class="ship-xp">${xp_need_text(v.rank)}</span></div>`);
+    }
 }
 
 // What a ship is, as pictures and numbers: bars, mounts, chips and the worlds it suits

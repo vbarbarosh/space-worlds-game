@@ -101,8 +101,9 @@ screen you read, or press by label.
   - Your cannons do not mine. `key KeyH` near a mining field sends your
     mining drones to cut the rocks and bring the ore aboard; raiders hunt
     them. The autopilot launches them when it reaches a mining objective.
-  - Raiders you destroy earn experience, which licenses better ships, and
-    some spill cargo canisters: fly over them to load them. A ship, gun or
+  - Raiders you destroy earn experience, as much as their hull (a heavy
+    raider, a far world's or a flagship far more), which licenses better
+    ships and guns, and some spill cargo canisters: fly over them to load them. A ship, gun or
     module level also waits for the world that opens it: the HANGAR, ARSENAL
     and MODULES say where (`Opens in Ion Reach`).
   - `key KeyG` near a convoy flies in formation behind it; steering breaks

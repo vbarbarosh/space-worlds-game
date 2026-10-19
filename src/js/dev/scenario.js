@@ -36,6 +36,9 @@ function dev_scenario_from_url()
         // kit=start: you own only the ship and the gun chosen (and the start ones), so the hangar and the arsenal show
         // what is for sale and what a later world opens; else every ship and gun is yours
         kit: (params.get('kit') === 'start') ? 'start' : 'all',
+        // xp=8400: the pilot's experience, so the hangar and the arsenal show the licences a rank still holds back;
+        // else a Legend's, every licence yours
+        xp: params.has('xp') ? Math.max(0, Math.round(Number(params.get('xp')) || 0)) : null,
         god: flag('god', true),
         energy: flag('energy', false),
         spawns: flag('spawns', false),
@@ -58,6 +61,9 @@ function dev_scenario_save()
     params.set('tab', dev_scenario.tab);
     if (dev_scenario.kit === 'start') {
         params.set('kit', 'start');
+    }
+    if (dev_scenario.xp !== null) {
+        params.set('xp', dev_scenario.xp);
     }
     params.set('god', dev_scenario.god ? '1' : '0');
     params.set('energy', dev_scenario.energy ? '1' : '0');
@@ -103,7 +109,8 @@ function dev_scenario_start()
             maps: {},
             serial: 0,
             board: 0,
-            xp: 99999,
+            xp: dev_scenario.xp ?? rank_thresholds[rank_thresholds.length - 1],
+            xp_hull: true,
             fleet: {
                 ship_id: dev_scenario.ship,
                 ships: (dev_scenario.kit === 'start') ? [...new Set(['scout', dev_scenario.ship])] : ship_catalog.map(v => v.id),

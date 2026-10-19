@@ -525,7 +525,7 @@ function physics_base_render_navigation()
             ],
             [
                 'Building your fleet',
-                'Dock and choose HANGAR to buy or switch ship classes. All modules transfer. ARSENAL sells six weapon types, each upgradable to tier 5. Ion breaks shields, rail bypasses armor, seekers explode, and flux beams consume pulse. CAREER shows rank, unlocks, reputation and expedition progress.',
+                'Dock and choose HANGAR to buy or switch ship classes. All modules transfer. ARSENAL sells six weapon types, each upgradable to tier 5. Ion breaks shields, rail bypasses armor, seekers explode, and flux beams consume pulse. CAREER shows rank, unlocks, reputation and expedition progress. A ship or gun needs a rank, and a rank is XP: the hull of every raider you destroy, a heavy one counting more, and the pay of each contract.',
             ],
         ]) {
             card(parent, v[0], v[1], 'J map and guide · R dock or jump');

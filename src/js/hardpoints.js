@@ -431,7 +431,9 @@ function arsenal_gun_card(v)
     let note = owned ? (on.length ? `Mount${(on.length > 1) ? 's' : ''} ${on.join(', ')}${(count > on.length) ? ` · ${count - on.length} spare` : ''}` : fits ? 'Owned · not mounted' : `Needs a ${v.size} mount`) : '';
     let action = null;
     if (locked) {
-        note = `<span class="badge badge--locked">${ui_lock_svg}${closed ? tech_lock_text(v.opens) : `Rank ${rank_names[v.rank]}`}</span>`;
+        note = closed
+            ? `<span class="badge badge--locked">${ui_lock_svg}${tech_lock_text(v.opens)}</span>`
+            : `<span class="badge badge--locked">${ui_lock_svg}${rank_names[v.rank]}</span> <span class="ship-xp">${xp_need_text(v.rank)}</span>`;
     }
     else if (owned) {
         action = ui_button({label: (level >= 5) ? 'Max tier' : 'Upgrade', price: (level >= 5) ? null : cost, size: 'sm', disabled: (level >= 5) || (salvage < cost), on: () => upgrade_weapon(v.id)});

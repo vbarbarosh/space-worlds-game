@@ -277,8 +277,9 @@ On collecting (`guide_base_claim_contract` in `src/js/operations.js` and
 `expedition_base_guide_base_claim_contract` in `src/js/station.js`):
 
 - the reward in salvage, and 10 × the reward in score;
-- experience: 28% of the reward + 18 for each stage, toward the pilot rank
-  that licenses ships and guns (ranks in [balance.md](balance.md));
+- experience: as much as the reward, toward the pilot rank that licenses
+  ships and guns; the raiders destroyed on the way bring far more, each its
+  hull (ranks and kill XP in [balance.md](balance.md#campaign-pace));
 - +1 reputation with the world that issued it. The GOALS tab shows a world as
   known from 3 and trusted from 8. Reputation changes nothing else yet; the
   tiers in [scenario/README.md](scenario/README.md#reputation) are a plan.
