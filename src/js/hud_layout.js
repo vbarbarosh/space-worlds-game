@@ -29,6 +29,10 @@ function hud_layout_update()
     }
     hud_layout.rects = Array.from(document.querySelectorAll('#hud_root [data-hud-safe]')).map(rect_of).filter(Boolean);
     hud_layout.minimap = rect_of(document.getElementById('minimap_button'));
+    // the mission card's foot: on a narrow window the news line comes under it however tall it grows (a gravity
+    // field's line makes the one-line bar two)
+    const mission = rect_of(document.getElementById('mission'));
+    document.getElementById('hud_root').style.setProperty('--mission-foot', `${mission ? Math.round(mission.bottom) : 0}px`);
     hud_layout.width = screen.width;
     hud_layout.height = screen.height;
 }

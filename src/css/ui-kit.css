@@ -712,7 +712,7 @@
   .ui .mission .next h3 { font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .ui .mission .dist .readout { font-size: 18px; }
   .ui .mission .acts .btn:not(.btn-primary) { display: none; }
-  .ui .hud-toasts { left: var(--hud-pad); right: var(--hud-pad); top: calc(14px + var(--top-h) + 64px); }
+  .ui .hud-toasts { left: var(--hud-pad); right: var(--hud-pad); top: max(calc(14px + var(--top-h) + 64px), calc(var(--mission-foot, 0px) + 10px)); }   /* under the bar, however tall (hud_layout) */
   .ui .hud-bottom .qbar { overflow-x: auto; scrollbar-width: none; max-width: 100%; }
   .ui .shipstat { gap: 8px 14px; padding: 10px 12px; } .ui .shipstat .line { display: none; }
   .ui .gauge .lbl .key { display: none; }
