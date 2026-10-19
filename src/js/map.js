@@ -1,6 +1,7 @@
 function base_generate_map()
 {
-    const extent = arcade.active ? arcade_extent : world_extents[campaign.world];
+    // the arcade's worlds have shapes of their own (arcade_shapes.js)
+    const extent = arcade.active ? arcade_shape().extent : world_extents[campaign.world];
     world.w = extent[0];
     world.h = extent[1];
     scenery = [];
@@ -14,7 +15,9 @@ function base_generate_map()
         seed = (seed*1664525 + 1013904223) >>> 0;
         return seed/4294967296;
     }
-    for (let i = 0; i < 260 + wave*8; ++i) {
+    // the arcade's scenery as thick as on its old 7.2 × 5.6 km map, whatever the world's size
+    const scenery_count = Math.round((260 + wave*8)*(arcade.active ? (world.w*world.h)/(7200*5600) : 1));
+    for (let i = 0; i < scenery_count; ++i) {
         scenery.push({
             x: 80 + seeded()*(world.w - 160),
             y: 80 + seeded()*(world.h - 160),
@@ -77,14 +80,19 @@ function base_generate_map()
     function safe_point(x, y, margin = 100) {
         return black_holes.every(v => Math.hypot(v.x - x, v.y - y) > v.radius + margin);
     }
+    // the caches round the station, which is the map's middle but in the arcade (arcade_shapes.js); there as far out as
+    // on its old 7.2 × 5.6 km map, so a run finds as much near where it starts whatever its world's shape (spread over
+    // the map's middle, away from a station at an end or a rim, the bot's runs earned a quarter less)
+    const hub = arcade.active ? {x: world.w*arcade_shape().station[0], y: world.h*arcade_shape().station[1]} : {x: world.w/2, y: world.h/2};
+    const reach = (arcade.active ? 5600 : Math.min(world.w, world.h))*0.37;
     for (let i = 0; i < 22; ++i) {
         let x;
         let y;
         for (let j = 0; j < 60; ++j) {
             const a = (i/22)*Math.PI*2 + wave*0.35;
-            const r = 550 + seeded()*Math.min(world.w, world.h)*0.37;
-            x = clamp(world.w/2 + Math.cos(a)*r, 180, world.w - 180);
-            y = clamp(world.h/2 + Math.sin(a)*r, 180, world.h - 180);
+            const r = 550 + seeded()*reach;
+            x = clamp(hub.x + Math.cos(a)*r, 180, world.w - 180);
+            y = clamp(hub.y + Math.sin(a)*r, 180, world.h - 180);
             if (safe_point(x, y)) {
                 break;
             }
@@ -110,10 +118,18 @@ function base_generate_map()
             cache: true,
         });
     }
-    for (let i = 0; i < 12; ++i) {
+    // twelve fields: the arcade's in its world's pattern (arcade_shapes.js), the campaign's strewn, the first near the
+    // station
+    const field_count = arcade.active ? arcade_field_total : 12;
+    for (let i = 0; i < field_count; ++i) {
         let x;
         let y;
-        for (let j = 0; j < 80; ++j) {
+        if (arcade.active) {
+            const spot = arcade_field_spot(i, field_count, seeded, (v, apart) => safe_point(v.x, v.y, 350) && !mining_fields.some(vv => Math.hypot(v.x - vv.x, v.y - vv.y) < apart));
+            x = spot.x;
+            y = spot.y;
+        }
+        for (let j = 0; (j < 80) && !arcade.active; ++j) {
             x = (i === 0) ? world.w/2 - 600 : 350 + seeded()*(world.w - 700);
             y = (i === 0) ? world.h/2 + 440 : 350 + seeded()*(world.h - 700);
             if (safe_point(x, y, 350) && !mining_fields.some(v => Math.hypot(x - v.x, y - v.y) < 600)) {

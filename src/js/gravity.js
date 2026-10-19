@@ -110,8 +110,10 @@ function arcade_gravity_wells()
         black_holes = [];
         return;
     }
-    // it starts on the depot, where it cannot stand, so it takes the first of the spots that is clear
-    place_gravity_wells([station], [{x: station.x, y: station.y, radius: 560, core: 56, strength: 920 + wave*12, phase: 0}]);
+    // where the world's shape sets it (arcade_shapes.js), else the first of the spots that is clear
+    const at = arcade_shape().hole;
+    const spot = at ? {x: world.w*at[0], y: world.h*at[1]} : station;
+    place_gravity_wells([station], [{x: spot.x, y: spot.y, radius: 560, core: 56, strength: 920 + wave*12, phase: 0}]);
 }
 
 function nearest_gravity()

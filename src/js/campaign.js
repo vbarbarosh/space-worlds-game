@@ -163,10 +163,12 @@ function visual_base_generate_map()
     const w = worlds[campaign.world];
     current_sector().color = w.color;
     current_sector().mix = w.mix;
-    station = {x: world.w/2, y: world.h/2};
+    // the campaign's station in the map's middle; the arcade's where its world's shape puts it (arcade_shapes.js)
+    const at = arcade.active ? arcade_shape().station : [0.5, 0.5];
+    station = {x: world.w*at[0], y: world.h*at[1]};
     // A gate faces the world it leads to, as the galaxy chart draws it, 60% of the way to the map's edge
-    // (docs/placement.md)
-    world_gates = w.links.map(function (destination) {
+    // (docs/placement.md); the arcade has none: they lead nowhere there
+    world_gates = arcade.active ? [] : w.links.map(function (destination) {
         const a = galaxy_bearing(campaign.world, destination);
         const edge = Math.min(world.w/2/Math.abs(Math.cos(a)), world.h/2/Math.abs(Math.sin(a)));
         return {
@@ -183,7 +185,8 @@ function visual_base_generate_map()
         const spots = [[0, 0], [1, 0], [0, 1], [1, 1]].map(v => ({x: world.w*Math.abs(v[0] - spot[0]), y: world.h*Math.abs(v[1] - spot[1])}));
         return spots.find(v => others.every(vv => distance(v, vv) >= room + (vv.r || 0))) || spots[0];
     }
-    beacons = [[0.22, 0.3], [0.76, 0.18], [0.36, 0.82]].map(v => clear_spot(v, world_gates, 1000));
+    // none in the arcade: it has no contracts to scan them for, and draws none
+    beacons = arcade.active ? [] : [[0.22, 0.3], [0.76, 0.18], [0.36, 0.82]].map(v => clear_spot(v, world_gates, 1000));
     configure_expedition_portals();
     combat_zone = clear_spot([0.82, 0.25], [...world_gates, ...portals, {...station, r: station_shelter}], 1000);
     const protected_objects = [station, ...world_gates, ...beacons, combat_zone, {x: station.x - 1600, y: station.y + 700}];

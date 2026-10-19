@@ -35,9 +35,9 @@ const usage = `usage: bin/playtest [--mode=normal] [--kind=free] [--seeds=1,2,3]
     clock and a seeded Math.random, as fast as the machine allows, and counts per world and wave what a run costs.
 
     How it flies: it holds 320 m from the nearest raider and circles it, steps aside from shots coming at it, picks
-    up salvage when fewer than three raiders are close, keeps off the radiation at the edge (on a Scroll lane, off
-    the view's edges, and the salvage it picks up is in the view); a flagship's duel it
-    flies as its pilot says (boss_duel_pilot). The pulse at three raiders within 380 m, a dash past a missile within
+    up salvage when fewer than three raiders are close, waits by the station when none is, keeps off the radiation
+    at the edge (on a Scroll lane, off the view's edges, and the salvage it picks up is in the view); a flagship's
+    duel it flies as its pilot says (boss_duel_pilot). The pulse at three raiders within 380 m, a dash past a missile within
     220 m, the EMP at six within 550 m or below a third of its hull, stasis at eight, a repair kit below half. At the
     depot: a repair below 75% hull, two repair kits, then the build its reactor's power holds (src/js/arcade_power.js:
     Hotter plasma, Phase armor, the shield, Prism, Rapid resonance, then drones, nanites, the pulse, reactor, cooling,
@@ -314,8 +314,8 @@ function page_bot(options)
                 dy = view.y - arcade_scroll.way.y*view.h*0.4 - player.y;
             }
             else if (!nearest) {
-                dx = world.w/2 - player.x;
-                dy = world.h/2 - player.y;
+                dx = station.x - player.x;
+                dy = station.y - player.y;
             }
         }
         // a flagship's duel (src/js/boss_duels.js), where the build has one: with no raider close, or a plan to keep

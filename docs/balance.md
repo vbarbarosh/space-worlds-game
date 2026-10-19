@@ -1169,6 +1169,27 @@ Bot runs on 2026-10-19, seeds 1–6 a build: tank 6 of 6, mixed 5, evasion 2,
 guns 1 (14 of 24); Free, seeds 1–12, 8 of 12. With no room to dodge, the hull
 counts for more on a lane than in Free.
 
+Salvage the back edge reaches is carried along at it, not left behind: what a
+lane passes is its income, and with each piece left behind the bot reached
+Eclipse without the cruiser in every run.
+
+## The arcade's world shapes
+
+Each arcade world has its own size, station and rock pattern
+(`src/js/arcade_shapes.js`). What a run earns must not hang on the shape, so:
+
+- **Twelve rock fields in every world**, as on the old 7.2 × 5.6 km map:
+  closer together in a small world, farther apart in a large one. Kept to
+  each world's area (9 in Nova Forge) and on a wide ring round Ion Reach's
+  station, the rocks your guns mine paid a quarter less from Ion Reach on.
+- **The caches round the station**, as far out as on the old map (to 2.6 km),
+  whether the station is in the middle, at an end or on a rim.
+- **Eclipse's hole 3.1 km from its station and 1 km from the map's edge**, as
+  before: far from where the fights are, few raiders fell in.
+
+With those, the bot reached Eclipse in the cruiser in 10 runs of 12 (Free)
+and won 9 of 12 in Free (8 on the old map) and 6 of 12 on a Scroll lane (6).
+
 ## Campaign pace
 
 - Patrols: every 11 s in Haven, elsewhere every max(4.5, 10 − 0.6 × tier)

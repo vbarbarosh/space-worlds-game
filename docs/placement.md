@@ -29,8 +29,14 @@ Every thing you act on has a range, taken from the code:
 
 ## The station
 
-- **At the map's centre**, one per world. Every flight starts and ends
-  there, so the rest is measured from it.
+- **At the map's centre in the campaign**, one per world. Every flight
+  starts and ends there, so the rest is measured from it. **In the arcade,
+  where its world's shape puts it** (`arcade_shapes`,
+  `src/js/arcade_shapes.js`): each arcade world has its own size and
+  proportions (5.4 × 5.4 km to 7.6 × 6.6 km; Verdant 9.6 × 4.4 km long), its station in the middle, at
+  an end or on a rim, and its rock fields in a pattern of its own (strewn, a
+  band, a ring, a belt, columns, outcrops). The rules below hold for every
+  shape. *Checked.*
 - **Its shelter (900 m) holds no portal, gate or fight.** The space round
   the berths is for docking traffic. *Checked* through the rules
   below.
@@ -43,11 +49,13 @@ Every thing you act on has a range, taken from the code:
   gate without looking. Within 10°. *Checked.*
 - **60% of the way from the station to the map's edge** along that bearing.
   A gate is a journey, not a doorstep, and still well inside the map. At
-  least a quarter of the map's smaller side from the station (Haven: 2.5 km
-  in the campaign, 1.4 km in the arcade) and 1 km from every edge. *Checked.*
+  least a quarter of the map's smaller side from the station (Haven: 2.5 km)
+  and 1 km from every edge. *Checked.*
 - **One portal beside it at most** within 1 km: the one that serves it.
   Two rings by a gate read as clutter and hide which one goes where.
   *Checked.*
+- **None in the arcade**: they lead nowhere there, and the arcade draws none;
+  nor survey beacons, which only contracts use.
 - Where: `world_gates` in `visual_base_generate_map`, `src/js/campaign.js`.
 
 ## Portals (jump pairs)
@@ -74,8 +82,8 @@ A pair crosses a big distance: fly into one end, leave by the other.
     440 m beside that gate (D, E, F); a world with two gates gives F to the
     first beacon that fits; Haven has only D.
 - **Placed in that order, and a pair that breaks a rule is left out.** The
-  arcade's map (7.2 × 5.6 km) is too small for the station's pairs to save
-  a flight, and its gates do nothing, so it has the three crossings only.
+  arcade has no gates, so no station's pairs: each of its worlds has crossings
+  of its own shape instead (two, Nova Forge one), set in `arcade_shapes`.
 - Where: `configure_expedition_portals`, `src/js/expedition.js`.
 
 ## Race courses

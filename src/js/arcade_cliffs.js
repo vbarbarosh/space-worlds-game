@@ -76,8 +76,10 @@ function cliffs_generate()
             const a = (i/cliff_count)*Math.PI*2 + random()*0.7;
             const d = cliff_ring[0] + random()*(cliff_ring[1] - cliff_ring[0]);
             const r = cliff_size[0] + random()*(cliff_size[1] - cliff_size[0]);
-            const x = world.w/2 + Math.cos(a)*d;
-            const y = world.h/2 + Math.sin(a)*d*(world.h/world.w);
+            // round the middle of the map, or where the world's shape sets the ring (arcade_shapes.js)
+            const middle = arcade_shape().cliffs || [0.5, 0.5];
+            const x = world.w*middle[0] + Math.cos(a)*d;
+            const y = world.h*middle[1] + Math.sin(a)*d*(world.h/world.w);
             const fall = a + ((random() < 0.5) ? 1 : -1)*Math.PI/2 + (random() - 0.5)*0.6;
             const c = {rock: {x, y, r}, fall, rumble: 0, front: null, marks: 0, landed: 0, hit: [], crushed: 0, shape: [], rubble: []};
             const tip = cliff_point(c, r + cliff_reach, 0);

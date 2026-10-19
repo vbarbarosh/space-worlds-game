@@ -18,10 +18,10 @@ const arcade_kinds = {
 // The ways a lane goes, as a heading on the screen
 const arcade_scroll_ways = {forward: {x: 0, y: -1}, left: {x: -1, y: 0}, right: {x: 1, y: 0}};
 // Each world's lane, Haven to Eclipse (campaign.world): its way, and where across the world it runs, a share of the
-// world's width (forward) or height (left, right). Dustfall's runs past three of its cliffs and ends by a fourth, a
-// rock for its flagship's joust to stun itself on; Eclipse's ends 650 m above the hole, in the ring where the
-// flagship's dome opens, the core out of the view. Not farther: the raiders the hole swallows are much of the help
-// there, and 900 m above it the bot won none of 12 runs (650 m: 6 of 12)
+// world's width (forward) or height (left, right), or (hole) this far above its black hole, wherever the world's shape
+// puts it (arcade_shapes.js). Dustfall's runs through the ring of its cliffs; Eclipse's ends 650 m above the hole, in
+// the ring where the flagship's dome opens, the core out of the view. Not farther: the raiders the hole swallows are
+// much of the help there, and 900 m above it the bot won none of 12 runs (650 m: 6 of 12)
 const arcade_scroll_lanes = [
     {way: 'forward', across: 0.5},
     {way: 'right', across: 0.5},
@@ -30,12 +30,14 @@ const arcade_scroll_lanes = [
     {way: 'forward', across: 0.5},
     {way: 'left', across: 0.5},
     {way: 'forward', across: 0.5},
-    {way: 'right', across: 0.384},
+    {way: 'right', hole: 650},
 ];
 // The share of the lane each wave's stretch ends at: the first half, the second, and the flagship where it ends
 const arcade_scroll_stretches = [0.5, 1, 1];
-// A lane's two stretches take this many seconds when no wave holds them up: about as long as two waves take in Free
-const arcade_scroll_time = 80;
+// The screen's pace, in m a second: one for every world, so a long world is a long lane (Nova Forge's 4.1 km about 75
+// s, Verdant's 8.3 km about 155 s); on the old 7.2 × 5.6 km map a lane of 4.3 km took 80 s, about as long as two
+// waves in Free
+const arcade_scroll_pace = 54;
 // Between waves the screen hurries on this many times its pace
 const arcade_scroll_hurry = 3;
 // The lane's ends keep this far from the world's edges, so the view at either end shows the world, not past it
@@ -115,11 +117,13 @@ function arcade_scroll_world_start()
         arcade_scroll.length = world.h - 2*m;
     }
     else {
-        arcade_scroll.from = {x: (way.x > 0) ? m : world.w - m, y: world.h*lane.across};
-        arcade_scroll.length = world.w - 2*m;
+        // a lane by a hole ends at it, wherever the world's shape puts it
+        const hole = lane.hole && black_holes[0];
+        arcade_scroll.from = {x: (way.x > 0) ? m : world.w - m, y: hole ? clamp(hole.y - lane.hole, m, world.h - m) : world.h*lane.across};
+        arcade_scroll.length = hole ? Math.abs(hole.x - arcade_scroll.from.x) : world.w - 2*m;
     }
     arcade_scroll.s = 0;
-    arcade_scroll.pace = arcade_scroll.length/arcade_scroll_time;
+    arcade_scroll.pace = arcade_scroll_pace;
     // nothing on a lane leaves the view at once: no portals, for you or the raiders; no course to the station
     portals = [];
     waypoint = null;
@@ -160,6 +164,7 @@ function arcade_scroll_update(dt)
     arcade_scroll.held = arcade_scroll.s >= end;
     arcade_scroll.s = Math.min(end, arcade_scroll.s + arcade_scroll.pace*(between ? arcade_scroll_hurry : 1)*dt);
     arcade_scroll_keep(player, ship_halo() + arcade_scroll_inset, 0, true);
+    arcade_scroll_pickups();
     // and never under the HUD's blocks (the bottom panel, the card, the minimap): where it would come under one it
     // slides out toward the middle of the screen, as a race's view does (race_view_place)
     arcade_scroll_camera();
@@ -169,6 +174,26 @@ function arcade_scroll_update(dt)
     const at = race_view_place(ox + (player.x - camera.x)*k, oy + (player.y - camera.y)*k, home.x, home.y, r);
     player.x = camera.x + (at.x - ox)/k;
     player.y = camera.y + (at.y - oy)/k;
+}
+
+// Salvage, repairs and caches the back edge reaches are carried along at it, as the raiders are, not left behind out
+// of reach: what a lane passes is the run's income there, and with each left behind the bot reached Eclipse with
+// no cruiser in 11 runs of 11. What lies beside the view is left where it is.
+function arcade_scroll_pickups()
+{
+    const view = arcade_scroll_view();
+    const way = arcade_scroll.way;
+    for (const v of pickups) {
+        const dx = v.x - view.x;
+        const dy = v.y - view.y;
+        const along = dx*way.x + dy*way.y;
+        const across = dy*way.x - dx*way.y;
+        const back = -view.h + arcade_scroll_inset;
+        if ((along < back) && (Math.abs(across) < view.w)) {
+            v.x = view.x + way.x*back - way.y*across;
+            v.y = view.y + way.y*back + way.x*across;
+        }
+    }
 }
 
 // Where wave n's stretch of the lane ends, in m along it

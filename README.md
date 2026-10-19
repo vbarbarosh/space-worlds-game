@@ -61,6 +61,11 @@ Three modes:
   the last ends the run, its score against your best. A save keeps the score,
   salvage, gear and lives, and loading it starts its world again from the first wave.
 
+  Each arcade world has a shape of its own: its size (from Nova Forge's 5.4 ×
+  5.4 km to Dustfall's 7.6 × 6.6 km) and proportions (Verdant 9.6 × 4.4 km
+  long, Obsidian 5.6 × 8 km tall), its station in the middle, at an end or on a rim, and its rock fields
+  strewn, in a band, a ring, a belt, columns or outcrops.
+
   The arcade comes in two kinds, picked on its menu row (T turns it): **Free**, as above, and **Scroll**, the same
   run on a screen that moves on by itself, forward, left or right by the world, along a lane from one side of the
   world to the other. Your ship flies anywhere in the view and the back edge pushes it on; the raiders come from
