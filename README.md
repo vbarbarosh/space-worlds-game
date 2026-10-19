@@ -178,9 +178,7 @@ millions, the guide's longest step); `&screen=station-intel` opens TRADE INTEL.
 `&dpr=1.3` draws the canvas at that pixel ratio, whatever Settings → Resolution
 says; `&slow=20` stands in for a slow graphics card, each frame waiting 20 ms
 for every million pixels of the canvas, so Auto steps down;
-`&stall=30` waits 30 ms a frame whatever the canvas's size.
-`&art=painted` draws the ships and rocks with the painted pictures of the Nebula
-Strike prototype, as Settings → Ships → Painted does (`&art=drawn` the game's own). The frame rate at
+`&stall=30` waits 30 ms a frame whatever the canvas's size. The frame rate at
 the left edge shows the ratio in use (`×1.50`).
 
 The interface is the designer's UI kit (src/css/ui-kit.css): one root,
@@ -219,8 +217,7 @@ for the dev page.
     src/js/worlds/   one file per world: map, look, flight rules, expedition, music
     src/js/ships/    one file per ship class: catalog entry and hull profile
     src/js/sfx/      one file per sound effect: its cooldown and its synth calls
-    src/sprites/     drawings (SVG): ships in 3d/ (the shaded set), weapons, pickups, worlds/<world>,
-                     painted/ (the Nebula Strike prototype's pictures, Settings → Ships); a
+    src/sprites/     drawings (SVG): ships in 3d/ (the shaded set), weapons, pickups, worlds/<world>; a
                      `<!-- svgs sprites as sprite_svgs -->` line packs them
                      into the page
     src/dev.html     what the dev page adds into the slots of src/index.html

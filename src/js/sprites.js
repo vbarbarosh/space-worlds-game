@@ -16,14 +16,6 @@ const sprite_sizes = {
     pickup: 15,
 };
 const sprite_span = 228;
-// Settings → Ships: 'drawn', the game's own drawings, or 'painted', the pictures of the Nebula Strike prototype in their
-// place (painted/): a trial of how they look in flight
-let sprite_art = 'drawn';
-try {
-    sprite_art = (localStorage.getItem('pulse_drift_art') === 'painted') ? 'painted' : 'drawn';
-}
-catch {
-}
 
 // The parsed drawing, its anchors as fractions of the canvas from its centre, and its rasters; null for a name with
 // no file. A plain name is a ship of 3d/; a path (weapons/turret-ion, worlds/haven/station) is that file.
@@ -47,7 +39,7 @@ function sprite(name)
     if (w !== h) {
         svg.setAttribute('viewBox', `${left - (box - w)/2} ${top - (box - h)/2} ${box} ${box}`);
     }
-    const turned = !name.includes('/') || /^(weapons|drones|painted\/ships)\//.test(name);
+    const turned = !name.includes('/') || /^(weapons|drones)\//.test(name);
     // A drawing's point as a fraction of the canvas from its centre, in the game's frame
     function at(x, y) {
         const cx = left + w/2;
@@ -104,11 +96,6 @@ function sprite_anchors_box(name, size)
 // the spin layer, 'spin' the spin layer alone; null while it loads
 function sprite_raster(name, color, px, part = 'body')
 {
-    // a painted picture is drawn in the place of the drawing; its anchors, turrets and size stay the drawing's
-    const painted = (sprite_art === 'painted') && (part === 'body') && sprite_painted(name);
-    if (painted) {
-        return sprite_raster(painted, null, px);
-    }
     const v = sprite(name);
     if (!v) {
         return null;
@@ -159,37 +146,6 @@ function sprite_raster(name, color, px, part = 'body')
     };
     image.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(new XMLSerializer().serializeToString(svg))}`;
     return null;
-}
-
-// The painted picture drawn for a drawing while Settings → Ships is Painted, or null for one with none: every player
-// ship, every flagship, the raiders by their part (the heavy ones and every elite red, the gunners violet, the light
-// ones green) and a world's plain asteroids (the rich ones keep their veins)
-function sprite_painted(name)
-{
-    if (name.startsWith('ship-')) {
-        return 'painted/ships/player';
-    }
-    if (name.startsWith('flagship')) {
-        return 'painted/ships/flagship';
-    }
-    if (name.startsWith('enemy-')) {
-        if (name.endsWith('-elite') || /^enemy-(tank|bulwark|carrier)$/.test(name)) {
-            return 'painted/ships/raider-red';
-        }
-        return /^enemy-(shooter|sniper|lancer|minelayer)$/.test(name) ? 'painted/ships/raider-violet' : 'painted/ships/raider-green';
-    }
-    return /^worlds\/[^/]+\/asteroid-\d+$/.test(name) ? 'painted/rock' : null;
-}
-
-// Settings → Ships: 'drawn' or 'painted', kept for the next visit
-function sprite_art_set(mode)
-{
-    sprite_art = (mode === 'painted') ? 'painted' : 'drawn';
-    try {
-        localStorage.setItem('pulse_drift_art', sprite_art);
-    }
-    catch {
-    }
 }
 
 // Two #rrggbb colours mixed, t of the way from a to b
