@@ -103,7 +103,9 @@ function dev_panel_init()
     dev_theme_set(dev_theme_initial());
     dev_panel_refresh();
     setTimeout(function () {
-        if (dev_scenario.started) {
+        // a fight or the station needs a flight under way: in Haven when the URL names no world (screen=station-arsenal
+        // alone used to throw, with no station to dock at)
+        if (dev_scenario.started || (dev_screen === 'combat') || !!dev_screen?.startsWith('station-')) {
             dev_scenario_start();
         }
         dev_screen_open();
