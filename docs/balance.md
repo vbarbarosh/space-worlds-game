@@ -759,16 +759,19 @@ before rocks and the Relic processor.
 | repair kits at the start | 2 | 1 | 1 |
 | plasma raiders fire | no | yes | yes |
 | raider gun cooldown | ×1 | ×0.45 | ×0.4 |
-| raider shot damage (a missile: the blast row) | ×1 | ×1.6 | ×1.75 |
+| raider shot damage (a missile: the blast row) | ×1 | ×1.3 | ×1.75 |
 | raider hull | ×1 | ×1.5 | ×1.8 |
 | raider hull growth a world past Haven | +10% | +15% | none |
 | share of the world's shop on raider and flagship hull (`arcade_shop_hull`) | half | all | all |
 | share of the world's armour and shield | 80% | 80% | 50% |
-| blast damage to you (a ship's explosion, a raider missile) | ×0.8 | ×0.8 | ×1.2 |
+| blast damage to you (a ship's explosion, a raider missile) | ×0.8 | ×0.65 | ×1.2 |
 | raiders grow with your gun tier | no | no | +22% a tier |
 | flagship overdrive | no | no | yes |
 | marksmen (a factor on the world's share) | ×0.5 | ×1 | ×1.3 |
 
+- NORMAL's shots came down from ×1.6 and its blasts from ×0.8 on 2026-10-20 (the author: "at Standard it is like
+  hardcore, no fun"; 3 of their 5 deaths that night were to Dustfall's missiles): the bot then won 8 Free runs of 8
+  and 7 Scroll runs of 8 (3 of 4 each before), Dustfall's damage taken in Free about halved (317 to 167).
 - Where: `arcade_modes` in `src/js/arcade.js`; the menu's line for each mode
   is `sync_mode_note`.
 - **Lives:** a run has 3 on every row (`arcade_lives` in

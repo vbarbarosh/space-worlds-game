@@ -31,7 +31,7 @@ const arcade_squad_mixed = 0.35;
 // the flagship's overdrive, and a factor on the share of marksmen.
 const arcade_modes = {
     chill: {squad: 0, wave: 0, gap: 1, elite_world: 1, repairs: 1, medkits: 2, armed: false, gun_gap: 1, hits: 1, hull: 1, growth: 0.1, shop: 0.5, defense: 0.8, blast: 0.8, tier_hp: false, overdrive: false, marksmen: 0.5},
-    normal: {squad: 1, wave: 3, gap: 0.8, elite_world: 0, repairs: 0.35, medkits: 1, armed: true, gun_gap: 0.45, hits: 1.6, hull: 1.5, growth: 0.15, shop: 1, defense: 0.8, blast: 0.8, tier_hp: false, overdrive: false, marksmen: 1},
+    normal: {squad: 1, wave: 3, gap: 0.8, elite_world: 0, repairs: 0.35, medkits: 1, armed: true, gun_gap: 0.45, hits: 1.3, hull: 1.5, growth: 0.15, shop: 1, defense: 0.8, blast: 0.65, tier_hp: false, overdrive: false, marksmen: 1},
     overload: {squad: 2, wave: 5, gap: 0.7, elite_world: 0, repairs: 0, medkits: 1, armed: true, gun_gap: 0.4, hits: 1.75, hull: 1.8, growth: 0, shop: 1, defense: 0.5, blast: 1.2, tier_hp: true, overdrive: true, marksmen: 1.3},
 };
 
