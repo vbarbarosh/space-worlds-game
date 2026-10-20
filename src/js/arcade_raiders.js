@@ -162,8 +162,9 @@ function raider_kind_room(kind)
 
 // After a squadron came (arcade_squad_spawn): by the world's share some of its line raiders give their places to raiders
 // with jobs, warping in where they stood; then the rest hunt as a pack (pack_form). An elite, an escort, its leader, a
-// lurker, an anchored raider and an event's raider keep their places.
-function raider_squad_after(squad)
+// lurker, an anchored raider and an event's raider keep their places. Without `pack` (a Base lane) the rest hunt each
+// on its own.
+function raider_squad_after(squad, pack = true)
 {
     const free = squad.filter(v => !v.elite && !v.guard && !v.lurk && !v.anchor && !v.event_goal && (v.type !== 'tank'));
     const open = raider_kinds_open();
@@ -183,7 +184,9 @@ function raider_squad_after(squad)
         enemies.splice(enemies.indexOf(old), 1);
         squadron[squadron.indexOf(old)] = raider_kind_spawn(kind, old.x, old.y);
     }
-    pack_form(squadron);
+    if (pack) {
+        pack_form(squadron);
+    }
 }
 
 // Called from arcade_update every frame, whatever else waits: each raider with a job does it (at stasis' pace), the

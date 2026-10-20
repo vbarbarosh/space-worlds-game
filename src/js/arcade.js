@@ -414,11 +414,9 @@ function arcade_squad_spawn(size)
 {
     const first = enemies.length;
     arcade_squad_form(size);
-    // a Scroll lane's formation keeps its places: no jobs and no pack for it (arcade_scroll.js); a Base lane's
-    // raiders have none at all (arcade_base.js)
-    if (!arcade_base_on()) {
-        raider_squad_after(enemies.slice(first).filter(v => !v.path));
-    }
+    // a Scroll lane's formation keeps its places: no jobs and no pack for it (arcade_scroll.js); a Base lane's chasers
+    // give places to raiders with jobs, as anywhere, but hunt each on its own, not as a pack (arcade_base.js)
+    raider_squad_after(enemies.slice(first).filter(v => !v.path), !arcade_base_on());
 }
 
 // How a squadron comes, by the type the world's mix draws for it: a line of one type, as it always did; a pincer, the

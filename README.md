@@ -88,8 +88,9 @@ Three modes:
   its base to build it up again a layer at a time: one speed from a world's start to its end, where the world ends
   and the depot opens before the next; two raiders, the chaser, which turns to you and fires once close, and the
   passer, which flies a straight line through the view and fires only while you are inside its ring; the raiders
-  grow world by world as on a Scroll lane, and fire faster besides; salvage and the whole depot (layer 1); no
-  cards, elites, flagships, other raiders, missiles or world tricks yet. Each kind keeps its own best.
+  grow world by world as on a Scroll lane, and fire faster besides; salvage and the whole depot (layer 1); the
+  raiders with jobs in the chasers' lines, one more kind each world from Haven to Obsidian (layer 2); no cards,
+  elites, flagships, tanks, splitters, lancers, missiles or world tricks yet. Each kind keeps its own best.
 - **Races**: ring races alone, at Easy, Normal or Hard, course after course
   from Haven through the eight worlds; the start ship, no raiders, the rocks
   as solid as ever. Two kinds: Steer, flown by hand, and Turbo, where the

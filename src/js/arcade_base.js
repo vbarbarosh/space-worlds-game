@@ -5,9 +5,11 @@
 // turns to you and keeps after you, firing only once close, and the passer, which flies one straight line through the
 // view, a sweep across it or a V down it, and fires only while you are inside its ring. A world ends where its lane
 // ends. Layer 1 (2026-10-20): salvage, and the depot between worlds, the whole of it, modules too (without them the
-// salvage piled up with nothing to buy), the guns a tier up for each world, as on a Scroll lane. Left out, to be laid
-// on one by one: the cards, elites and flagships, the other raiders and missiles, and each world's trick (cliffs,
-// pylons, spires, the hole).
+// salvage piled up with nothing to buy), the guns a tier up for each world, as on a Scroll lane. Layer 2: the raiders
+// with jobs (arcade_raiders.js: interceptor, carrier, bulwark, sniper, mine-layer), one more opening each world from
+// Haven to Obsidian, in a chasers' line's places; the passers' formations keep theirs. Left out, to be laid on one by
+// one: the cards, elites and flagships, the world's other types (tanks, splitters, lancers) and missiles, and each
+// world's trick (cliffs, pylons, spires, the hole).
 // The raiders grow world by world as on a Scroll lane (since layer 1: with the depot your kit grows, and Haven's
 // raiders in every world gave way to it), and fire more often besides.
 

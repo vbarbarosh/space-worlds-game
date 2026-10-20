@@ -1356,7 +1356,8 @@ on it"); `src/js/arcade_base.js`.
 | Their gun | plasma | `arcade_base_squad` |
 | What grows world by world | hull, armour and shield, as on a Scroll lane; how many come at once; and their reload, 6% shorter a step, 60% at the shortest | `raider_tier`, `arcade_hull_scale`, `arcade_base_reload` |
 | Layer 1 | salvage, and the whole depot between worlds (and before a retry): repairs, supplies, guns, ships, modules, Reactor tuning | `arcade_base_world_end` |
-| Left out | cards, elites, flagships, the other raiders, missiles, world tricks | - |
+| Layer 2 | the raiders with jobs (interceptor, carrier, bulwark, sniper, mine-layer), one more kind each world from Haven to Obsidian, in a chasers' line's places, each hunting on its own, no pack; a passers' formation keeps its places | `raider_squad_after` |
+| Left out | cards, elites, flagships, tanks, splitters, lancers, missiles, world tricks | - |
 
 The bot's first runs (seeds 1–4): Chill won 4 of 4, no deaths; Standard 0
 of 4, its last life lost in Ion Reach, Cryosphere, Nova Forge and Eclipse,
@@ -1379,6 +1380,12 @@ whole depot the salvage is spent and the bot wins every run, Overload with
 one death in 4: chasers and passers alone do not push back against a full
 kit. The layers still to come (the other raiders, elites, flagships) are
 what make the late worlds hard.
+
+Layer 2, the raiders with jobs (seeds 1–4): Chill 4 of 4, Standard 4 of
+4, Overload 4 of 4 with two deaths in all, both in Haven. They come and
+hit (mines, bulwarks, snipers most), but from Verdant on the bot loses
+almost no hull, and its salvage at a depot reaches 3577 by Cryosphere: the
+kit still outgrows what the worlds bring.
 
 ## The arcade's world shapes
 
