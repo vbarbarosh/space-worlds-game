@@ -1331,8 +1331,8 @@ scroll goes very fast and you crash into rocks, into everything, because you
 can't react in time"; and "in this mode the map must always move the same
 way, at the same speed"). At ×6 the screen went 432 m/s and the back edge
 pushed the ship into whatever lay ahead. Without it (seeds 1–6, Standard) the
-bot won as often, 6 runs of 6, and came to its depots with a fifth more
-salvage, the rocks and caches passed at the screen's pace; a run took
+bot won as often, 6 runs of 6, and picked up about as much salvage over a
+run (9105 against 9537 on the same seeds); a run took
 1680–1725 s, not 1130–1220, about 65 s more a world. A jump over the empty
 stretch instead (0.6 s of dark, landing 3 s short of the next fight) kept the
 pace on screen, but it is a speed-up too, and cost the bot a fifth of its
