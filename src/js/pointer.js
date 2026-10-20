@@ -109,10 +109,6 @@ canvas.addEventListener('pointerdown', function (event) {
     }
     else if (event.pointerType !== 'touch') {
         update_pointer(p);
-        if (build_placing && (event.button === 2)) {
-            build_placing = null;
-            return;
-        }
         if ((event.button === 0) && build_click({x: pointer.x, y: pointer.y})) {
             return;
         }
@@ -133,9 +129,6 @@ canvas.addEventListener('pointerdown', function (event) {
             canvas.focus();
             mouse_drive.turbo_since = mouse_drive.following ? clock : -1;
             mouse_drive.held = !mouse_drive.following;
-        }
-        if (event.button === 2) {
-            pulse();
         }
     }
 });
@@ -187,7 +180,45 @@ function release_pointer(event)
 }
 canvas.addEventListener('pointerup', release_pointer);
 canvas.addEventListener('pointercancel', release_pointer);
-canvas.addEventListener('contextmenu', v => v.preventDefault());
+
+// The right button anywhere on the game: on the open sky or on the HUD over it, pressed alone or with the left held
+// to steer (a press then comes as a move with the right button added, no pointerdown), it fires the pulse, or puts
+// back a structure being placed. The browser's own menu never opens over the game, a text field's aside (the author,
+// 2026-10-20: "very often the context menu appears ... unacceptable"; only the open sky held it back, and a press
+// with the left held fired nothing).
+let pointer_right_held = false;
+for (const type of ['pointerdown', 'pointermove', 'pointerup']) {
+    document.getElementById('screen').addEventListener(type, pointer_right_track, {capture: true});
+}
+document.getElementById('screen').addEventListener('contextmenu', function (event) {
+    if (!pointer_text_field(event.target)) {
+        event.preventDefault();
+    }
+});
+
+// The right button goes down: the pulse, or a structure being placed put back
+function pointer_right_track(event)
+{
+    if (event.pointerType === 'touch') {
+        return;
+    }
+    const held = !!(event.buttons & 2);
+    if (held && !pointer_right_held && !pointer_text_field(event.target)) {
+        if (build_placing) {
+            build_placing = null;
+        }
+        else {
+            pulse();
+        }
+    }
+    pointer_right_held = held;
+}
+
+// A field you type in, which keeps the browser's own menu (copy, paste)
+function pointer_text_field(target)
+{
+    return !!target.closest?.('input, textarea, select, [contenteditable]');
+}
 const turbo_button = document.getElementById('touch_dash');
 turbo_button.addEventListener('pointerdown', function (event) {
     event.preventDefault();
