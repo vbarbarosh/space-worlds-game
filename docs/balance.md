@@ -332,18 +332,17 @@ A module level costs its base price × (1 + 0.48 per level you have; in the
 arcade the levels owned, installed or not) (`module_cost` in
 `src/js/upgrades.js`). Modules move between ships. In the arcade each level
 installed draws the reactor's power (Power, below; [The arcade's power
-budget](#the-arcades-power-budget)), and the drones, nanites, Pulse reactor
-and amplifier, Turbo drive, Evasive thrusters, Slipstream, Rapid resonance and
+budget](#the-arcades-power-budget)), and the drones, nanites, Pulse amplifier, Turbo drive, Evasive thrusters, Slipstream, Rapid resonance and
 Phase armor do more there (its Builds).
 
 | Module | Levels | Opens (level by level) | Base price | Power (arcade) | Per level (code) |
 |---|---|---|---|---|---|
 | Artifact magnet | 7 | H V D I C N E | 32 | 1 (none for the level 1 you start with) | reach 45 + 110 per level (starts at 1) |
 | Orbit drones | 3 | H I C | 65 | 1 | one more drone |
-| Shield capacitor | 3 | H V O | 44 | 1 | +25 shield, faster recharge |
+| Shield capacitor | 3 | H V O | 44 | 1 | +25 shield (the generator refills it: [The generator](#the-generator)) |
 | Repair nanites | 3 | H I C | 60 | 1 | 0.35 hull a second after 5 s unhit |
 | Guided plasma | 2 | H O | 55 | 1 | plasma and ion bolts turn toward targets |
-| Pulse reactor | 3 | H I C | 42 | 1 | 1.5 pulse a second |
+| Generator | 3 | H I C | 42 | 1 | +5 energy a second ([The generator](#the-generator)) |
 | Relic processor | 3 | H I C | 35 | 1 | +25% salvage from artifacts |
 | Turbo drive | 3 | H I C | 70 | 1 | turbo speed + 0.65 on a ×3.2 base; dash cooldown −0.9 s |
 | Booster reservoir | 4 | H D O N | 65 | 1 | +3 s of turbo |
@@ -351,7 +350,7 @@ Phase armor do more there (its Builds).
 | Vector stabilizers | 3 | H I C | 60 | 1 | steering +15%, braking +40% |
 | Evasive thrusters | 3 | H I C | 70 | 1 | steers round obstacles |
 | Radar | 3 | H I C | 40 | 1 | sees raiders 2.5, 4, 6 km off: markers on the window's edge; Seeker missiles +0.5 rad/s turn, lock to its reach, held while it sees the target (`src/js/radar.js`) |
-| Reactor cooling | 3 | H I C | 75 | 1 | dash cooldown −0.35 s; Cryosphere shield recharge |
+| Reactor cooling | 3 | H I C | 75 | 1 | dash cooldown −0.35 s (the turbo's energy cheaper); Cryosphere shield recharge |
 | Prism cannon | 2 | H O | 75 | 2 | more a shot, by the gun (Weapons, above) |
 | Hotter plasma | 5 | H D I C N | 38 | 2 | +36% of the gun's damage a shot |
 | Rapid resonance | 3 | H I C | 45 | 2 | fire interval −12% |
@@ -377,7 +376,34 @@ Forge, E Eclipse: see What each world opens, below.
   at the edge (140 on average, as before; a flagship 457 to 251), before the
   amplifier; a kill blows up 0.05–0.14 s later and sends a chain ring: 110 m,
   28 damage, ×0.82 a step, 3 steps, ×1.35 from a tank, elite or flagship
-  (`src/js/pulse.js`). A kill gives 4 energy + the amplifier level.
+  (`src/js/pulse.js`). The generator charges it; kills and salvage do not.
+
+## The generator
+
+One generator charges the ship (2026-10-20, the author: "a generator gives the
+energy, and these things refill from it ... I buy a stronger generator, it
+gives more power"; `src/js/generator.js`). Each second its output goes to the
+shield first, then the turbo and the pulse share the rest, half each, the one
+that is full giving its half to the other. Before it, the pulse filled from
+kills (4 a kill + the amplifier level) and salvage (2), the shield by itself 5
+s after a hit (5 + 2 a Shield capacitor level a second), the turbo by itself
+over its cooldown, and the Pulse reactor added 1.5 pulse a second (9 in the
+arcade).
+
+| What | Value | Where |
+|---|---|---|
+| Output a second | 2 energy a unit of the reactor's power (the ship's own, 1 a world reached, 1 a Reactor tuning: a new run's Wisp Scout 4 units, 8 energy), + 5 a Generator module level | `generator_output` |
+| The shield | first, 2 s after a hit (was 5); 2 energy a point, times the world's shield factor | `generator_cost.shield`, `shield_mend_delay` |
+| The turbo | 5 energy a second of turbo × the dash cooldown ÷ 8 s (the Turbo drive and the cooling make it cheaper); not while it burns, nor in the dash's cooldown | `generator_cost.turbo` |
+| The pulse | 2 energy a percent | `generator_cost.pulse` |
+| An energy cell | 50 energy into the same supply (was +25 pulse) | `generator_cell` |
+| Its own | a world's trickle or drain (Haven +0.6, Verdant +0.8, Eclipse −1.8 a second), a storm's harvest (+14 a second) and Ion Reach's charge fields (+12) still fill the pulse straight | `flight.js`, `ion_pylons.js` |
+
+The bot, Standard, seeds 1–3, pulses fired a minute before and after: Base
+2.77 and 2.83, Scroll 1.49 and 1.36, Free 2.05 and 1.92; its deaths fell from
+9 to 2 in the nine runs (the shield back after 2 s, not 5), all still won.
+Overload: Base 4.06 and 4.26, Scroll 2.79 and 2.07, Free 2.47 and 2.43, as many
+won (one more in Free); Chill as before.
 
 ## The arcade's power budget
 

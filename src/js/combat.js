@@ -353,7 +353,6 @@ function base_damage_enemy(enemy, damage)
     // an arcade raider with a job scores by its kind (raider_kind_points)
     const points = Math.round((raider_kind_points(enemy) ?? ((enemy.type === 'boss') ? 5000 : (enemy.type === 'tank') ? 140 : (enemy.type === 'shooter') ? 100 : (enemy.type === 'splitter') ? 110 : 80))*combo*chain);
     score += points;
-    player.energy = Math.min(100, player.energy + 4 + upgrades.pulse);
     burst(
         enemy.x,
         enemy.y,

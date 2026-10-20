@@ -37,14 +37,13 @@ function stop_turbo()
     player.dash_cd = 0;
 }
 
+// The moment after a dash before the turbo takes the generator's energy again (generator.js fills it)
 function recharge_turbo(dt)
 {
     if (player.turbo_active) {
         return;
     }
-    const delay = Math.min(dt, player.dash_cd || 0);
     player.dash_cd = Math.max(0, (player.dash_cd || 0) - dt);
-    player.turbo_fuel = Math.min(turbo_duration(), turbo_fuel() + (Math.max(0, dt - delay)*turbo_duration())/dash_cooldown());
 }
 
 function world_brief(id)

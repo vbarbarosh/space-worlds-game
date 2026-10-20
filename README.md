@@ -58,8 +58,11 @@ Three modes:
   each world cleared, so a run flies a build, not the whole shop (by Eclipse a cruiser holds 15 of the 75 levels'
   84 power); Hotter plasma, Rapid resonance and Prism draw 2 a level, the rest 1. At the depot a level goes in or
   out for free, so each world can fly its own build; a ship with a smaller reactor takes out the newest levels and
-  says so. Reactor tuning (600, 1200, 1800 salvage, three a run) adds a unit of power to every ship. The support
-  levels do more in the arcade (drones that grow with the run, nanites that mend under fire, a fast pulse, shots
+  says so. Reactor tuning (600, 1200, 1800 salvage, three a run) adds a unit of power to every ship. The same power
+  drives the generator, 2 energy a second a unit and 5 more a Generator level: it refills the shield first, 2 s
+  after a hit, then the turbo and the pulse, half each; energy cells pour into it, and kills no longer charge the
+  pulse ([docs/balance.md](docs/balance.md#the-generator)). The support
+  levels do more in the arcade (drones that grow with the run, nanites that mend under fire, shots
   that slip past an evasive ship), so a guns build, a tank and an evasive pulse build each win about half the
   bot's runs ([docs/balance.md](docs/balance.md#the-arcades-power-budget)). A cleared world pays a fixed bonus, the weapon
   grows a tier, a cleared screen shows the world's numbers, and the depot opens before the next world. Score, combo and a best score (salvage left at the end scores 10 points each); no

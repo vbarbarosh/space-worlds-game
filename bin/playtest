@@ -12,7 +12,7 @@ const picks = ['boon', 'gamble', 'trade', 'random', 'none'];
 const routes = ['low', 'high', 'random'];
 // The bot's builds (--build), each on the same small core (Prism 1, Phase armor 1, Shield capacitor 1): mixed, the
 // default, Prism and Hotter plasma first with armour and the shield between; guns, Hotter plasma, Rapid resonance and
-// Prism; tank, armour, shield, drones and nanites; evasion, the Evasive thrusters, Slipstream, the pulse and its reactor
+// Prism; tank, armour, shield, drones and nanites; evasion, the Evasive thrusters, Slipstream, the pulse and the generator
 const builds = {
     mixed: [
         'spread', 'damage', 'armor', 'shield', 'damage', 'spread', 'armor', 'damage', 'shield', 'armor', 'damage', 'shield',
@@ -136,7 +136,7 @@ function run_table(run)
     const maxed = run.maxed ? `shop ran out at ${(run.maxed.run_time/60).toFixed(1)} min in ${run.maxed.world}` : 'shop never ran out';
     const lines = [`${run.mode}${(run.kind === 'free') ? '' : ` ${run.kind}`}${run.idle ? ' idle' : ''} seed ${run.seed}: ${run.won ? 'won' : run.cut ? 'cut (time)' : 'lost'} · ${run.deaths} deaths · ${Math.round(run.run_time)} s · score ${run.score} · salvage left ${run.salvage_left} · ${maxed} · ${run.wall_seconds} s on the clock`];
     lines.push(`cards ${run.pick}: ${(run.cards || []).join(', ') || '-'} · route ${run.route_how}: ${(run.route || []).join(' > ')}`);
-    lines.push('world        hull lost (w1/w2/w3)   all dmg  kills  off-screen  salvage at depot  left after  power  deaths  time  quiet  crowd  flagship  ship and guns  most from');
+    lines.push('world        hull lost (w1/w2/w3)   all dmg  kills  off-screen  salvage at depot  left after  power  deaths  time  quiet  crowd  pulses  flagship  ship and guns  most from');
     for (const world of run.worlds) {
         const hull = world.waves.map(v => Math.round(v.hull)).join(' / ');
         const all = Math.round(world.waves.reduce((sum, v) => sum + v.hull + v.shield, 0));
@@ -151,7 +151,7 @@ function run_table(run)
         // waves 1 and 2: the seconds with under 3 raiders in play, and how many are in play on average
         const quiet = `${Math.round(world.quiet || 0)} s`;
         const crowd = world.wave_time ? (world.crowd/world.wave_time).toFixed(1) : '-';
-        lines.push(`${world.name.padEnd(12)} ${hull.padEnd(22)} ${String(all).padStart(7)}  ${String(world.kills).padStart(5)}  ${String(world.off_screen).padStart(10)}  ${String(world.salvage_at_depot ?? '-').padStart(16)}  ${left.padStart(10)}  ${power.padStart(5)}  ${String(world.deaths).padStart(6)}  ${Math.round(world.time)} s  ${quiet.padStart(5)}  ${crowd.padStart(5)}  ${flagship.padStart(8)}  ${world.ship}: ${world.guns.join('+')}  ${sources}`);
+        lines.push(`${world.name.padEnd(12)} ${hull.padEnd(22)} ${String(all).padStart(7)}  ${String(world.kills).padStart(5)}  ${String(world.off_screen).padStart(10)}  ${String(world.salvage_at_depot ?? '-').padStart(16)}  ${left.padStart(10)}  ${power.padStart(5)}  ${String(world.deaths).padStart(6)}  ${Math.round(world.time)} s  ${quiet.padStart(5)}  ${crowd.padStart(5)}  ${String(world.pulses ?? 0).padStart(6)}  ${flagship.padStart(8)}  ${world.ship}: ${world.guns.join('+')}  ${sources}`);
     }
     return lines.join('\n');
 }
@@ -203,7 +203,7 @@ function page_bot(options)
         if (current && (current.world === campaign.world)) {
             return current;
         }
-        const out = {world: campaign.world, name: worlds[campaign.world].name, ship: current_ship().id, guns: mounted_weapons().map(v => (v ? v.id : 'empty')), waves: [], sources: {}, flagship: {time: 0, hull: 0, escaped: false}, kills: 0, off_screen: 0, deaths: 0, time: 0, quiet: 0, crowd: 0, wave_time: 0, salvage_at_depot: null, earned: {}};
+        const out = {world: campaign.world, name: worlds[campaign.world].name, ship: current_ship().id, guns: mounted_weapons().map(v => (v ? v.id : 'empty')), waves: [], sources: {}, flagship: {time: 0, hull: 0, escaped: false}, kills: 0, off_screen: 0, deaths: 0, time: 0, quiet: 0, crowd: 0, wave_time: 0, pulses: 0, salvage_at_depot: null, earned: {}};
         B.worlds.push(out);
         return out;
     }
@@ -570,6 +570,12 @@ function page_bot(options)
             if (arcade.flagship_escaped) {
                 world_entry().flagship.escaped = true;
             }
+            // a pulse fired: the charge was full a frame ago and is spent now (a drain, Eclipse's or the beam's, takes
+            // a little)
+            if ((B.energy_last >= 100) && (player.energy < 50)) {
+                world_entry().pulses++;
+            }
+            B.energy_last = player.energy;
             fly();
         }
         else if ((state === 'finale') && (finale.world >= 0)) {

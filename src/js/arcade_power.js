@@ -177,15 +177,15 @@ function arcade_power_levels_text(keys)
 // What the levels do in the arcade, where a build of one kind must carry a run (the campaign keeps its own numbers).
 // Three builds, each on a small common core (Prism 1, Phase armor 1, Shield capacitor 1), each win about half of
 // bin/playtest's runs (docs/balance.md, The arcade's power budget): the guns (Hotter plasma, Rapid resonance, Prism),
-// the tank (armour, shield, drones, nanites) and the slippery one (evasion, Slipstream, the pulse and its reactor).
+// the tank (armour, shield, drones, nanites) and the slippery one (evasion, Slipstream, the pulse and the generator).
 // So: an orbit drone's bolt grows by drone_step a step, as the raiders' hull and armour do, every drone_gap seconds;
-// the nanites mend this share of the hull a second, with no wait; the Pulse reactor charges this much a second; each
+// the nanites mend this share of the hull a second, with no wait; a Generator level is the generator's (generator.js); each
 // Pulse amplifier level adds pulse_step a step to its 60; each Turbo drive level cuts the dash cooldown by dash; each
 // Evasive thrusters level slips this share of the raiders' shots that reach you (evade), each Slipstream level this
 // (evade_speed), together no more than evade_max; each Rapid resonance level cuts the interval by rate, each Phase
 // armor level a hit by armor.
 const arcade_module_tune = {
-    drone_step: 16, drone_gap: 0.3, nanites: 0.012, reactor: 9, pulse_step: 80, dash: 1.4, evade: 0.17, evade_speed: 0.08, evade_max: 0.5,
+    drone_step: 16, drone_gap: 0.3, nanites: 0.012, pulse_step: 80, dash: 1.4, evade: 0.17, evade_speed: 0.08, evade_max: 0.5,
     rate: 0.2, armor: 0.15,
 };
 
@@ -196,7 +196,7 @@ function arcade_module_line(option)
     const lines = {
         drone: 'A drone circles you and shoots; its bolts grow with every world.',
         nanites: 'The hull repairs itself, even under fire.',
-        reactor: 'The pulse recharges much faster.',
+        reactor: 'More energy a second: the shield, turbo and pulse refill faster.',
         pulse: 'Your pulse (Space) blasts wider, and harder every world.',
         evasive: `Slips ${Math.round(t.evade*100)}% of the shots that reach you; steers round rocks.`,
         speed: `Faster cruising; slips ${Math.round(t.evade_speed*100)}% of the shots that reach you.`,
@@ -223,11 +223,7 @@ function nanites_rate()
     return arcade.active ? upgrades.nanites*arcade_module_tune.nanites*hull_max() : upgrades.nanites*0.35;
 }
 
-// The pulse energy the Pulse reactor adds a second
-function reactor_rate()
-{
-    return upgrades.reactor*(arcade.active ? arcade_module_tune.reactor : 1.5);
-}
+
 
 // What each Pulse amplifier level adds to the pulse's damage (a flagship's twice that)
 function pulse_amp_damage()

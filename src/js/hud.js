@@ -439,6 +439,12 @@ function hud_html(element, html)
     hud_write(element, 'html', html);
 }
 
+// An element's tooltip, written only when it changes
+function hud_title(element, text)
+{
+    hud_write(element, 'title', String(text));
+}
+
 // The text an element will show: the one waiting for the end of update_hud, or the page's
 function hud_read(element)
 {
@@ -468,6 +474,12 @@ function hud_flush()
 // holds the nodes that write made
 function hud_apply(element, kind, value)
 {
+    if (kind === 'title') {
+        if (element.title !== value) {
+            element.title = value;
+        }
+        return;
+    }
     if (kind === 'text') {
         const plain = !element.firstChild || ((element.childNodes.length === 1) && (element.firstChild.nodeType === Node.TEXT_NODE));
         if (!plain || (element.textContent !== value)) {
@@ -493,8 +505,14 @@ function sync_ship_status()
     document.getElementById('hull_gauge').classList.toggle('is-low', player.hp < hull_max()*0.3);
     const shield_gauge = document.getElementById('shield_gauge');
     shield_gauge.classList.toggle('is-none', shield_max() === 0);
-    shield_gauge.classList.toggle('is-mending', shield_mending());
-    document.getElementById('pulse_gauge').classList.toggle('is-charging', (player.energy < 100) && !!charge_field_in());
+    // the gauges the generator is charging glow (generator.js), the pulse also in a charge field; each says the rule
+    const output = `the generator's ${Math.round(generator_output())} energy a second`;
+    hud_title(shield_gauge, `Shield: takes shots and blasts before the hull, not a crash; ${output} refill it first, 2 s after a hit`);
+    hud_title(document.getElementById('pulse_gauge'), `Pulse (Space or the right button): a blast round you; ${output} charge it once the shield is full, shared with the turbo`);
+    hud_title(document.getElementById('turbo_gauge'), `Turbo (Shift): ${output} refill it once the shield is full, shared with the pulse`);
+    shield_gauge.classList.toggle('is-mending', generator.shield);
+    document.getElementById('pulse_gauge').classList.toggle('is-charging', generator.pulse || ((player.energy < 100) && !!charge_field_in()));
+    document.getElementById('turbo_gauge').classList.toggle('is-charging', generator.turbo);
     document.getElementById('turbo_gauge').classList.toggle('is-ready', !player.turbo_active && (player.dash_cd <= 0));
     document.getElementById('combo_box').classList.toggle('is-hot', combo > 1);
 }

@@ -156,8 +156,8 @@ function update_world_environment(dt)
     if (player.overheated && (player.heat < 55)) {
         player.overheated = false;
     }
-    // the Pulse reactor and the world's own charge or drain in one step, so a drain after the cap can't hold it at 99%
-    player.energy = clamp(player.energy + (reactor_rate() + r.energy)*dt, 0, 100);
+    // the world's own trickle or drain of the pulse (the generator charges it: generator.js)
+    player.energy = clamp(player.energy + r.energy*dt, 0, 100);
     if ((campaign.world === 1) && (player.since_hit > 5)) {
         player.hp = Math.min(hull_max(), player.hp + 0.4*dt);
     }

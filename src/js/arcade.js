@@ -948,7 +948,7 @@ function arcade_depot_power_fill()
     const capacity = arcade_power_capacity();
     const box = document.getElementById('arcade_depot_power');
     box.classList.toggle('is-over', used > capacity);
-    box.title = `Every module level installed draws power: ${used} of the ${capacity} your ${current_ship().name}'s reactor holds now (${current_ship().power} of its own, ${world_reached()} for the worlds cleared${arcade.reactor ? `, ${arcade.reactor} from Reactor tuning` : ''}). Levels you own and do not install wait for free; put them in and take them out here.`;
+    box.title = `Every module level installed draws power: ${used} of the ${capacity} your ${current_ship().name}'s reactor holds now (${current_ship().power} of its own, ${world_reached()} for the worlds cleared${arcade.reactor ? `, ${arcade.reactor} from Reactor tuning` : ''}). Levels you own and do not install wait for free; put them in and take them out here. The same power drives the generator: ${Math.round(generator_output())} energy a second for the shield, then the turbo and the pulse.`;
     document.getElementById('arcade_depot_power_text').innerHTML = `${used}<small> / ${capacity}</small>`;
     document.getElementById('arcade_depot_power_cells').innerHTML = Array.from({length: Math.max(used, capacity)}, (_, i) => `<i class="${(i >= capacity) ? 'over' : (i < used) ? 'on' : ''}"></i>`).join('');
 }
@@ -1034,7 +1034,7 @@ function arcade_depot_items()
     const tuned = arcade.reactor;
     const tunings = arcade_reactor_prices.length;
     out.push({
-        kind: 'reactor', id: 'tuning', section: 'ships', title: 'Reactor tuning', line: `+1 power on every ship for the rest of the run. ${tuned} of ${tunings} bought.`,
+        kind: 'reactor', id: 'tuning', section: 'ships', title: 'Reactor tuning', line: `+1 power on every ship for the rest of the run: a module level more, and +2 energy a second. ${tuned} of ${tunings} bought.`,
         tags: 'reactor power tuning energy core', icon: module_icon(upgrade_options.find(v => v.key === 'reactor')), chips: [['POWER', '+1', 'up']], pips: [tuned, tunings],
         price: (tuned < tunings) ? arcade_reactor_prices[tuned] : null, done: (tuned >= tunings) ? 'Max' : '', label: 'Buy',
         buy: function () {

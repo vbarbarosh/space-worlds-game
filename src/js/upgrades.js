@@ -17,7 +17,7 @@ const upgrade_options = [
         key: 'shield',
         icon: '⬡',
         title: 'Shield capacitor',
-        description: 'Add 25 regenerating shield. Recharges after 5 safe seconds.',
+        description: 'Add 25 shield. The generator refills it 2 s after a hit.',
         cap: 3,
         cost: 44,
         // where each level opens (src/js/tech.js): a step ahead of the share of the worlds, as the gates' defence asks for
@@ -56,8 +56,8 @@ const upgrade_options = [
     {
         key: 'reactor',
         icon: 'ϟ',
-        title: 'Pulse reactor',
-        description: 'Passively regenerate 1.5 pulse energy / second per level.',
+        title: 'Generator',
+        description: 'Each level: +5 energy a second, so the shield, turbo and pulse refill faster.',
         cap: 3,
         cost: 42,
         group: 'utility',
@@ -217,7 +217,7 @@ const upgrade_options = [
         key: 'pulse',
         icon: '◎',
         title: 'Pulse amplifier',
-        description: 'Charge faster on kills. Expand your pulse and its damage.',
+        description: 'Expand your pulse and its damage.',
         cap: 3,
         cost: 42,
         group: 'weapon',
@@ -269,7 +269,6 @@ function collect_pickup(v, quiet = false)
         play_log_earn('pickups', amount);
         artifacts_count++;
         score += 25;
-        player.energy = Math.min(100, player.energy + 2);
         if (!quiet) {
             label(v.x, v.y, `◆ +${amount}`, gold);
         }
@@ -281,9 +280,10 @@ function collect_pickup(v, quiet = false)
         }
     }
     else if (v.type === 'energy') {
-        player.energy = Math.min(100, player.energy + 25);
+        // an energy cell pours into the generator's supply (generator.js)
+        generator_pour(generator_cell);
         if (!quiet) {
-            label(v.x, v.y, '+25 PULSE', pink);
+            label(v.x, v.y, '+ENERGY', pink);
         }
     }
     else if (supplies[v.type] !== undefined) {

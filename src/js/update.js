@@ -119,14 +119,10 @@ function update(dt, frame_dt = dt)
     stasis_time = Math.max(0, stasis_time - dt);
     bodies_frame();
     player.since_hit += dt;
-    if (player.since_hit > shield_mend_delay) {
-        player.shield = Math.min(
-            shield_max(),
-            player.shield + dt*(5 + upgrades.shield*2)*(current_world_rules().shield + ((campaign.world === 5) ? upgrades.cooling*0.15 : 0))
-        );
-        if (!arcade.active) {
-            player.hp = Math.min(hull_max(), player.hp + dt*nanites_rate());
-        }
+    // the shield, the turbo and the pulse refill from the generator (generator.js)
+    generator_update(dt);
+    if (!arcade.active && (player.since_hit > nanites_mend_delay)) {
+        player.hp = Math.min(hull_max(), player.hp + dt*nanites_rate());
     }
     // in the arcade the nanites mend with no wait (arcade_power.js)
     if (arcade.active && upgrades.nanites && (player.hp > 0)) {
