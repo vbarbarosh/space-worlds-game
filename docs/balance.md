@@ -1264,7 +1264,7 @@ each measured with the bot (`bin/playtest --kind=scroll`, NORMAL, seeds 1–12):
 | Raider reload | ×1.1 | ×1 | |
 | Raiders kept in play | 3 in wave 1, 4 in wave 2: the wave's next squadron at once (at most 2 s after the last), topping the lane up to two past it; once wave 1 has sent all its own, wave 2 comes on early; the lane's raiders as many as before; not wave 2 of the run's last world | - | the view never empties (the author: "as if I went out for a walk", "when there are none it is boring", a screenshot of an empty lane between waves); a fixed number (the author: not "the faster you work, the more work you are given") |
 | The back edge | lets go: a raider 60 m behind is gone, unkilled; salvage passed is lost | - | the author: they piled up under the panel |
-| Nothing left to fight | the screen rushes on ×6 to the next wave, drawing salvage in view to you, once none lies in view or after 4 s | - | the author: "a couple of seconds on an empty screen" |
+| Nothing left to fight | the screen goes on at its one pace (it rushed on ×6 until 2026-10-20) | - | the author: "the map must always move the same way, at the same speed" |
 | Formations | 6 squadrons of 10: a line sweeping across the screen (170 m/s) or a V flying down it (150 m/s) | - | firing as they pass, gone once out of the view, no points |
 | The Eclipse Eye's hull | ×0.7 | ×1 | it fights round a ring at the lane's end, with no hole swallowing the raiders round it |
 | A bulwark's shield turn | ×0.6 | ×1 | the view's edges cut the circle round it short; a slow ship never got round, its wave held for hours of game time |
@@ -1325,6 +1325,19 @@ to 140 s, Eclipse 257 s to 153 s); the bot comes to its first depots with
 10–25% less salvage (the rocks it no longer passes slowly) and wins 5 runs of
 8 (6 of 8 before both changes). Without drawing the salvage in, it came with a
 quarter less and won 1 of 8; with 30% more raiders a lane instead, 1 of 8.
+
+The rush is gone (2026-10-20, the author: "toward the end of every level the
+scroll goes very fast and you crash into rocks, into everything, because you
+can't react in time"; and "in this mode the map must always move the same
+way, at the same speed"). At ×6 the screen went 432 m/s and the back edge
+pushed the ship into whatever lay ahead. Without it (seeds 1–6, Standard) the
+bot won as often, 6 runs of 6, and came to its depots with a fifth more
+salvage, the rocks and caches passed at the screen's pace; a run took
+1680–1725 s, not 1130–1220, about 65 s more a world. A jump over the empty
+stretch instead (0.6 s of dark, landing 3 s short of the next fight) kept the
+pace on screen, but it is a speed-up too, and cost the bot a fifth of its
+salvage and 5 runs of 12. What fills the stretch is the lane's raiders, not
+the screen's speed.
 
 ## The arcade's world shapes
 

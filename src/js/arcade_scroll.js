@@ -85,15 +85,10 @@ const arcade_scroll_bulwark = 0.6;
 const arcade_scroll_spawn = 160;
 // kind: free or scroll, as the menu has it; on: a lane of a scroll run is flown; way: its heading; from: where the
 // view's middle starts; length: the lane's length; s: how far along it the view's middle is; pace: m a second;
-// held: the screen stands at the lane's end; refills: the lining's refills so far; rush: the factor on the pace now
-// (arcade_scroll_rushing); idle: the seconds with nothing left to fight
-const arcade_scroll = {kind: 'free', on: false, way: {x: 0, y: -1}, from: {x: 0, y: 0}, length: 0, s: 0, pace: 0, held: false, refills: 0, rush: 1, idle: 0};
-// With nothing left to fight before the next wave (no raider in play, the wave's own all sent), the screen rushes on
-// this many times its pace to where the next fight is, once no salvage lies in the view or after
-// arcade_scroll_rush_wait s (the author, 2026-10-19: "a couple of seconds on an empty screen", after the last wave
-// before the flagship, which waits at the lane's end)
-const arcade_scroll_rush_k = 6;
-const arcade_scroll_rush_wait = 4;
+// held: the screen stands at the lane's end; refills: the lining's refills so far. The screen never speeds up, even with
+// nothing left to fight: it rushed on x6 to the next fight once, and the ship flew into the rocks at the back edge
+// (the author, 2026-10-20: "in this mode the map must always move the same way, at the same speed")
+const arcade_scroll = {kind: 'free', on: false, way: {x: 0, y: -1}, from: {x: 0, y: 0}, length: 0, s: 0, pace: 0, held: false, refills: 0};
 
 for (const v of document.querySelectorAll('#intro [data-arcade-kind]')) {
     v.addEventListener('click', () => arcade_kind_pick(v.dataset.arcadeKind));
@@ -158,8 +153,6 @@ function arcade_scroll_world_start()
     portals = [];
     waypoint = null;
     arcade_scroll.held = false;
-    arcade_scroll.rush = 1;
-    arcade_scroll.idle = 0;
     const back = arcade_scroll_view();
     player.x = arcade_scroll.from.x - way.x*back.h*0.3;
     player.y = arcade_scroll.from.y - way.y*back.h*0.3;
@@ -190,8 +183,7 @@ function arcade_scroll_update(dt)
     if (!arcade_scroll_on()) {
         return;
     }
-    arcade_scroll.rush = arcade_scroll_rushing(dt) ? arcade_scroll_rush_k : 1;
-    arcade_scroll.s = Math.min(arcade_scroll.length, arcade_scroll.s + arcade_scroll.pace*arcade_scroll.rush*dt);
+    arcade_scroll.s = Math.min(arcade_scroll.length, arcade_scroll.s + arcade_scroll.pace*dt);
     arcade_scroll.held = arcade_scroll.s >= arcade_scroll.length;
     const refills = Math.floor(arcade_scroll.s/arcade_scroll_refill);
     if (refills > arcade_scroll.refills) {
@@ -211,20 +203,9 @@ function arcade_scroll_update(dt)
     player.y = camera.y + (at.y - oy)/k;
 }
 
-// The screen rushes on now (arcade_scroll_rush_k): nothing left to fight before the next wave, and no salvage in the
-// view, or none picked up for arcade_scroll_rush_wait s
-function arcade_scroll_rushing(dt)
-{
-    const empty = (arcade.wave >= 1) && (arcade.wave < arcade_waves) && (spawn_left <= 0) && !enemies.some(v => v.hp > 0);
-    arcade_scroll.idle = empty ? arcade_scroll.idle + dt : 0;
-    return empty && (!pickups.some(v => !arcade_scroll_unseen(v)) || (arcade_scroll.idle > arcade_scroll_rush_wait));
-}
-
 // Salvage, repairs and caches the back edge has passed are gone (the author, 2026-10-19: they piled up along the
 // bottom edge, under the panel; "better they vanish, if I don't make it in time, than all gather on the edge"). What
-// lies beside the view is left where it is. While the screen rushes on (arcade_scroll_rushing) what comes into the
-// view is drawn to you, so a rush skips the empty way, not its caches: without that, the bot came to its depots with
-// a quarter less and won 1 run of 8
+// lies beside the view is left where it is
 function arcade_scroll_pickups()
 {
     const view = arcade_scroll_view();
@@ -234,10 +215,6 @@ function arcade_scroll_pickups()
         const along = (v.x - view.x)*way.x + (v.y - view.y)*way.y;
         if (along < -view.h - arcade_scroll_gone) {
             pickups.splice(i, 1);
-        }
-        else if ((arcade_scroll.rush > 1) && !arcade_scroll_unseen(v)) {
-            v.x = player.x;
-            v.y = player.y;
         }
     }
 }
@@ -408,7 +385,7 @@ function arcade_scroll_keep(v, side, ahead, moving, free_behind = false)
     }
     const va = v.vx*way.x + v.vy*way.y;
     const vc = v.vy*way.x - v.vx*way.y;
-    const pace = arcade_scroll.held ? 0 : arcade_scroll.pace*arcade_scroll.rush;
+    const pace = arcade_scroll.held ? 0 : arcade_scroll.pace;
     const na = (a > along) ? Math.max(va, pace) : (a < along) ? Math.min(va, pace) : va;
     const nc = (c !== across) ? 0 : vc;
     v.vx = way.x*na - way.y*nc;
