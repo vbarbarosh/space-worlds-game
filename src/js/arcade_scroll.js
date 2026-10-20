@@ -15,7 +15,7 @@
 const arcade_kinds = {
     free: {name: 'Free', note: 'Fly anywhere in the world; raiders come from every side; the station is the depot.'},
     scroll: {name: 'Scroll', note: 'The screen moves on by itself, up, down, left or right by the world; raiders come from ahead.'},
-    base: {name: 'Base', note: 'Scroll pared to its base: one speed, raiders that chase you and raiders that pass, nothing else yet.'},
+    base: {name: 'Base', note: 'Scroll pared to its base: one speed, raiders that chase you and raiders that pass, a depot between worlds.'},
 };
 // The ways a lane goes, as a heading on the screen
 const arcade_scroll_ways = {forward: {x: 0, y: -1}, back: {x: 0, y: 1}, left: {x: -1, y: 0}, right: {x: 1, y: 0}};

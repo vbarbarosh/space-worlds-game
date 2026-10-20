@@ -254,10 +254,6 @@ function module_needs_gun(option)
 
 function drop_pickup(x, y, type, value = 0)
 {
-    // a Base run has no salvage (arcade_base.js)
-    if ((type === 'artifact') && arcade.active && arcade_base_kind()) {
-        return;
-    }
     pickups.push({x: clamp(x, 25, world.w - 25), y: clamp(y, 25, world.h - 25), type, value, life: (type === 'artifact') ? 36 : 28, phase: rand(0, 6.28)});
 }
 

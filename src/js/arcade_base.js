@@ -4,10 +4,12 @@
 // from a world's start to its end and never stops; two kinds of raider come along the whole lane: the chaser, which
 // turns to you and keeps after you, firing only once close, and the passer, which flies one straight line through the
 // view, a sweep across it or a V down it, and fires only while you are inside its ring. A world ends where its lane
-// ends, straight on to the next. Left out, to be laid on one by one: the depot and salvage, the cards and modules,
-// elites and flagships, the other raiders and missiles, and each world's trick (cliffs, pylons, spires, the hole).
-// The raiders are Haven's in every world, hull, armour and shield; from world to world only their number at once
-// (as on a Scroll lane) and how often they fire grow.
+// ends. Layer 1 (2026-10-20): salvage, and the depot between worlds, the whole of it, modules too (without them the
+// salvage piled up with nothing to buy), the guns a tier up for each world, as on a Scroll lane. Left out, to be laid
+// on one by one: the cards, elites and flagships, the other raiders and missiles, and each world's trick (cliffs,
+// pylons, spires, the hole).
+// The raiders grow world by world as on a Scroll lane (since layer 1: with the depot your kit grows, and Haven's
+// raiders in every world gave way to it), and fire more often besides.
 
 // How far a passer fires (its ring) and a chaser, m
 const arcade_base_passer_range = 460;
@@ -59,20 +61,24 @@ function arcade_base_update()
     return true;
 }
 
-// A Base world ends where its lane ends: the run's last is won; any other goes straight on to the next world of the
-// route, with no break, card or depot
+// A Base world ends where its lane ends: the run's last is won; any other pays the world's bonus, grows the guns a
+// tier and opens the depot, which launches to the next world of the route (arcade_depot_close); no break, no card
 function arcade_base_world_end()
 {
-    play_log_world_cleared(0);
     toasts_clear();
     if (arcade_level() >= arcade_worlds - 1) {
+        play_log_world_cleared(0);
         state = 'victory';
         victory_timer = 2.5;
         return;
     }
-    const next = arcade_route_offers()[0];
-    arcade.route.push(next);
-    start_jump({world: next, label: worlds[next].name, color: worlds[next].accent});
+    const bonus = arcade_clear_bonus();
+    salvage += bonus;
+    play_log_earn('world bonus', bonus);
+    play_log_world_cleared(bonus);
+    arcade_guns_grow();
+    arcade.between_worlds = {world: campaign.world, bonus, won: [], next: arcade_route_offers()[0]};
+    arcade_depot_open();
 }
 
 // A passer's ring (render, in the world): where it fires at you

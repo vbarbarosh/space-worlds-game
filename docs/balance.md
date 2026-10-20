@@ -1349,19 +1349,36 @@ on it"); `src/js/arcade_base.js`.
 
 | What | Value | Where |
 |---|---|---|
-| The screen | 72 m/s from a world's start to its end; the world ends there, straight on to the next | `arcade_base_update` |
+| The screen | 72 m/s from a world's start to its end; the world ends there, its bonus paid, the guns a tier up, and the depot opens before the next | `arcade_base_world_end` |
 | Raiders | chasers in a line from ahead; passers as a sweep or a V through the view, half the squadrons each | `arcade_base_passers` |
 | A chaser fires | only within 340 m | `arcade_base_chaser_range` |
 | A passer fires | only within 460 m, its ring drawn: gold, red with you inside | `arcade_base_passer_range` |
-| Their hull, armour, shield, gun | Haven's in every world, plasma | `raider_tier`, `arcade_hull_scale` |
-| What grows world by world | how many come at once (as on a Scroll lane), and their reload, 6% shorter a step, 60% at the shortest | `arcade_base_reload` |
-| Left out | depot, salvage (the caches keep their supply), cards, modules, elites, flagships, the other raiders, missiles, world tricks | - |
+| Their gun | plasma | `arcade_base_squad` |
+| What grows world by world | hull, armour and shield, as on a Scroll lane; how many come at once; and their reload, 6% shorter a step, 60% at the shortest | `raider_tier`, `arcade_hull_scale`, `arcade_base_reload` |
+| Layer 1 | salvage, and the whole depot between worlds (and before a retry): repairs, supplies, guns, ships, modules, Reactor tuning | `arcade_base_world_end` |
+| Left out | cards, elites, flagships, the other raiders, missiles, world tricks | - |
 
 The bot's first runs (seeds 1–4): Chill won 4 of 4, no deaths; Standard 0
 of 4, its last life lost in Ion Reach, Cryosphere, Nova Forge and Eclipse,
 with the start ship and gun against growing squadrons; Overload 0 of 4, all
 in Verdant. The bot does not dash at shots, so these say little of a player; the
 curve is the next layer, set by the author's runs.
+
+Layer 1, salvage and the depot, tried three ways (seeds 1–4 or 1–3, every
+difficulty):
+
+| Depot | Raiders | Chill | Standard | Overload | Salvage left |
+|---|---|---|---|---|---|
+| no modules | Haven's in every world | 3 of 3 | 3 of 3 | 3 of 3 | 2400–3200 |
+| no modules | grow as on Scroll | 3 of 3 | 0 of 3 | 0 of 3 | 460–2160 |
+| whole | grow as on Scroll (kept) | 4 of 4 | 4 of 4 | 4 of 4 | 600–1750 |
+
+Without modules the salvage piles up with nothing to buy, and the kit
+either outgrows Haven's raiders or falls behind growing ones. With the
+whole depot the salvage is spent and the bot wins every run, Overload with
+one death in 4: chasers and passers alone do not push back against a full
+kit. The layers still to come (the other raiders, elites, flagships) are
+what make the late worlds hard.
 
 ## The arcade's world shapes
 

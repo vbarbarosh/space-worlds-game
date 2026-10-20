@@ -199,12 +199,12 @@ function arcade_snapshot()
 // cards above still leaves Load, Settings and Controls in a 1280x720 window
 function sync_mode_note()
 {
-    // the Base kind has no elites, and its raiders do not grow (arcade_base.js)
+    // the Base kind has no elites (arcade_base.js)
     const base = arcade_base_kind();
     document.getElementById('mode_note').textContent = {
         chill: 'Slower, weaker raiders; hits hurt a third less.',
         normal: base ? 'Every raider fires; bigger squadrons.' : 'Every raider fires; bigger squadrons, elites from Haven on.',
-        overload: base ? 'Tougher raiders; no repairs; overdrive.' : 'Tougher raiders that grow with your gun; no repairs; overdrive.',
+        overload: 'Tougher raiders that grow with your gun; no repairs; overdrive.',
     }[difficulty] || '';
 }
 
@@ -241,8 +241,7 @@ const arcade_shop_flagship = [1, 0.7, 1, 0.5, 0.6, 1, 1, 0.45];
 function arcade_hull_scale(enemy)
 {
     const mode = arcade_mode();
-    // a Base run's raiders keep Haven's hull in every world (arcade_base.js)
-    const level = arcade_base_kind() ? 0 : arcade_level();
+    const level = arcade_level();
     const shop = ((enemy.type === 'boss') ? arcade_shop_flagship : arcade_shop_hull)[level] ?? 1;
     const growth = (enemy.type === 'boss') ? 1 : mode.hull*(1 + mode.growth*level)*arcade_card_k.raider_hull;
     const k = growth*(1 + (shop - 1)*mode.shop)*(mode.tier_hp ? 1 + (weapon_level() - 1)*0.22 : 1);
@@ -769,14 +768,8 @@ function arcade_world_clear()
     salvage += bonus;
     play_log_earn('world bonus', bonus);
     play_log_world_cleared(bonus);
-    // every gun you own grows a tier, up to the tier the next step opens (gun_tier_open), and those a card added past
-    // it: the run's tier is one for all of them
     const won = arcade_cards_world_cleared();
-    const fleet = ensure_career();
-    const tier = Math.max(weapon_level(), Math.min(5, weapon_level() + 1, gun_tier_open(arcade_level() + 1) + arcade_cards_tiers()));
-    for (const id of fleet.weapons) {
-        fleet.weapon_levels[id] = tier;
-    }
+    arcade_guns_grow();
     set_hidden(el.bossbar, true);
     arcade.between_worlds = {world: campaign.world, bonus, won, next: null};
     toasts_clear();
@@ -790,6 +783,17 @@ function arcade_world_clear()
         bonus,
         salvage,
     });
+}
+
+// A world cleared: every gun you own grows a tier, up to the tier the next step opens (gun_tier_open), and those a
+// card added past it: the run's tier is one for all of them
+function arcade_guns_grow()
+{
+    const fleet = ensure_career();
+    const tier = Math.max(weapon_level(), Math.min(5, weapon_level() + 1, gun_tier_open(arcade_level() + 1) + arcade_cards_tiers()));
+    for (const id of fleet.weapons) {
+        fleet.weapon_levels[id] = tier;
+    }
 }
 
 function arcade_clear_bonus()
@@ -920,8 +924,10 @@ function arcade_depot_fill()
     const name = document.getElementById('cleared_next_name');
     name.textContent = worlds[shown].name;
     name.style.color = `var(--w-${world_slug(shown)})`;
-    document.getElementById('arcade_depot_next').textContent = `World ${step + ((next === null) ? 1 : 2)} of ${arcade_worlds} · ${arcade_waves} waves · flagship`;
-    document.getElementById('cleared_rules').innerHTML = world_rules[shown].summary.split(' · ').map(v => ui_badge(ui_sentence(v))).join('');
+    // a Base world is its lane, end to end, without the world's tricks (arcade_base.js)
+    const base = arcade_base_kind();
+    document.getElementById('arcade_depot_next').textContent = `World ${step + ((next === null) ? 1 : 2)} of ${arcade_worlds} · ${base ? 'its lane, end to end' : `${arcade_waves} waves · flagship`}`;
+    document.getElementById('cleared_rules').innerHTML = base ? '' : world_rules[shown].summary.split(' · ').map(v => ui_badge(ui_sentence(v))).join('');
     // what the next step opens, on sale here from now on (src/js/tech.js)
     const opened = (next === null) ? [] : tech_opened(step, step + 1);
     const fresh = document.getElementById('arcade_depot_new');
@@ -1386,10 +1392,10 @@ function arcade_finish(won)
         set_hidden(v, true);
     }
     toasts_clear();
-    // a Base world has no waves to name, and its retry no depot (arcade_base.js)
+    // a Base world has no waves to name: it is flown again from its lane's start (arcade_base.js)
     const base = arcade_base_kind();
     const reached = base ? `You reached ${name}, ${hud_distance(arcade_scroll.s).join(' ')} along its lane.` : `You reached ${name}, wave ${arcade.wave} of ${arcade_waves}.`;
-    const again = base ? 'Retry flies it again from its start.' : 'Retry opens the depot first, with what you had as the world began: change the kit, then fly it again from its first wave.';
+    const again = `Retry opens the depot first, with what you had as the world began: change the kit, then fly it again from its ${base ? 'start' : 'first wave'}.`;
     const salvage_line = salvage ? ` Salvage kept: ◆\u00a0${ui_number(salvage)}, +${ui_number(kept)} points.` : '';
     el.result_eyebrow.textContent = over ? 'ARCADE · RUN OVER' : 'ARCADE · SIGNAL LOST';
     el.result_title.textContent = over ? 'Run over.' : `${left[0].toUpperCase()}${left.slice(1)} left.`;
@@ -1420,10 +1426,6 @@ function arcade_retry()
     arcade_stop();
     arcade_start(from.world, {...from, lives});
     arcade.life_flash = arcade_life_flash;
-    // a Base run has no depot (arcade_base.js)
-    if (arcade_base_kind()) {
-        return;
-    }
     arcade.retry_depot = true;
     arcade_depot_open();
 }
