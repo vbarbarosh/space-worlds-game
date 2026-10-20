@@ -1,6 +1,7 @@
 // The dev panel: tabs, theme, collapse, the controls of the other dev files, and the readout.
 const dev_tab_options = [
     {value: 'scenario', label: 'Scenario'},
+    {value: 'screens', label: 'Screens'},
     {value: 'ships', label: 'Ships'},
     {value: 'weapons', label: 'Weapons'},
     {value: 'enemies', label: 'Enemies'},
@@ -130,6 +131,13 @@ function dev_panel_refresh()
         dev_scenario.difficulty = value;
         dev_scenario_save();
     });
+    dev_select_fill('dev_kind', dev_kind_options, dev_scenario.kind, function (value) {
+        dev_scenario.kind = value;
+        dev_scenario_save();
+    });
+    dev_select_fill('dev_wave', dev_wave_options, dev_screen_wave_picked, function (value) {
+        dev_screen_wave_picked = value;
+    });
     const tabs = document.getElementById('dev_tabs');
     tabs.replaceChildren();
     for (const option of dev_tab_options) {
@@ -144,6 +152,7 @@ function dev_panel_refresh()
     for (const section of document.querySelectorAll('[data-dev-section]')) {
         set_hidden(section, section.dataset.devSection !== dev_scenario.tab);
     }
+    dev_screens_fill();
     dev_ships_fill();
     dev_weapons_fill();
     dev_upgrades_fill();

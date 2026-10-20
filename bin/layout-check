@@ -154,8 +154,9 @@ const selectors = {
     contained: ['.modal', '.pause-layout', '.mm-left', '.has-panel .scene.on', '.depot-side', '.depot-top', '.depot-filters', '.finale-title h1', '.finale-res', '.brk-top', '.brk-foot', '.shipstat .cardfx', '.me-bar', '.me-side', '.me-view'],
     clip: '.btn, .tab, .badge, .key, .qslot, .size, .alert, .seg button, .wallet, .meter-mini, .me-btn',
     boxes: '.card, .toast, .panel',
-    // a mark in a corner of a screen (the menu's build stamp) stays inside the window and clear of what the screen shows
-    marks: '.build-stamp',
+    // a mark in a corner of a screen (the menu's build stamp, its Developer button) stays inside the window and clear of
+    // what the screen shows
+    marks: '.build-stamp, .menu-developer',
     marked: '.mm-left > *, .mode, .fold-body, .has-panel .scene.on',
     // the buttons of the screen on top: whole in the window, not cut by a box round them, clear of each other
     buttons: 'button, .btn',
@@ -361,14 +362,14 @@ function layout_audit(selectors)
             continue;
         }
         if (outside(r)) {
-            out.offscreen.push(`${selectors.marks} ${corners(r)}`);
+            out.offscreen.push(`${name(mark)} ${corners(r)}`);
         }
         for (const v of document.querySelectorAll(selectors.marked)) {
             const rv = v.getBoundingClientRect();
             const ix = Math.min(r.right, rv.right) - Math.max(r.left, rv.left);
             const iy = Math.min(r.bottom, rv.bottom) - Math.max(r.top, rv.top);
             if (visible(v) && (ix > 0) && (iy > 0)) {
-                out.overlap.push(`${selectors.marks} × ${name(v)} (${Math.round(ix)}×${Math.round(iy)}px)`);
+                out.overlap.push(`${name(mark)} × ${name(v)} (${Math.round(ix)}×${Math.round(iy)}px)`);
             }
         }
     }

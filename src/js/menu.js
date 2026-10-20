@@ -42,6 +42,7 @@ for (const v of document.querySelectorAll('#intro [data-race-kind]')) {
     v.addEventListener('click', () => race_mode_kind_pick(v.dataset.raceKind));
 }
 document.getElementById('menu_continue_go').addEventListener('click', () => menu_launch('continue'));
+document.getElementById('menu_developer').addEventListener('click', menu_developer_open);
 document.getElementById('menu_campaign_go').addEventListener('click', () => menu_launch('campaign'));
 document.getElementById('menu_arcade_go').addEventListener('click', () => menu_launch('arcade'));
 document.getElementById('menu_arcade_back').addEventListener('click', menu_fold);
@@ -103,12 +104,23 @@ function on_menu_key(event)
         }
         return;
     }
+    if (event.key.toLowerCase() === 'd') {
+        event.preventDefault();
+        menu_developer_open();
+        return;
+    }
     const m = modes.find(v => v.dataset.key === event.key.toLowerCase());
     if (m) {
         event.preventDefault();
         m.focus();
         menu_scene(m.dataset.scene);
     }
+}
+
+// The corner's Developer button (D): the dev page, its every screen, world, ship and gun a button (src/js/dev/)
+function menu_developer_open()
+{
+    location.assign('dev.html');
 }
 
 function menu_scene(name)

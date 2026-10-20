@@ -5,6 +5,8 @@ const dev_difficulty_options = [
     {value: 'normal', label: 'Standard'},
     {value: 'overload', label: 'Overload'},
 ];
+// the arcade's kinds (arcade_scroll.js), for the Scenario's Arcade button and the screens
+const dev_kind_options = Object.keys(arcade_kinds).map(v => ({value: v, label: arcade_kinds[v].name}));
 const dev_speed_options = [
     {value: 0.1, label: '×0.1'},
     {value: 0.25, label: '×0.25'},

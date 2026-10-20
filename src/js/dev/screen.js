@@ -38,6 +38,9 @@ const dev_screen_options = [
 const dev_screen = new URLSearchParams(location.search).get('screen');
 // &wave=n with &screen=arcade (dev_screen_arcade_wave), read before the scenario writes the URL over
 const dev_screen_wave = clamp(Math.round(Number(new URLSearchParams(location.search).get('wave')) || 1), 1, 3);
+// the wave the panel's Screens tab opens an arcade screen at
+const dev_wave_options = [1, 2, 3].map(v => ({value: v, label: `Wave ${v}${(v === 3) ? ' · flagship' : ''}`}));
+let dev_screen_wave_picked = dev_screen_wave;
 // read at load: starting the scene rewrites the URL
 const dev_screen_modules = new URLSearchParams(location.search).get('modules') || '';
 // &play_log=full or empty: the play log on the pause panel (dev_screen_play_log_set), read at load too
@@ -72,6 +75,35 @@ const dev_screen_news = [
     ['DRONE LOST', '1 LEFT / REPLACE THEM AT A STATION', 'danger'],
     ['RAID ON YOUR MINING OUTPOST AT THE FAR SIDE OF THE NEBULA', 'A_PATH_WITH_NO_SPACES_AT_ALL_TO_BREAK_IT · 1240 m AWAY · DEFEND IT BEFORE THEY TEAR IT DOWN', 'danger'],
 ];
+
+// The panel's Screens tab: a button a screen, the map editor first, each opening it with the Scenario's choices
+function dev_screens_fill()
+{
+    const box = document.getElementById('dev_screens');
+    box.replaceChildren();
+    const editor = dev_screen_options.find(v => v.value === 'map-editor');
+    for (const option of [editor, ...dev_screen_options.filter(v => v !== editor)]) {
+        const button = dev_button(option.label.replace(/ \(&kind=.*\)$/, ''), function () {
+            dev_screen_go(option.value);
+        });
+        button.classList.toggle('dev-primary', option === editor);
+        box.append(button);
+    }
+}
+
+// Opens a screen: the page again with the Scenario's world, ship, weapon, difficulty and kind, and the wave picked
+function dev_screen_go(screen)
+{
+    dev_scenario.started = true;
+    dev_scenario_save();
+    const params = new URLSearchParams(location.search);
+    params.set('screen', screen);
+    params.delete('map');
+    if (dev_screen_wave_picked > 1) {
+        params.set('wave', dev_screen_wave_picked);
+    }
+    location.assign(`${location.pathname}?${params.toString()}`);
+}
 
 function dev_screen_open()
 {

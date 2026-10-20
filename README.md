@@ -171,6 +171,9 @@ window under 980 px wide.
 `build/dev.html` is the developer mode: the game with a dev panel. It starts
 straight into any world, ship and weapon, and has time controls, cheats,
 enemy and target-dummy spawning, live upgrade levels and a sound board. The
+main menu's Developer button (D) opens it; its Screens tab opens every screen
+below, the map editor first, in the world, ship, difficulty and arcade kind
+chosen under Scenario, so no URL needs remembering. The
 scene lives in the URL, e.g. `dev.html?world=3&ship=gunship&weapon=rail`; a world goes by number or file name (`world=ion-reach`).
 `&screen=station-arsenal` (or flight, combat, arcade, crowded, pause, settings, menu,
 map-plan, ...; the list is in src/js/dev/screen.js) opens that screen with the

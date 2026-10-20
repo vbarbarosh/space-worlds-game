@@ -142,11 +142,38 @@ body:not(.in-game) .ui.hud .hud-top .toolbar {
     white-space: nowrap;
 }
 
+/* the Developer button, over the build's stamp: the dev page (js/menu.js) */
+.ui .menu-developer {
+    position: absolute;
+    right: 16px;
+    bottom: 32px;
+    z-index: 3;
+    gap: 6px;
+}
+
+.ui .menu-developer svg {
+    width: 14px;
+    height: 14px;
+}
+
+/* Load, Settings or Controls open as a panel over the rows (a narrow window): the panel is on top, the button steps
+   aside */
+.ui.has-panel .menu-developer {
+    display: none;
+}
+
 /* in a narrow window the modes come down to the bottom right corner: the stamp goes to the top right, over the title */
 @container screen (max-width: 820px) {
     .ui .build-stamp {
         top: 10px;
         bottom: auto;
+    }
+
+    .ui .menu-developer {
+        top: 6px;
+        right: auto;
+        bottom: auto;
+        left: 16px;
     }
 }
 

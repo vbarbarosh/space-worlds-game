@@ -69,6 +69,17 @@ body.dev-collapsed .dev-panel {
     background: var(--dev-surface);
 }
 
+/* a link that leaves the dev page (Back to the game), drawn as a button */
+.dev-panel .dev-link {
+    padding: 5px 9px;
+    border: 1px solid var(--dev-line);
+    border-radius: 6px;
+    background: var(--dev-surface);
+    color: inherit;
+    text-decoration: none;
+}
+
+.dev-panel .dev-link:hover,
 .dev-panel button:hover {
     border-color: var(--dev-line);
     background: var(--dev-hover);
