@@ -6,6 +6,13 @@ its reason and the number `bin/map-check` enforces (marked *checked*). A map
 that breaks one fails the check; the generator follows them, and a portal
 pair that cannot is left out rather than squeezed in.
 
+A world's map can be edited by hand: the dev page's map editor
+(`build/dev.html?screen=map-editor&world=3`) moves, adds and deletes its
+things and checks these rules as it goes (`src/js/dev/map_rules.js`, which
+`bin/map-check` runs too); what it exports goes in `src/maps/`
+([src/maps/README.md](../src/maps/README.md)), and the game flies it in place of
+the generated map.
+
 ## What R and a ring reach
 
 Every thing you act on has a range, taken from the code:

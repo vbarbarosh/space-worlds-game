@@ -13,28 +13,6 @@ const modes = [
     // the Base kind's: the same lane, without the worlds' tricks (src/js/arcade_base.js)
     {value: '&screen=arcade&kind=base', label: 'base'},
 ];
-// The rules of docs/placement.md, in metres
-const rules = {
-    margin: 150, // between two ranges where a key acts
-    gate_out: 0.25, // a gate from the station, a share of the map's smaller side
-    gate_bearing: 10, // degrees between a gate's bearing from the station and the galaxy chart's
-    gate_edge: 1000, // a gate from the map's edge
-    gate_company: 1000, // only the portal beside a gate stands this close to it
-    portal_out: 1500, // a portal from the station's centre
-    portal_span: 2000, // a pair's ends apart, or a quarter of the map's smaller side if more
-    portal_apart: 1000, // two portals of different pairs
-    portal_edge: 300, // a portal from the map's edge
-    zone_apart: 1000, // the combat zone from the station's shelter, gates and portals
-    beacon_apart: 1000, // a survey beacon from a gate
-    scan: 120, // a survey beacon scans a ship this close
-    race_rings: [7, 10], // a race course's rings, fewest and most
-    race_turn: 25, // degrees a race course turns at each ring at least, so its line needs steering
-    pylon_apart: 400, // two arc pylons' rings (Ion Reach) at least this far apart, so one charges at you at a time
-    pylons_least: 5, // Ion Reach has this many arc pylons at least, and fields_least charge fields
-    fields_least: 3,
-    spire_apart: 300, // two magnetic spires' fields (Obsidian) at least this far apart: one cover, one pull at a time
-    spires_least: 5, // Obsidian has this many magnetic spires at least
-};
 const usage = `usage: bin/map-check
 
     Opens every world of build/dev.html in the campaign, in the arcade and on its Scroll lanes, reads the map the game generated
@@ -48,7 +26,9 @@ const usage = `usage: bin/map-check
     arc pylons and charge fields (js/ion_pylons.js) are there, and their reach keeps out of the station's shelter, 150 m
     beyond every range, out of the pulls and the storms, a pylon's 400 m from another's, and no race ring in one;
     Obsidian's magnetic spires (js/obsidian_spires.js) are there, their field keeps out of the same, 300 m from
-    another's, their solid body a ship's width clear of every rock, and no race ring or leg crosses a field.
+    another's, their solid body a ship's width clear of every rock, and no race ring or leg crosses a field. A world
+    with a map file of src/maps/ is checked on the map the file makes, as the game flies it; the rules themselves
+    are src/js/dev/map_rules.js, which the map editor of build/dev.html runs too.
     Exits 1 on any failure.`;
 
 cli(main);
@@ -72,8 +52,11 @@ async function main()
             for (let world = 0; world < 8; ++world) {
                 await page.goto(`file://${page_file}?world=${world}${mode.value}`);
                 await page.waitForFunction(v => window.dev_state?.().player && (window.dev_state().arcade === v), !!mode.value);
-                const map = await page.evaluate(() => window.dev_state());
-                const found = check_map(map);
+                // the rules run in the page (src/js/dev/map_rules.js), as the map editor runs them, on the map read
+                const {map, found} = await page.evaluate(function () {
+                    const map = window.dev_state();
+                    return {map, found: window.dev_map_check(map)};
+                });
                 if (!map.arcade) {
                     const tracks = await page.evaluate(() => window.dev_turbo_tracks());
                     found.push(...tracks.filter(v => v.room !== 0.6).map(v => `turbo track (${v.level}): clear across ${(v.room === null) ? 'none' : v.room} of its width, need 0.6`));
@@ -81,7 +64,9 @@ async function main()
                 const title = `${mode.label} ${world + 1} ${map.world_name}`;
                 const pylons = map.pylons.length ? `, ${map.pylons.length} arc pylons, ${map.charge_fields.length} charge fields` : '';
                 const spires = map.spires.length ? `, ${map.spires.length} magnetic spires` : '';
-                console.log(`${found.length ? 'FAIL' : 'ok  '} ${title.padEnd(22)} ${map.gates.length} gates, ${map.portals.length} portals${map.arcade ? '' : `, ${map.races.filter(Boolean).length} race courses`}${pylons}${spires}${found.length ? `\n     ${found.join('\n     ')}` : ''}`);
+                // a map file packed into the page is what the game flies (src/maps/)
+                const file = map.map_file ? `, map file ${map.map_file}` : '';
+                console.log(`${found.length ? 'FAIL' : 'ok  '} ${title.padEnd(22)} ${map.gates.length} gates, ${map.portals.length} portals${map.arcade ? '' : `, ${map.races.filter(Boolean).length} race courses`}${pylons}${spires}${file}${found.length ? `\n     ${found.join('\n     ')}` : ''}`);
                 failures.push(...found.map(v => `${title}: ${v}`));
             }
         }
@@ -93,267 +78,4 @@ async function main()
     if (failures.length) {
         process.exit(1);
     }
-}
-
-// Each thing you act on has a body and a range: R docks within station_reach of the station's centre, R jumps within
-// gate_reach of a world gate's, a portal takes any ship whose hull touches its ring, a beacon scans within rules.scan
-function check_map(map)
-{
-    const out = [];
-    const side = Math.min(map.world.w, map.world.h);
-    const station = {label: 'station', x: map.station.x, y: map.station.y, body: map.station_size/2, range: map.station_reach};
-    const gates = map.gates.map(v => ({...v, label: `gate to ${v.to}`, body: v.r, range: map.gate_reach}));
-    const portals = map.portals.map(v => ({...v, label: `portal ${v.label}`, body: v.r, range: v.r + map.ship_radius}));
-    const beacons = map.beacons.map((v, i) => ({...v, label: `beacon ${i + 1}`, body: 0, range: rules.scan}));
-    const things = [station, ...gates, ...portals, ...beacons];
-    // the page rounds positions to the metre
-    function fail(text, d, need) {
-        if (d < need - 1) {
-            out.push(`${text}: ${Math.round(d)} m, need ${Math.round(need)} m`);
-        }
-    }
-    function edge(v) {
-        return Math.min(v.x, v.y, map.world.w - v.x, map.world.h - v.y);
-    }
-    for (let i = 0, end = things.length; i < end; ++i) {
-        for (let j = i + 1; j < end; ++j) {
-            const a = things[i];
-            const b = things[j];
-            const need = a.range + b.range + rules.margin;
-            fail(`${a.label} and ${b.label} ranges touch`, distance(a, b), need);
-        }
-    }
-    for (const gate of gates) {
-        fail(`${gate.label} too near the station`, distance(gate, station), side*rules.gate_out);
-        const bearing = Math.atan2(gate.y - station.y, gate.x - station.x);
-        const off = Math.abs(Math.atan2(Math.sin(bearing - gate.bearing), Math.cos(bearing - gate.bearing)))*180/Math.PI;
-        if (off > rules.gate_bearing) {
-            out.push(`${gate.label} faces ${Math.round(off)}° off its world on the galaxy chart, need ${rules.gate_bearing}° at most`);
-        }
-        fail(`${gate.label} too near the map's edge`, edge(gate), rules.gate_edge);
-        for (const v of beacons) {
-            fail(`${v.label} near the ${gate.label}`, distance(gate, v), rules.beacon_apart);
-        }
-        const company = portals.filter(v => distance(gate, v) < rules.gate_company);
-        if (company.length > 1) {
-            out.push(`${gate.label} has ${company.length} portals within ${rules.gate_company} m (${company.map(v => v.label).join(', ')}), one at most`);
-        }
-    }
-    const span = Math.max(rules.portal_span, side/4);
-    for (let i = 0, end = portals.length; i < end; ++i) {
-        const v = portals[i];
-        fail(`${v.label} too near the station`, distance(v, station), rules.portal_out);
-        fail(`${v.label} too near the map's edge`, edge(v), rules.portal_edge);
-        for (let j = i + 1; j < end; ++j) {
-            const vv = portals[j];
-            if (j === v.destination) {
-                fail(`${v.label} and ${vv.label} are a pair too short to save a flight`, distance(v, vv), span);
-            }
-            else {
-                fail(`${v.label} and ${vv.label} too near each other`, distance(v, vv), rules.portal_apart);
-            }
-        }
-    }
-    if (!map.arcade) {
-        for (const v of [...gates, ...portals]) {
-            fail(`combat zone on the ${v.label}`, distance(v, map.combat_zone), rules.zone_apart);
-        }
-        const need = map.station_size/2 + 400 + rules.zone_apart;
-        fail('combat zone near the station', distance(station, map.combat_zone), need);
-    }
-    out.push(...check_pylons(map, things));
-    // a cliff's rubble (arcade Dustfall) is a solid of the map once the cliff falls: it keeps the same room
-    const rubble = map.cliffs.flatMap(v => v.rubble.map(vv => ({...vv, kind: 'cliff rubble'})));
-    const solids = [...map.ore.map(v => ({...v, kind: v.cliff ? 'cliff' : 'rock'})), ...rubble, ...map.debris];
-    // a drifting piece passes by and glances off a spire (spire_deflect): only what stands still is checked round one
-    out.push(...check_spires(map, things, solids.filter(v => !map.debris.includes(v))));
-    if (!map.arcade) {
-        out.push(...check_races(map, things, solids));
-    }
-    for (const thing of things) {
-        for (const v of map.holes) {
-            const need = v.radius + thing.range;
-            fail(`gravity well at ${v.x},${v.y} pulls inside the range of the ${thing.label}`, distance(v, thing), need);
-        }
-        // a solid leaves a ship's width of room round the body
-        for (const v of solids) {
-            const need = thing.body + v.r + map.ship_radius*2;
-            fail(`${v.kind} at ${v.x},${v.y} on the ${thing.label}`, distance(v, thing), need);
-        }
-    }
-    return out;
-}
-
-// The race courses of a world (docs/placement.md, Race courses): every ring and the start line out of the station's
-// shelter and 150 m beyond every range, a ship's width clear of every solid, out of every pull; rings apart; legs
-// clear of pulls, portals and the station; a turn at every ring but the last
-function check_races(map, things, solids)
-{
-    const out = [];
-    const shelter = map.station_size/2 + 400;
-    for (let k = 0; k < map.races.length; ++k) {
-        const course = map.races[k];
-        const name = `race course ${k + 1}`;
-        if (!course) {
-            out.push(`${name}: no course fits`);
-            continue;
-        }
-        const rings = course.rings.map((v, i) => ({...v, r: course.r, label: `${name} ring ${i + 1}`}));
-        const spots = [{...course.start, r: course.start_r, label: `${name} start line`}, ...rings];
-        if ((rings.length < rules.race_rings[0]) || (rings.length > rules.race_rings[1])) {
-            out.push(`${name}: ${rings.length} rings, need ${rules.race_rings.join(' to ')}`);
-        }
-        function fail(text, d, need) {
-            if (d < need - 1) {
-                out.push(`${text}: ${Math.round(d)} m, need ${Math.round(need)} m`);
-            }
-        }
-        for (const spot of spots) {
-            fail(`${spot.label} in the station's shelter`, distance(spot, map.station), shelter + spot.r + rules.margin);
-            for (const thing of things.slice(1)) {
-                fail(`${spot.label} and ${thing.label} ranges touch`, distance(spot, thing), thing.range + spot.r + rules.margin);
-            }
-            for (const v of map.holes) {
-                fail(`${spot.label} in the pull at ${v.x},${v.y}`, distance(spot, v), v.reach + spot.r);
-            }
-            for (const v of map.pylons) {
-                fail(`${spot.label} in the reach of the arc pylon at ${v.x},${v.y}`, distance(spot, v), v.reach + spot.r + rules.margin);
-            }
-            for (const v of map.spires) {
-                fail(`${spot.label} in the field of the magnetic spire at ${v.x},${v.y}`, distance(spot, v), v.reach + spot.r + rules.margin);
-            }
-            for (const v of solids) {
-                fail(`${v.kind} at ${v.x},${v.y} in the ${spot.label}`, distance(spot, v), v.r + spot.r + map.ship_radius*2);
-            }
-        }
-        for (let i = 0; i < spots.length; ++i) {
-            for (let j = i + 1; j < spots.length; ++j) {
-                fail(`${spots[i].label} and ${spots[j].label} overlap`, distance(spots[i], spots[j]), spots[i].r + spots[j].r + rules.margin);
-            }
-        }
-        for (let i = 1; i < spots.length; ++i) {
-            const a = spots[i - 1];
-            const b = spots[i];
-            for (const v of map.holes) {
-                fail(`${name} leg ${i} crosses the pull at ${v.x},${v.y}`, segment_distance(v, a, b), v.reach);
-            }
-            for (const v of map.portals) {
-                fail(`${name} leg ${i} crosses portal ${v.label}`, segment_distance(v, a, b), v.r + map.ship_radius);
-            }
-            for (const v of map.spires) {
-                fail(`${name} leg ${i} crosses the field of the magnetic spire at ${v.x},${v.y}`, segment_distance(v, a, b), v.reach);
-            }
-            fail(`${name} leg ${i} crosses the station`, segment_distance(map.station, a, b), map.station_size/2 + 100);
-        }
-        for (let i = 1; i < spots.length - 1; ++i) {
-            const turn = Math.abs(angle_between(Math.atan2(spots[i].y - spots[i - 1].y, spots[i].x - spots[i - 1].x), Math.atan2(spots[i + 1].y - spots[i].y, spots[i + 1].x - spots[i].x)))*180/Math.PI;
-            if ((i > 1) && (turn < rules.race_turn)) {
-                out.push(`${name} turns ${Math.round(turn)}° at ring ${i}, need ${rules.race_turn}°`);
-            }
-        }
-    }
-    return out;
-}
-
-// Ion Reach's arc pylons and charge fields (js/ion_pylons.js): there, and each one's reach (a pylon strikes inside it,
-// a field fills the pulse) out of the station's shelter, 150 m beyond every range where a key acts, out of every pull
-// and every storm; two pylons' rings rules.pylon_apart apart
-function check_pylons(map, things)
-{
-    const out = [];
-    function fail(text, d, need) {
-        if (d < need - 1) {
-            out.push(`${text}: ${Math.round(d)} m, need ${Math.round(need)} m`);
-        }
-    }
-    // the arcade's Base kind has no world tricks (src/js/arcade_base.js)
-    if ((map.world_name === 'Ion Reach') && !map.base) {
-        if (map.pylons.length < rules.pylons_least) {
-            out.push(`${map.pylons.length} arc pylons, need ${rules.pylons_least}`);
-        }
-        if (map.charge_fields.length < rules.fields_least) {
-            out.push(`${map.charge_fields.length} charge fields, need ${rules.fields_least}`);
-        }
-    }
-    const shelter = map.station_size/2 + 400;
-    const pylons = map.pylons.map((v, i) => ({...v, label: `arc pylon ${i + 1}`, range: v.reach}));
-    const fields = map.charge_fields.map((v, i) => ({...v, label: `charge field ${i + 1}`, range: v.r}));
-    for (const v of [...pylons, ...fields]) {
-        fail(`${v.label} in the station's shelter`, distance(v, map.station), shelter + v.range + rules.margin);
-        for (const thing of things.slice(1)) {
-            fail(`${v.label} and ${thing.label} ranges touch`, distance(v, thing), thing.range + v.range + rules.margin);
-        }
-        for (const hole of map.holes) {
-            fail(`${v.label} in the pull at ${hole.x},${hole.y}`, distance(v, hole), hole.reach + v.range);
-        }
-        for (const storm of map.storms) {
-            fail(`${v.label} in the storm at ${storm.x},${storm.y}`, distance(v, storm), storm.r + v.range);
-        }
-    }
-    for (let i = 0; i < pylons.length; ++i) {
-        for (let j = i + 1; j < pylons.length; ++j) {
-            fail(`${pylons[i].label} and ${pylons[j].label} rings too near`, distance(pylons[i], pylons[j]), pylons[i].range + pylons[j].range + rules.pylon_apart);
-        }
-    }
-    return out;
-}
-
-// Obsidian's magnetic spires (js/obsidian_spires.js): there, and each one's field (it pulls ships and bends shots) out
-// of the station's shelter, 150 m beyond every range where a key acts, out of every pull and every storm; two fields
-// rules.spire_apart apart; the spire itself is solid, so every rock leaves a ship's width round it
-function check_spires(map, things, solids)
-{
-    const out = [];
-    function fail(text, d, need) {
-        if (d < need - 1) {
-            out.push(`${text}: ${Math.round(d)} m, need ${Math.round(need)} m`);
-        }
-    }
-    if ((map.world_name === 'Obsidian') && !map.base && (map.spires.length < rules.spires_least)) {
-        out.push(`${map.spires.length} magnetic spires, need ${rules.spires_least}`);
-    }
-    const shelter = map.station_size/2 + 400;
-    const spires = map.spires.map((v, i) => ({...v, label: `magnetic spire ${i + 1}`}));
-    for (const v of spires) {
-        fail(`${v.label} in the station's shelter`, distance(v, map.station), shelter + v.reach + rules.margin);
-        for (const thing of things.slice(1)) {
-            fail(`${v.label} and ${thing.label} ranges touch`, distance(v, thing), thing.range + v.reach + rules.margin);
-        }
-        for (const hole of map.holes) {
-            fail(`${v.label} in the pull at ${hole.x},${hole.y}`, distance(v, hole), hole.reach + v.reach);
-        }
-        for (const storm of map.storms) {
-            fail(`${v.label} in the storm at ${storm.x},${storm.y}`, distance(v, storm), storm.r + v.reach);
-        }
-        for (const solid of solids) {
-            fail(`${solid.kind} at ${solid.x},${solid.y} on the ${v.label}`, distance(v, solid), v.r + solid.r + map.ship_radius*2);
-        }
-    }
-    for (let i = 0; i < spires.length; ++i) {
-        for (let j = i + 1; j < spires.length; ++j) {
-            fail(`${spires[i].label} and ${spires[j].label} fields too near`, distance(spires[i], spires[j]), spires[i].reach + spires[j].reach + rules.spire_apart);
-        }
-    }
-    return out;
-}
-
-// The distance from a point to the segment a, b
-function segment_distance(v, a, b)
-{
-    const dx = b.x - a.x;
-    const dy = b.y - a.y;
-    const l = dx*dx + dy*dy;
-    const t = l ? Math.max(0, Math.min(1, ((v.x - a.x)*dx + (v.y - a.y)*dy)/l)) : 0;
-    return distance(v, {x: a.x + dx*t, y: a.y + dy*t});
-}
-
-// The signed angle from a to b, in (-π, π]
-function angle_between(a, b)
-{
-    return Math.atan2(Math.sin(b - a), Math.cos(b - a));
-}
-
-function distance(a, b)
-{
-    return Math.hypot(a.x - b.x, a.y - b.y);
 }

@@ -50,7 +50,8 @@ const spire_color = '#ed97cf';
 function spires_generate()
 {
     spires = [];
-    if ((campaign.world !== spire_world) || race_mode.active || (arcade.active && arcade_base_kind())) {
+    // or the world's map file's (map_files.js)
+    if ((campaign.world !== spire_world) || race_mode.active || (arcade.active && arcade_base_kind()) || map_file_spires()) {
         return;
     }
     const random = visual_random_from_seed(4421);

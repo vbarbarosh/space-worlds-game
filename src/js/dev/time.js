@@ -39,7 +39,8 @@ function dev_time_tick(now)
         dev_time_run_frame();
         ran = true;
     }
-    if (!ran) {
+    // the map editor hides the game: nothing of it to draw (dev/map_editor.js)
+    if (!ran && !dev_map.open) {
         render();
     }
     dev_time.ticks++;

@@ -155,6 +155,11 @@ function store_world()
         ore: ore_nodes.filter(v => v.hp > 0).map(v => ({...v, cutter: null})),
         pickups: pickups.filter(v => v.cache && (v.life > 0)).map(v => ({...v})),
     };
+    // the map file they were made on, if any (map_files.js)
+    const stamp = map_file_stamp();
+    if (stamp) {
+        campaign.maps[campaign.world].map = stamp;
+    }
 }
 
 function visual_base_generate_map()
@@ -166,6 +171,8 @@ function visual_base_generate_map()
     // the campaign's station in the map's middle; the arcade's where its world's shape puts it (arcade_shapes.js)
     const at = arcade.active ? arcade_station_at() : [0.5, 0.5];
     station = {x: world.w*at[0], y: world.h*at[1]};
+    // or where the world's map file has it, and all the rest placed round it (map_files.js)
+    station = map_file_station() || station;
     // A gate faces the world it leads to, as the galaxy chart draws it, 60% of the way to the map's edge
     // (docs/placement.md); the arcade has none: they lead nowhere there
     world_gates = arcade.active ? [] : w.links.map(function (destination) {
@@ -196,7 +203,8 @@ function visual_base_generate_map()
     else {
         place_gravity_wells(protected_objects);
     }
-    const saved = campaign.maps[campaign.world];
+    // a save's rocks and caches come back on the map they were made on: an edited map (map_files.js) begins afresh
+    const saved = ((campaign.maps[campaign.world]?.map || null) === map_file_stamp()) ? campaign.maps[campaign.world] : null;
     if (saved) {
         const old = saved.size || {w: 9000 + wave*320, h: 7400 + wave*240};
         const sx = world.w/old.w;
@@ -208,6 +216,8 @@ function visual_base_generate_map()
     // Keep mines off the docking ring, the gates and the beacons, a ship's width clear, a saved map's too; one
     // accessible field is near the first station.
     ore_nodes = ore_nodes.filter(v => (distance(v, station) > station_size/2 + v.r + 50) && [...world_gates, ...portals, ...beacons].every(vv => distance(v, vv) > (vv.r || 0) + v.r + 50));
+    // the world's map file's holes, rock fields and caches, as the author left them (map_files.js)
+    map_file_bodies(!!saved);
     patrol_timer = 8;
     save_timer = 15;
     escort = null;

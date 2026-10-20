@@ -33,6 +33,7 @@ const dev_screen_options = [
     {value: 'pause', label: 'Pause'},
     {value: 'settings', label: 'Settings over the flight'},
     {value: 'menu', label: 'Main menu'},
+    {value: 'map-editor', label: 'Map editor (&kind=free, scroll or base for the arcade\'s)'},
 ];
 const dev_screen = new URLSearchParams(location.search).get('screen');
 // &wave=n with &screen=arcade (dev_screen_arcade_wave), read before the scenario writes the URL over
@@ -83,6 +84,11 @@ function dev_screen_open()
     }
     if (dev_screen === 'menu') {
         dev_screen_menu_open();
+        return;
+    }
+    // the world's map from above, to edit (src/js/dev/map_editor.js)
+    if (dev_screen === 'map-editor') {
+        dev_map_editor_open();
         return;
     }
     if (dev_screen === 'arcade') {

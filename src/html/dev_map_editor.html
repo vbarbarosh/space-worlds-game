@@ -1,0 +1,32 @@
+<section class="map-editor hidden" id="map_editor" aria-label="Map editor">
+<div class="me-frame">
+    <header class="me-bar">
+        <b class="me-title" id="me_title">MAP EDITOR</b>
+        <span class="me-tools" id="me_tools" role="toolbar" aria-label="Add to the map"></span>
+        <span class="me-actions">
+            <button type="button" class="me-btn" id="me_undo" title="Undo (Ctrl+Z)">Undo</button>
+            <button type="button" class="me-btn" id="me_redo" title="Redo (Ctrl+Shift+Z)">Redo</button>
+            <button type="button" class="me-btn me-primary" id="me_play" title="Fly this map in the game now">Play</button>
+            <button type="button" class="me-btn" id="me_export" title="Download the map file for src/maps/">Export</button>
+            <button type="button" class="me-btn" id="me_copy" title="Copy the map file to the clipboard">Copy</button>
+            <button type="button" class="me-btn" id="me_reset" title="Forget this browser's edit">Reset</button>
+        </span>
+    </header>
+    <aside class="me-side" id="me_side">
+        <p class="me-source" id="me_source"></p>
+        <section class="me-selected" id="me_selected"></section>
+        <h3 id="me_problems_title">Problems</h3>
+        <ol class="me-problems" id="me_problems"></ol>
+        <p class="me-note" id="me_note"></p>
+    </aside>
+    <div class="me-view" id="me_view">
+        <canvas class="me-map" id="me_map" tabindex="0" aria-label="The map from above"></canvas>
+        <span class="me-status" id="me_status"></span>
+        <span class="me-zoom" role="group" aria-label="Zoom">
+            <button type="button" class="me-btn" id="me_zoom_out" title="Zoom out" aria-label="Zoom out">−</button>
+            <button type="button" class="me-btn" id="me_zoom_in" title="Zoom in" aria-label="Zoom in">+</button>
+            <button type="button" class="me-btn" id="me_fit" title="The whole map in view">Fit</button>
+        </span>
+    </div>
+</div>
+</section>

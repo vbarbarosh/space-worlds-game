@@ -69,6 +69,8 @@ function generate_environment()
             }
         }
     }
+    // or the storms of the world's map file (map_files.js)
+    world_zones = map_file_storms() || world_zones;
     // Ion Reach's arc pylons and charge fields, clear of the storms (ion_pylons.js)
     pylons_generate();
     // Obsidian's magnetic spires, clear of the same (obsidian_spires.js)

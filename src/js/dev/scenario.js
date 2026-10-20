@@ -71,6 +71,10 @@ function dev_scenario_save()
     if (dev_scenario.kind !== 'free') {
         params.set('kind', dev_scenario.kind);
     }
+    // the map editor's edit flown (dev/map_editor.js), again after a reload
+    if (dev_map.source === 'edited') {
+        params.set('map', 'edited');
+    }
     history.replaceState(null, '', `${location.pathname}?${params.toString()}`);
 }
 

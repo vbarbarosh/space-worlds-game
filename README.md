@@ -213,6 +213,9 @@ longest board offered) and `&cargo=all` puts all eleven goods in the hold for
 the CARGO MARKET; `&station=full` puts the station's header and NEXT strip at
 their longest (a very long station name, the hold full, salvage in the
 millions, the guide's longest step); `&screen=station-intel` opens TRADE INTEL.
+`&screen=map-editor` is the map editor: the world's campaign map from above (`&kind=free`, `scroll` or `base` its
+arcade map), its things to move, add and delete, the rules of docs/placement.md checked as you go; Play flies the edit,
+Export downloads the file to put in src/maps/ ([src/maps/README.md](src/maps/README.md)).
 `&dpr=1.3` draws the canvas at that pixel ratio, whatever Settings → Resolution
 says; `&slow=20` stands in for a slow graphics card, each frame waiting 20 ms
 for every million pixels of the canvas, so Auto steps down;
@@ -255,6 +258,7 @@ for the dev page.
     src/js/worlds/   one file per world: map, look, flight rules, expedition, music
     src/js/ships/    one file per ship class: catalog entry and hull profile
     src/js/sfx/      one file per sound effect: its cooldown and its synth calls
+    src/maps/        map files: a world's map as the map editor left it, packed into the page
     src/sprites/     drawings (SVG): ships in 3d/ (the shaded set), weapons, pickups, worlds/<world>; a
                      `<!-- svgs sprites as sprite_svgs -->` line packs them
                      into the page

@@ -12,6 +12,20 @@ const include_regex = /^<!-- include (.+) -->\n$/;
 const slot_regex = /^<!-- slot (.+) -->\n$/;
 const svgs_regex = /^<!-- svgs (.+) as (.+) -->\n$/;
 const missions_regex = /^<!-- missions (.+) as (.+) -->\n$/;
+const maps_regex = /^<!-- maps (.+) as (.+) -->\n$/;
+// A map file's kinds (src/maps/README.md): each a list of places, with the numbers each place needs, and the worlds
+// (by number, Haven 0) and layouts where the game has that kind; any world and layout when not given
+const map_layouts = ['campaign', 'free', 'lane'];
+const map_kinds = {
+    fields: {keys: ['x', 'y']},
+    caches: {keys: ['x', 'y']},
+    holes: {keys: ['x', 'y', 'radius', 'core'], where: (world, layout) => (layout === 'campaign') || (world === 7)},
+    storms: {keys: ['x', 'y', 'r'], where: v => [3, 6].includes(v)},
+    pylons: {keys: ['x', 'y'], where: v => v === 3},
+    charge_fields: {keys: ['x', 'y'], where: v => v === 3},
+    spires: {keys: ['x', 'y'], where: v => v === 4},
+    cliffs: {keys: ['x', 'y', 'r', 'fall'], where: (world, layout) => (world === 2) && (layout !== 'campaign')},
+};
 // What each stage kind's amount counts, and the worlds by name (src/missions/README.md)
 const mission_kinds = ['scan', 'mining', 'courier', 'hunt', 'defend', 'recover', 'elite', 'boss', 'escort', 'trade', 'lure'];
 const src_dir = path.join(__dirname, '..', 'src');
@@ -61,6 +75,7 @@ function html_from_template(template, lines_by_slot)
         const match = line.match(include_regex);
         const svgs = line.match(svgs_regex);
         const missions = line.match(missions_regex);
+        const maps = line.match(maps_regex);
         const build = line.match(build_regex);
         if (match) {
             parts.push(fs.readFileSync(path.join(src_dir, match[1]), 'utf8'));
@@ -70,6 +85,9 @@ function html_from_template(template, lines_by_slot)
         }
         else if (missions) {
             parts.push(`const ${missions[2]} = ${JSON.stringify(missions_from_dir(path.join(src_dir, missions[1])))};\n`);
+        }
+        else if (maps) {
+            parts.push(`const ${maps[2]} = ${JSON.stringify(maps_from_dir(path.join(src_dir, maps[1])))};\n`);
         }
         else if (build) {
             parts.push(build_js(build[1]));
@@ -214,6 +232,98 @@ function mission_from_text(file, text, worlds)
     }
     out.description = out.story[0] || '';
     return out;
+}
+
+// Every map file of the folder (src/maps/README.md), by its name without .json: haven-campaign, ion-reach-lane; a file
+// that is not a map of a world and layout, or holds a place out of its map, fails the build naming it
+function maps_from_dir(dir)
+{
+    const slugs = world_names().map(v => v.toLowerCase().replace(/\s+/g, '-'));
+    const out = {};
+    for (const name of fs.readdirSync(dir).filter(v => v.endsWith('.json')).sort()) {
+        out[name.slice(0, -5)] = map_from_text(name, fs.readFileSync(path.join(dir, name), 'utf8'), slugs);
+    }
+    return out;
+}
+
+// One map file read and checked, or an error naming the file and what is wrong
+function map_from_text(file, text, slugs)
+{
+    function fail(message) {
+        throw new Error(`src/maps/${file}: ${message}`);
+    }
+    const m = file.match(/^(.+)-([a-z]+)\.json$/);
+    const world = m ? slugs.indexOf(m[1]) : -1;
+    if (!m || (world < 0) || !map_layouts.includes(m[2])) {
+        fail(`the name is <world>-<layout>.json: a world of ${slugs.join(', ')}; a layout of ${map_layouts.join(', ')}`);
+    }
+    const layout = m[2];
+    let map;
+    try {
+        map = JSON.parse(text);
+    }
+    catch (error) {
+        fail(`not JSON: ${error.message}`);
+    }
+    if (!map || (typeof map !== 'object') || Array.isArray(map)) {
+        fail('a map is a JSON object');
+    }
+    function number(v) {
+        return (typeof v === 'number') && Number.isFinite(v);
+    }
+    if (!map.size || !number(map.size.w) || !number(map.size.h) || (map.size.w <= 0) || (map.size.h <= 0)) {
+        fail('"size" is the world\'s size the map was made for: {"w": m, "h": m}');
+    }
+    function place(v, keys, where) {
+        if (!v || (typeof v !== 'object') || keys.some(vv => !number(v[vv]))) {
+            fail(`${where} needs the numbers ${keys.join(', ')}`);
+        }
+        if ((v.x < 0) || (v.y < 0) || (v.x > map.size.w) || (v.y > map.size.h)) {
+            fail(`${where} at ${v.x},${v.y} is out of the map (${map.size.w} × ${map.size.h})`);
+        }
+        if (['r', 'radius', 'core'].some(vv => (vv in v) && (v[vv] <= 0))) {
+            fail(`${where}: a radius is more than 0`);
+        }
+    }
+    for (const key of Object.keys(map)) {
+        if ((key !== 'size') && (key !== 'station') && !map_kinds[key]) {
+            fail(`unknown key "${key}"; one of size, station, ${Object.keys(map_kinds).join(', ')}`);
+        }
+    }
+    if ('station' in map) {
+        place(map.station, ['x', 'y'], 'the station');
+    }
+    for (const [key, kind] of Object.entries(map_kinds)) {
+        if (!(key in map)) {
+            continue;
+        }
+        if (!Array.isArray(map[key])) {
+            fail(`"${key}" is a list`);
+        }
+        if (kind.where && !kind.where(world, layout) && map[key].length) {
+            fail(`"${key}": the game has none in ${m[1]}'s ${layout} map`);
+        }
+        for (const [i, v] of map[key].entries()) {
+            place(v, kind.keys, `${key}[${i}]`);
+        }
+    }
+    for (const [i, v] of (map.fields || []).entries()) {
+        if (!Array.isArray(v.rocks)) {
+            fail(`fields[${i}].rocks is a list`);
+        }
+        for (const [j, vv] of v.rocks.entries()) {
+            place(vv, ['x', 'y', 'r'], `fields[${i}].rocks[${j}]`);
+        }
+    }
+    for (const [i, v] of (map.cliffs || []).entries()) {
+        if (!Array.isArray(v.rubble)) {
+            fail(`cliffs[${i}].rubble is a list`);
+        }
+        for (const [j, vv] of v.rubble.entries()) {
+            place(vv, ['x', 'y', 'r'], `cliffs[${i}].rubble[${j}]`);
+        }
+    }
+    return map;
 }
 
 // The eight worlds' names, in order, as src/js/worlds/*.js name them

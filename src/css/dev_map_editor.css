@@ -1,0 +1,273 @@
+/* The map editor (js/dev/map_editor.js): the bar of tools and actions on top, the side panel (what is shown, the
+   thing selected, the problems) beside the map, the map from above filling the rest; under a narrow window the side
+   panel goes under the map */
+.map-editor {
+    position: fixed;
+    inset: 0;
+    z-index: 900;
+    container-type: size;
+    background: var(--dev-bg);
+    color: var(--dev-text);
+    font: 12px/1.45 ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+body:not(.dev-collapsed) .map-editor {
+    right: var(--dev-panel-width);
+}
+
+/* the game stays paused under the editor, and out of sight */
+body.map-editing #screen,
+body.map-editing .dev-fps {
+    visibility: hidden;
+}
+
+.map-editor.hidden {
+    display: none;
+}
+
+.me-frame {
+    display: grid;
+    grid-template-columns: minmax(220px, 300px) 1fr;
+    grid-template-rows: auto 1fr;
+    grid-template-areas: 'bar bar' 'side view';
+    height: 100%;
+}
+
+.me-bar {
+    grid-area: bar;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 10px;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--dev-line);
+}
+
+.me-title {
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+}
+
+.me-tools,
+.me-actions,
+.me-zoom {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.me-actions {
+    margin-left: auto;
+}
+
+.me-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 8px;
+    border: 1px solid var(--dev-line);
+    border-radius: 6px;
+    background: var(--dev-surface);
+    color: inherit;
+    font: inherit;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.me-btn:hover {
+    background: var(--dev-hover);
+}
+
+.me-btn:disabled {
+    opacity: 0.45;
+    cursor: default;
+}
+
+.me-btn[aria-pressed='true'],
+.me-btn.me-primary {
+    border-color: var(--dev-accent);
+    background: var(--dev-accent);
+    color: var(--dev-accent-text);
+}
+
+.me-btn.me-danger {
+    border-color: #d04545;
+    color: #d04545;
+}
+
+/* a tool's colour, as the map draws its kind */
+.me-swatch {
+    flex: none;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+}
+
+.me-side {
+    grid-area: side;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-height: 0;
+    padding: 10px;
+    overflow-y: auto;
+    border-right: 1px solid var(--dev-line);
+}
+
+.me-side h3 {
+    margin: 4px 0 0;
+    color: var(--dev-muted);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.me-source,
+.me-note {
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+.me-note {
+    color: var(--dev-muted);
+}
+
+.me-source b {
+    color: var(--dev-accent);
+}
+
+.me-selected {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 8px;
+    border: 1px solid var(--dev-line);
+    border-radius: 6px;
+    background: var(--dev-surface);
+}
+
+.me-selected p {
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+.me-fields {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 4px 6px;
+}
+
+.me-fields input {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    padding: 3px 5px;
+    border: 1px solid var(--dev-line);
+    border-radius: 4px;
+    background: var(--dev-bg);
+    color: inherit;
+    font: inherit;
+    font-variant-numeric: tabular-nums;
+    user-select: text;
+}
+
+.me-problems {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.me-problems li {
+    padding: 4px 6px;
+    border-left: 3px solid #e04646;
+    border-radius: 3px;
+    background: var(--dev-surface);
+    overflow-wrap: anywhere;
+    cursor: pointer;
+}
+
+.me-problems li:hover {
+    background: var(--dev-hover);
+}
+
+.me-problems li.me-none {
+    border-left-color: var(--dev-accent);
+    cursor: default;
+}
+
+.me-problems small {
+    display: block;
+    color: var(--dev-muted);
+}
+
+.me-bad {
+    color: #e04646;
+}
+
+.me-view {
+    grid-area: view;
+    position: relative;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+    background: #060912;
+}
+
+.me-map {
+    display: block;
+    width: 100%;
+    height: 100%;
+    outline: none;
+    touch-action: none;
+    cursor: grab;
+}
+
+.me-map.me-adding {
+    cursor: crosshair;
+}
+
+.me-map.me-over {
+    cursor: move;
+}
+
+.me-status {
+    position: absolute;
+    left: 8px;
+    bottom: 8px;
+    max-width: calc(100% - 16px);
+    padding: 2px 6px;
+    overflow: hidden;
+    border-radius: 4px;
+    background: #050a14cc;
+    color: #cfd8ea;
+    font: 11px/16px ui-monospace, monospace;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    pointer-events: none;
+}
+
+/* top left: the dev panel's tab stands on the right edge */
+.me-zoom {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+}
+
+/* a narrow window: the side panel under the map, as high as it needs up to two fifths of the window */
+@container (max-width: 640px) {
+    .me-frame {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 1fr auto;
+        grid-template-areas: 'bar' 'view' 'side';
+    }
+
+    .me-side {
+        max-height: 40cqh;
+        border-top: 1px solid var(--dev-line);
+        border-right: 0;
+    }
+}

@@ -72,7 +72,9 @@ function cliffs_generate()
     const mode = arcade_mode();
     const hp = Math.round(cliff_hull*mode.hull*(1 + mode.growth*arcade_level()));
     const keep = [{x: station.x, y: station.y, r: depot_shield_radius + 300}, ...[...portals, ...world_gates, ...beacons].map(v => ({x: v.x, y: v.y, r: (v.r || 0) + 250}))];
-    for (let i = 0; i < cliff_count; ++i) {
+    // or the world's map file's (map_files.js)
+    const edited = map_file_cliffs(hp);
+    for (let i = 0; !edited && (i < cliff_count); ++i) {
         for (let tries = 0; tries < 60; ++tries) {
             const a = (i/cliff_count)*Math.PI*2 + random()*0.7;
             const d = cliff_ring[0] + random()*(cliff_ring[1] - cliff_ring[0]);
@@ -109,8 +111,10 @@ function cliffs_generate()
             break;
         }
     }
-    // the ground under a cliff and down its fall is bare: what lies there is the rubble, once it falls
-    ore_nodes = ore_nodes.filter(v => cliffs.every(vv => (distance(v, vv.rock) > v.r + vv.rock.r + 40) && !cliff_zone_has(vv, v, v.r)));
+    cliffs = edited || cliffs;
+    // the ground under a cliff and down its fall is bare: what lies there is the rubble, once it falls; a map file's
+    // rocks lie where the author put them
+    ore_nodes = map_file_list('fields') ? ore_nodes : ore_nodes.filter(v => cliffs.every(vv => (distance(v, vv.rock) > v.r + vv.rock.r + 40) && !cliff_zone_has(vv, v, v.r)));
     ore_nodes.push(...cliffs.map(v => v.rock));
     drifting_debris = drifting_debris.filter(v => cliffs.every(vv => distance(v, vv.rock) > v.r + vv.rock.r + 40));
 }
