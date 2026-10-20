@@ -435,11 +435,13 @@ function arcade_scroll_raiders()
             continue;
         }
         if ((v.hp > 0) && !v.lurk && !black_holes.some(vv => distance(v, vv) < vv.radius)) {
-            if (arcade_scroll_behind(v, v.r + arcade_scroll_gone)) {
+            // a flagship is never left behind: on a Base lane it is fought with the screen moving on (arcade_base.js)
+            const boss = v.type === 'boss';
+            if (!boss && arcade_scroll_behind(v, v.r + arcade_scroll_gone)) {
                 v.hp = 0;
                 continue;
             }
-            arcade_scroll_keep(v, v.r + arcade_scroll_leash, arcade_scroll_ahead + v.r + arcade_scroll_leash, false, true);
+            arcade_scroll_keep(v, v.r + arcade_scroll_leash, arcade_scroll_ahead + v.r + arcade_scroll_leash, false, !boss);
         }
     }
 }

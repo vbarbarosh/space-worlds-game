@@ -26,6 +26,17 @@ const arcade_base_reload_min = 0.6;
 
 // How far the raiders follow your kit's growth: this power of it (1: all of it, 0: none)
 const arcade_base_follow = 0.6;
+// The flagship comes this many seconds of the screen's pace before the lane's end, and is fought with the screen moving
+// on, with this share of its hull built against your kit (arcade_base_flagship_hull); one still flying at the lane's
+// end gets away, with no bounty. Tried with the bot: 0.5 of the hull and full hits lost most Standard runs; 0.3 and 0.4
+// won them all, a quarter of the flagships getting away (docs/balance.md)
+const arcade_base_flagship_time = 75;
+const arcade_base_flagship_hull_k = 0.3;
+// and this share of the hits its world's flagship deals (at all of them, on a lane of bulwarks, it cost the bot 300 to
+// 650 hull)
+const arcade_base_flagship_hits = 0.4;
+// The world's flagship has come (arcade_base_update)
+let arcade_base_flagship = false;
 
 // A Base run is flown
 function arcade_base_on()
@@ -70,14 +81,15 @@ function arcade_base_hull_k()
 }
 
 // A Base raider's hits against Haven's (raider_hit_scale): your hull, shield and armour against the run's start
-// kit's, to arcade_base_follow; outside a Base run, 1
-function arcade_base_hit_k()
+// kit's, to arcade_base_follow, a flagship's arcade_base_flagship_hits of that; outside a Base run, 1
+function arcade_base_hit_k(enemy = null)
 {
     if (!arcade_base_on()) {
         return 1;
     }
     const toughness = (hull_max() + shield_max())/(1 - upgrades.armor*armor_cut());
-    return Math.pow(toughness/(ship_catalog[0].hull + ship_catalog[0].shield), arcade_base_follow);
+    const k = Math.pow(toughness/(ship_catalog[0].hull + ship_catalog[0].shield), arcade_base_follow);
+    return (enemy?.type === 'boss') ? k*arcade_base_flagship_hits : k;
 }
 
 // Your guns' damage a second, every mount's (fire_equipped_weapon): its damage by Hotter plasma, its tier and the
@@ -93,23 +105,56 @@ function arcade_base_kit_damage()
     return sum;
 }
 
-// Each frame of a Base world (arcade_update): the raiders keep coming; at the lane's end the world is over; true once
-// it is
+// A Base world begins (arcade_update): its flagship still to come
+function arcade_base_world_start()
+{
+    arcade_base_flagship = false;
+}
+
+// Each frame of a Base world (arcade_update): the raiders keep coming, the flagship comes before the lane's end; at its
+// end the world is over; true once it is
 function arcade_base_update()
 {
     if (!arcade_base_on()) {
         return false;
     }
     // the wave's raiders never run out: they keep coming at its pace to the lane's end, so the screen is never empty
-    // (the author's run, 2026-10-20: a wave's count spent, the rest of Haven's lane was empty)
-    if (spawn_left <= 0) {
+    // (the author's run, 2026-10-20: a wave's count spent, the rest of Haven's lane was empty); while the flagship
+    // flies, only its escorts come (arcade_flagship_update), as on a Scroll lane
+    const flagship = enemies.some(v => (v.type === 'boss') && (v.hp > 0));
+    if ((spawn_left <= 0) && !flagship) {
         spawn_left = Math.max(1, arcade.wave_total);
+    }
+    if (!arcade_base_flagship && (arcade_scroll.s >= arcade_scroll.length - arcade_scroll.pace*arcade_base_flagship_time)) {
+        arcade_base_flagship = true;
+        spawn_left = 0;
+        arcade_flagship_spawn();
     }
     if (arcade_scroll.s < arcade_scroll.length) {
         return false;
     }
+    arcade_base_flagship_away();
     arcade_base_world_end();
     return true;
+}
+
+// A flagship still flying at the lane's end jumps away: no bounty (its drop)
+function arcade_base_flagship_away()
+{
+    for (const v of enemies.filter(vv => (vv.type === 'boss') && (vv.hp > 0))) {
+        explode(v.x, v.y, v.r, '#a8e4ff', 0, 'warp');
+        v.hp = 0;
+        arcade.flagship_escaped = true;
+        set_hidden(el.bossbar, true);
+        show_toast('THE FLAGSHIP GOT AWAY', 'THE LANE ENDED · NO FLAGSHIP BOUNTY', 3.5, 'danger');
+    }
+}
+
+// A Base flagship's hull: arcade_base_flagship_hull_k of a flagship's 1500, by the mode, the world's design and your
+// kit (arcade_base_hull_k), with no duel (a duel is each world's own trick: a layer still to come)
+function arcade_base_flagship_hull(scale)
+{
+    return Math.round(1500*scale*boss_designs[campaign.world].hull*arcade_base_hull_k()*arcade_base_flagship_hull_k);
 }
 
 // A Base world ends where its lane ends: the run's last is won; any other pays the world's bonus, grows the guns a

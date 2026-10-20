@@ -94,8 +94,9 @@ Three modes:
   the whole depot (layer 1); the raiders built against the kit you bring, their hull following your guns' damage
   and their hits your hull, shield and armour (layer 3), and firing faster world by world; the
   raiders with jobs in the chasers' lines, one more kind each world from Haven to Obsidian (layer 2); squadrons
-  that keep coming to the lane's end, and elites leading every other one; no cards, flagships, tanks, splitters,
-  lancers, missiles or world tricks yet. Each kind keeps its own best.
+  that keep coming to the lane's end, and elites leading every other one; a flagship a minute and a quarter before
+  the lane's end, fought with the screen moving on, that gets away if the lane ends first; no cards, flagship
+  duels, tanks, splitters, lancers, missiles or world tricks yet. Each kind keeps its own best.
 - **Races**: ring races alone, at Easy, Normal or Hard, course after course
   from Haven through the eight worlds; the start ship, no raiders, the rocks
   as solid as ever. Two kinds: Steer, flown by hand, and Turbo, where the

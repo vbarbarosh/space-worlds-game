@@ -1386,9 +1386,10 @@ on it"); `src/js/arcade_base.js`.
 | What grows world by world | how many come at once (as on a Scroll lane), and their reload, 6% shorter a step, 60% at the shortest | `arcade_base_reload` |
 | How they come | a wave's squadrons never run out: they keep coming at its pace to the lane's end (once spent, Haven's lane went empty to its end in the author's run) | `arcade_base_update` |
 | Elites | lead every other squadron from the mode's elite world on, from wave 2, as in Free | `arcade_base_squad` |
+| The flagship | comes 75 s of the screen's pace before the lane's end, fought with the screen moving on; 0.3 of a flagship's hull built against your kit, 0.4 of its hits, no duel; the squadrons wait while it flies (its escorts come); still flying at the lane's end, it gets away with no bounty | `arcade_base_update`, `arcade_base_flagship_hull` |
 | Layer 1 | salvage, and the whole depot between worlds (and before a retry): repairs, supplies, guns, ships, modules, Reactor tuning | `arcade_base_world_end` |
 | Layer 2 | the raiders with jobs (interceptor, carrier, bulwark, sniper, mine-layer), one more kind each world from Haven to Obsidian, in a chasers' line's places, each hunting on its own, no pack; a passers' formation keeps its places | `raider_squad_after` |
-| Left out | cards, elites, flagships, tanks, splitters, lancers, missiles, world tricks | - |
+| Left out | cards, the flagships' duels, tanks, splitters, lancers, missiles, world tricks | - |
 
 The bot's first runs (seeds 1–4): Chill won 4 of 4, no deaths; Standard 0
 of 4, its last life lost in Ion Reach, Cryosphere, Nova Forge and Eclipse,
@@ -1438,6 +1439,20 @@ Standard 4 of 4 (five deaths in all), Overload 0 of 4. A flagship a minute
 before the lane's end, fought on the moving screen, was tried and left
 out: Standard fell to 0 of 4, most of the hull lost to it, and it got
 away from Ion Reach on; it waits for a layer of its own.
+
+The flagship, with the generator (seeds 1–6, every difficulty), by its hull,
+its hits and its time:
+
+| Hull, hits, time | Chill | Standard | Got away (Standard) |
+|---|---|---|---|
+| 0.5, 0.4, 75 s | 6 of 6 | 5 of 6 | 22 of 47 |
+| 0.5, 0.6, 75 s | 6 of 6 | 4 of 6 | 23 of 47 |
+| 0.5, 0.4, 110 s | 6 of 6 | 4 of 6 | 21 of 48 |
+| **0.3, 0.4, 75 s (kept)** | 6 of 6, none got away | 6 of 6, one death | 13 of 48 |
+| 0.3, 0.6, 75 s | 6 of 6 | 5 of 6 | 14 of 48 |
+
+Overload is 0 of 6 in every one, as it was without the flagship. The bot
+does not chase the flagship; a quarter of them get away from it.
 
 ## The arcade's world shapes
 

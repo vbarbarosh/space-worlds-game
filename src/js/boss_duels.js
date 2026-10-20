@@ -171,7 +171,8 @@ const boss_duels = [
 // The world's duel in the arcade, null elsewhere
 function boss_duel_design(world = campaign.world)
 {
-    return arcade.active ? boss_duels[world] || null : null;
+    // a Base run's flagships fight with no duel yet (arcade_base.js)
+    return (arcade.active && !arcade_base_kind()) ? boss_duels[world] || null : null;
 }
 
 // A number by the mode: CHILL, NORMAL, OVERLOAD

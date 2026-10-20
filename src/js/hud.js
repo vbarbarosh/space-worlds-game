@@ -265,12 +265,12 @@ function sync_arcade_card()
     // a Base lane has no waves to clear and no flagship: a world is flown to its lane's end (arcade_base.js)
     const base = arcade_base_on();
     const kind_el = document.getElementById('mc_kind');
-    hud_text(kind_el, base ? 'Base · chasers and passers' : (arcade.pause > 0) ? `Wave ${wave} of ${arcade_waves} · clear` : `Wave ${wave} of ${arcade_waves} · ${ui_sentence(arcade_wave_names[wave] || '')}`);
+    hud_text(kind_el, base ? (flagship ? 'Base · flagship' : 'Base · chasers and passers') : (arcade.pause > 0) ? `Wave ${wave} of ${arcade_waves} · clear` : `Wave ${wave} of ${arcade_waves} · ${ui_sentence(arcade_wave_names[wave] || '')}`);
     kind_el.classList.toggle('eyebrow--red', !!threat);
     kind_el.classList.toggle('eyebrow--gold', !threat);
     // a flagship's duel says how it is won (boss_duels.js)
     const duel = flagship ? boss_duel_card() : null;
-    hud_text(document.getElementById('mc_title'), base ? 'Fly on to the end of the lane' : (arcade.pause > 0)
+    hud_text(document.getElementById('mc_title'), base ? (flagship ? 'Down the flagship before the lane ends' : 'Fly on to the end of the lane') : (arcade.pause > 0)
         ? (lane ? 'Wave clear: the screen moves on to the next' : 'Wave clear: repair at the depot or wait for the next')
         : duel ? duel.title : flagship ? `Destroy the flagship of ${worlds[id].name}` : `Destroy ${left} raider${(left === 1) ? '' : 's'}`);
     const nearest = threat || duel?.target || enemies.filter(v => v.hp > 0).sort((a, b) => distance(a, player) - distance(b, player))[0];

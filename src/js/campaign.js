@@ -388,7 +388,7 @@ function raider_reload(enemy)
 function raider_hit_scale(enemy = null)
 {
     const own = enemy && (enemy.escort_raider || enemy.robot_raider || enemy.structure_target);
-    return (1 + (own ? world_tier(campaign.world) : raider_tier())*0.08)*arcade_base_hit_k();
+    return (1 + (own ? world_tier(campaign.world) : raider_tier())*0.08)*arcade_base_hit_k(enemy);
 }
 
 // Armour cuts a hit twice: its plating takes a flat part of every hit, 50 at full armour and never more than three
