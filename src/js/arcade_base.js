@@ -38,12 +38,15 @@ function arcade_base_on()
 function arcade_base_squad(size)
 {
     const first = enemies.length;
+    // an elite leads every other squadron from the mode's elite world on, from wave 2 (arcade_squad_form)
+    const elite = (arcade_level() >= arcade_mode().elite_world) && (arcade.wave >= 2) && (arcade.squads % 2 === 1);
+    arcade.squads++;
     if (Math.random() < arcade_base_passers) {
-        arcade_scroll_formation('shooter', size, false, null, true);
+        arcade_scroll_formation('shooter', size, elite, null, true);
     }
     else {
         const ahead = arcade_scroll_squad_spot(rand(-1, 1));
-        arcade_squad_line('chaser', size, ahead.angle, false, null, ahead.far);
+        arcade_squad_line('chaser', size, ahead.angle, elite, null, ahead.far);
     }
     for (const enemy of enemies.slice(first)) {
         enemy.weapon = 'plasma';
@@ -90,10 +93,19 @@ function arcade_base_kit_damage()
     return sum;
 }
 
-// Each frame of a Base world (arcade_update): at the lane's end the world is over; true once it is
+// Each frame of a Base world (arcade_update): the raiders keep coming; at the lane's end the world is over; true once
+// it is
 function arcade_base_update()
 {
-    if (!arcade_base_on() || (arcade_scroll.s < arcade_scroll.length)) {
+    if (!arcade_base_on()) {
+        return false;
+    }
+    // the wave's raiders never run out: they keep coming at its pace to the lane's end, so the screen is never empty
+    // (the author's run, 2026-10-20: a wave's count spent, the rest of Haven's lane was empty)
+    if (spawn_left <= 0) {
+        spawn_left = Math.max(1, arcade.wave_total);
+    }
+    if (arcade_scroll.s < arcade_scroll.length) {
         return false;
     }
     arcade_base_world_end();

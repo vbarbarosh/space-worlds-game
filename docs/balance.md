@@ -1358,6 +1358,8 @@ on it"); `src/js/arcade_base.js`.
 | Their hull (layer 3) | the mode's × (your guns' damage a second ÷ the start kit's)^0.6 | `arcade_base_hull_k`, `arcade_hull_scale` |
 | Their hits (layer 3) | × ((hull + shield) ÷ (1 − armour's cut), yours ÷ the start kit's)^0.6 | `arcade_base_hit_k`, `raider_hit_scale` |
 | What grows world by world | how many come at once (as on a Scroll lane), and their reload, 6% shorter a step, 60% at the shortest | `arcade_base_reload` |
+| How they come | a wave's squadrons never run out: they keep coming at its pace to the lane's end (once spent, Haven's lane went empty to its end in the author's run) | `arcade_base_update` |
+| Elites | lead every other squadron from the mode's elite world on, from wave 2, as in Free | `arcade_base_squad` |
 | Layer 1 | salvage, and the whole depot between worlds (and before a retry): repairs, supplies, guns, ships, modules, Reactor tuning | `arcade_base_world_end` |
 | Layer 2 | the raiders with jobs (interceptor, carrier, bulwark, sniper, mine-layer), one more kind each world from Haven to Obsidian, in a chasers' line's places, each hunting on its own, no pack; a passers' formation keeps its places | `raider_squad_after` |
 | Left out | cards, elites, flagships, tanks, splitters, lancers, missiles, world tricks | - |
@@ -1403,6 +1405,13 @@ growth (seeds 1–4, bot runs won):
 At 0.6 the hull lost climbs to the run's end on Standard (Obsidian and
 Eclipse cost most) instead of peaking in Haven; Overload is past the bot,
 which never dashes, and is left to a player who does.
+
+The squadrons never running out, with elites (seeds 1–4): the bot kills
+2.2 to 2.8 times as many raiders a minute in every world; Chill 4 of 4,
+Standard 4 of 4 (five deaths in all), Overload 0 of 4. A flagship a minute
+before the lane's end, fought on the moving screen, was tried and left
+out: Standard fell to 0 of 4, most of the hull lost to it, and it got
+away from Ion Reach on; it waits for a layer of its own.
 
 ## The arcade's world shapes
 
