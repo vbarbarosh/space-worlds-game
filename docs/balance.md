@@ -1339,6 +1339,30 @@ pace on screen, but it is a speed-up too, and cost the bot a fifth of its
 salvage and 5 runs of 12. What fills the stretch is the lane's raiders, not
 the screen's speed.
 
+## The arcade's Base kind
+
+Scroll pared to its base, to build the run up again from it a layer at a
+time (2026-10-20, the author: "the map must always move the same way, at the
+same speed ... raiders that chase me, others that just fly past and fire if
+I am in their range ... this will be the base, and then lay something else
+on it"); `src/js/arcade_base.js`.
+
+| What | Value | Where |
+|---|---|---|
+| The screen | 72 m/s from a world's start to its end; the world ends there, straight on to the next | `arcade_base_update` |
+| Raiders | chasers in a line from ahead; passers as a sweep or a V through the view, half the squadrons each | `arcade_base_passers` |
+| A chaser fires | only within 340 m | `arcade_base_chaser_range` |
+| A passer fires | only within 460 m, its ring drawn: gold, red with you inside | `arcade_base_passer_range` |
+| Their hull, armour, shield, gun | Haven's in every world, plasma | `raider_tier`, `arcade_hull_scale` |
+| What grows world by world | how many come at once (as on a Scroll lane), and their reload, 6% shorter a step, 60% at the shortest | `arcade_base_reload` |
+| Left out | depot, salvage (the caches keep their supply), cards, modules, elites, flagships, the other raiders, missiles, world tricks | - |
+
+The bot's first runs (seeds 1–4): Chill won 4 of 4, no deaths; Standard 0
+of 4, its last life lost in Ion Reach, Cryosphere, Nova Forge and Eclipse,
+with the start ship and gun against growing squadrons; Overload 0 of 4, all
+in Verdant. The bot does not dash at shots, so these say little of a player; the
+curve is the next layer, set by the author's runs.
+
 ## The arcade's world shapes
 
 Each arcade world has its own size, station and rock pattern

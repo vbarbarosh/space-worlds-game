@@ -73,7 +73,7 @@ Three modes:
   long, Obsidian 5.6 × 8 km tall), its station in the middle, at an end or on a rim, and its rock fields
   strewn, in a band, a ring, a belt, columns or outcrops.
 
-  The arcade comes in two kinds, picked on its menu row (T turns it): **Free**, as above, and **Scroll**, the same
+  The arcade comes in three kinds, picked on its menu row (T turns it): **Free**, as above, **Scroll**, the same
   run on a screen that moves on by itself, up, down, left or right by the world, along a lane 12 to 16 km long (3 to
   4 minutes), the world stretched along it with its rocks, caches, cliffs, storms, pylons and spires spread along the way. Your ship
   flies anywhere in the view and the back edge pushes it on; the raiders come from ahead, and one the back edge leaves
@@ -84,8 +84,12 @@ Three modes:
   the middle worlds); the view never empties: while fewer than 3 raiders are in play (4 in the second wave) the
   wave's next squadron comes at once, and once the first wave has sent all its own, the second comes on early (not
   in the run's last world); a lane's raiders stay as many as they were; it stops only where the lane ends, for the
-  flagship. No portals, no wave-2 events, and the depot opens between worlds only. Each kind keeps its own
-  best.
+  flagship. No portals, no wave-2 events, and the depot opens between worlds only. And **Base**, Scroll pared to
+  its base to build it up again a layer at a time: one speed from a world's start to its end, where the world ends
+  and the next begins; two raiders, the chaser, which turns to you and fires once close, and the passer, which
+  flies a straight line through the view and fires only while you are inside its ring; Haven's raiders in every
+  world, more of them at once and firing faster world by world; no depot, salvage, cards, modules, elites,
+  flagships, missiles or world tricks. Each kind keeps its own best.
 - **Races**: ring races alone, at Easy, Normal or Hard, course after course
   from Haven through the eight worlds; the start ship, no raiders, the rocks
   as solid as ever. Two kinds: Steer, flown by hand, and Turbo, where the
@@ -131,7 +135,7 @@ Three modes:
                      waves 1 and 2, the seconds with under 3 raiders in
                      play and how many are in play, flying
                      a build of modules (--build=mixed, guns, tank or
-                     evasion), Free or Scroll runs (--kind=scroll),
+                     evasion), Free, Scroll or Base runs (--kind=scroll, base),
                      or idle, no key pressed (--idle, in
                      data/playtest/<mode>-idle/); tables and JSON in
                      data/playtest/
@@ -168,7 +172,7 @@ scene lives in the URL, e.g. `dev.html?world=3&ship=gunship&weapon=rail`; a worl
 `&screen=station-arsenal` (or flight, combat, arcade, crowded, pause, settings, menu,
 map-plan, ...; the list is in src/js/dev/screen.js) opens that screen with the
 panel folded; with `&screen=arcade`, `&wave=2` starts the world at that wave
-(e.g. `dev.html?world=dustfall&screen=arcade&wave=2`), `&kind=scroll` makes it a Scroll run, on the world's lane, and
+(e.g. `dev.html?world=dustfall&screen=arcade&wave=2`), `&kind=scroll` makes it a Scroll run, on the world's lane (`&kind=base` a Base run), and
 `&raiders=sniper,bulwark` brings a pack of three chasers and one raider of each kind named (interceptor,
 carrier, bulwark, sniper, minelayer) 640 m ahead.
 `&card_hud=1` puts cards in force over the gauges.

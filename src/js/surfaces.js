@@ -236,6 +236,7 @@ function render_hostile_marks()
         ctx.stroke();
     }
     render_marksman_aims();
+    render_arcade_base_rings();
     ctx.restore();
 }
 

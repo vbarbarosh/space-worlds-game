@@ -100,7 +100,6 @@ addEventListener('keydown', function (event) {
         arcade_depot_close();
     }
 });
-sync_mode_note();
 
 // A run from world 1, or (from: an arcade save) resumed at the start of the world it was saved in, with the lives it
 // kept (a save from before lives, all of them)
@@ -200,10 +199,12 @@ function arcade_snapshot()
 // cards above still leaves Load, Settings and Controls in a 1280x720 window
 function sync_mode_note()
 {
+    // the Base kind has no elites, and its raiders do not grow (arcade_base.js)
+    const base = arcade_base_kind();
     document.getElementById('mode_note').textContent = {
         chill: 'Slower, weaker raiders; hits hurt a third less.',
-        normal: 'Every raider fires; bigger squadrons, elites from Haven on.',
-        overload: 'Tougher raiders that grow with your gun; no repairs; overdrive.',
+        normal: base ? 'Every raider fires; bigger squadrons.' : 'Every raider fires; bigger squadrons, elites from Haven on.',
+        overload: base ? 'Tougher raiders; no repairs; overdrive.' : 'Tougher raiders that grow with your gun; no repairs; overdrive.',
     }[difficulty] || '';
 }
 
@@ -216,7 +217,7 @@ function arcade_mode()
 // on a Scroll lane (arcade_scroll_reload)
 function arcade_reload(enemy)
 {
-    return arcade.active ? (arcade_reloads[enemy.weapon] || 1)*arcade_card_k.raider_fire*(arcade_scroll_on() ? arcade_scroll_reload : 1) : 1;
+    return arcade.active ? (arcade_reloads[enemy.weapon] || 1)*arcade_card_k.raider_fire*(arcade_scroll_on() ? arcade_scroll_reload : 1)*arcade_base_reload() : 1;
 }
 
 // Whether a repair may drop: always outside the arcade; in it, as often as the mode allows.
@@ -240,7 +241,8 @@ const arcade_shop_flagship = [1, 0.7, 1, 0.5, 0.6, 1, 1, 0.45];
 function arcade_hull_scale(enemy)
 {
     const mode = arcade_mode();
-    const level = arcade_level();
+    // a Base run's raiders keep Haven's hull in every world (arcade_base.js)
+    const level = arcade_base_kind() ? 0 : arcade_level();
     const shop = ((enemy.type === 'boss') ? arcade_shop_flagship : arcade_shop_hull)[level] ?? 1;
     const growth = (enemy.type === 'boss') ? 1 : mode.hull*(1 + mode.growth*level)*arcade_card_k.raider_hull;
     const k = growth*(1 + (shop - 1)*mode.shop)*(mode.tier_hp ? 1 + (weapon_level() - 1)*0.22 : 1);
@@ -308,6 +310,10 @@ function arcade_update(dt)
         cliffs_hint();
         pylons_hint();
         spires_hint();
+        return;
+    }
+    // a Base world ends where its lane ends (arcade_base.js)
+    if (arcade_base_update()) {
         return;
     }
     // on a Scroll lane the next wave comes as the screen reaches it, the one before down or not (arcade_scroll.js)
@@ -409,8 +415,11 @@ function arcade_squad_spawn(size)
 {
     const first = enemies.length;
     arcade_squad_form(size);
-    // a Scroll lane's formation keeps its places: no jobs and no pack for it (arcade_scroll.js)
-    raider_squad_after(enemies.slice(first).filter(v => !v.path));
+    // a Scroll lane's formation keeps its places: no jobs and no pack for it (arcade_scroll.js); a Base lane's
+    // raiders have none at all (arcade_base.js)
+    if (!arcade_base_on()) {
+        raider_squad_after(enemies.slice(first).filter(v => !v.path));
+    }
 }
 
 // How a squadron comes, by the type the world's mix draws for it: a line of one type, as it always did; a pincer, the
@@ -419,6 +428,11 @@ function arcade_squad_spawn(size)
 // squadron from wave 2 has an elite leader (every one under an Elite hunt card).
 function arcade_squad_form(size)
 {
+    // a Base lane brings chasers and passers only (arcade_base.js)
+    if (arcade_base_on()) {
+        arcade_base_squad(size);
+        return;
+    }
     const type = (arcade.wave === 1) ? ((Math.random() < 0.7) ? 'chaser' : 'shooter') : enemy_type();
     const pattern = arcade_squad_pattern(type, size);
     // on a Scroll lane a squadron comes from ahead, past the front edge, at a place across it (arcade_scroll.js)
@@ -1372,13 +1386,16 @@ function arcade_finish(won)
         set_hidden(v, true);
     }
     toasts_clear();
-    const reached = `You reached ${name}, wave ${arcade.wave} of ${arcade_waves}.`;
+    // a Base world has no waves to name, and its retry no depot (arcade_base.js)
+    const base = arcade_base_kind();
+    const reached = base ? `You reached ${name}, ${hud_distance(arcade_scroll.s).join(' ')} along its lane.` : `You reached ${name}, wave ${arcade.wave} of ${arcade_waves}.`;
+    const again = base ? 'Retry flies it again from its start.' : 'Retry opens the depot first, with what you had as the world began: change the kit, then fly it again from its first wave.';
     const salvage_line = salvage ? ` Salvage kept: ◆\u00a0${ui_number(salvage)}, +${ui_number(kept)} points.` : '';
     el.result_eyebrow.textContent = over ? 'ARCADE · RUN OVER' : 'ARCADE · SIGNAL LOST';
     el.result_title.textContent = over ? 'Run over.' : `${left[0].toUpperCase()}${left.slice(1)} left.`;
     el.result_description.textContent = over
         ? `No lives left. ${reached}${salvage_line}`
-        : `${reached} Retry opens the depot first, with what you had as the world began: change the kit, then fly it again from its first wave. Or start a new run.${(arcade.lives === 1) ? ' One more death ends the run.' : ''}${salvage_line}`;
+        : `${reached} ${again} Or start a new run.${(arcade.lives === 1) ? ' One more death ends the run.' : ''}${salvage_line}`;
     document.getElementById('result_score_label').textContent = over ? 'Final score' : 'Score';
     el.result_score.textContent = ui_number(score);
     el.result_sector.textContent = `${arcade_level() + 1} / ${arcade_worlds}`;
@@ -1403,6 +1420,10 @@ function arcade_retry()
     arcade_stop();
     arcade_start(from.world, {...from, lives});
     arcade.life_flash = arcade_life_flash;
+    // a Base run has no depot (arcade_base.js)
+    if (arcade_base_kind()) {
+        return;
+    }
     arcade.retry_depot = true;
     arcade_depot_open();
 }

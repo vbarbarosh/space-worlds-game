@@ -57,11 +57,11 @@ function pylons_generate()
 {
     pylons = [];
     charge_fields = [];
-    if ((campaign.world !== pylon_world) || race_mode.active) {
+    if ((campaign.world !== pylon_world) || race_mode.active || (arcade.active && arcade_base_kind())) {
         return;
     }
     const random = visual_random_from_seed(3917);
-    const lane = arcade.active && (arcade_scroll.kind === 'scroll');
+    const lane = arcade.active && arcade_lane_kind();
     const layout = arcade.active ? pylon_rings.free : pylon_rings.campaign;
     const span = lane ? arcade_shape().scroll - pylon_lane_start - pylon_lane_end : 0;
     const count = lane ? Math.round(span/pylon_lane_gap) : layout.count;

@@ -262,13 +262,15 @@ function sync_arcade_card()
     const at_depot = (distance(player, station) < station_reach) && !depot_shield_up();
     // a Scroll lane does not stop at the depot: it opens between worlds (arcade_scroll.js)
     const lane = arcade_scroll_on();
+    // a Base lane has no waves to clear and no flagship: a world is flown to its lane's end (arcade_base.js)
+    const base = arcade_base_on();
     const kind_el = document.getElementById('mc_kind');
-    hud_text(kind_el, (arcade.pause > 0) ? `Wave ${wave} of ${arcade_waves} · clear` : `Wave ${wave} of ${arcade_waves} · ${ui_sentence(arcade_wave_names[wave] || '')}`);
+    hud_text(kind_el, base ? 'Base · chasers and passers' : (arcade.pause > 0) ? `Wave ${wave} of ${arcade_waves} · clear` : `Wave ${wave} of ${arcade_waves} · ${ui_sentence(arcade_wave_names[wave] || '')}`);
     kind_el.classList.toggle('eyebrow--red', !!threat);
     kind_el.classList.toggle('eyebrow--gold', !threat);
     // a flagship's duel says how it is won (boss_duels.js)
     const duel = flagship ? boss_duel_card() : null;
-    hud_text(document.getElementById('mc_title'), (arcade.pause > 0)
+    hud_text(document.getElementById('mc_title'), base ? 'Fly on to the end of the lane' : (arcade.pause > 0)
         ? (lane ? 'Wave clear: the screen moves on to the next' : 'Wave clear: repair at the depot or wait for the next')
         : duel ? duel.title : flagship ? `Destroy the flagship of ${worlds[id].name}` : `Destroy ${left} raider${(left === 1) ? '' : 's'}`);
     const nearest = threat || duel?.target || enemies.filter(v => v.hp > 0).sort((a, b) => distance(a, player) - distance(b, player))[0];
@@ -281,8 +283,8 @@ function sync_arcade_card()
         // folded, the wave is said here (its name, or how many are near in a fight); unfolded, the card's kind says it
         // on a Scroll lane, with no fight on, how far the screen has yet to go to the flagship (arcade_scroll.js)
         const to_end = (lane && !flagship && !arcade_scroll.held) ? hud_distance(arcade_scroll.length - arcade_scroll.s) : null;
-        const eta = threat ? `${hud_near_count()} near` : duel ? duel.eta : to_end ? `flagship in ${to_end.join(' ')}` : hud_card_open ? `${left} left` : ui_sentence(arcade_wave_names[wave] || '');
-        hud_text(document.getElementById('mc_eta'), hud_card_open ? eta : `Wave ${wave}/${arcade_waves} · ${eta}`);
+        const eta = base ? `${hud_distance(arcade_scroll.length - arcade_scroll.s).join(' ')} to go` : threat ? `${hud_near_count()} near` : duel ? duel.eta : to_end ? `flagship in ${to_end.join(' ')}` : hud_card_open ? `${left} left` : ui_sentence(arcade_wave_names[wave] || '');
+        hud_text(document.getElementById('mc_eta'), (hud_card_open || base) ? eta : `Wave ${wave}/${arcade_waves} · ${eta}`);
         const a = Math.atan2(nearest.y - player.y, nearest.x - player.x);
         document.getElementById('mc_arrow').style.transform = `rotate(${a + Math.PI/4}rad)`;
     }

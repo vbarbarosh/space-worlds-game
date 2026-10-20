@@ -57,7 +57,7 @@ function arcade_field_spot(i, n, random, ok)
     const {extent: [w, h], station: [sx, sy], fields} = arcade_shape();
     const station_at = {x: w*sx, y: h*sy};
     // a Scroll run's long lane: the fields along it, either side of where it runs, wherever its pattern would put them
-    if (arcade_scroll.kind === 'scroll') {
+    if (arcade_lane_kind()) {
         const [lw, lh] = arcade_world_extent();
         let spot = arcade_lane_point((i + 0.5)*arcade_shape().scroll/n, (random() - 0.5)*1800, lw, lh);
         for (let tries = 0; (tries < 40) && !ok(spot, arcade_field_apart); ++tries) {
@@ -117,7 +117,7 @@ function arcade_field_spot(i, n, random, ok)
 function arcade_world_extent()
 {
     const shape = arcade_shape();
-    if (arcade_scroll.kind !== 'scroll') {
+    if (!arcade_lane_kind()) {
         return shape.extent;
     }
     const along = shape.scroll + 2*arcade_scroll_margin;
@@ -135,7 +135,7 @@ function arcade_lane_way()
 function arcade_station_at()
 {
     const shape = arcade_shape();
-    if (arcade_scroll.kind !== 'scroll') {
+    if (!arcade_lane_kind()) {
         return shape.station;
     }
     const [w, h] = arcade_world_extent();

@@ -50,11 +50,11 @@ const spire_color = '#ed97cf';
 function spires_generate()
 {
     spires = [];
-    if ((campaign.world !== spire_world) || race_mode.active) {
+    if ((campaign.world !== spire_world) || race_mode.active || (arcade.active && arcade_base_kind())) {
         return;
     }
     const random = visual_random_from_seed(4421);
-    const lane = arcade.active && (arcade_scroll.kind === 'scroll');
+    const lane = arcade.active && arcade_lane_kind();
     const layout = arcade.active ? spire_rings.free : spire_rings.campaign;
     const span = lane ? arcade_shape().scroll - spire_lane_start - spire_lane_end : 0;
     const count = lane ? Math.round(span/spire_lane_gap) : layout.count;

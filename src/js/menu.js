@@ -79,9 +79,10 @@ function on_menu_key(event)
         menu_fold();
         return;
     }
-    // T turns the open row's kind: the Arcade's Free or Scroll, the Races' Steer or Turbo
+    // T turns the open row's kind: the Arcade's Free, Scroll or Base, the Races' Steer or Turbo
     if ((menu_open_row === 'arcade') && (event.key.toLowerCase() === 't')) {
-        arcade_kind_pick((arcade_scroll.kind === 'scroll') ? 'free' : 'scroll');
+        const kinds = Object.keys(arcade_kinds);
+        arcade_kind_pick(kinds[(kinds.indexOf(arcade_scroll.kind) + 1) % kinds.length]);
         return;
     }
     if ((menu_open_row === 'races') && (event.key.toLowerCase() === 't')) {

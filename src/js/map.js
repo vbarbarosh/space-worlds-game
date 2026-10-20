@@ -87,7 +87,7 @@ function base_generate_map()
     const station_at = arcade.active ? arcade_station_at() : [0.5, 0.5];
     const hub = {x: world.w*station_at[0], y: world.h*station_at[1]};
     const reach = (arcade.active ? 5600 : Math.min(world.w, world.h))*0.37;
-    const lane = arcade.active && (arcade_scroll.kind === 'scroll');
+    const lane = arcade.active && arcade_lane_kind();
     const caches = lane ? Math.round(arcade_shape().scroll/arcade_lane_cache_gap) : 22;
     for (let i = 0; i < caches; ++i) {
         let x;
@@ -102,7 +102,9 @@ function base_generate_map()
                 break;
             }
         }
-        for (let j = 0; j < 5; ++j) {
+        // a Base run has no salvage, only the cache's supply (arcade_base.js)
+        const pieces = (arcade.active && arcade_base_kind()) ? 0 : 5;
+        for (let j = 0; j < pieces; ++j) {
             pickups.push({
                 x: x + (seeded() - 0.5)*90,
                 y: y + (seeded() - 0.5)*90,

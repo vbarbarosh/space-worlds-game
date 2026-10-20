@@ -15,6 +15,7 @@
 const arcade_kinds = {
     free: {name: 'Free', note: 'Fly anywhere in the world; raiders come from every side; the station is the depot.'},
     scroll: {name: 'Scroll', note: 'The screen moves on by itself, up, down, left or right by the world; raiders come from ahead.'},
+    base: {name: 'Base', note: 'Scroll pared to its base: one speed, raiders that chase you and raiders that pass, nothing else yet.'},
 };
 // The ways a lane goes, as a heading on the screen
 const arcade_scroll_ways = {forward: {x: 0, y: -1}, back: {x: 0, y: 1}, left: {x: -1, y: 0}, right: {x: 1, y: 0}};
@@ -105,6 +106,7 @@ function arcade_kind_pick(kind)
         v.setAttribute('aria-pressed', String(v.dataset.arcadeKind === arcade_scroll.kind));
     }
     document.getElementById('arcade_kind_note').textContent = arcade_kinds[arcade_scroll.kind].note;
+    sync_mode_note();
     menu_try_sync();
     try {
         best = Number(localStorage.getItem(arcade_best_key())) || 0;
@@ -117,10 +119,22 @@ function arcade_kind_pick(kind)
 // Where the best of the kind picked is kept
 function arcade_best_key()
 {
-    return (arcade_scroll.kind === 'scroll') ? 'pulse_drift_best_scroll' : 'pulse_drift_best';
+    return (arcade_scroll.kind === 'free') ? 'pulse_drift_best' : `pulse_drift_best_${arcade_scroll.kind}`;
 }
 
-// A lane is flown: an arcade run of the Scroll kind, in a world
+// The kind picked flies lanes: Scroll, or Base (Scroll pared to its base: arcade_base.js)
+function arcade_lane_kind()
+{
+    return (arcade_scroll.kind === 'scroll') || (arcade_scroll.kind === 'base');
+}
+
+// The kind picked is Base
+function arcade_base_kind()
+{
+    return arcade_scroll.kind === 'base';
+}
+
+// A lane is flown: an arcade run of the Scroll or Base kind, in a world
 function arcade_scroll_on()
 {
     return arcade.active && arcade_scroll.on && !!player;
@@ -130,7 +144,7 @@ function arcade_scroll_on()
 // the way
 function arcade_scroll_world_start()
 {
-    arcade_scroll.on = arcade.active && (arcade_scroll.kind === 'scroll');
+    arcade_scroll.on = arcade.active && arcade_lane_kind();
     if (!arcade_scroll.on) {
         return;
     }
@@ -295,9 +309,9 @@ function arcade_scroll_short(alive)
 // as it would anyway. A sweep: a line coming in at one side of the screen's front half and flying across it to the
 // other; a V: its point ahead, flying down the lane through the screen against its way. Each raider fires as it does
 // anywhere; the formation keeps its places, and a raider of it is gone once it has flown out of the view.
-function arcade_scroll_formation(type, size, elite, mix)
+function arcade_scroll_formation(type, size, elite, mix, always = false)
 {
-    if (Math.random() >= arcade_scroll_formations) {
+    if (!always && (Math.random() >= arcade_scroll_formations)) {
         return false;
     }
     const view = arcade_scroll_view();

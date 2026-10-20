@@ -64,7 +64,8 @@ function cliffs_generate()
 {
     cliffs = [];
     cliff_aim = null;
-    if (!arcade.active || (campaign.world !== cliff_world)) {
+    // the Base kind has no world tricks (arcade_base.js)
+    if (!arcade.active || (campaign.world !== cliff_world) || arcade_base_kind()) {
         return;
     }
     const random = visual_random_from_seed(6151);
@@ -79,7 +80,7 @@ function cliffs_generate()
             // round the middle of the map, or where the world's shape sets the ring (arcade_shapes.js); on a Scroll
             // run's lane along it instead, either side in turn, each falling across the lane
             const middle = arcade_shape().cliffs || [0.5, 0.5];
-            const lane = (arcade_scroll.kind === 'scroll') ? arcade_lane_point((i + 0.3 + random()*0.4)*arcade_shape().scroll/cliff_count, ((i % 2) ? 1 : -1)*(500 + random()*400), world.w, world.h) : null;
+            const lane = arcade_lane_kind() ? arcade_lane_point((i + 0.3 + random()*0.4)*arcade_shape().scroll/cliff_count, ((i % 2) ? 1 : -1)*(500 + random()*400), world.w, world.h) : null;
             const across = lane && arcade_lane_point((i + 0.5)*arcade_shape().scroll/cliff_count, 0, world.w, world.h);
             const x = lane ? lane.x : world.w*middle[0] + Math.cos(a)*d;
             const y = lane ? lane.y : world.h*middle[1] + Math.sin(a)*d*(world.h/world.w);

@@ -42,8 +42,8 @@ function dev_scenario_from_url()
         god: flag('god', true),
         energy: flag('energy', false),
         spawns: flag('spawns', false),
-        // the arcade's kind: kind=scroll for a run on a lane that scrolls by itself
-        kind: (params.get('kind') === 'scroll') ? 'scroll' : 'free',
+        // the arcade's kind: kind=scroll for a run on a lane that scrolls by itself, kind=base for Scroll pared to its base
+        kind: ['scroll', 'base'].includes(params.get('kind')) ? params.get('kind') : 'free',
     };
 }
 
@@ -68,8 +68,8 @@ function dev_scenario_save()
     params.set('god', dev_scenario.god ? '1' : '0');
     params.set('energy', dev_scenario.energy ? '1' : '0');
     params.set('spawns', dev_scenario.spawns ? '1' : '0');
-    if (dev_scenario.kind === 'scroll') {
-        params.set('kind', 'scroll');
+    if (dev_scenario.kind !== 'free') {
+        params.set('kind', dev_scenario.kind);
     }
     history.replaceState(null, '', `${location.pathname}?${params.toString()}`);
 }

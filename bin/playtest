@@ -6,7 +6,7 @@ const path = require('node:path');
 const {chromium} = require('playwright');
 
 const data_dir = path.join(__dirname, '..', 'data', 'playtest');
-const kinds = ['free', 'scroll'];
+const kinds = ['free', 'scroll', 'base'];
 const modes = ['chill', 'normal', 'overload'];
 const picks = ['boon', 'gamble', 'trade', 'random', 'none'];
 const routes = ['low', 'high', 'random'];
@@ -52,10 +52,10 @@ const usage = `usage: bin/playtest [--mode=normal] [--kind=free] [--seeds=1,2,3]
     last of the run's lives (arcade_lives, 3) ends it lost, as it ends the game's run. The run says when the shop ran
     out (the Aurora Cruiser owned and every module level owned, a launcher's modules only with the launcher): the
     minute and the world. Results go to data/playtest/<label>/<mode>-<seed>.json (<mode>-scroll-<seed>.json for a
-    Scroll run), and a table per run is printed.
+    Scroll run, <mode>-base-<seed>.json for a Base one), and a table per run is printed.
 
-    --kind plays the arcade's Free runs (the default) or its Scroll runs, on a screen that moves on by itself
-    (src/js/arcade_scroll.js).
+    --kind plays the arcade's Free runs (the default), its Scroll runs, on a screen that moves on by itself
+    (src/js/arcade_scroll.js), or its Base runs, Scroll pared to chasers and passers (src/js/arcade_base.js).
 
     --minutes stops a run that takes longer than that on the wall clock, and says so.
     --gun buys that gun (plasma, scatter, ion, rail, missile, beam) at the first depot that can pay for it after a
@@ -117,7 +117,7 @@ async function main()
             const run = await page.evaluate(() => window.__bot.report());
             run.wall_seconds = Math.round((Date.now() - time0)/1000);
             run.cut = !run.done;
-            fs.writeFileSync(path.join(out_dir, `${mode}-${(kind === 'scroll') ? 'scroll-' : ''}${seed}.json`), JSON.stringify(run, null, 1));
+            fs.writeFileSync(path.join(out_dir, `${mode}-${(kind === 'free') ? '' : `${kind}-`}${seed}.json`), JSON.stringify(run, null, 1));
             console.log(run_table(run));
             runs.push(run);
             await page.close();
@@ -134,7 +134,7 @@ async function main()
 function run_table(run)
 {
     const maxed = run.maxed ? `shop ran out at ${(run.maxed.run_time/60).toFixed(1)} min in ${run.maxed.world}` : 'shop never ran out';
-    const lines = [`${run.mode}${(run.kind === 'scroll') ? ' scroll' : ''}${run.idle ? ' idle' : ''} seed ${run.seed}: ${run.won ? 'won' : run.cut ? 'cut (time)' : 'lost'} · ${run.deaths} deaths · ${Math.round(run.run_time)} s · score ${run.score} · salvage left ${run.salvage_left} · ${maxed} · ${run.wall_seconds} s on the clock`];
+    const lines = [`${run.mode}${(run.kind === 'free') ? '' : ` ${run.kind}`}${run.idle ? ' idle' : ''} seed ${run.seed}: ${run.won ? 'won' : run.cut ? 'cut (time)' : 'lost'} · ${run.deaths} deaths · ${Math.round(run.run_time)} s · score ${run.score} · salvage left ${run.salvage_left} · ${maxed} · ${run.wall_seconds} s on the clock`];
     lines.push(`cards ${run.pick}: ${(run.cards || []).join(', ') || '-'} · route ${run.route_how}: ${(run.route || []).join(' > ')}`);
     lines.push('world        hull lost (w1/w2/w3)   all dmg  kills  off-screen  salvage at depot  left after  power  deaths  time  quiet  crowd  flagship  ship and guns  most from');
     for (const world of run.worlds) {

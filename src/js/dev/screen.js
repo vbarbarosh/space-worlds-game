@@ -290,9 +290,9 @@ function dev_screen_menu_open()
         set_hidden(el.continue_row, true);
     }
     menu_open();
-    // &kind=scroll: the Arcade row with Scroll picked
-    if (dev_scenario.kind === 'scroll') {
-        arcade_kind_pick('scroll');
+    // &kind=scroll or base: the Arcade row with that kind picked
+    if (dev_scenario.kind !== 'free') {
+        arcade_kind_pick(dev_scenario.kind);
     }
     // &race_kind=turbo: the Races row with Turbo picked
     if (dev_race_params.get('race_kind')) {

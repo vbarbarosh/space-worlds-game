@@ -10,6 +10,8 @@ const modes = [
     {value: '&screen=arcade', label: 'arcade'},
     // an arcade Scroll run's long world, stretched along its lane (src/js/arcade_shapes.js)
     {value: '&screen=arcade&kind=scroll', label: 'scroll'},
+    // the Base kind's: the same lane, without the worlds' tricks (src/js/arcade_base.js)
+    {value: '&screen=arcade&kind=base', label: 'base'},
 ];
 // The rules of docs/placement.md, in metres
 const rules = {
@@ -264,7 +266,8 @@ function check_pylons(map, things)
             out.push(`${text}: ${Math.round(d)} m, need ${Math.round(need)} m`);
         }
     }
-    if (map.world_name === 'Ion Reach') {
+    // the arcade's Base kind has no world tricks (src/js/arcade_base.js)
+    if ((map.world_name === 'Ion Reach') && !map.base) {
         if (map.pylons.length < rules.pylons_least) {
             out.push(`${map.pylons.length} arc pylons, need ${rules.pylons_least}`);
         }
@@ -306,7 +309,7 @@ function check_spires(map, things, solids)
             out.push(`${text}: ${Math.round(d)} m, need ${Math.round(need)} m`);
         }
     }
-    if ((map.world_name === 'Obsidian') && (map.spires.length < rules.spires_least)) {
+    if ((map.world_name === 'Obsidian') && !map.base && (map.spires.length < rules.spires_least)) {
         out.push(`${map.spires.length} magnetic spires, need ${rules.spires_least}`);
     }
     const shelter = map.station_size/2 + 400;

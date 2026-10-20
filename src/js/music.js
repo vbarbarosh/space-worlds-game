@@ -5,6 +5,10 @@ function enemy_fire(enemy, angle, speed = 210, pattern = false)
     if (arcade_scroll_unseen(enemy)) {
         return;
     }
+    // a Base raider fires only with you inside its range (arcade_base.js)
+    if (enemy.fire_range && (distance(enemy, player) > enemy.fire_range)) {
+        return;
+    }
     world_audio_base_enemy_fire(enemy, angle, speed, pattern);
     if (!sound.ctx || (state !== 'playing') || (distance(enemy, player) > 900) || (sound.ctx.currentTime < (sound.enemy_next || 0))) {
         return;

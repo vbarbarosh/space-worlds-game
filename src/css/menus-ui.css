@@ -1899,7 +1899,8 @@ body:not(.in-game) .ui.hud .hud-top .toolbar {
    Steer or Turbo) */
 .ui .mode-kinds {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    /* the Arcade's three kinds in one row, the Races' two; on a phone two a row */
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
     gap: 8px;
     margin-bottom: 6px;
 }
