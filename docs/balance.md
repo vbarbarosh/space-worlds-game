@@ -1354,7 +1354,10 @@ on it"); `src/js/arcade_base.js`.
 | A chaser fires | only within 340 m | `arcade_base_chaser_range` |
 | A passer fires | only within 460 m, its ring drawn: gold, red with you inside | `arcade_base_passer_range` |
 | Their gun | plasma | `arcade_base_squad` |
-| What grows world by world | hull, armour and shield, as on a Scroll lane; how many come at once; and their reload, 6% shorter a step, 60% at the shortest | `raider_tier`, `arcade_hull_scale`, `arcade_base_reload` |
+| Their tier | Haven's in every world: armour, shield and guns of step 1 | `raider_tier` |
+| Their hull (layer 3) | the mode's × (your guns' damage a second ÷ the start kit's)^0.6 | `arcade_base_hull_k`, `arcade_hull_scale` |
+| Their hits (layer 3) | × ((hull + shield) ÷ (1 − armour's cut), yours ÷ the start kit's)^0.6 | `arcade_base_hit_k`, `raider_hit_scale` |
+| What grows world by world | how many come at once (as on a Scroll lane), and their reload, 6% shorter a step, 60% at the shortest | `arcade_base_reload` |
 | Layer 1 | salvage, and the whole depot between worlds (and before a retry): repairs, supplies, guns, ships, modules, Reactor tuning | `arcade_base_world_end` |
 | Layer 2 | the raiders with jobs (interceptor, carrier, bulwark, sniper, mine-layer), one more kind each world from Haven to Obsidian, in a chasers' line's places, each hunting on its own, no pack; a passers' formation keeps its places | `raider_squad_after` |
 | Left out | cards, elites, flagships, tanks, splitters, lancers, missiles, world tricks | - |
@@ -1386,6 +1389,20 @@ Layer 2, the raiders with jobs (seeds 1–4): Chill 4 of 4, Standard 4 of
 hit (mines, bulwarks, snipers most), but from Verdant on the bot loses
 almost no hull, and its salvage at a depot reaches 3577 by Cryosphere: the
 kit still outgrows what the worlds bring.
+
+Layer 3, the raiders built against your kit, by how far they follow its
+growth (seeds 1–4, bot runs won):
+
+| Follow | Chill | Standard | Overload, worlds reached |
+|---|---|---|---|
+| none (layer 2, the step's growth) | 4 of 4 | 4 of 4 | 4 of 4 |
+| 0.5 | 4 of 4 | 4 of 4 | 2 of 4 (5, 8, 8, 7) |
+| **0.6 (kept)** | 4 of 4 | 4 of 4, one death | 0 of 4 (3, 3, 4, 3) |
+| 0.75 | 4 of 4 | 1 of 4 | 0 of 4 (3 each) |
+
+At 0.6 the hull lost climbs to the run's end on Standard (Obsidian and
+Eclipse cost most) instead of peaking in Haven; Overload is past the bot,
+which never dashes, and is left to a player who does.
 
 ## The arcade's world shapes
 

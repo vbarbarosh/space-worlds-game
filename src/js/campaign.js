@@ -227,7 +227,8 @@ let gunners_spawned = 0;
 // them. The arcade's raiders fight at the run's step, whichever world it is (arcade_route.js).
 function raider_tier(id = campaign.world)
 {
-    return arcade.active ? arcade_level() : Math.max(world_tier(id), campaign.story - 1);
+    // a Base run's raiders keep Haven's tier: they grow with your kit instead (arcade_base.js)
+    return arcade.active ? (arcade_base_kind() ? 0 : arcade_level()) : Math.max(world_tier(id), campaign.story - 1);
 }
 
 // A world's raider armour at the story's front: 4% more a tier past its own, 72% at most
@@ -377,7 +378,7 @@ function raider_reload(enemy)
 function raider_hit_scale(enemy = null)
 {
     const own = enemy && (enemy.escort_raider || enemy.robot_raider || enemy.structure_target);
-    return 1 + (own ? world_tier(campaign.world) : raider_tier())*0.08;
+    return (1 + (own ? world_tier(campaign.world) : raider_tier())*0.08)*arcade_base_hit_k();
 }
 
 // Armour cuts a hit twice: its plating takes a flat part of every hit, 50 at full armour and never more than three

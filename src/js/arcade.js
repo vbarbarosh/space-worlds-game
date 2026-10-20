@@ -244,7 +244,8 @@ function arcade_hull_scale(enemy)
     const level = arcade_level();
     const shop = ((enemy.type === 'boss') ? arcade_shop_flagship : arcade_shop_hull)[level] ?? 1;
     const growth = (enemy.type === 'boss') ? 1 : mode.hull*(1 + mode.growth*level)*arcade_card_k.raider_hull;
-    const k = growth*(1 + (shop - 1)*mode.shop)*(mode.tier_hp ? 1 + (weapon_level() - 1)*0.22 : 1);
+    // a Base run's raiders follow your kit's damage instead of the run's step (arcade_base.js)
+    const k = arcade_base_on() ? mode.hull*arcade_base_hull_k() : growth*(1 + (shop - 1)*mode.shop)*(mode.tier_hp ? 1 + (weapon_level() - 1)*0.22 : 1);
     enemy.hp = Math.round(enemy.hp*k);
     enemy.max_hp = Math.round(enemy.max_hp*k);
 }

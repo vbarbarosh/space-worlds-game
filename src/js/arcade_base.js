@@ -10,8 +10,10 @@
 // Haven to Obsidian, in a chasers' line's places; the passers' formations keep theirs. Left out, to be laid on one by
 // one: the cards, elites and flagships, the world's other types (tanks, splitters, lancers) and missiles, and each
 // world's trick (cliffs, pylons, spires, the hole).
-// The raiders grow world by world as on a Scroll lane (since layer 1: with the depot your kit grows, and Haven's
-// raiders in every world gave way to it), and fire more often besides.
+// Layer 3: the raiders are built against the kit you bring, not the run's step: Haven's tier in every world, their hull
+// following your guns' damage a second and their hits your hull, shield and armour, each against the run's start
+// kit, to the power arcade_base_follow (most of the growth, not all: a better kit still makes you stronger); from world
+// to world their number at once (as on a Scroll lane) and how often they fire grow besides.
 
 // How far a passer fires (its ring) and a chaser, m
 const arcade_base_passer_range = 460;
@@ -21,6 +23,9 @@ const arcade_base_passers = 0.5;
 // a raider's reload, the run's step taking this share off it, down to arcade_base_reload_min
 const arcade_base_reload_step = 0.06;
 const arcade_base_reload_min = 0.6;
+
+// How far the raiders follow your kit's growth: this power of it (1: all of it, 0: none)
+const arcade_base_follow = 0.6;
 
 // A Base run is flown
 function arcade_base_on()
@@ -51,6 +56,38 @@ function arcade_base_squad(size)
 function arcade_base_reload()
 {
     return arcade_base_kind() ? Math.max(arcade_base_reload_min, 1 - arcade_base_reload_step*arcade_level()) : 1;
+}
+
+// A Base raider's hull against Haven's: your kit's damage a second against the run's start kit's, to
+// arcade_base_follow
+function arcade_base_hull_k()
+{
+    const start = weapon_by_id('plasma');
+    return Math.pow(arcade_base_kit_damage()/(start.damage*ship_catalog[0].damage/start.interval), arcade_base_follow);
+}
+
+// A Base raider's hits against Haven's (raider_hit_scale): your hull, shield and armour against the run's start
+// kit's, to arcade_base_follow; outside a Base run, 1
+function arcade_base_hit_k()
+{
+    if (!arcade_base_on()) {
+        return 1;
+    }
+    const toughness = (hull_max() + shield_max())/(1 - upgrades.armor*armor_cut());
+    return Math.pow(toughness/(ship_catalog[0].hull + ship_catalog[0].shield), arcade_base_follow);
+}
+
+// Your guns' damage a second, every mount's (fire_equipped_weapon): its damage by Hotter plasma, its tier and the
+// ship, its shots a volley, over its reload
+function arcade_base_kit_damage()
+{
+    const tiers = ensure_career().weapon_levels;
+    let sum = 0;
+    for (const v of mounted_weapons().filter(Boolean)) {
+        const damage = v.damage*(1 + upgrades.damage*hotter_plasma_share)*(1 + ((tiers[v.id] || 1) - 1)*0.22)*current_ship().damage;
+        sum += damage*gun_shot_count(v)/Math.max(0.065, v.interval*(1 - upgrades.rate*rate_cut()));
+    }
+    return sum;
 }
 
 // Each frame of a Base world (arcade_update): at the lane's end the world is over; true once it is
