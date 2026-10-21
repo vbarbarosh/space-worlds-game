@@ -27,8 +27,8 @@
 // it (arcade_base_guards). Layer 9: each world's trick along its lane, as the Scroll of before had them: Dustfall's
 // cliffs, Ion Reach's pylons and charge fields, Obsidian's spires, Ion Reach's and Nova Forge's storms,
 // Eclipse's black hole beside the lane at three quarters of it (arcade_scroll_lanes). The cards (2026-10-21): a card
-// and the next world between worlds, as in Free, their factors on a lane's raiders and flagship too. Left out: the
-// wave-2 events.
+// and the next world between worlds, as in Free, their factors on a lane's raiders and flagship too. The wave-2
+// events (2026-10-21): with the lane's second half, placed for a lane (arcade_events.js). Nothing is left out now.
 
 // How far a passer fires (its ring) and a chaser, m
 const arcade_base_passer_range = 460;

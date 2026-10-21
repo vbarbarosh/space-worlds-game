@@ -1569,6 +1569,17 @@ flagship's), Elite hunt (an elite leads every squadron). A gamble won pays when
 its world ends, the last world's in score. The bot, 18 Standard seeds: 15 won
 (13 before); Chill 3 of 3 with no deaths.
 
+### Wave-2 events on Scroll (2026-10-21)
+
+With a lane's second half a world draws its event, as in Free, placed for a
+lane: the freighter crosses the screen's front half as a slow passer and
+escapes if it leaves the view uncaught; the ace and the jammer come past the
+front edge; a heat surge's vents run across the lane ahead. The bot, 18
+Standard seeds: with an event in every world 7 won (15 before), every loss at
+Eclipse, its second half costing 203 hull a run against 49 and its flagship
+1576 against 1304; with none in the run's last world, 13 won. Chill 3 of 3
+with no deaths.
+
 ## The arcade's world shapes
 
 Each arcade world has its own size, station and rock pattern

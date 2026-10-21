@@ -367,8 +367,10 @@ function arcade_wave_start(n)
     if (arcade_scroll_on()) {
         player.radiation_dose = 0;
     }
-    // a wave-2 event is a chase across open space: none on a Scroll lane
-    if ((n === 2) && !arcade_scroll_on()) {
+    // a wave-2 event, on a Scroll lane as its second half begins (arcade_events.js), but in the run's last world: its
+    // second half and flagship are the run's hardest already (with an event there the bot won 7 Standard runs of 18,
+    // every loss at Eclipse; without, 15)
+    if ((n === 2) && !(arcade_scroll_on() && (arcade_level() >= arcade_worlds - 1))) {
         arcade_event_start();
     }
     else {

@@ -92,7 +92,7 @@ Three modes:
   missiles, ion bolts or rail guns, and missiles among the passers (layer 7); each world's flagship duel but Haven's
   chase, the flagship coming into view from ahead, the lane's raiders staying, its escorts guarding it (layer 8); each world's trick along its lane, cliffs, pylons,
   spires, storms, Eclipse's black hole beside it (layer 9); a card and the next world between worlds, as in Free;
-  no wave-2 events.
+  a wave-2 event with the lane's second half, placed for a lane, but in the run's last world.
   No portals, and the depot opens between worlds only. (Until 2026-10-21 this was a third kind, Base, beside a
   Scroll that had all of those; there is one Scroll now.) Each kind keeps its own best.
 - **Races**: ring races alone, at Easy, Normal or Hard, course after course

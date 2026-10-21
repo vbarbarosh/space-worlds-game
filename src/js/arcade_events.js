@@ -1,5 +1,5 @@
-// Wave events: wave 2 of each arcade world draws one event from that world's pool, says it in a toast and marks it on
-// the map; it ends with the wave. A convoy's freighter runs past with salvage, a fleeing ace jumps away unless you
+// Wave events: wave 2 of each arcade world (a Scroll lane's second half) draws one event from that world's pool, says
+// it in a toast and marks it on the map; it ends with the wave. A convoy's freighter runs past with salvage, a fleeing ace jumps away unless you
 // catch it, a jammer in the dust blinds the minimap and the radar until you destroy it, a heat surge bursts vents
 // along a line. (The ion storm that took your shield everywhere for the wave went on 2026-10-15: no answer to it, and
 // it undid Ion Reach's own storms, which trade the shield for pulse where you choose to fly.)
@@ -54,9 +54,15 @@ function arcade_event_end()
     arcade.event = null;
 }
 
-// A freighter: a tank's hull ×4, unarmed, on a 2 km run past you at a crawl, about 30 s, ignoring you
+// A freighter: a tank's hull ×4, unarmed, on a 2 km run past you at a crawl, about 30 s, ignoring you; on a Scroll lane
+// across the screen instead, from a side of its front half to the other, a slow passer gone once out of the view
+// (arcade_scroll_raiders), about 20 s
 function arcade_event_convoy()
 {
+    if (arcade_scroll_on()) {
+        arcade_event_lane_convoy();
+        return;
+    }
     const a = Math.random()*Math.PI*2;
     const side = rand(-400, 400);
     const x = player.x - Math.sin(a)*side;
@@ -73,13 +79,45 @@ function arcade_event_convoy()
     arcade.event.target = enemy;
 }
 
+// The freighter on a lane: a sweep across the screen's front half (arcade_scroll_formation's way), slower than a passer
+const arcade_event_lane_sweep = 60;
+
+function arcade_event_lane_convoy()
+{
+    const view = arcade_scroll_view();
+    const way = arcade_scroll.way;
+    const side = (Math.random() < 0.5) ? -1 : 1;
+    const along = view.h*rand(0.25, 0.6);
+    const across = side*(view.w + 80);
+    const enemy = spawn_enemy('tank');
+    enemy.x = clamp(view.x + way.x*along - way.y*across, 120, world.w - 120);
+    enemy.y = clamp(view.y + way.y*along + way.x*across, 120, world.h - 120);
+    enemy.hp = enemy.max_hp = enemy.hp*4;
+    enemy.r = Math.round(enemy.r*1.5);
+    enemy.unarmed = true;
+    enemy.event_kind = 'convoy';
+    enemy.path = {rx: way.y*side*arcade_event_lane_sweep, ry: -way.x*side*arcade_event_lane_sweep, entered: false};
+    arcade.event.target = enemy;
+}
+
+// Where an event's raider comes, `far` m away: anywhere round you, or on a Scroll lane past the front edge
+function arcade_event_spot(far)
+{
+    if (arcade_scroll_on()) {
+        const ahead = arcade_scroll_squad_spot(rand(-0.8, 0.8));
+        return {x: player.x + Math.cos(ahead.angle)*ahead.far, y: player.y + Math.sin(ahead.angle)*ahead.far};
+    }
+    const angle = Math.random()*Math.PI*2;
+    return {x: player.x + Math.cos(angle)*far, y: player.y + Math.sin(angle)*far};
+}
+
 // An elite of the world's mix, faster, 700 m away; it jumps away when its time is up
 function arcade_event_ace()
 {
-    const angle = Math.random()*Math.PI*2;
+    const at = arcade_event_spot(700);
     const enemy = spawn_enemy((arcade_level() >= 1) ? 'shooter' : 'chaser');
-    enemy.x = clamp(player.x + Math.cos(angle)*700, 60, world.w - 60);
-    enemy.y = clamp(player.y + Math.sin(angle)*700, 60, world.h - 60);
+    enemy.x = clamp(at.x, 60, world.w - 60);
+    enemy.y = clamp(at.y, 60, world.h - 60);
     arcade_elite_make(enemy);
     enemy.speed *= 1.3;
     enemy.event_kind = 'ace';
@@ -90,11 +128,10 @@ function arcade_event_ace()
 // A jammer: a gunner with twice the hull, 900–1300 m away; while it lives the minimap and the radar see nothing but it
 function arcade_event_jammer()
 {
-    const angle = Math.random()*Math.PI*2;
-    const far = rand(900, 1300);
+    const at = arcade_event_spot(rand(900, 1300));
     const enemy = spawn_enemy('shooter');
-    enemy.x = clamp(player.x + Math.cos(angle)*far, 60, world.w - 60);
-    enemy.y = clamp(player.y + Math.sin(angle)*far, 60, world.h - 60);
+    enemy.x = clamp(at.x, 60, world.w - 60);
+    enemy.y = clamp(at.y, 60, world.h - 60);
     enemy.hp = enemy.max_hp = enemy.max_hp*2;
     enemy.event_kind = 'jammer';
     enemy.jammer = true;
@@ -116,11 +153,17 @@ function arcade_event_update(dt)
             arcade_event_remove(target);
             show_toast('ACE ESCAPED', 'It jumped away with its salvage', 2.5);
         }
-        else if ((e.kind === 'convoy') && (distance(target, target.event_goal) < 80)) {
+        else if ((e.kind === 'convoy') && target.event_goal && (distance(target, target.event_goal) < 80)) {
             explode(target.x, target.y, 40, '#a8e4ff', 0, 'warp');
             arcade_event_remove(target);
             show_toast('CONVOY ESCAPED', 'The freighter left the map', 2.5);
         }
+    }
+    // a lane's freighter gone out of the view uncaught (arcade_scroll_raiders): it escaped, as off the map; one caught
+    // is no longer the event's target (arcade_event_kill)
+    if (target && (target.hp <= 0) && (e.kind === 'convoy') && target.path) {
+        arcade.event.target = null;
+        show_toast('CONVOY ESCAPED', 'The freighter left the screen', 2.5);
     }
     if (e.kind === 'heat_surge') {
         arcade_vents_update(e, dt);
@@ -173,10 +216,12 @@ function arcade_vents_update(e, dt)
 {
     e.vent_timer -= dt;
     if (e.vent_timer <= 0) {
-        const a = player.angle + Math.PI/2 + rand(-0.4, 0.4);
+        // your way: on a Scroll lane the screen's, across the lane
+        const way = arcade_scroll_on() ? Math.atan2(arcade_scroll.way.y, arcade_scroll.way.x) : player.angle;
+        const a = way + Math.PI/2 + rand(-0.4, 0.4);
         const ahead = 260;
-        const cx = player.x + Math.cos(player.angle)*ahead;
-        const cy = player.y + Math.sin(player.angle)*ahead;
+        const cx = player.x + Math.cos(way)*ahead;
+        const cy = player.y + Math.sin(way)*ahead;
         e.vents = [];
         for (let i = 0; i < arcade_vent_count; ++i) {
             const k = (i/(arcade_vent_count - 1) - 0.5)*1400;
