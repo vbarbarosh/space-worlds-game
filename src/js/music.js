@@ -282,17 +282,24 @@ function sfx(kind, volume = 1, position = null, when)
         volume *= clamp(1 - distance(player, position)/1500, 0.12, 1);
     }
     const shape = {pan};
-    const v = clamp(volume, 0, 1.5);
+    // an effect's own level (its volume) on top of the call's
+    const v = clamp(volume*((effect && effect.volume) || 1), 0, 1.5);
     const bus = (effect && effect.room) ? sound.blast_bus : sound.fx_bus;
     function note(f, d, a, end = null, type = 'sine', delay = 0, cutoff = 2200) {
         return tone(f, d, type, a*v, t + delay, end, cutoff, bus, shape);
     }
-    // noise in a band round f (or under it: filter 'lowpass', a boom), sliding to `sweep` when given (a whoosh)
-    function air(d, a, f, delay = 0, sweep = 0, filter = '') {
-        return noise(d, a*v, f, t + delay, bus, (sweep || filter) ? {...shape, sweep, filter} : shape);
+    // noise in a band round f (or under it: filter 'lowpass', a boom), sliding to `sweep` when given (a whoosh),
+    // swelling for `attack` s when given (a roar building)
+    function air(d, a, f, delay = 0, sweep = 0, filter = '', attack = 0) {
+        return noise(d, a*v, f, t + delay, bus, (sweep || filter || attack) ? {...shape, sweep, filter, attack} : shape);
+    }
+    // white noise, under f (or in a band: filter 'bandpass'), sliding to `sweep`, swelling for `attack` s: an
+    // explosion's roar and crackle
+    function grit(d, a, f, delay = 0, sweep = 0, filter = 'lowpass', attack = 0) {
+        return noise(d, a*v, f, t + delay, bus, {...shape, sweep, filter, attack, white: true});
     }
     if (effect) {
-        effect.play(note, air, t);
+        effect.play(note, air, t, grit);
     }
 }
 
