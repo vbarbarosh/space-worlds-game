@@ -19,11 +19,14 @@ const usage = `usage: bin/sound-render [--label=name] [--page=build/dev.html] [p
         drive     each world's arcade music on its first wave, 32 s, effects off: drive-<world>.webm
         fight     an arcade wave in Ion Reach, 20 s, all of it: fight.webm, with a count of the effects played
         boss      Ion Reach's flagship fight, 20 s, all of it: boss.webm
-        arrival   Ion Reach's arcade music, its flagship coming 600 m off 6 s in, 16 s, effects off: arrival.webm`;
-const parts = ['effects', 'themes', 'drive', 'fight', 'boss', 'arrival'];
+        arrival   Ion Reach's arcade music, its flagship coming 600 m off 6 s in, 16 s, effects off: arrival.webm
+        chain     six raiders' blasts and a ship's at once round you, 1 s in, no music: chain.webm`;
+const parts = ['effects', 'themes', 'drive', 'fight', 'boss', 'arrival', 'chain'];
 const worlds = ['haven', 'verdant', 'dustfall', 'ion-reach', 'obsidian', 'cryosphere', 'nova-forge', 'eclipse'];
 // each effect starts this long after the one before (ms)
 const effect_gap = 2000;
+// seven blasts at once round you: six a raider's size and a ship's
+const chain_code = 'for (let i = 0; i < 6; ++i) { explode(player.x + 220*Math.cos(i), player.y + 220*Math.sin(i), 40, "#ff8a3d"); } explode(player.x + 120, player.y, 72, "#ff8a3d");';
 // the flagship's wave begun with it 600 m off, in the game's scope (a build from before arcade_wave_count too)
 const arrival_code = 'arcade_wave_start((typeof arcade_wave_count === "function") ? arcade_wave_count() : arcade_waves); const b = enemies.find(v => v.type === "boss"); b.x = player.x + 600; b.y = player.y;';
 // the page's own output, tapped where the game connects to the speakers, recorded by a MediaRecorder
@@ -125,6 +128,15 @@ async function part_record(browser, hooked, out_dir, part, report)
             console.log(`${name.padEnd(22)} peak ${report[name].peak} dB  mean ${report[name].mean} dB  voices at most ${report[name].voices}`);
             await page.close();
         }
+        return;
+    }
+    if (part === 'chain') {
+        const page = await page_open(browser, hooked, 'world=0&screen=flight&god=1');
+        await page_eval(page, 'enemies = []; volume_settings.music = 0; volume_settings.ambience = 0; sound.music_trim.gain.value = 0; sound.ambient_bus.gain.value = 0;');
+        const file = await page_record(page, out_dir, part, 5000, `setTimeout(() => window.__t(${JSON.stringify(chain_code)}), 1000);`);
+        report[part] = level_measure(file);
+        console.log(`${part.padEnd(22)} peak ${report[part].peak} dB  mean ${report[part].mean} dB`);
+        await page.close();
         return;
     }
     if (part === 'arrival') {

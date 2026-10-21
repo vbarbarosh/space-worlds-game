@@ -283,7 +283,7 @@ function sfx(kind, volume = 1, position = null, when)
     }
     const shape = {pan};
     const v = clamp(volume, 0, 1.5);
-    const bus = sound.fx_bus;
+    const bus = (effect && effect.room) ? sound.blast_bus : sound.fx_bus;
     function note(f, d, a, end = null, type = 'sine', delay = 0, cutoff = 2200) {
         return tone(f, d, type, a*v, t + delay, end, cutoff, bus, shape);
     }

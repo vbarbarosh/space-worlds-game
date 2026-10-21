@@ -76,6 +76,16 @@ function create_audio_graph(context)
     wet.gain.value = 0.3;
     sound.room.connect(wet);
     wet.connect(sound.music_trim);
+    // explosions ring out in a room of their own, so blasts on top of each other swell into one roar (sfx's `room`)
+    sound.fx_room = c.createConvolver();
+    sound.fx_room.buffer = impulse;
+    const fx_wet = c.createGain();
+    fx_wet.gain.value = 0.45;
+    sound.fx_room.connect(fx_wet);
+    fx_wet.connect(sound.fx_bus);
+    sound.blast_bus = c.createGain();
+    sound.blast_bus.connect(sound.fx_bus);
+    sound.blast_bus.connect(sound.fx_room);
     sound.cues = {};
     sound.music_world = -1;
     sound.retired_buses = [];

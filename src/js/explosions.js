@@ -15,6 +15,14 @@ const explosion_ship_size = 36;
 // The blasts heard (explosion_sound): from this size, and a flagship's last from this one
 const explosion_sound_min = 12;
 const explosion_sound_huge = 180;
+// Blasts at once cascade: one within this many s of the last is put off to just after it (a little more or less), so
+// a chain is heard as pa-pa-pa-pam, not one pop (the author: "now it is 'op', nothing at all"); this many in a row at
+// most, the rest unheard
+const explosion_sound_gap = 0.09;
+const explosion_sound_burst = 8;
+// When the next blast may sound, and how many have been put off in the run so far
+let explosion_sound_next = 0;
+let explosion_sound_run = 0;
 // A big kill holds the game still for a moment, the frame drawn and nothing moving (js/boot.js): at most once in
 // 0.4 s, and never when the system asks for reduced motion
 let hit_stop = 0;
@@ -69,15 +77,28 @@ function explode(x, y, size, color, delay = 0, kind = 'blast', shake = 0, flash 
     }
 }
 
-// A blast is heard by its size, as it goes off (a delayed one later): a pop for a missile's, a boom for a ship's, a
-// long roar for a flagship's last (src/js/sfx/blast*.js); a smaller one than explosion_sound_min goes unheard
+// A blast is heard by its size, as it goes off (a delayed one later): a boom for a missile's or a raider's, a heavier
+// one for a ship's, a long roar for a flagship's last (src/js/sfx/blast*.js), each in the blasts' room; a smaller one
+// than explosion_sound_min goes unheard, and blasts at once cascade (explosion_sound_gap)
 function explosion_sound(x, y, size, delay)
 {
     if (!sound.ctx || (size < explosion_sound_min)) {
         return;
     }
     const kind = (size >= explosion_sound_huge) ? 'blast_huge' : (size >= explosion_ship_size) ? 'blast_big' : 'blast';
-    sfx(kind, 1, {x, y}, sound.ctx.currentTime + delay);
+    let when = sound.ctx.currentTime + delay;
+    if (when < explosion_sound_next) {
+        if (explosion_sound_run >= explosion_sound_burst) {
+            return;
+        }
+        when = explosion_sound_next;
+        explosion_sound_run++;
+    }
+    else {
+        explosion_sound_run = 0;
+    }
+    explosion_sound_next = when + explosion_sound_gap*(0.7 + Math.random()*0.6);
+    sfx(kind, 1, {x, y}, when);
 }
 
 // A flagship goes down in a chain of blasts across its hull, each one felt, then one large one that whitens the
