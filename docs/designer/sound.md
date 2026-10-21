@@ -31,7 +31,9 @@ newly composed music. The six reference recordings mentioned below are not
 included in the repository and were not used for the synthesis.
 
 Music loops last one complete 256-eighth cycle; two preceding chords supply
-their reverb tails. Loop edges have 5 ms ramps. Flight stems preserve their
+their reverb tails. Loops run seamlessly from end to start (a music loop begins
+with its own ending's tails; a flight stem's end is blended into its start), and
+`manifest.json`'s `seam` measures the join. Flight stems preserve their
 relative levels with a shared gain; other assets are peak normalized, so
 integration must balance them against the game's buses. `air-idle` is turning
 without thrust; straight idle air is silent. Shelter and ducking remain mixer

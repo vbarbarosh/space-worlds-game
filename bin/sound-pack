@@ -159,7 +159,11 @@ async function render_asset(job)
     const period = (job.category === 'music') ? Math.round(256*30/job.bpm*rate) : 12*rate;
     // Two preceding chords cover the longest pad and reverb, without rendering a discarded full cycle.
     const warmup = (job.category === 'music') ? Math.round(period/8) : 2*rate;
-    const frames = job.loop ? period + warmup : 8*rate;
+    // A loop renders on past its end, and that continuation is blended into its start (loop_join): a flight stem's noise
+    // and hums do not repeat in whole cycles within the period, and a music loop's start is its own ending's tails
+    // only as far as the warmup reaches (Haven's boss loop jumped 11 times its typical step at the join without it)
+    const overlap = job.loop ? Math.round(rate*((job.category === 'flight') ? 0.25 : 0.05)) : 0;
+    const frames = job.loop ? period + warmup + overlap : 8*rate;
     const context = new OfflineAudioContext(2, frames, rate);
     create_audio_graph(context);
     // The original brown noise loses almost all its high end. Full-band noise lets the recipes' filters work.
@@ -207,7 +211,8 @@ async function render_asset(job)
         const rendering = context.startRendering();
         for (const pause of pauses) {
             await pause.promise;
-            music_schedule(pause.step, pause.step + 32);
+            // the last block runs on into the next cycle's first steps: the continuation blended into the start
+            music_schedule(pause.step, pause.step + ((pause.step === 224) ? 40 : 32));
             await context.resume();
         }
         rendered = await rendering;
@@ -270,6 +275,10 @@ async function render_asset(job)
         }
         finish = Math.min(frames, finish + rate/20);
     }
+    if (job.loop) {
+        finish = begin + period;
+        loop_join(channels, begin, period, overlap);
+    }
     let peak = 0;
     for (const channel of channels) {
         for (let i = begin; i < finish; ++i) {
@@ -308,10 +317,11 @@ async function render_asset(job)
     view.setUint32(40, length*4, true);
     let sum = 0;
     let output_peak = 0;
-    // A 5 ms edge ramp removes discontinuities in stochastic loops without changing their musical length.
-    const ramp = job.loop ? 240 : 48;
+    // A one-shot fades in and out over 1 ms; a loop is left whole, its end running on into its start (a 5 ms ramp at a
+    // loop's edges dropped it to silence at every join: 19 dB for 10 ms in a music loop, a click in a steady hum)
+    const ramp = job.loop ? 0 : 48;
     for (let i = 0; i < length; ++i) {
-        const envelope = Math.min(1, i/ramp, (length - 1 - i)/ramp);
+        const envelope = ramp ? Math.min(1, i/ramp, (length - 1 - i)/ramp) : 1;
         for (let j = 0; j < 2; ++j) {
             const value = channels[j][begin + i]*gain*envelope;
             if (Math.abs(value) >= 1) {
@@ -327,7 +337,39 @@ async function render_asset(job)
     for (let i = 0; i < bytes.length; i += 32768) {
         chunks.push(String.fromCharCode(...bytes.subarray(i, i + 32768)));
     }
-    return {base64: btoa(chunks.join('')), frames: length, peak_db: 20*Math.log10(output_peak), rms_db: 10*Math.log10(sum/(length*2)), seam: 0};
+    const seam = job.loop ? loop_seam(channels, begin, length) : 0;
+    // a join that jumps more than this many times the loop's typical step between samples is heard as a click
+    if (seam > 8) {
+        throw new Error(`Loop seam ${seam.toFixed(1)}: ${job.name}`);
+    }
+    return {base64: btoa(chunks.join('')), frames: length, peak_db: 20*Math.log10(output_peak), rms_db: 10*Math.log10(sum/(length*2)), seam};
+
+    // Blends the `overlap` frames rendered past the loop's end into its start, equal power: the first frame is the
+    // sound going on from the last, and the loop's own start takes over by the end of the overlap
+    function loop_join(channels, begin, period, overlap) {
+        for (const channel of channels) {
+            for (let i = 0; i < overlap; ++i) {
+                const k = i/overlap;
+                channel[begin + i] = channel[begin + i]*Math.sin(k*Math.PI/2) + channel[begin + period + i]*Math.cos(k*Math.PI/2);
+            }
+        }
+    }
+
+    // The jump from the loop's last frame to its first, over the loop's median step between frames: about 1 when the
+    // join is as smooth as the rest
+    function loop_seam(channels, begin, length) {
+        let worst = 0;
+        for (const channel of channels) {
+            const steps = [];
+            for (let i = begin + 1; i < begin + length; i += 97) {
+                steps.push(Math.abs(channel[i] - channel[i - 1]));
+            }
+            steps.sort((a, b) => a - b);
+            const typical = steps[Math.floor(steps.length/2)] || 1e-9;
+            worst = Math.max(worst, Math.abs(channel[begin] - channel[begin + length - 1])/Math.max(typical, 1e-7));
+        }
+        return worst;
+    }
 }
 
 // Broad, non-resonant pressure and debris: no ringing sawtooth or bandpass in the blast's body.
@@ -406,7 +448,9 @@ Each world's calm, campaign-combat, arcade-drive and boss music is its existing 
 rendered for the complete 256-eighth cycle (32 bars), with full-band percussion. These are
 new renders, not newly composed themes. Two preceding chords supply the reverb tails.
 Boss-arrival stingers are separate so looping the boss track does not repeat the entrance.
-Loops retain the exact rounded musical frame count, with a 5 ms ramp at each edge.
+Loops retain the exact rounded musical frame count and run seamlessly from end to start: a music loop begins
+with its own ending's tails, a flight stem's end is blended into its start; manifest.json's seam is the jump at
+the join over the loop's typical step (about 1 is seamless; over 8 is refused).
 Use WAV for sample-accurate loops; MP3 is provided for listening and sharing.
 
 Flight stems include engine idle/thrust/turbo, air turning/thrust/turbo, and each world's
