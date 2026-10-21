@@ -36,6 +36,7 @@ let play_log_problem = '';
 const play_log_after = new MessageChannel();
 let play_log_after_t0 = 0;
 
+play_log_list_unlisted();
 play_log_close_unfinished();
 document.getElementById('play_log_download').addEventListener('click', export_play_log);
 document.getElementById('play_log_clear').addEventListener('click', function () {
@@ -70,6 +71,35 @@ function play_log_index_read()
     index.played_s = index.played_s || 0;
     index.runs = index.runs || {};
     return index;
+}
+
+// A session stored but missing from the index goes back into it, in the order the sessions began, so it downloads and
+// counts toward the cap (a full storage once took the session being written out of the index: play_log_make_room)
+function play_log_list_unlisted()
+{
+    const listed = new Set(play_log_index.sessions.map(v => v.id));
+    let found = false;
+    for (const key of Object.keys(localStorage)) {
+        const id = key.startsWith(`${play_log_key}:`) ? key.slice(play_log_key.length + 1) : null;
+        if (!id || listed.has(id)) {
+            continue;
+        }
+        const session = play_log_session_read(id);
+        if ((session?.id !== id) || !Array.isArray(session.records)) {
+            continue;
+        }
+        const chars = play_log_session_json(session).length;
+        play_log_index.sessions.push({id, run: session.run, chars, played_s: Math.round(session.played_s || 0)});
+        found = true;
+    }
+    if (found) {
+        play_log_index.sessions.sort((a, b) => (a.id < b.id) ? -1 : 1);
+        try {
+            localStorage.setItem(play_log_key, JSON.stringify(play_log_index));
+        }
+        catch {
+        }
+    }
 }
 
 // A session the page did not close (a crash, a killed tab) ends where its last record does
@@ -188,16 +218,16 @@ function play_log_session_drop(entry)
     }
 }
 
-// Storage full: the log's oldest sessions go, never the one being played, until `chars` are free; false when none
-// could go
-function play_log_make_room(chars)
+// Storage full: the log's oldest sessions go, never the one being played nor the one being written under `key`, until
+// `chars` are free; false when none could go
+function play_log_make_room(chars, key)
 {
     let freed = 0;
     for (const entry of play_log_index.sessions.slice()) {
         if (freed >= chars) {
             break;
         }
-        if (entry.id !== play_log_session?.id) {
+        if ((entry.id !== play_log_session?.id) && (`${play_log_key}:${entry.id}` !== key)) {
             freed += entry.chars;
             play_log_session_drop(entry);
             play_log_index.dropped = (play_log_index.dropped || 0) + 1;
@@ -221,7 +251,7 @@ function storage_set(key, text)
         localStorage.setItem(key, text);
     }
     catch (error) {
-        if (!play_log_make_room(text.length)) {
+        if (!play_log_make_room(text.length, key)) {
             throw error;
         }
         localStorage.setItem(key, text);
