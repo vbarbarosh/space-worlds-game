@@ -8,12 +8,11 @@
 
 // The kinds a map file may hold besides its size and station, each where the game has it (bin/build checks the
 // same): holes in the campaign and arcade Eclipse, storms in Ion Reach and Nova Forge (flares there), pylons and
-// charge fields in Ion Reach, spires in Obsidian, cliffs in arcade Dustfall; the Base kind and the Races mode have no
-// world tricks
+// charge fields in Ion Reach, spires in Obsidian, cliffs in arcade Dustfall; an arcade Scroll lane and the Races mode
+// have no world tricks
 const map_kinds = ['fields', 'caches', 'holes', 'storms', 'pylons', 'charge_fields', 'spires', 'cliffs'];
 
-// The layout of the map being made: the campaign's (the Races mode's too), arcade Free's, or a Scroll or Base run's
-// lane, which the two kinds share
+// The layout of the map being made: the campaign's (the Races mode's too), arcade Free's, or a Scroll run's lane
 function map_layout()
 {
     if (!arcade.active) {
@@ -54,19 +53,19 @@ function map_file_stamp()
 // Whether the world being made has a kind at all (map_kinds)
 function map_kind_here(kind)
 {
-    const tricks = !race_mode.active && !(arcade.active && arcade_base_kind());
+    const tricks = !race_mode.active && !(arcade.active && arcade_lane_kind());
     switch (kind) {
     case 'holes':
-        return !arcade.active || ((campaign.world === 7) && !arcade_base_kind());
+        return !arcade.active || ((campaign.world === 7) && !arcade_lane_kind());
     case 'storms':
-        return [3, 6].includes(campaign.world) && !(arcade.active && arcade_base_kind());
+        return [3, 6].includes(campaign.world) && !(arcade.active && arcade_lane_kind());
     case 'pylons':
     case 'charge_fields':
         return (campaign.world === pylon_world) && tricks;
     case 'spires':
         return (campaign.world === spire_world) && tricks;
     case 'cliffs':
-        return arcade.active && (campaign.world === cliff_world) && !arcade_base_kind();
+        return arcade.active && (campaign.world === cliff_world) && !arcade_lane_kind();
     default:
         return true;
     }
@@ -144,8 +143,8 @@ function map_file_bodies(restored)
     if (caches && !restored) {
         pickups = pickups.filter(v => !v.cache);
         const random = visual_random_from_seed(5309 + campaign.world*577);
-        // as base_generate_map lays one: salvage round its middle (none on a Base run) and a supply beside it
-        const pieces = (arcade.active && arcade_base_kind()) ? 0 : 5;
+        // as base_generate_map lays one: salvage round its middle (none on a Scroll run) and a supply beside it
+        const pieces = (arcade.active && arcade_lane_kind()) ? 0 : 5;
         for (let i = 0, end = caches.length; i < end; ++i) {
             const v = caches[i];
             for (let j = 0; j < pieces; ++j) {

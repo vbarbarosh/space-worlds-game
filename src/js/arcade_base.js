@@ -1,19 +1,24 @@
-// The Arcade's third kind, Base (the menu's Arcade row: Free, Scroll or Base, T turns it): Scroll pared to its base, to
-// build the run up again from it a layer at a time (the author, 2026-10-20: "the map must always move the same way, at
-// the same speed ... this will be the base, and then lay something else on it"). The screen moves on at its one pace
-// from a world's start to its end and never stops; two kinds of raider come along the whole lane: the chaser, which
-// turns to you and keeps after you, firing only once close, and the passer, which flies one straight line through the
-// view, a sweep across it or a V down it, and fires only while you are inside its ring. A world ends where its lane
-// ends. Layer 1 (2026-10-20): salvage, and the depot between worlds, the whole of it, modules too (without them the
-// salvage piled up with nothing to buy), the guns a tier up for each world, as on a Scroll lane. Layer 2: the raiders
-// with jobs (arcade_raiders.js: interceptor, carrier, bulwark, sniper, mine-layer), one more opening each world from
-// Haven to Obsidian, in a chasers' line's places; the passers' formations keep theirs. Left out, to be laid on one by
-// one: the cards, elites and flagships, the world's other types (tanks, splitters, lancers) and missiles, and each
-// world's trick (cliffs, pylons, spires, the hole).
+// Scroll, the Arcade's second kind (the menu's Arcade row: Free or Scroll, T turns it), built up again from its base a
+// layer at a time (the author, 2026-10-20: "the map must always move the same way, at the same speed ... this will be
+// the base, and then lay something else on it"). Built beside the Scroll of before as a third kind, Base, it took its
+// place on 2026-10-21 (the author: "there is only one mode, Scroll"). The screen moves on at its one pace from a
+// world's start to its end and never stops; two kinds of raider come along the whole lane: the chaser, which turns to
+// you and keeps after you, firing only once close, and the passer, which flies one straight line through the view, a
+// sweep across it or a V down it, and fires only while you are inside its ring. A world ends where its lane ends.
+// Layer 1 (2026-10-20): salvage, and the depot between worlds, the whole of it, modules too (without them the salvage
+// piled up with nothing to buy), the guns a tier up for each world. Layer 2: the raiders with jobs (arcade_raiders.js:
+// interceptor, carrier, bulwark, sniper, mine-layer), one more opening each world from Haven to Obsidian, in a chasers'
+// line's places; the passers' formations keep theirs.
 // Layer 3: the raiders are built against the kit you bring, not the run's step: Haven's tier in every world, their hull
 // following your guns' damage a second and their hits your hull, shield and armour, each against the run's start
 // kit, to the power arcade_base_follow (most of the growth, not all: a better kit still makes you stronger); from world
-// to world their number at once (as on a Scroll lane) and how often they fire grow besides.
+// to world their number at once and how often they fire grow besides. Layer 4: raiders all along the lane, an elite
+// leading every other squadron. Layer 5: the world's flagship before the lane's end (arcade_base_flagship_time).
+// Left out, to be laid on one by one: the cards, the world's other types (tanks, splitters, lancers) and missiles,
+// the wave-2 events, the flagships' duels and each world's trick (cliffs, pylons, spires, the hole). The Scroll of
+// before had them on its lanes, and their lane code is kept for its layer, off until then: the lane's squadron
+// patterns and lancers' rocks (arcade_squad_form, arcade_scroll_ambush_rocks), Haven's gate and Eclipse's ring
+// (arcade_scroll_gate, arcade_scroll_flagship_k), the tricks along a lane (cliffs, pylons, spires, storms, the hole).
 
 // How far a passer fires (its ring) and a chaser, m
 const arcade_base_passer_range = 460;
@@ -38,13 +43,7 @@ const arcade_base_flagship_hits = 0.4;
 // The world's flagship has come (arcade_base_update)
 let arcade_base_flagship = false;
 
-// A Base run is flown
-function arcade_base_on()
-{
-    return arcade_scroll_on() && arcade_base_kind();
-}
-
-// A squadron of a Base lane (arcade_squad_form): passers as a formation through the view, or chasers in a line from
+// A squadron of a Scroll lane (arcade_squad_form): passers as a formation through the view, or chasers in a line from
 // ahead; no elite, no mix, no pattern
 function arcade_base_squad(size)
 {
@@ -66,13 +65,13 @@ function arcade_base_squad(size)
     }
 }
 
-// A Base raider's reload against its world's: shorter by the run's step
+// A Scroll raider's reload against its world's: shorter by the run's step
 function arcade_base_reload()
 {
-    return arcade_base_kind() ? Math.max(arcade_base_reload_min, 1 - arcade_base_reload_step*arcade_level()) : 1;
+    return arcade_lane_kind() ? Math.max(arcade_base_reload_min, 1 - arcade_base_reload_step*arcade_level()) : 1;
 }
 
-// A Base raider's hull against Haven's: your kit's damage a second against the run's start kit's, to
+// A Scroll raider's hull against Haven's: your kit's damage a second against the run's start kit's, to
 // arcade_base_follow
 function arcade_base_hull_k()
 {
@@ -80,11 +79,11 @@ function arcade_base_hull_k()
     return Math.pow(arcade_base_kit_damage()/(start.damage*ship_catalog[0].damage/start.interval), arcade_base_follow);
 }
 
-// A Base raider's hits against Haven's (raider_hit_scale): your hull, shield and armour against the run's start
-// kit's, to arcade_base_follow, a flagship's arcade_base_flagship_hits of that; outside a Base run, 1
+// A Scroll raider's hits against Haven's (raider_hit_scale): your hull, shield and armour against the run's start
+// kit's, to arcade_base_follow, a flagship's arcade_base_flagship_hits of that; outside a Scroll run, 1
 function arcade_base_hit_k(enemy = null)
 {
-    if (!arcade_base_on()) {
+    if (!arcade_scroll_on()) {
         return 1;
     }
     const toughness = (hull_max() + shield_max())/(1 - upgrades.armor*armor_cut());
@@ -105,22 +104,22 @@ function arcade_base_kit_damage()
     return sum;
 }
 
-// A Base world begins (arcade_update): its flagship still to come
+// A Scroll world begins (arcade_update): its flagship still to come
 function arcade_base_world_start()
 {
     arcade_base_flagship = false;
 }
 
-// Each frame of a Base world (arcade_update): the raiders keep coming, the flagship comes before the lane's end; at its
+// Each frame of a Scroll world (arcade_update): the raiders keep coming, the flagship comes before the lane's end; at its
 // end the world is over; true once it is
 function arcade_base_update()
 {
-    if (!arcade_base_on()) {
+    if (!arcade_scroll_on()) {
         return false;
     }
     // the wave's raiders never run out: they keep coming at its pace to the lane's end, so the screen is never empty
     // (the author's run, 2026-10-20: a wave's count spent, the rest of Haven's lane was empty); while the flagship
-    // flies, only its escorts come (arcade_flagship_update), as on a Scroll lane
+    // flies, only its escorts come (arcade_flagship_update)
     const flagship = enemies.some(v => (v.type === 'boss') && (v.hp > 0));
     if ((spawn_left <= 0) && !flagship) {
         spawn_left = Math.max(1, arcade.wave_total);
@@ -150,14 +149,14 @@ function arcade_base_flagship_away()
     }
 }
 
-// A Base flagship's hull: arcade_base_flagship_hull_k of a flagship's 1500, by the mode, the world's design and your
+// A Scroll flagship's hull: arcade_base_flagship_hull_k of a flagship's 1500, by the mode, the world's design and your
 // kit (arcade_base_hull_k), with no duel (a duel is each world's own trick: a layer still to come)
 function arcade_base_flagship_hull(scale)
 {
     return Math.round(1500*scale*boss_designs[campaign.world].hull*arcade_base_hull_k()*arcade_base_flagship_hull_k);
 }
 
-// A Base world ends where its lane ends: the run's last is won; any other pays the world's bonus, grows the guns a
+// A Scroll world ends where its lane ends: the run's last is won; any other pays the world's bonus, grows the guns a
 // tier and opens the depot, which launches to the next world of the route (arcade_depot_close); no break, no card
 function arcade_base_world_end()
 {
@@ -180,7 +179,7 @@ function arcade_base_world_end()
 // A passer's ring (render, in the world): where it fires at you
 function render_arcade_base_rings()
 {
-    if (!arcade_base_on()) {
+    if (!arcade_scroll_on()) {
         return;
     }
     ctx.lineWidth = 1.5/zoom;

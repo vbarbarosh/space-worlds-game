@@ -44,8 +44,9 @@ function dev_scenario_from_url()
         god: flag('god', true),
         energy: flag('energy', false),
         spawns: flag('spawns', false),
-        // the arcade's kind: kind=scroll for a run on a lane that scrolls by itself, kind=base for Scroll pared to its base
-        kind: ['scroll', 'base'].includes(params.get('kind')) ? params.get('kind') : 'free',
+        // the arcade's kind: kind=scroll for a run on a lane that scrolls by itself (an older link's kind=base too: Base is
+        // Scroll now)
+        kind: ['scroll', 'base'].includes(params.get('kind')) ? 'scroll' : 'free',
     };
 }
 

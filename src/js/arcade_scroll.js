@@ -1,21 +1,19 @@
 // The Arcade's second kind, Scroll (the menu's Arcade row: Free or Scroll, T turns it): the same run of eight worlds,
-// three waves, lives, depot and builds, flown on a screen that moves on by itself. Each world scrolls one way, forward
-// (up the screen), back (down it), left or right (arcade_scroll_lanes), along a straight lane 12 to 16 km long, the world stretched
-// along it (arcade_world_extent) with its rocks, caches, cliffs and storms spread along the way; your ship flies
-// anywhere inside the view, and the back edge pushes it on. The screen moves at one speed all the way and stops only
-// where the lane ends, for the flagship (the author, 2026-10-19: "the scroll speed should always be the same"). The
-// raiders come from ahead, past the front edge, and fire only from inside the view; once in, none leaves it (the back
-// edge carries it on). Wave 1 comes over the lane's first half, wave 2 over its second, each as the screen reaches
-// it, the raiders of the one before still fighting; the flagship comes where the lane ends, on a screen that stands
-// still, so a fight bound to a place (Obsidian's siege, Nova Forge's ring, Eclipse's hole) is fought as in Free. No
-// portals on a lane (they would throw you out of the view), and no wave-2 event (each is a chase across open space).
-// The depot comes between worlds only. With no shelter to fly back to, the radiation lining refills along the way.
+// lives, depot and builds, flown on a screen that moves on by itself. Each world scrolls one way, forward (up the
+// screen), back (down it), left or right (arcade_scroll_lanes), along a straight lane 12 to 16 km long, the world
+// stretched along it (arcade_world_extent) with its rocks and caches spread along the way; your ship flies anywhere
+// inside the view, and the back edge pushes it on. The screen moves at one speed from the lane's start to its end
+// (the author, 2026-10-19: "the scroll speed should always be the same"). The raiders come from ahead, past the front
+// edge, and fire only from inside the view; once in, none leaves it (the back edge carries it on). Wave 1 comes over
+// the lane's first half, wave 2 over its second, each as the screen reaches it, the raiders of the one before still
+// fighting. What comes along a lane and how a world ends, its flagship before the lane's end, is arcade_base.js: Scroll
+// built up again from its base, a layer at a time. No portals on a lane (they would throw you out of the view). The
+// depot comes between worlds only. With no shelter to fly back to, the radiation lining refills along the way.
 
 // The kinds as the menu names them, and the line under the cards
 const arcade_kinds = {
     free: {name: 'Free', note: 'Fly anywhere in the world; raiders come from every side; the station is the depot.'},
-    scroll: {name: 'Scroll', note: 'The screen moves on by itself, up, down, left or right by the world; raiders come from ahead.'},
-    base: {name: 'Base', note: 'Scroll pared to its base: one speed, raiders that chase you and raiders that pass, a depot between worlds.'},
+    scroll: {name: 'Scroll', note: 'The screen moves on at one speed; raiders that chase you and raiders that pass; a depot between worlds.'},
 };
 // The ways a lane goes, as a heading on the screen
 const arcade_scroll_ways = {forward: {x: 0, y: -1}, back: {x: 0, y: 1}, left: {x: -1, y: 0}, right: {x: 1, y: 0}};
@@ -94,12 +92,29 @@ const arcade_scroll = {kind: 'free', on: false, way: {x: 0, y: -1}, from: {x: 0,
 for (const v of document.querySelectorAll('#intro [data-arcade-kind]')) {
     v.addEventListener('click', () => arcade_kind_pick(v.dataset.arcadeKind));
 }
+arcade_scroll_best_carry();
 arcade_kind_pick(arcade_scroll.kind);
 
+// Base, Scroll built up again from its base as a kind of its own (2026-10-20), is Scroll since 2026-10-21 (the author:
+// "there is only one mode, Scroll"): its best is Scroll's
+function arcade_scroll_best_carry()
+{
+    try {
+        const kept = localStorage.getItem('pulse_drift_best_base');
+        if (kept !== null) {
+            localStorage.setItem('pulse_drift_best_scroll', kept);
+            localStorage.removeItem('pulse_drift_best_base');
+        }
+    }
+    catch {
+    }
+}
+
 // The menu's kind: its card lit, its line, and the best of that kind (one best each: a score in one says nothing of
-// the other)
+// the other); Base, from a save or a link of before, is Scroll
 function arcade_kind_pick(kind)
 {
+    kind = (kind === 'base') ? 'scroll' : kind;
     arcade_scroll.kind = arcade_kinds[kind] ? kind : 'free';
     for (const v of document.querySelectorAll('#intro [data-arcade-kind]')) {
         v.classList.toggle('selected', v.dataset.arcadeKind === arcade_scroll.kind);
@@ -122,19 +137,13 @@ function arcade_best_key()
     return (arcade_scroll.kind === 'free') ? 'pulse_drift_best' : `pulse_drift_best_${arcade_scroll.kind}`;
 }
 
-// The kind picked flies lanes: Scroll, or Base (Scroll pared to its base: arcade_base.js)
+// The kind picked flies lanes: Scroll
 function arcade_lane_kind()
 {
-    return (arcade_scroll.kind === 'scroll') || (arcade_scroll.kind === 'base');
+    return arcade_scroll.kind === 'scroll';
 }
 
-// The kind picked is Base
-function arcade_base_kind()
-{
-    return arcade_scroll.kind === 'base';
-}
-
-// A lane is flown: an arcade run of the Scroll or Base kind, in a world
+// A lane is flown: an arcade run of the Scroll kind, in a world
 function arcade_scroll_on()
 {
     return arcade.active && arcade_scroll.on && !!player;
@@ -435,7 +444,7 @@ function arcade_scroll_raiders()
             continue;
         }
         if ((v.hp > 0) && !v.lurk && !black_holes.some(vv => distance(v, vv) < vv.radius)) {
-            // a flagship is never left behind: on a Base lane it is fought with the screen moving on (arcade_base.js)
+            // a flagship is never left behind: it is fought with the screen moving on (arcade_base.js)
             const boss = v.type === 'boss';
             if (!boss && arcade_scroll_behind(v, v.r + arcade_scroll_gone)) {
                 v.hp = 0;

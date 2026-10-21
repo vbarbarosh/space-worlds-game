@@ -237,8 +237,8 @@ let gunners_spawned = 0;
 // them. The arcade's raiders fight at the run's step, whichever world it is (arcade_route.js).
 function raider_tier(id = campaign.world)
 {
-    // a Base run's raiders keep Haven's tier: they grow with your kit instead (arcade_base.js)
-    return arcade.active ? (arcade_base_kind() ? 0 : arcade_level()) : Math.max(world_tier(id), campaign.story - 1);
+    // a Scroll run's raiders keep Haven's tier: they grow with your kit instead (arcade_base.js)
+    return arcade.active ? (arcade_lane_kind() ? 0 : arcade_level()) : Math.max(world_tier(id), campaign.story - 1);
 }
 
 // A world's raider armour at the story's front: 4% more a tier past its own, 72% at most

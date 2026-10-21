@@ -1273,6 +1273,10 @@ chooses the next world of two.
 
 ## The arcade's Scroll kind
 
+The Scroll of before, until 2026-10-21: since then Scroll is what the Base kind
+below built up from its base, and the tricks, events and duels here wait for
+their layer. The notes stay for the numbers they found.
+
 The arcade's second kind (`src/js/arcade_scroll.js`) flies the same run on a
 screen that moves on by itself, up, down, left or right by the world (two
 worlds each), along a lane 12 to 16 km long: the world stretched along it, its
@@ -1367,7 +1371,9 @@ the screen's speed.
 
 ## The arcade's Base kind
 
-Scroll pared to its base, to build the run up again from it a layer at a
+Scroll since 2026-10-21 (the author: "there is only one mode, Scroll"; the
+menu's Base button went, Base's best is Scroll's). Scroll pared to its base, to
+build the run up again from it a layer at a
 time (2026-10-20, the author: "the map must always move the same way, at the
 same speed ... raiders that chase me, others that just fly past and fire if
 I am in their range ... this will be the base, and then lay something else

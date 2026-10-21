@@ -8,10 +8,9 @@ const page_file = path.join(__dirname, '..', 'build', 'dev.html');
 const modes = [
     {value: '', label: 'campaign'},
     {value: '&screen=arcade', label: 'arcade'},
-    // an arcade Scroll run's long world, stretched along its lane (src/js/arcade_shapes.js)
+    // an arcade Scroll run's long world, stretched along its lane (src/js/arcade_shapes.js), without the worlds' tricks
+    // (src/js/arcade_base.js)
     {value: '&screen=arcade&kind=scroll', label: 'scroll'},
-    // the Base kind's: the same lane, without the worlds' tricks (src/js/arcade_base.js)
-    {value: '&screen=arcade&kind=base', label: 'base'},
 ];
 const usage = `usage: bin/map-check
 

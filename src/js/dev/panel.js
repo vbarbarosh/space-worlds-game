@@ -22,7 +22,7 @@ window.dev_state = function () {
         cliffs: cliffs.map(v => ({x: Math.round(v.rock.x), y: Math.round(v.rock.y), r: v.rock.r, hp: v.rock.hp, rubble: v.rubble.map(vv => ({x: Math.round(vv.x), y: Math.round(vv.y), r: vv.r}))})),
         debris: drifting_debris.map(v => ({x: Math.round(v.x), y: Math.round(v.y), r: Math.round(v.r), kind: v.kind})),
         scenery: scenery.map(v => ({x: Math.round(v.x), y: Math.round(v.y), r: Math.round(v.r)})),
-        arcade: arcade.active, base: arcade.active && arcade_base_kind(), world_name: worlds[campaign.world].name, station_size, station_reach, gate_reach, ship_radius: Math.max(...ship_catalog.map(v => v.radius)),
+        arcade: arcade.active, lane: arcade.active && arcade_lane_kind(), world_name: worlds[campaign.world].name, station_size, station_reach, gate_reach, ship_radius: Math.max(...ship_catalog.map(v => v.radius)),
         gates: world_gates.map(v => ({x: Math.round(v.x), y: Math.round(v.y), r: v.r, to: worlds[v.destination].name, bearing: galaxy_bearing(campaign.world, v.destination)})),
         portals: portals.map(v => ({x: Math.round(v.x), y: Math.round(v.y), r: v.r, label: v.label, destination: v.destination})),
         beacons: beacons.map(v => ({x: Math.round(v.x), y: Math.round(v.y)})), combat_zone: {...combat_zone},

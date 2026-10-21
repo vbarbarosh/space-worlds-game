@@ -5,7 +5,7 @@ function enemy_fire(enemy, angle, speed = 210, pattern = false)
     if (arcade_scroll_unseen(enemy)) {
         return;
     }
-    // a Base raider fires only with you inside its range (arcade_base.js)
+    // a Scroll raider fires only with you inside its range (arcade_base.js)
     if (enemy.fire_range && (distance(enemy, player) > enemy.fire_range)) {
         return;
     }

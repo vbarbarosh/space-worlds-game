@@ -64,8 +64,8 @@ function cliffs_generate()
 {
     cliffs = [];
     cliff_aim = null;
-    // the Base kind has no world tricks (arcade_base.js)
-    if (!arcade.active || (campaign.world !== cliff_world) || arcade_base_kind()) {
+    // a Scroll lane has no world tricks yet (arcade_base.js)
+    if (!arcade.active || (campaign.world !== cliff_world) || arcade_lane_kind()) {
         return;
     }
     const random = visual_random_from_seed(6151);

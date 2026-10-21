@@ -219,8 +219,8 @@ function map_rules_pylons(map, things)
 {
     const out = [];
     const fail = map_rules_fail(out);
-    // the arcade's Base kind has no world tricks (src/js/arcade_base.js)
-    if ((map.world_name === 'Ion Reach') && !map.base) {
+    // an arcade Scroll lane has no world tricks yet (src/js/arcade_base.js)
+    if ((map.world_name === 'Ion Reach') && !map.lane) {
         if (map.pylons.length < map_rules.pylons_least) {
             map_rules_push(out, 'pylons', `${map.pylons.length} arc pylons, need ${map_rules.pylons_least}`, []);
         }
@@ -258,7 +258,7 @@ function map_rules_spires(map, things, solids)
 {
     const out = [];
     const fail = map_rules_fail(out);
-    if ((map.world_name === 'Obsidian') && !map.base && (map.spires.length < map_rules.spires_least)) {
+    if ((map.world_name === 'Obsidian') && !map.lane && (map.spires.length < map_rules.spires_least)) {
         map_rules_push(out, 'spires', `${map.spires.length} magnetic spires, need ${map_rules.spires_least}`, []);
     }
     const shelter = map.station_size/2 + 400;

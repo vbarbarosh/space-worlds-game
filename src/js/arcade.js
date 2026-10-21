@@ -199,11 +199,9 @@ function arcade_snapshot()
 // cards above still leaves Load, Settings and Controls in a 1280x720 window
 function sync_mode_note()
 {
-    // the Base kind has no elites (arcade_base.js)
-    const base = arcade_base_kind();
     document.getElementById('mode_note').textContent = {
         chill: 'Slower, weaker raiders; hits hurt a third less.',
-        normal: base ? 'Every raider fires; bigger squadrons.' : 'Every raider fires; bigger squadrons, elites from Haven on.',
+        normal: 'Every raider fires; bigger squadrons, elites from Haven on.',
         overload: 'Tougher raiders that grow with your gun; no repairs; overdrive.',
     }[difficulty] || '';
 }
@@ -244,8 +242,8 @@ function arcade_hull_scale(enemy)
     const level = arcade_level();
     const shop = ((enemy.type === 'boss') ? arcade_shop_flagship : arcade_shop_hull)[level] ?? 1;
     const growth = (enemy.type === 'boss') ? 1 : mode.hull*(1 + mode.growth*level)*arcade_card_k.raider_hull;
-    // a Base run's raiders follow your kit's damage instead of the run's step (arcade_base.js)
-    const k = arcade_base_on() ? mode.hull*arcade_base_hull_k() : growth*(1 + (shop - 1)*mode.shop)*(mode.tier_hp ? 1 + (weapon_level() - 1)*0.22 : 1);
+    // a Scroll run's raiders follow your kit's damage instead of the run's step (arcade_base.js)
+    const k = arcade_scroll_on() ? mode.hull*arcade_base_hull_k() : growth*(1 + (shop - 1)*mode.shop)*(mode.tier_hp ? 1 + (weapon_level() - 1)*0.22 : 1);
     enemy.hp = Math.round(enemy.hp*k);
     enemy.max_hp = Math.round(enemy.max_hp*k);
 }
@@ -313,7 +311,7 @@ function arcade_update(dt)
         spires_hint();
         return;
     }
-    // a Base world ends where its lane ends (arcade_base.js)
+    // a Scroll world ends where its lane ends (arcade_base.js)
     if (arcade_base_update()) {
         return;
     }
@@ -416,9 +414,9 @@ function arcade_squad_spawn(size)
 {
     const first = enemies.length;
     arcade_squad_form(size);
-    // a Scroll lane's formation keeps its places: no jobs and no pack for it (arcade_scroll.js); a Base lane's chasers
-    // give places to raiders with jobs, as anywhere, but hunt each on its own, not as a pack (arcade_base.js)
-    raider_squad_after(enemies.slice(first).filter(v => !v.path), !arcade_base_on());
+    // a Scroll lane's formation keeps its places: no jobs and no pack for it (arcade_scroll.js); its chasers give places
+    // to raiders with jobs, as anywhere, but hunt each on its own, not as a pack (arcade_base.js)
+    raider_squad_after(enemies.slice(first).filter(v => !v.path), !arcade_scroll_on());
 }
 
 // How a squadron comes, by the type the world's mix draws for it: a line of one type, as it always did; a pincer, the
@@ -427,8 +425,8 @@ function arcade_squad_spawn(size)
 // squadron from wave 2 has an elite leader (every one under an Elite hunt card).
 function arcade_squad_form(size)
 {
-    // a Base lane brings chasers and passers only (arcade_base.js)
-    if (arcade_base_on()) {
+    // a Scroll lane brings chasers and passers, and the raiders with jobs in the chasers' places (arcade_base.js)
+    if (arcade_scroll_on()) {
         arcade_base_squad(size);
         return;
     }
@@ -742,8 +740,8 @@ function arcade_flagship_spawn()
     // its gaps only), so Ion Reach's duel flown at step 2 is not a step-3 fight on a step-2 kit; and a card's factor
     const duel = boss_duel_hull(campaign.world)/boss_designs[campaign.world].hull;
     enemy.hp = Math.round(1500*(1 + arcade_level()*0.6)*scale*boss_designs[arcade_level()].hull*duel*arcade_card_k.flagship);
-    // a Base run's flagship is built against your kit (arcade_base.js)
-    if (arcade_base_on()) {
+    // a Scroll run's flagship is built against your kit (arcade_base.js)
+    if (arcade_scroll_on()) {
         enemy.hp = arcade_base_flagship_hull(scale);
     }
     // on a Scroll lane a duel bound to a hole is fought round a ring, with no hole to swallow raiders (arcade_scroll.js)
@@ -928,10 +926,10 @@ function arcade_depot_fill()
     const name = document.getElementById('cleared_next_name');
     name.textContent = worlds[shown].name;
     name.style.color = `var(--w-${world_slug(shown)})`;
-    // a Base world is its lane, end to end, without the world's tricks (arcade_base.js)
-    const base = arcade_base_kind();
-    document.getElementById('arcade_depot_next').textContent = `World ${step + ((next === null) ? 1 : 2)} of ${arcade_worlds} · ${base ? 'its lane, end to end' : `${arcade_waves} waves · flagship`}`;
-    document.getElementById('cleared_rules').innerHTML = base ? '' : world_rules[shown].summary.split(' · ').map(v => ui_badge(ui_sentence(v))).join('');
+    // a Scroll world is its lane, end to end, without the world's tricks (arcade_base.js)
+    const lane = arcade_lane_kind();
+    document.getElementById('arcade_depot_next').textContent = `World ${step + ((next === null) ? 1 : 2)} of ${arcade_worlds} · ${lane ? 'its lane, end to end' : `${arcade_waves} waves · flagship`}`;
+    document.getElementById('cleared_rules').innerHTML = lane ? '' : world_rules[shown].summary.split(' · ').map(v => ui_badge(ui_sentence(v))).join('');
     // what the next step opens, on sale here from now on (src/js/tech.js)
     const opened = (next === null) ? [] : tech_opened(step, step + 1);
     const fresh = document.getElementById('arcade_depot_new');
@@ -1396,10 +1394,10 @@ function arcade_finish(won)
         set_hidden(v, true);
     }
     toasts_clear();
-    // a Base world has no waves to name: it is flown again from its lane's start (arcade_base.js)
-    const base = arcade_base_kind();
-    const reached = base ? `You reached ${name}, ${hud_distance(arcade_scroll.s).join(' ')} along its lane.` : `You reached ${name}, wave ${arcade.wave} of ${arcade_waves}.`;
-    const again = `Retry opens the depot first, with what you had as the world began: change the kit, then fly it again from its ${base ? 'start' : 'first wave'}.`;
+    // a Scroll world has no waves to name: it is flown again from its lane's start (arcade_base.js)
+    const lane = arcade_lane_kind();
+    const reached = lane ? `You reached ${name}, ${hud_distance(arcade_scroll.s).join(' ')} along its lane.` : `You reached ${name}, wave ${arcade.wave} of ${arcade_waves}.`;
+    const again = `Retry opens the depot first, with what you had as the world began: change the kit, then fly it again from its ${lane ? 'start' : 'first wave'}.`;
     const salvage_line = salvage ? ` Salvage kept: ◆\u00a0${ui_number(salvage)}, +${ui_number(kept)} points.` : '';
     el.result_eyebrow.textContent = over ? 'ARCADE · RUN OVER' : 'ARCADE · SIGNAL LOST';
     el.result_title.textContent = over ? 'Run over.' : `${left[0].toUpperCase()}${left.slice(1)} left.`;

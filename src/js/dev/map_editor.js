@@ -1,5 +1,5 @@
-// The map editor: `?screen=map-editor&world=3` shows the world's whole campaign map from above (`&kind=free`, `scroll`
-// or `base` its arcade map, Free's or the lane Scroll and Base share), to move, add and delete its things, and checks
+// The map editor: `?screen=map-editor&world=3` shows the world's whole campaign map from above (`&kind=free` or
+// `scroll` its arcade map, Free's or Scroll's lane), to move, add and delete its things, and checks
 // the placement rules of docs/placement.md (dev/map_rules.js) as it goes. The game stays paused behind it. Every
 // change is made into the map at once by the game's own generator, the edit as its map file (map_files.js), so what
 // the editor shows is what the game flies: the gates, portals, storms, pylons and spires follow a moved station unless
@@ -147,8 +147,7 @@ function dev_map_editor_open()
     set_hidden(root, false);
     dev_map_listen(root);
     dev_map_tools_fill();
-    const lane = `lane (${arcade_base_kind() ? 'Base' : 'Scroll'})`;
-    const layout = arcade.active ? `arcade ${arcade_lane_kind() ? lane : 'Free'}` : 'campaign';
+    const layout = arcade.active ? `arcade ${arcade_lane_kind() ? 'Scroll lane' : 'Free'}` : 'campaign';
     document.getElementById('me_title').textContent = `MAP · ${worlds[campaign.world].name} · ${layout}`;
     dev_map_make();
     new ResizeObserver(dev_map_resize).observe(document.getElementById('me_view'));

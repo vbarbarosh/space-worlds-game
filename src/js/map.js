@@ -102,8 +102,8 @@ function base_generate_map()
                 break;
             }
         }
-        // a Base run has no salvage, only the cache's supply (arcade_base.js)
-        const pieces = (arcade.active && arcade_base_kind()) ? 0 : 5;
+        // a Scroll run has no salvage there, only the cache's supply (arcade_base.js)
+        const pieces = (arcade.active && arcade_lane_kind()) ? 0 : 5;
         for (let j = 0; j < pieces; ++j) {
             pickups.push({
                 x: x + (seeded() - 0.5)*90,

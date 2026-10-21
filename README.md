@@ -76,27 +76,21 @@ Three modes:
   long, Obsidian 5.6 × 8 km tall), its station in the middle, at an end or on a rim, and its rock fields
   strewn, in a band, a ring, a belt, columns or outcrops.
 
-  The arcade comes in three kinds, picked on its menu row (T turns it): **Free**, as above, **Scroll**, the same
+  The arcade comes in two kinds, picked on its menu row (T turns it): **Free**, as above, and **Scroll**, the same
   run on a screen that moves on by itself, up, down, left or right by the world, along a lane 12 to 16 km long (3 to
-  4 minutes), the world stretched along it with its rocks, caches, cliffs, storms, pylons and spires spread along the way. Your ship
-  flies anywhere in the view and the back edge pushes it on; the raiders come from ahead, and one the back edge leaves
-  behind is gone, as is salvage it passes; most squadrons come as a formation, a line sweeping across the screen or a
-  V flying down it, firing as they pass and gone once through. The screen moves at one speed all the way, never
-  faster: wave 1 comes over the lane's first
-  half and wave 2 over its second, squadron by squadron as the screen goes on, whatever is still fighting (busier in
-  the middle worlds); the view never empties: while fewer than 3 raiders are in play (4 in the second wave) the
-  wave's next squadron comes at once, and once the first wave has sent all its own, the second comes on early (not
-  in the run's last world); a lane's raiders stay as many as they were; it stops only where the lane ends, for the
-  flagship. No portals, no wave-2 events, and the depot opens between worlds only. And **Base**, Scroll pared to
-  its base to build it up again a layer at a time: one speed from a world's start to its end, where the world ends
-  and the depot opens before the next; two raiders, the chaser, which turns to you and fires once close, and the
-  passer, which flies a straight line through the view and fires only while you are inside its ring; salvage and
-  the whole depot (layer 1); the raiders built against the kit you bring, their hull following your guns' damage
-  and their hits your hull, shield and armour (layer 3), and firing faster world by world; the
-  raiders with jobs in the chasers' lines, one more kind each world from Haven to Obsidian (layer 2); squadrons
-  that keep coming to the lane's end, and elites leading every other one; a flagship a minute and a quarter before
-  the lane's end, fought with the screen moving on, that gets away if the lane ends first; no cards, flagship
-  duels, tanks, splitters, lancers, missiles or world tricks yet. Each kind keeps its own best.
+  4 minutes), the world stretched along it with its rocks and caches. Your ship flies anywhere in the view and the
+  back edge pushes it on; the raiders come from ahead, and one the back edge leaves behind is gone, as is salvage it
+  passes. Scroll is built up from its base a layer at a time: one speed from a world's start to its end, where the
+  world ends and the depot opens before the next; two raiders, the chaser, which turns to you and fires once close,
+  and the passer, which flies a straight line through the view, a sweep across it or a V down it, and fires only
+  while you are inside its ring; salvage and the whole depot (layer 1); the raiders with jobs in the chasers' lines,
+  one more kind each world from Haven to Obsidian (layer 2); the raiders built against the kit you bring, their hull
+  following your guns' damage and their hits your hull, shield and armour (layer 3), and firing faster world by
+  world; squadrons that keep coming to the lane's end, and elites leading every other one (layer 4); a flagship a
+  minute and a quarter before the lane's end, fought with the screen moving on, that gets away if the lane ends
+  first (layer 5); no cards, flagship duels, tanks, splitters, lancers, missiles, wave-2 events or world tricks yet.
+  No portals, and the depot opens between worlds only. (Until 2026-10-21 this was a third kind, Base, beside a
+  Scroll that had all of those; there is one Scroll now.) Each kind keeps its own best.
 - **Races**: ring races alone, at Easy, Normal or Hard, course after course
   from Haven through the eight worlds; the start ship, no raiders, the rocks
   as solid as ever. Two kinds: Steer, flown by hand, and Turbo, where the
@@ -142,7 +136,7 @@ Three modes:
                      waves 1 and 2, the seconds with under 3 raiders in
                      play and how many are in play, flying
                      a build of modules (--build=mixed, guns, tank or
-                     evasion), Free, Scroll or Base runs (--kind=scroll, base),
+                     evasion), Free or Scroll runs (--kind=scroll),
                      or idle, no key pressed (--idle, in
                      data/playtest/<mode>-idle/); tables and JSON in
                      data/playtest/
@@ -182,7 +176,7 @@ scene lives in the URL, e.g. `dev.html?world=3&ship=gunship&weapon=rail`; a worl
 `&screen=station-arsenal` (or flight, combat, arcade, crowded, pause, settings, menu,
 map-plan, ...; the list is in src/js/dev/screen.js) opens that screen with the
 panel folded; with `&screen=arcade`, `&wave=2` starts the world at that wave
-(e.g. `dev.html?world=dustfall&screen=arcade&wave=2`), `&kind=scroll` makes it a Scroll run, on the world's lane (`&kind=base` a Base run), and
+(e.g. `dev.html?world=dustfall&screen=arcade&wave=2`), `&kind=scroll` makes it a Scroll run, on the world's lane, and
 `&raiders=sniper,bulwark` brings a pack of three chasers and one raider of each kind named (interceptor,
 carrier, bulwark, sniper, minelayer) 640 m ahead.
 `&card_hud=1` puts cards in force over the gauges.
@@ -220,7 +214,7 @@ longest board offered) and `&cargo=all` puts all eleven goods in the hold for
 the CARGO MARKET; `&station=full` puts the station's header and NEXT strip at
 their longest (a very long station name, the hold full, salvage in the
 millions, the guide's longest step); `&screen=station-intel` opens TRADE INTEL.
-`&screen=map-editor` is the map editor: the world's campaign map from above (`&kind=free`, `scroll` or `base` its
+`&screen=map-editor` is the map editor: the world's campaign map from above (`&kind=free` or `scroll` its
 arcade map), its things to move, add and delete, the rules of docs/placement.md checked as you go; Play flies the edit,
 Export downloads the file to put in src/maps/ ([src/maps/README.md](src/maps/README.md)).
 `&dpr=1.3` draws the canvas at that pixel ratio, whatever Settings → Resolution

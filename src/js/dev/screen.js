@@ -33,7 +33,7 @@ const dev_screen_options = [
     {value: 'pause', label: 'Pause'},
     {value: 'settings', label: 'Settings over the flight'},
     {value: 'menu', label: 'Main menu'},
-    {value: 'map-editor', label: 'Map editor (&kind=free, scroll or base for the arcade\'s)'},
+    {value: 'map-editor', label: 'Map editor (&kind=free or scroll for the arcade\'s)'},
 ];
 const dev_screen = new URLSearchParams(location.search).get('screen');
 // &wave=n with &screen=arcade (dev_screen_arcade_wave), read before the scenario writes the URL over
@@ -328,7 +328,7 @@ function dev_screen_menu_open()
         set_hidden(el.continue_row, true);
     }
     menu_open();
-    // &kind=scroll or base: the Arcade row with that kind picked
+    // &kind=scroll: the Arcade row with Scroll picked
     if (dev_scenario.kind !== 'free') {
         arcade_kind_pick(dev_scenario.kind);
     }

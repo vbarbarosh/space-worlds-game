@@ -106,7 +106,7 @@ function place_gravity_wells(protected_objects, wanted = null)
 // kept clear of the depot and the portals only: the arcade has no gates, beacons or combat zone.
 function arcade_gravity_wells()
 {
-    if ((campaign.world !== 7) || arcade_base_kind()) {
+    if ((campaign.world !== 7) || arcade_lane_kind()) {
         black_holes = [];
         return;
     }
