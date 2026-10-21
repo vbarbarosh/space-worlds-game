@@ -646,9 +646,12 @@ function arcade_squad_warp(type, x, y, i)
 // fast it moves.
 function arcade_role_steer(v, move, d)
 {
-    // a Scroll lane's formation keeps to its way across the screen (arcade_scroll.js)
+    // a Scroll lane's formation keeps to its way across the screen, a held one to its places on it (arcade_scroll.js)
     if (v.path) {
         return arcade_scroll_path_steer(v);
+    }
+    if (v.hold) {
+        return arcade_scroll_hold_steer(v);
     }
     if (v.event_goal) {
         return arcade_event_steer(v);

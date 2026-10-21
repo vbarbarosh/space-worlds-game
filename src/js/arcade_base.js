@@ -70,6 +70,10 @@ function arcade_base_squad(size)
     else if (Math.random() < arcade_base_passers) {
         arcade_scroll_formation('shooter', size, elite, null, true);
     }
+    // now and then a held formation, from the run's second world on (arcade_scroll.js)
+    else if ((arcade_level() >= 1) && (Math.random() < arcade_scroll_holds)) {
+        arcade_scroll_hold('shooter', size, elite);
+    }
     else {
         const type = arcade_base_line_type();
         const pattern = arcade_squad_pattern(type, size);

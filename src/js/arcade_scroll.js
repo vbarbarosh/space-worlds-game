@@ -537,3 +537,125 @@ function arcade_scroll_flagship_k()
 {
     return arcade_scroll_on() ? arcade_scroll_flagship_hull[boss_duels[campaign.world]?.kind] ?? 1 : 1;
 }
+
+// A held formation (the author, 2026-10-21: "ships fly out in groups like these, line up in such figures, and you have to
+// fight them", and "different groups, so they make different figures"): now and then a lane's squadron comes in from
+// ahead, takes its places in a figure in the screen's front half, keeps them as the screen moves on, swaying a little,
+// facing you, and fights there till it is down. This share of a lane's squadrons, from the run's second world on
+const arcade_scroll_holds = 0.3;
+const arcade_scroll_figures = ['block', 'arrow', 'pyramid', 'v', 'ring', 'diamond', 'wings', 'cross'];
+// The places this many m apart, the figure's middle this share of the view's half-height ahead of its middle, a raider
+// swaying this many m about its place
+const arcade_scroll_hold_gap = 72;
+const arcade_scroll_hold_ahead = 0.5;
+const arcade_scroll_hold_sway = 14;
+
+// A figure's places for n raiders, in gaps: [along, across], along toward the screen's front, its middle at 0
+function arcade_scroll_figure(kind, n)
+{
+    const places = [];
+    if (kind === 'block') {
+        const cols = Math.ceil(Math.sqrt(n*1.6));
+        for (let i = 0; i < n; ++i) {
+            places.push([Math.floor(i/cols), (i % cols) - (Math.min(cols, n - Math.floor(i/cols)*cols) - 1)/2]);
+        }
+    }
+    else if ((kind === 'arrow') || (kind === 'v')) {
+        // its point toward you; an arrow's arms close, a V's wide
+        const spread = (kind === 'v') ? 1.4 : 0.9;
+        for (let i = 0; i < n; ++i) {
+            const k = Math.ceil(i/2);
+            places.push([k*((kind === 'v') ? 0.8 : 1), k*spread*((i % 2) ? -1 : 1)]);
+        }
+    }
+    else if ((kind === 'pyramid') || (kind === 'diamond')) {
+        // rows of 1, 2, 3...; a diamond's rows grow and shrink again
+        const rows = [];
+        for (let left = n, r = 1; left > 0; ++r) {
+            rows.push(Math.min(left, r));
+            left -= Math.min(left, r);
+        }
+        if (kind === 'diamond') {
+            const half = rows.slice(0, Math.ceil(rows.length/2));
+            rows.length = 0;
+            let left = n;
+            for (let i = 0; left > 0; ++i) {
+                const r = (i < half.length) ? half[i] : Math.max(1, half[half.length - 1] - (i - half.length + 1));
+                rows.push(Math.min(left, r));
+                left -= Math.min(left, r);
+            }
+        }
+        for (const [r, count] of rows.entries()) {
+            for (let i = 0; i < count; ++i) {
+                places.push([r, i - (count - 1)/2]);
+            }
+        }
+    }
+    else if (kind === 'ring') {
+        const r = Math.max(1.4, n/(Math.PI*2)*1.1);
+        for (let i = 0; i < n; ++i) {
+            const a = (i/n)*Math.PI*2;
+            places.push([Math.cos(a)*r, Math.sin(a)*r]);
+        }
+    }
+    else if (kind === 'wings') {
+        // two small Vs side by side
+        for (let i = 0; i < n; ++i) {
+            const side = (i % 2) ? -1 : 1;
+            const k = Math.floor(i/2);
+            const arm = Math.ceil(k/2)*((k % 2) ? -1 : 1);
+            places.push([Math.abs(arm)*0.8, side*2.2 + arm*0.9]);
+        }
+    }
+    else {
+        // a cross: its middle, then out along its four arms in turn
+        places.push([0, 0]);
+        for (let i = 1; i < n; ++i) {
+            const arm = (i - 1) % 4;
+            const k = Math.ceil(i/4);
+            places.push([[k, 0, -k, 0][arm], [0, k, 0, -k][arm]]);
+        }
+    }
+    // centred on its middle along the way
+    const mid = (Math.min(...places.map(v => v[0])) + Math.max(...places.map(v => v[0])))/2;
+    return places.map(v => [v[0] - mid, v[1]]);
+}
+
+// A lane's squadron as a held formation (arcade_base_squad), size raiders in a figure taken at random
+function arcade_scroll_hold(type, size, elite)
+{
+    const view = arcade_scroll_view();
+    const way = arcade_scroll.way;
+    const figure = arcade_scroll_figures[Math.floor(Math.random()*arcade_scroll_figures.length)];
+    const places = arcade_scroll_figure(figure, size);
+    for (let i = 0; i < size; ++i) {
+        const [along, across] = places[i];
+        // they come in from past the front edge, each straight to its place
+        const a = view.h + 140 + along*arcade_scroll_hold_gap;
+        const c = across*arcade_scroll_hold_gap;
+        const enemy = arcade_squad_warp(type, view.x + way.x*a - way.y*c, view.y + way.y*a + way.x*c, i);
+        enemy.hold = {along: view.h*arcade_scroll_hold_ahead + along*arcade_scroll_hold_gap, across: c, phase: Math.random()*Math.PI*2, heading: 0};
+        if (elite && (i === 0)) {
+            arcade_elite_make(enemy);
+        }
+    }
+}
+
+// A held formation's raider (arcade_role_steer): to its place on the moving screen, swaying about it, turned to you;
+// its way is hold.heading (update moves it so), its share of its speed returned
+function arcade_scroll_hold_steer(v)
+{
+    const view = arcade_scroll_view();
+    const way = arcade_scroll.way;
+    const pace = arcade_scroll.held ? 0 : arcade_scroll.pace;
+    const sway = Math.sin(clock*1.3 + v.hold.phase)*arcade_scroll_hold_sway;
+    const a = v.hold.along + Math.cos(clock*0.9 + v.hold.phase)*arcade_scroll_hold_sway*0.5;
+    const c = v.hold.across + sway;
+    const tx = view.x + way.x*a - way.y*c;
+    const ty = view.y + way.y*a + way.x*c;
+    const vx = way.x*pace + (tx - v.x)*2;
+    const vy = way.y*pace + (ty - v.y)*2;
+    v.hold.heading = Math.atan2(vy, vx);
+    v.angle = Math.atan2(player.y - v.y, player.x - v.x);
+    return Math.hypot(vx, vy)/Math.max(1, v.speed);
+}
