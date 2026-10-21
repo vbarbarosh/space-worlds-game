@@ -755,9 +755,14 @@ function arcade_flagship_spawn()
 }
 
 // A world cleared pays a fixed bonus, the weapon grows a tier, a gamble taken for it is won, and its cleared screen
-// opens; its button opens the break (a card, the next world: arcade_break.js), then the depot before the jump.
+// opens; its button opens the break (a card, the next world: arcade_break.js), then the depot before the jump. A
+// Scroll world ends its own way (arcade_base_world_end)
 function arcade_world_clear()
 {
+    if (arcade.active && arcade_lane_kind()) {
+        arcade_base_world_end();
+        return;
+    }
     if (arcade_level() >= arcade_worlds - 1) {
         // a gamble taken for the last world pays in score (arcade_cards.js)
         arcade_cards_world_cleared();
@@ -774,16 +779,14 @@ function arcade_world_clear()
     set_hidden(el.bossbar, true);
     arcade.between_worlds = {world: campaign.world, bonus, won, next: null};
     toasts_clear();
+    arcade_world_cleared_open(campaign.world, arcade_world_run(bonus));
+}
+
+// What a world's cleared screen counts up: the score, raiders and time since the world began, its bonus, the salvage
+function arcade_world_run(bonus)
+{
     const start = arcade.world_start || {score: 0, kills: 0, run_time: 0};
-    arcade_world_cleared_open(campaign.world, {
-        score: score - start.score,
-        total: score,
-        best,
-        raiders: kills - start.kills,
-        time: run_time - start.run_time,
-        bonus,
-        salvage,
-    });
+    return {score: score - start.score, total: score, best, raiders: kills - start.kills, time: run_time - start.run_time, bonus, salvage};
 }
 
 // A world cleared: every gun you own grows a tier, up to the tier the next step opens (gun_tier_open), and those a

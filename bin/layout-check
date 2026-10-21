@@ -36,6 +36,8 @@ const screens = [
     {value: 'races-turbo-mid', label: 'hud-races', phone: true, ship: true},
     // the world's cleared screen held after its button is ready
     {value: 'arcade-world-cleared', label: 'arcade-world-cleared', query: '&t=7', phone: true},
+    // a Scroll run's: its button opens the depot (src/js/arcade_base.js)
+    {value: 'arcade-world-cleared', label: 'arcade-world-cleared-scroll', query: '&t=7&kind=scroll', phone: true},
     {value: 'arcade-cleared', label: 'arcade-cleared'},
     // the depot before the next world (src/js/arcade_power.js): nothing installed, the reactor's power empty; a gunship's
     // power full with levels owned left spare (No power), and those levels after a Wisp Scout is taken, its smaller

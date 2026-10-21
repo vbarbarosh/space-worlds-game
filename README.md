@@ -81,7 +81,7 @@ Three modes:
   4 minutes), the world stretched along it with its rocks and caches. Your ship flies anywhere in the view and the
   back edge pushes it on; the raiders come from ahead, and one the back edge leaves behind is gone, as is salvage it
   passes. Scroll is built up from its base a layer at a time: one speed from a world's start to its end, where the
-  world ends and the depot opens before the next; two raiders, the chaser, which turns to you and fires once close,
+  world ends, its cleared screen plays and the depot opens before the next; two raiders, the chaser, which turns to you and fires once close,
   and the passer, which flies a straight line through the view, a sweep across it or a V down it, and fires only
   while you are inside its ring; salvage and the whole depot (layer 1); the raiders with jobs in the chasers' lines,
   one more kind each world from Haven to Obsidian (layer 2); the raiders built against the kit you bring, their hull

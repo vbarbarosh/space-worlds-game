@@ -163,6 +163,8 @@ function finale_build()
     }
     set_hidden(document.getElementById('finale_overload'), (world >= 0) || (difficulty === 'overload'));
     set_hidden(document.getElementById('finale_depot'), world < 0);
+    // a Scroll run has no break: its button opens the depot (finale_leave)
+    document.querySelector('#finale_depot span').textContent = arcade_lane_kind() ? 'To the depot' : 'Take a card';
 }
 
 // The ring's order: the worlds flown, the cleared one last of them (here), the ones offered next after it, then the
@@ -171,7 +173,9 @@ function finale_order_make()
 {
     const route = arcade.active ? arcade.route : worlds.map((_, i) => i).slice(0, Math.max(0, finale.world) + 1);
     finale.here = route.length - 1;
-    finale.offers = ((finale.world >= 0) && arcade.active) ? arcade_route_offers() : [];
+    // a Scroll run's next world is chosen already (arcade_base_world_end)
+    const lane = arcade_lane_kind() && (arcade.between_worlds?.next ?? null) !== null;
+    finale.offers = ((finale.world >= 0) && arcade.active) ? (lane ? [arcade.between_worlds.next] : arcade_route_offers()) : [];
     const rest = worlds.map((_, i) => i).filter(v => !route.includes(v) && !finale.offers.includes(v));
     finale.order = [...route, ...finale.offers, ...rest];
 }
@@ -210,10 +214,15 @@ function finale_skip()
     }
 }
 
-// Play again, the same run on Overload, the main menu, or (world mode) the depot
+// Play again, the same run on Overload, the main menu, or (world mode) the break and the depot, a Scroll run's depot
+// at once
 function finale_leave(choice)
 {
     arcade_finale_close();
+    if ((choice === 'depot') && arcade_lane_kind()) {
+        arcade_depot_open();
+        return;
+    }
     if (choice === 'depot') {
         arcade_break_open(arcade.between_worlds?.won || []);
         return;
