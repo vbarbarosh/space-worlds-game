@@ -328,6 +328,8 @@ function render()
         ctx.stroke();
     }
     ctx.restore();
+    // a strong blast's wave bends the world drawn so far (shock_waves.js), not the screen's marks over it
+    render_shock_ripple();
     render_screen_controls();
     render_target_brackets();
     render_world_labels();
