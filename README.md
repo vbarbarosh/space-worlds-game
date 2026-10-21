@@ -88,7 +88,9 @@ Three modes:
   following your guns' damage and their hits your hull, shield and armour (layer 3), and firing faster world by
   world; squadrons that keep coming to the lane's end, and elites leading every other one (layer 4); a flagship a
   minute and a quarter before the lane's end, fought with the screen moving on, that gets away if the lane ends
-  first (layer 5); no cards, flagship duels, tanks, splitters, lancers, missiles, wave-2 events or world tricks yet.
+  first (layer 5); the squadrons that are not passers come as the world's own mix has them, chasers, tanks leading
+  a wall or a convoy, splitters, lancers lying in wait by the rocks ahead (layer 6); no cards, the worlds' own guns
+  and missiles, flagship duels, wave-2 events or world tricks yet.
   No portals, and the depot opens between worlds only. (Until 2026-10-21 this was a third kind, Base, beside a
   Scroll that had all of those; there is one Scroll now.) Each kind keeps its own best.
 - **Races**: ring races alone, at Easy, Normal or Hard, course after course

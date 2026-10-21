@@ -1460,6 +1460,18 @@ its hits and its time:
 Overload is 0 of 6 in every one, as it was without the flagship. The bot
 does not chase the flagship; a quarter of them get away from it.
 
+### Layer 6: each world's own raiders (2026-10-21)
+
+The squadrons that are not passers come by the world's mix, its shooters left
+out (`arcade_base_line_type`): Haven's all chasers, Verdant's 46% splitters,
+Obsidian's 71% tanks; three tanks or more come as a wall or a convoy, lancers
+lie in wait by the rocks ahead. The bot, seeds 1–3: Chill won 3 of 3 with no
+deaths (before it, the same); Standard won 3 of 3 with no deaths (before it, 0,
+1 and 2 deaths). Fewer raiders with jobs come: a tank's escorts and a lurking
+lancer keep their places (`raider_squad_after`), so the bulwark, the biggest
+damage on a lane, hurt the bot less (Ion Reach 375 hull against 511, Eclipse 344
+against 990, seed 1).
+
 ## The arcade's world shapes
 
 Each arcade world has its own size, station and rock pattern

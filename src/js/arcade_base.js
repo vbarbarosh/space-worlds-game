@@ -14,11 +14,14 @@
 // kit, to the power arcade_base_follow (most of the growth, not all: a better kit still makes you stronger); from world
 // to world their number at once and how often they fire grow besides. Layer 4: raiders all along the lane, an elite
 // leading every other squadron. Layer 5: the world's flagship before the lane's end (arcade_base_flagship_time).
-// Left out, to be laid on one by one: the cards, the world's other types (tanks, splitters, lancers) and missiles,
-// the wave-2 events, the flagships' duels and each world's trick (cliffs, pylons, spires, the hole). The Scroll of
-// before had them on its lanes, and their lane code is kept for its layer, off until then: the lane's squadron
-// patterns and lancers' rocks (arcade_squad_form, arcade_scroll_ambush_rocks), Haven's gate and Eclipse's ring
-// (arcade_scroll_gate, arcade_scroll_flagship_k), the tricks along a lane (cliffs, pylons, spires, storms, the hole).
+// Layer 6 (2026-10-21, the author: "while you fly, different enemies appear, with different behaviour"): the squadrons
+// that are not passers come as the world's own mix has them (arcade_base_line_type): chasers, tanks leading a wall or a
+// convoy, splitters that break into shards, lancers lying in wait by the rocks ahead and lunging, so each world flies
+// its own raiders. Left out, to be laid on one by one: the cards, the world's own guns and missiles (every raider
+// fires plasma), the wave-2 events, the flagships' duels and each world's trick (cliffs, pylons, spires, the hole). The
+// Scroll of before had them on its lanes, and their lane code is kept for its layer, off until then: Haven's gate and
+// Eclipse's ring (arcade_scroll_gate, arcade_scroll_flagship_k), the tricks along a lane (cliffs, pylons, spires,
+// storms, the hole).
 
 // How far a passer fires (its ring) and a chaser, m
 const arcade_base_passer_range = 460;
@@ -43,8 +46,9 @@ const arcade_base_flagship_hits = 0.4;
 // The world's flagship has come (arcade_base_update)
 let arcade_base_flagship = false;
 
-// A squadron of a Scroll lane (arcade_squad_form): passers as a formation through the view, or chasers in a line from
-// ahead; no elite, no mix, no pattern
+// A squadron of a Scroll lane (arcade_squad_form): passers as a formation through the view, or the world's raiders from
+// ahead (arcade_base_line_type): lancers in wait by the rocks ahead, tanks leading a wall or a convoy, the rest in a
+// line; an elite leads every other one
 function arcade_base_squad(size)
 {
     const first = enemies.length;
@@ -55,14 +59,48 @@ function arcade_base_squad(size)
         arcade_scroll_formation('shooter', size, elite, null, true);
     }
     else {
+        const type = arcade_base_line_type();
+        const pattern = arcade_squad_pattern(type, size);
         const ahead = arcade_scroll_squad_spot(rand(-1, 1));
-        arcade_squad_line('chaser', size, ahead.angle, elite, null, ahead.far);
+        if (pattern === 'ambush') {
+            arcade_squad_ambush(size, elite);
+        }
+        else if ((pattern === 'wall') || (pattern === 'convoy')) {
+            arcade_squad_escorted(pattern, size, ahead.angle, elite, ahead.far);
+        }
+        else {
+            arcade_squad_line(type, size, ahead.angle, elite, null, ahead.far);
+        }
     }
     for (const enemy of enemies.slice(first)) {
         enemy.weapon = 'plasma';
         enemy.passer = !!enemy.path;
         enemy.fire_range = enemy.passer ? arcade_base_passer_range : arcade_base_chaser_range;
     }
+}
+
+// The type of a lane's squadron that is not passers: by the world's mix (combat.js, enemy_type), its shooters left out,
+// as they fly through as passers: Haven's all chasers, Verdant's half splitters, Dustfall's and Obsidian's heavy with
+// tanks
+function arcade_base_line_type()
+{
+    const mix = current_sector().mix;
+    const types = ['chaser', 'tank', null, 'splitter', 'lancer'];
+    let sum = 0;
+    for (let i = 0; i < types.length; ++i) {
+        sum += types[i] ? mix[i] : 0;
+    }
+    let n = Math.random()*sum;
+    for (let i = 0; i < types.length; ++i) {
+        if (!types[i]) {
+            continue;
+        }
+        n -= mix[i];
+        if (n < 0) {
+            return types[i];
+        }
+    }
+    return 'chaser';
 }
 
 // A Scroll raider's reload against its world's: shorter by the run's step
