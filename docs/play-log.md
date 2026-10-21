@@ -47,8 +47,9 @@ come first: when the browser's storage is full, the log's oldest sessions make
 room for a save (`storage_set`), never the session being written. The pause
 panel says how many sessions were dropped. A session stored but missing from
 the index (a full storage once took a session being written out of it, and
-the index never listed it again) is listed again when the page opens. A session longer than the cap would lose its oldest records, and say
-how many in `dropped`; the hourly roll keeps sessions far below it.
+the index never listed it again) is listed again when the page opens. A
+session longer than the cap would lose its oldest records, and say how many
+in `dropped`; the hourly roll keeps sessions far below it.
 
 ## Cost
 
