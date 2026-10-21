@@ -19,8 +19,9 @@ const arcade_kinds = {
 const arcade_scroll_ways = {forward: {x: 0, y: -1}, back: {x: 0, y: 1}, left: {x: -1, y: 0}, right: {x: 1, y: 0}};
 // Each world's lane, Haven to Eclipse (campaign.world): its way, two worlds each (the author: "not only left to
 // right"), and where across the world it runs, a share of the world's width (forward, back) or height (left, right).
-// Eclipse's hole stands beside its lane (hole: how far along it, a share, and how far to its side, m), not across its
-// end: passed on the way, as the author would have it, its pull bending shots and taking raiders that chase you
+// Eclipse's hole stands at its lane's end (hole: how far along it, a share, and how far to its side, m), where the screen
+// stops, so its flagship's duel circles it as in Free (the author, 2026-10-21: "better to put the black hole in the
+// centre of this circle"; it stood beside the lane, three quarters along, and the duel circled a ring of its own)
 const arcade_scroll_lanes = [
     {way: 'forward', across: 0.5},
     {way: 'right', across: 0.5},
@@ -29,7 +30,7 @@ const arcade_scroll_lanes = [
     {way: 'forward', across: 0.5},
     {way: 'back', across: 0.5},
     {way: 'right', across: 0.5},
-    {way: 'left', across: 0.5, hole: [0.75, -1200]},
+    {way: 'left', across: 0.5, hole: [1, 0]},
 ];
 // The share of the lane each wave's stretch ends at: the first half, the second, and the flagship where it ends
 const arcade_scroll_stretches = [0.5, 1, 1];
