@@ -45,6 +45,9 @@ function generator_update(dt)
     supply -= to_shield;
     // the turbo (not while it burns, nor in the moment after a dash) and the pulse, half each, a full one's half the
     // other's
+    // the world's own trickle or drain of the pulse first, then the charge: a drain after it (Eclipse's, 1.8 a second)
+    // left a full pulse at 99.97, never Ready (the author, 2026-10-21: "it does not rise above 99%")
+    player.energy = clamp(player.energy + current_world_rules().energy*dt, 0, 100);
     const turbo_cost = generator_cost.turbo*dash_cooldown()/8;
     const turbo_need = (!player.turbo_active && ((player.dash_cd || 0) <= 0)) ? Math.max(0, turbo_duration() - turbo_fuel())*turbo_cost : 0;
     const pulse_need = Math.max(0, 100 - player.energy)*generator_cost.pulse;

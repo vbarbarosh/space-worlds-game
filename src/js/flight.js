@@ -156,8 +156,7 @@ function update_world_environment(dt)
     if (player.overheated && (player.heat < 55)) {
         player.overheated = false;
     }
-    // the world's own trickle or drain of the pulse (the generator charges it: generator.js)
-    player.energy = clamp(player.energy + r.energy*dt, 0, 100);
+    // the world's own trickle or drain of the pulse goes with the generator's charge (generator_update)
     if ((campaign.world === 1) && (player.since_hit > 5)) {
         player.hp = Math.min(hull_max(), player.hp + 0.4*dt);
     }
