@@ -86,9 +86,8 @@ Three modes:
   while you are inside its ring; salvage and the whole depot (layer 1); the raiders with jobs in the chasers' lines,
   one more kind each world from Haven to Obsidian (layer 2); the raiders built against the kit you bring, their hull
   following your guns' damage and their hits your hull, shield and armour (layer 3), and firing faster world by
-  world; squadrons that keep coming to the lane's end, and elites leading every other one (layer 4); a flagship a
-  minute and a quarter before the lane's end, fought with the screen moving on, that gets away if the lane ends
-  first (layer 5); the squadrons that are not passers come as the world's own mix has them, chasers, tanks leading
+  world; squadrons that keep coming to the lane's end, and elites leading every other one (layer 4); the world's
+  flagship where the lane ends, the screen standing still, the world over once it is down (layer 5); the squadrons that are not passers come as the world's own mix has them, chasers, tanks leading
   a wall or a convoy, splitters, lancers lying in wait by the rocks ahead (layer 6); no cards, the worlds' own guns
   and missiles, flagship duels, wave-2 events or world tricks yet.
   No portals, and the depot opens between worlds only. (Until 2026-10-21 this was a third kind, Base, beside a

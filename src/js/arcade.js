@@ -304,14 +304,13 @@ function arcade_update(dt)
         arcade_gravity_world_start();
         // a Scroll run: the world's lane, the view at its start and you at its back (arcade_scroll.js)
         arcade_scroll_world_start();
-        arcade_base_world_start();
         arcade_wave_start(1);
         cliffs_hint();
         pylons_hint();
         spires_hint();
         return;
     }
-    // a Scroll world ends where its lane ends (arcade_base.js)
+    // a Scroll world ends with its flagship, where its lane ends (arcade_base.js)
     if (arcade_base_update()) {
         return;
     }

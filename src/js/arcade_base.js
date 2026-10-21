@@ -13,7 +13,9 @@
 // following your guns' damage a second and their hits your hull, shield and armour, each against the run's start
 // kit, to the power arcade_base_follow (most of the growth, not all: a better kit still makes you stronger); from world
 // to world their number at once and how often they fire grow besides. Layer 4: raiders all along the lane, an elite
-// leading every other squadron. Layer 5: the world's flagship before the lane's end (arcade_base_flagship_time).
+// leading every other squadron. Layer 5: the world's flagship at the lane's end, where the screen stands still: the
+// world ends when it is down (2026-10-21, the author: "strange that the boss came in the middle, it must come at the
+// end"; it came 75 s of the screen's pace before the end, 5.4 km, the middle of Haven's lane, and got away at the end).
 // Layer 6 (2026-10-21, the author: "while you fly, different enemies appear, with different behaviour"): the squadrons
 // that are not passers come as the world's own mix has them (arcade_base_line_type): chasers, tanks leading a wall or a
 // convoy, splitters that break into shards, lancers lying in wait by the rocks ahead and lunging, so each world flies
@@ -34,17 +36,13 @@ const arcade_base_reload_min = 0.6;
 
 // How far the raiders follow your kit's growth: this power of it (1: all of it, 0: none)
 const arcade_base_follow = 0.6;
-// The flagship comes this many seconds of the screen's pace before the lane's end, and is fought with the screen moving
-// on, with this share of its hull built against your kit (arcade_base_flagship_hull); one still flying at the lane's
-// end gets away, with no bounty. Tried with the bot: 0.5 of the hull and full hits lost most Standard runs; 0.3 and 0.4
-// won them all, a quarter of the flagships getting away (docs/balance.md)
-const arcade_base_flagship_time = 75;
+// The flagship comes where the lane ends, the screen standing still, with this share of its hull built against your kit
+// (arcade_base_flagship_hull). Tried with the bot when it came 75 s before the end, the screen moving on: 0.5 of the
+// hull and full hits lost most Standard runs; 0.3 and 0.4 won them all (docs/balance.md)
 const arcade_base_flagship_hull_k = 0.3;
 // and this share of the hits its world's flagship deals (at all of them, on a lane of bulwarks, it cost the bot 300 to
 // 650 hull)
 const arcade_base_flagship_hits = 0.4;
-// The world's flagship has come (arcade_base_update)
-let arcade_base_flagship = false;
 
 // A squadron of a Scroll lane (arcade_squad_form): passers as a formation through the view, or the world's raiders from
 // ahead (arcade_base_line_type): lancers in wait by the rocks ahead, tanks leading a wall or a convoy, the rest in a
@@ -142,49 +140,33 @@ function arcade_base_kit_damage()
     return sum;
 }
 
-// A Scroll world begins (arcade_update): its flagship still to come
-function arcade_base_world_start()
-{
-    arcade_base_flagship = false;
-}
-
-// Each frame of a Scroll world (arcade_update): the raiders keep coming, the flagship comes before the lane's end; at its
-// end the world is over; true once it is
+// Each frame of a Scroll world (arcade_update): the raiders keep coming to the lane's end; there the screen stands and
+// the world's flagship comes, its wave the run's last (arcade_wave_start), with its escorts only; the world is over once
+// it is down; true then
 function arcade_base_update()
 {
     if (!arcade_scroll_on()) {
         return false;
     }
     // the wave's raiders never run out: they keep coming at its pace to the lane's end, so the screen is never empty
-    // (the author's run, 2026-10-20: a wave's count spent, the rest of Haven's lane was empty); while the flagship
-    // flies, only its escorts come (arcade_flagship_update)
-    const flagship = enemies.some(v => (v.type === 'boss') && (v.hp > 0));
-    if ((spawn_left <= 0) && !flagship) {
-        spawn_left = Math.max(1, arcade.wave_total);
-    }
-    if (!arcade_base_flagship && (arcade_scroll.s >= arcade_scroll.length - arcade_scroll.pace*arcade_base_flagship_time)) {
-        arcade_base_flagship = true;
+    // (the author's run, 2026-10-20: a wave's count spent, the rest of Haven's lane was empty)
+    if (arcade.wave < arcade_waves) {
+        if (spawn_left <= 0) {
+            spawn_left = Math.max(1, arcade.wave_total);
+        }
+        if (arcade_scroll.s < arcade_scroll.length) {
+            return false;
+        }
+        arcade_wave_start(arcade_waves);
+        // while the flagship flies, only its escorts come (arcade_flagship_update)
         spawn_left = 0;
-        arcade_flagship_spawn();
-    }
-    if (arcade_scroll.s < arcade_scroll.length) {
         return false;
     }
-    arcade_base_flagship_away();
+    if (enemies.some(v => (v.type === 'boss') && (v.hp > 0))) {
+        return false;
+    }
     arcade_base_world_end();
     return true;
-}
-
-// A flagship still flying at the lane's end jumps away: no bounty (its drop)
-function arcade_base_flagship_away()
-{
-    for (const v of enemies.filter(vv => (vv.type === 'boss') && (vv.hp > 0))) {
-        explode(v.x, v.y, v.r, '#a8e4ff', 0, 'warp');
-        v.hp = 0;
-        arcade.flagship_escaped = true;
-        set_hidden(el.bossbar, true);
-        show_toast('THE FLAGSHIP GOT AWAY', 'THE LANE ENDED · NO FLAGSHIP BOUNTY', 3.5, 'danger');
-    }
 }
 
 // A Scroll flagship's hull: arcade_base_flagship_hull_k of a flagship's 1500, by the mode, the world's design and your

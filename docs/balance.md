@@ -1392,7 +1392,7 @@ on it"); `src/js/arcade_base.js`.
 | What grows world by world | how many come at once (as on a Scroll lane), and their reload, 6% shorter a step, 60% at the shortest | `arcade_base_reload` |
 | How they come | a wave's squadrons never run out: they keep coming at its pace to the lane's end (once spent, Haven's lane went empty to its end in the author's run) | `arcade_base_update` |
 | Elites | lead every other squadron from the mode's elite world on, from wave 2, as in Free | `arcade_base_squad` |
-| The flagship | comes 75 s of the screen's pace before the lane's end, fought with the screen moving on; 0.3 of a flagship's hull built against your kit, 0.4 of its hits, no duel; the squadrons wait while it flies (its escorts come); still flying at the lane's end, it gets away with no bounty | `arcade_base_update`, `arcade_base_flagship_hull` |
+| The flagship | comes where the lane ends, the screen standing still (until 2026-10-21: 75 s of the screen's pace before the end, fought with the screen moving on, getting away at the end); 0.3 of a flagship's hull built against your kit, 0.4 of its hits, no duel; the squadrons wait while it flies (its escorts come); the world ends once it is down | `arcade_base_update`, `arcade_base_flagship_hull` |
 | Layer 1 | salvage, and the whole depot between worlds (and before a retry): repairs, supplies, guns, ships, modules, Reactor tuning | `arcade_base_world_end` |
 | Layer 2 | the raiders with jobs (interceptor, carrier, bulwark, sniper, mine-layer), one more kind each world from Haven to Obsidian, in a chasers' line's places, each hunting on its own, no pack; a passers' formation keeps its places | `raider_squad_after` |
 | Left out | cards, the flagships' duels, tanks, splitters, lancers, missiles, world tricks | - |
@@ -1459,6 +1459,14 @@ its hits and its time:
 
 Overload is 0 of 6 in every one, as it was without the flagship. The bot
 does not chase the flagship; a quarter of them get away from it.
+
+At the lane's end (2026-10-21, the author: "strange that the boss came in the
+middle, it must come at the end"; 75 s before the end was 5.4 km, the middle of
+Haven's lane): the screen stands, the flagship cannot get away, the world ends
+once it is down. The bot, seeds 1–3, with layer 6: Chill won 3 of 3 with no
+deaths, Standard 3 of 3 with 1, 0 and 0. A flagship takes it 3–15 s in Haven,
+15–40 s in Verdant and Dustfall, 50–140 s from Ion Reach on (Obsidian once 399
+s, on Standard); a run 1840–2330 s, against 1528 s.
 
 ### Layer 6: each world's own raiders (2026-10-21)
 
