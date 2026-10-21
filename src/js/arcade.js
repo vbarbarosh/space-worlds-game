@@ -743,7 +743,7 @@ function arcade_flagship_spawn()
     if (arcade_scroll_on()) {
         enemy.hp = arcade_base_flagship_hull(scale)*duel;
     }
-    // on a Scroll lane a duel bound to a hole is fought round a ring, with no hole to swallow raiders (arcade_scroll.js)
+    // on a Scroll lane, its share of that by its world's duel (arcade_scroll.js)
     enemy.hp = Math.round(enemy.hp*arcade_scroll_flagship_k());
     enemy.max_hp = enemy.hp;
     boss_spawned = true;

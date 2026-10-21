@@ -524,13 +524,15 @@ function arcade_scroll_flagship(v)
     v.y = clamp(view.y + arcade_scroll.way.y*a, 90, world.h - 90);
 }
 
-// A flagship's hull on a lane: a duel bound to a hole (Eclipse's Eye) fights round a ring at the lane's end, with no
-// hole to swallow the raiders round it, and has this share of its hull (at its whole hull the bot lost 1100 hull a
-// run to it, and Eclipse took 20 lives in 12 runs; at 0.7, with its guards and the lane's raiders there, the bot won 9
-// Standard runs of 18, at 0.45 13 of 18)
-const arcade_scroll_ring_hull = 0.45;
+// A flagship's hull on a lane, by its world's duel, against what it has elsewhere: fought at the lane's end, the screen
+// standing and its guards round it, a fight goes otherwise than in Free. Eclipse's Eye keeps to a ring, with no hole to
+// swallow the raiders round it (at 0.7 the bot won 9 Standard runs of 18, at 0.45 13); Obsidian's Stair, its weak point
+// on a side the view's edges keep you from, took the bot 213-338 s (median 275); Haven's Crescent, without its chase on
+// a lane, fell in 2-19 s (median 10). The aim: Haven's as long as Verdant's (about 40 s), Obsidian's as Ion Reach's
+// (about 120 s)
+const arcade_scroll_flagship_hull = {edge: 0.45, siege: 0.4, chase: 3.5};
 
 function arcade_scroll_flagship_k()
 {
-    return (arcade_scroll_on() && (boss_duel_design()?.kind === 'edge')) ? arcade_scroll_ring_hull : 1;
+    return arcade_scroll_on() ? arcade_scroll_flagship_hull[boss_duels[campaign.world]?.kind] ?? 1 : 1;
 }

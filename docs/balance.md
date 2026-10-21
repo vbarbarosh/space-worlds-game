@@ -1549,6 +1549,16 @@ won, the losses at Eclipse's flagship. Eclipse's Eye on a lane at 0.45 of its
 duel hull (was 0.7): 13 of 18, kept. Its guards drawn without tanks (a tank's
 place a chaser): 7 of 18, not kept.
 
+### Haven's and Obsidian's flagships on a lane (2026-10-21)
+
+A lane's flagship hull by its world's duel (`arcade_scroll_flagship_hull`):
+Haven's Crescent, without its chase, 3.5 times; Obsidian's Stair, its weak
+point on a side the view's edges keep you from, 0.4; Eclipse's Eye 0.45, as
+before. The bot, 18 Standard seeds, a flagship's fight median (before → now):
+Haven 10 → 35 s, Obsidian 275 → 116 s; Verdant 42, Dustfall 51, Ion Reach
+118, Cryosphere 90, Nova Forge 76, Eclipse 82 s. Standard won 13 of 18, as
+before, 29 of its 31 deaths at Eclipse; Chill 3 of 3 with no deaths.
+
 ## The arcade's world shapes
 
 Each arcade world has its own size, station and rock pattern
