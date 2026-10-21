@@ -739,9 +739,9 @@ function arcade_flagship_spawn()
     // its gaps only), so Ion Reach's duel flown at step 2 is not a step-3 fight on a step-2 kit; and a card's factor
     const duel = boss_duel_hull(campaign.world)/boss_designs[campaign.world].hull;
     enemy.hp = Math.round(1500*(1 + arcade_level()*0.6)*scale*boss_designs[arcade_level()].hull*duel*arcade_card_k.flagship);
-    // a Scroll run's flagship is built against your kit (arcade_base.js)
+    // a Scroll run's flagship is built against your kit, times what its duel asks (arcade_base.js)
     if (arcade_scroll_on()) {
-        enemy.hp = arcade_base_flagship_hull(scale);
+        enemy.hp = arcade_base_flagship_hull(scale)*duel;
     }
     // on a Scroll lane a duel bound to a hole is fought round a ring, with no hole to swallow raiders (arcade_scroll.js)
     enemy.hp = Math.round(enemy.hp*arcade_scroll_flagship_k());

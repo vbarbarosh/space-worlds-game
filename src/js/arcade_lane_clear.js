@@ -50,6 +50,8 @@ function lane_clear_open(world, run)
     document.getElementById('lc_eyebrow').textContent = `Scroll${mode ? ` · ${mode}` : ''} · ${arcade_lives_text(arcade.lives)}`;
     document.getElementById('lc_name').textContent = worlds[world].name;
     document.getElementById('lc_stage').style.setProperty('--lc-accent', worlds[world].accent);
+    // Haven's Crescent may reach its gate (boss_duels.js)
+    document.getElementById('lc_line').textContent = arcade.flagship_escaped ? 'The flagship got away' : 'Flagship down';
     const next = arcade.between_worlds?.next ?? null;
     document.getElementById('lc_next').textContent = (next === null) ? '' : `Next: ${worlds[next].name}${(next === arcade_worlds - 1) ? ', the last' : ''}`;
     lane_clear.rows = [

@@ -21,9 +21,10 @@
 // convoy, splitters that break into shards, lancers lying in wait by the rocks ahead and lunging, so each world flies
 // its own raiders. Layer 7 (2026-10-21): each world's own gun (Verdant's scatter, Dustfall's and Nova Forge's
 // missiles, Ion Reach's ion bolts, Obsidian's and Eclipse's rail guns), and every second passer a missile from the
-// run's second world (spawn_enemy), as in Free; the CHILL mode still leaves plasma raiders unarmed. Left out, to be
-// laid on one by one: the cards, the wave-2 events, the flagships' duels and each world's trick (cliffs, pylons,
-// spires, the hole). The
+// run's second world (spawn_enemy), as in Free; the CHILL mode still leaves plasma raiders unarmed. Layer 8: each
+// world's flagship fights its duel (boss_duels.js) at the lane's end, its hull times what the duel asks, the lane's
+// raiders warping out as it comes. Left out, to be laid on one by one: the cards, the wave-2 events and each world's
+// trick (cliffs, pylons, spires, the hole). The
 // Scroll of before had them on its lanes, and their lane code is kept for its layer, off until then: Haven's gate and
 // Eclipse's ring (arcade_scroll_gate, arcade_scroll_flagship_k), the tricks along a lane (cliffs, pylons, spires,
 // storms, the hole).
@@ -159,8 +160,13 @@ function arcade_base_update()
         if (arcade_scroll.s < arcade_scroll.length) {
             return false;
         }
+        // the lane's raiders still in the view warp out as it comes: the fight is the flagship's and its escorts'
+        // (arcade_flagship_update), its own way (boss_duels.js); with them there, Eclipse's cost the bot 1367 hull
+        for (const v of enemies.filter(vv => vv.hp > 0)) {
+            explode(v.x, v.y, v.r, '#a8e4ff', 0, 'warp');
+            v.hp = 0;
+        }
         arcade_wave_start(arcade_waves);
-        // while the flagship flies, only its escorts come (arcade_flagship_update)
         spawn_left = 0;
         return false;
     }
@@ -172,7 +178,7 @@ function arcade_base_update()
 }
 
 // A Scroll flagship's hull: arcade_base_flagship_hull_k of a flagship's 1500, by the mode, the world's design and your
-// kit (arcade_base_hull_k), with no duel (a duel is each world's own trick: a layer still to come)
+// kit (arcade_base_hull_k); its duel's factor on top (arcade_flagship_spawn)
 function arcade_base_flagship_hull(scale)
 {
     return Math.round(1500*scale*boss_designs[campaign.world].hull*arcade_base_hull_k()*arcade_base_flagship_hull_k);

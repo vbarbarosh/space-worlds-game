@@ -1490,6 +1490,19 @@ missile from the run's second world, as in Free. The bot, seeds 1–3: Chill won
 and 0), the deaths in Ion Reach and Eclipse; missiles hurt it 2318 hull over
 the three Standard runs, against 503; Overload lost 3 of 3, as before.
 
+### Layer 8: the flagships' duels (2026-10-21)
+
+Each world's flagship fights its duel at the lane's end (`boss_duel_design`),
+its hull times the duel's factor as in Free; Haven's Crescent runs for a gate
+just past the front edge, Eclipse's Eye keeps to a ring with 0.7 of its hull.
+With the lane's raiders still there, the bot lost 1 Standard run of 3, all its
+deaths at Eclipse's flagship (1367 hull in 106 s, the flagship's own hits 300
+of it); 0.45 of Eclipse's hull lost 4 of 6. With the lane's raiders warping
+out as the flagship comes, seeds 1–6: Standard won 5 of 6 (deaths 0, 0, 2, 1,
+3, 1, all but one at Eclipse); Chill won 3 of 3 with no deaths. A flagship
+takes the bot 3–11 s in Haven, 40–80 s in Nova Forge, 70–150 s at Eclipse, and
+260–580 s at Obsidian's siege, for little hull.
+
 ## The arcade's world shapes
 
 Each arcade world has its own size, station and rock pattern
