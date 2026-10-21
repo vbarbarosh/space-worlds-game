@@ -39,8 +39,13 @@ const arcade_base_passers = 0.5;
 const arcade_base_reload_step = 0.06;
 const arcade_base_reload_min = 0.6;
 
-// How far the raiders follow your kit's growth: this power of it (1: all of it, 0: none)
-const arcade_base_follow = 0.6;
+// How far the raiders follow your kit's growth: this power of it (1: all of it, 0: none), by the mode: on OVERLOAD more
+// of it, so a strong kit does not outgrow them late in the run (the author, 2026-10-21: "the hardest is more like the
+// middle one"; the author's OVERLOAD run cleared seven worlds with no death, the hull at 22% at its lowest)
+const arcade_base_follow = {chill: 0.6, normal: 0.6, overload: 0.8};
+// and on OVERLOAD a raider reloads in this share of its time: the author was hit by 5-9% of the raiders' shots,
+// dashing 70-124 times a world
+const arcade_base_overload_reload = 0.8;
 // The flagship comes where the lane ends, the screen standing still, with this share of its hull built against your kit
 // (arcade_base_flagship_hull). Tried with the bot when it came 75 s before the end, the screen moving on: 0.5 of the
 // hull and full hits lost most Standard runs; 0.3 and 0.4 won them all (docs/balance.md)
@@ -131,10 +136,17 @@ function arcade_base_line_type()
     return 'chaser';
 }
 
+// The power the raiders follow your kit's growth to, by the mode (arcade_base_follow)
+function arcade_base_follow_now()
+{
+    return arcade_base_follow[difficulty] ?? arcade_base_follow.normal;
+}
+
 // A Scroll raider's reload against its world's: shorter by the run's step
 function arcade_base_reload()
 {
-    return arcade_lane_kind() ? Math.max(arcade_base_reload_min, 1 - arcade_base_reload_step*arcade_level()) : 1;
+    const mode = (difficulty === 'overload') ? arcade_base_overload_reload : 1;
+    return arcade_lane_kind() ? Math.max(arcade_base_reload_min, 1 - arcade_base_reload_step*arcade_level())*mode : 1;
 }
 
 // A Scroll raider's hull against Haven's: your kit's damage a second against the run's start kit's, to
@@ -142,7 +154,7 @@ function arcade_base_reload()
 function arcade_base_hull_k()
 {
     const start = weapon_by_id('plasma');
-    return Math.pow(arcade_base_kit_damage()/(start.damage*ship_catalog[0].damage/start.interval), arcade_base_follow);
+    return Math.pow(arcade_base_kit_damage()/(start.damage*ship_catalog[0].damage/start.interval), arcade_base_follow_now());
 }
 
 // A Scroll raider's hits against Haven's (raider_hit_scale): your hull, shield and armour against the run's start
@@ -153,7 +165,7 @@ function arcade_base_hit_k(enemy = null)
         return 1;
     }
     const toughness = (hull_max() + shield_max())/(1 - upgrades.armor*armor_cut());
-    const k = Math.pow(toughness/(ship_catalog[0].hull + ship_catalog[0].shield), arcade_base_follow);
+    const k = Math.pow(toughness/(ship_catalog[0].hull + ship_catalog[0].shield), arcade_base_follow_now());
     return (enemy?.type === 'boss') ? k*arcade_base_flagship_hits : k;
 }
 
