@@ -19,8 +19,11 @@
 // Layer 6 (2026-10-21, the author: "while you fly, different enemies appear, with different behaviour"): the squadrons
 // that are not passers come as the world's own mix has them (arcade_base_line_type): chasers, tanks leading a wall or a
 // convoy, splitters that break into shards, lancers lying in wait by the rocks ahead and lunging, so each world flies
-// its own raiders. Left out, to be laid on one by one: the cards, the world's own guns and missiles (every raider
-// fires plasma), the wave-2 events, the flagships' duels and each world's trick (cliffs, pylons, spires, the hole). The
+// its own raiders. Layer 7 (2026-10-21): each world's own gun (Verdant's scatter, Dustfall's and Nova Forge's
+// missiles, Ion Reach's ion bolts, Obsidian's and Eclipse's rail guns), and every second passer a missile from the
+// run's second world (spawn_enemy), as in Free; the CHILL mode still leaves plasma raiders unarmed. Left out, to be
+// laid on one by one: the cards, the wave-2 events, the flagships' duels and each world's trick (cliffs, pylons,
+// spires, the hole). The
 // Scroll of before had them on its lanes, and their lane code is kept for its layer, off until then: Haven's gate and
 // Eclipse's ring (arcade_scroll_gate, arcade_scroll_flagship_k), the tricks along a lane (cliffs, pylons, spires,
 // storms, the hole).
@@ -71,7 +74,6 @@ function arcade_base_squad(size)
         }
     }
     for (const enemy of enemies.slice(first)) {
-        enemy.weapon = 'plasma';
         enemy.passer = !!enemy.path;
         enemy.fire_range = enemy.passer ? arcade_base_passer_range : arcade_base_chaser_range;
     }

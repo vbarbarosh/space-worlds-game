@@ -1480,6 +1480,16 @@ lancer keep their places (`raider_squad_after`), so the bulwark, the biggest
 damage on a lane, hurt the bot less (Ion Reach 375 hull against 511, Eclipse 344
 against 990, seed 1).
 
+### Layer 7: each world's own guns (2026-10-21)
+
+A lane's raiders keep their world's gun instead of plasma: Verdant's and
+Cryosphere's scatter, Dustfall's and Nova Forge's missiles, Ion Reach's ion
+bolts, Obsidian's and Eclipse's rail guns; every second passer carries a
+missile from the run's second world, as in Free. The bot, seeds 1–3: Chill won
+3 of 3 with no deaths; Standard 3 of 3 with 2, 0 and 2 deaths (before it 1, 0
+and 0), the deaths in Ion Reach and Eclipse; missiles hurt it 2318 hull over
+the three Standard runs, against 503; Overload lost 3 of 3, as before.
+
 ## The arcade's world shapes
 
 Each arcade world has its own size, station and rock pattern
