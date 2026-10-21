@@ -349,7 +349,7 @@ Phase armor do more there (its Builds).
 | Radiation lining | 4 | H D O N | 90 | 1 | +20% radiation protection |
 | Vector stabilizers | 3 | H I C | 60 | 1 | steering +15%, braking +40% |
 | Evasive thrusters | 3 | H I C | 70 | 1 | steers round obstacles |
-| Radar | 3 | H I C | 40 | 1 | sees raiders 2.5, 4, 6 km off: markers on the window's edge; Seeker missiles +0.5 rad/s turn, lock to its reach, held while it sees the target (`src/js/radar.js`) |
+| Radar | 3 | H I C | 40 | 1 | sees raiders 2.5, 4, 6 km off: markers on the window's edge; every weapon of yours reaches +20% a level (a gun's shot life and its 900 m fire limit, the Seeker's burn and lock, the drones' 550 m pick and bolt life); Seeker missiles +0.5 rad/s turn, lock to its reach, held while it sees the target (`src/js/radar.js`) |
 | Reactor cooling | 3 | H I C | 75 | 1 | dash cooldown −0.35 s (the turbo's energy cheaper); Cryosphere shield recharge |
 | Prism cannon | 2 | H O | 75 | 2 | more a shot, by the gun (Weapons, above) |
 | Hotter plasma | 5 | H D I C N | 38 | 2 | +36% of the gun's damage a shot |

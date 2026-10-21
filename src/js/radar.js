@@ -2,13 +2,17 @@
 // bright marker on the window's edge, toward it, with its distance, bigger and brighter the nearer it is; raiders in
 // one direction share a marker with their count, and the nearest are joined to your ship by a running dashed line. A
 // raider's missile coming at you from off the window gets an orange marker of its own, and a ping rings out from the
-// ship while anything is in reach. The Seeker launcher's missiles fly by it too (missile_guide), and the minimap shows
-// what it sees bigger, charted or not, through the arcade's Dust Blind too (render_minimap).
+// ship while anything is in reach. The Seeker launcher's missiles fly by it too (missile_guide), the minimap shows what
+// it sees bigger, charted or not, through the arcade's Dust Blind too (render_minimap), and every weapon of yours
+// reaches a fifth farther a level (radar_reach_k).
 
 // How far each level sees (m): the fight round you at the first, a sector of a world at the third
 const radar_ranges = [0, 2500, 4000, 6000];
 // Each level turns the Seeker launcher's missiles this much harder (rad/s)
 const radar_missile_turn = 0.5;
+// Each level lengthens every weapon's reach by this share: a gun fires farther and its shot flies farther, a Seeker
+// missile burns longer and locks from farther, an orbit drone takes a raider farther off
+const radar_reach = 0.2;
 // Markers within this angle of each other (rad, from the window's centre), or this many px apart (at full size, where
 // the HUD has pushed them together), are one marker with a count
 const radar_merge = 0.2;
@@ -27,6 +31,13 @@ const radar_text_widths = new Map();
 function radar_range()
 {
     return (player && (state === 'playing')) ? (radar_ranges[upgrades.radar || 0] || 0) : 0;
+}
+
+// How much farther your weapons reach with the radar fitted: 1 with none, 1.6 at the third level; in flight and in the
+// station's cards alike
+function radar_reach_k()
+{
+    return 1 + (upgrades.radar || 0)*radar_reach;
 }
 
 // Whether the radar sees `v` (a raider, a missile); an arcade jammer alive blinds it to all but itself

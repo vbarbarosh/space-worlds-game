@@ -42,14 +42,19 @@ let missile_waves = [];
 // The trails of missiles gone, fading where they were
 let missile_wakes = [];
 
-// The launcher's missile with the modules you have; the radar turns it harder (radar_missile_turn)
+// The launcher's missile with the modules you have; the radar turns it harder (radar_missile_turn), and burns it longer
+// and locks it from farther (radar_reach_k)
 function missile_stats()
 {
+    const engine = missile_engines[upgrades.motor || 0];
     const seeker = missile_seekers[upgrades.seeker || 0];
+    const k = radar_reach_k();
     return {
-        ...missile_engines[upgrades.motor || 0],
+        ...engine,
+        fuel: engine.fuel*k,
         engine: upgrades.motor || 0,
         ...seeker,
+        lock: seeker.lock*k,
         turn: seeker.turn + (upgrades.radar || 0)*radar_missile_turn,
         ...missile_warheads[upgrades.warhead || 0],
     };

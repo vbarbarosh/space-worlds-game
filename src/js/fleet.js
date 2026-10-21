@@ -193,16 +193,16 @@ function gun_reach()
     return Math.max(0, ...mounted_weapons().filter(Boolean).map(weapon_reach));
 }
 
-// A gun's range: how far its shot flies; a missile's, how far its seeker locks
+// A gun's range: how far its shot flies; a missile's, how far its seeker locks; both farther with the radar
 function weapon_range(v)
 {
-    return v.missile ? missile_stats().lock : v.speed*v.life;
+    return v.missile ? missile_stats().lock : v.speed*v.life*radar_reach_k();
 }
 
-// How far a gun fires: its range, a gun's at most a screen's width
+// How far a gun fires: its range, a gun's at most a screen's width, or as much farther as the radar lengthens it
 function weapon_reach(v)
 {
-    return v.missile ? weapon_range(v) : Math.min(900, weapon_range(v));
+    return v.missile ? weapon_range(v) : Math.min(900*radar_reach_k(), weapon_range(v));
 }
 
 // The main gun: the arcade's one gun; in the campaign the biggest, then strongest, on your mounts
@@ -351,7 +351,7 @@ function fire_equipped_weapon(mount = null)
             oy: muzzle.y,
             vx: Math.cos(a)*(v.speed + carry),
             vy: Math.sin(a)*(v.speed + carry),
-            life: v.life,
+            life: v.life*radar_reach_k(),
             damage,
             r: (v.id === 'beam') ? 5 : 3,
             weapon: v.id,

@@ -355,7 +355,7 @@ function update_equipment(dt)
             const x = player.x + Math.cos(a)*orbit_drone_radius();
             const y = player.y + Math.sin(a)*orbit_drone_radius();
             let target = null;
-            let near = 550;
+            let near = 550*radar_reach_k();
             for (const enemy of enemies) {
                 const d = Math.hypot(enemy.x - x, enemy.y - y);
                 if ((enemy.hp > 0) && (d < near)) {
@@ -365,7 +365,7 @@ function update_equipment(dt)
             }
             if (target) {
                 const aim = Math.atan2(target.y - y, target.x - x);
-                bullets.push({x, y, vx: Math.cos(aim)*680, vy: Math.sin(aim)*680, life: 1.5, damage: drone_bolt_damage(), r: 3, homing: true});
+                bullets.push({x, y, vx: Math.cos(aim)*680, vy: Math.sin(aim)*680, life: 1.5*radar_reach_k(), damage: drone_bolt_damage(), r: 3, homing: true});
             }
         }
     }
