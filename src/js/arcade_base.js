@@ -43,8 +43,8 @@ const arcade_base_reload_min = 0.6;
 // of it, so a strong kit does not outgrow them late in the run (the author, 2026-10-21: "the hardest is more like the
 // middle one"; the author's OVERLOAD run cleared seven worlds with no death, the hull at 22% at its lowest)
 const arcade_base_follow = {chill: 0.6, normal: 0.6, overload: 0.8};
-// and on OVERLOAD a raider reloads in this share of its time: the author was hit by 5-9% of the raiders' shots,
-// dashing 70-124 times a world
+// and on OVERLOAD a raider reloads in this share of its time: the author was hit by 0-23% of the raiders' shots (most
+// worlds under 10%), dashing 70-124 times a world
 const arcade_base_overload_reload = 0.8;
 // The flagship comes where the lane ends, the screen standing still, with this share of its hull built against your kit
 // (arcade_base_flagship_hull). Tried with the bot when it came 75 s before the end, the screen moving on: 0.5 of the
