@@ -37,6 +37,7 @@ function explode(x, y, size, color, delay = 0, kind = 'blast', shake = 0, flash 
         return;
     }
     explosion_sound(x, y, size, delay);
+    shock_wave_add(x, y, size, delay);
     const sparks = [];
     for (let i = 0, end = Math.round(6 + size/6); i < end; ++i) {
         sparks.push({angle: explosion_random()*Math.PI*2, speed: size*(2.2 + explosion_random()*3), length: 4 + explosion_random()*size*0.3});
@@ -226,6 +227,7 @@ function update_explosions(dt)
         explosion.t += dt;
     }
     explosions = explosions.filter(v => v.t < v.duration);
+    update_shock_waves(dt);
     for (const wreck of wrecks) {
         wreck.t += dt;
     }
@@ -449,6 +451,7 @@ function render_explosions()
         lights -= v.lit ? 1 : 0;
     }
     render_wrecks();
+    render_shock_waves();
     render_hull_breaks();
     for (let i = 0; i < explosions.length; ++i) {
         const explosion = explosions[i];
