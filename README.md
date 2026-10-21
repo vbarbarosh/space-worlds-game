@@ -155,6 +155,12 @@ Three modes:
                      files with their peak and mean levels (ffmpeg), in
                      data/sound/<label>/; --page records a build kept from
                      before a change, for before and after
+    bin/sound-pack   generate the sound brief as WAV, MP3 and Ogg assets:
+                     every effect, new explosion takes, full world music
+                     loops, flight stems and listening demos; --label=name
+                     writes data/sound/<name>/ with a playlist and manifest.
+                     Requires Playwright Chromium and ffmpeg; see
+                     docs/designer/sound.md. Does not change game playback.
     bin/lint         the rulebook's linter over src/, docs/assets/ and bin/;
                      see AGENTS.md
     bin/map-check    every world's map, campaign and arcade, against

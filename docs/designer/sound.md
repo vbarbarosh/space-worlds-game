@@ -13,6 +13,35 @@ themes), `src/js/music_drive.js` (the arcade's and the flagship's music) and
 output as it plays, and the dev page's Sounds tab (`build/dev.html`) plays any
 effect on demand.
 
+`bin/sound-pack --label=my-pack` generates separate stereo 48 kHz WAV masters
+with MP3 and Ogg Vorbis copies in `data/sound/my-pack/`. It needs ffmpeg and Playwright's
+Chromium (`npx playwright install chromium`). A label must be new; existing
+packs are never overwritten. Open `playlist.m3u` to listen or `README.md` to
+choose an asset. `manifest.json` records durations, levels, tempos, loop frame
+counts, aliases and checksums. The generator rejects silent, non-finite or
+clipped PCM and verifies that every MP3 and Ogg decodes. WAV preserves the
+exact loop frame count; MP3 copies are for listening and sharing.
+
+The pack has 100 assets: the 28 named effects below, six alternate explosion
+takes, 32 full music loops (calm, campaign combat, arcade and boss for each
+world), eight boss-arrival stingers, 22 flight stems and four listening demos.
+It uses the existing scores and effect recipes with full-band noise, and new
+non-resonant explosion bodies. It is locally synthesized, not recordings or
+newly composed music. The six reference recordings mentioned below are not
+included in the repository and were not used for the synthesis.
+
+Music loops last one complete 256-eighth cycle; two preceding chords supply
+their reverb tails. Loop edges have 5 ms ramps. Flight stems preserve their
+relative levels with a shared gain; other assets are peak normalized, so
+integration must balance them against the game's buses. `air-idle` is turning
+without thrust; straight idle air is silent. Shelter and ducking remain mixer
+gain changes. The demos cover chained explosions, kill plus a ship blast,
+rapid shots with impacts, and the settings test mix.
+
+Generation does not change the game. In particular, the chain demo plays
+every blast, while the game's current cooldowns still drop closely spaced
+calls. Events described as silent below do not acquire sounds in this pack.
+
 ## What the author has said so far
 
 The sound was reworked on 2026-10-21; this is what the author heard and said,
