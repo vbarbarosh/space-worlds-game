@@ -1,18 +1,22 @@
 // The driving music: the arcade's, and any flagship fight's. Each world's theme (its chords, scale and tune, music.js)
 // played fast over a drum kit, a running bass, an arpeggio and a lead of the world's own sound (its music.drive). A
-// flagship in reach lifts it at once: a hit on the spot, the tempo up, the kit doubled, the bass in sixteenths, the lead
-// an octave higher; gone, the music drops back to the drive at the next step.
+// flagship in reach turns it into a piece of its own at once: a hit on the spot, the tempo up, the kit doubled, the
+// bass in sixteenths, the world's tune, pad and arpeggio gone for the boss's riff (the author heard the boss's layers
+// over the drive's tune as two musics at once); gone, the music drops back to the drive at the next step.
 
 // A flagship this near (m) is a boss fight
 const music_boss_reach = 1800;
 // The boss fight plays this much faster than the world's drive
 const music_boss_tempo = 1.08;
+// The boss's riff, in eighths: semitones over the chord's root, dark with its half steps and a tritone
+const music_boss_riff = [0, 0, 1, 0, 3, 0, 1, 6];
 
-// 0 the world's calm theme, 1 the drive (the arcade), 2 a boss fight
+// 0 the world's calm theme, 1 the drive (the arcade), 2 a boss fight: from a flagship in reach until it is down, wherever
+// it goes, so the music does not swing to and fro at the reach's edge
 function music_drive_level()
 {
     const flight = (state === 'playing') && !!player;
-    if (flight && enemies.some(v => (v.type === 'boss') && (v.hp > 0) && (distance(v, player) < music_boss_reach))) {
+    if (flight && enemies.some(v => (v.type === 'boss') && (v.hp > 0) && ((sound.drive === 2) || (distance(v, player) < music_boss_reach)))) {
         return 2;
     }
     return arcade.active ? 1 : 0;
@@ -73,35 +77,42 @@ function music_drive_step(p, step, t, eighth, level)
     else {
         bass(root + ((s % 8 === 7) ? 12 : 0), t, eighth*0.85);
     }
+    // a boss fight: its riff over the kit and the bass, and a stab of the chord on its change and on the and of three;
+    // the world's arpeggio, tune and pad gone
+    if (boss) {
+        const note = root + 24 + music_boss_riff[s % music_boss_riff.length];
+        music_note(note, eighth*0.8, 'sawtooth', 0.022, t, 2200, {attack: 0.004, release: eighth*0.5, pan: -0.15});
+        music_note(note - 12, eighth*0.8, 'square', 0.01, t, 1200, {attack: 0.004, release: eighth*0.5, pan: 0.15});
+        if ((s % 16 === 0) || (s % 16 === 5)) {
+            for (let i = 0, end = chord.length; i < end; ++i) {
+                music_note(p.root + 12 + chord[i], eighth*0.9, 'sawtooth', 0.012, t, 1900, {attack: 0.004, release: eighth*0.6});
+            }
+        }
+        return;
+    }
     // the arpeggio: the chord's notes in sixteenths, all along
     for (const k of [0, 1]) {
         const i = d.arp[(s*2 + k) % d.arp.length] % chord.length;
-        music_note(p.root + 24 + chord[i], half*0.9, d.lead, boss ? 0.011 : 0.008, t + k*half, 2800, {
+        music_note(p.root + 24 + chord[i], half*0.9, d.lead, 0.008, t + k*half, 2800, {
             attack: 0.004,
             release: half*0.7,
             pan: k ? 0.35 : -0.35,
         });
     }
-    // the tune: the world's motif in quarters, doubled a little out of tune, from the second section on (an octave up
-    // in a boss fight, from the start)
-    if ((boss || (section > 0)) && (s % 2 === 0)) {
+    // the tune: the world's motif in quarters, doubled a little out of tune, from the second section on
+    if ((section > 0) && (s % 2 === 0)) {
         const degree = p.motif[(s/2) % p.motif.length];
         if (degree !== null) {
-            const note = p.root + 24 + (boss ? 12 : 0) + p.scale[degree % p.scale.length];
+            const note = p.root + 24 + p.scale[degree % p.scale.length];
             for (const detune of [-7, 7]) {
                 music_note(note, eighth*1.8, d.lead, 0.014, t, 3200, {attack: 0.01, release: eighth, detune, pan: detune/40});
             }
         }
     }
-    // a pad under it all, and in a boss fight a stab of the chord on its change and on the and of three
+    // a pad under it all
     if (s % 16 === 0) {
         for (let i = 0, end = chord.length; i < end; ++i) {
             music_note(p.root + 12 + chord[i], eighth*15, 'sawtooth', 0.005, t, 900, {attack: 0.3, release: eighth*6, pan: (i % 2) ? 0.4 : -0.4});
-        }
-    }
-    if (boss && ((s % 16 === 0) || (s % 16 === 5))) {
-        for (let i = 0, end = chord.length; i < end; ++i) {
-            music_note(p.root + 12 + chord[i], eighth*0.9, 'sawtooth', 0.012, t, 1900, {attack: 0.004, release: eighth*0.6});
         }
     }
 }

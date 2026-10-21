@@ -296,8 +296,9 @@ function update_audio_scene()
     f.body.frequency.setTargetAtTime(62, now, 0.2);
     f.overtone.frequency.setTargetAtTime(220, now, 0.2);
     f.filter.frequency.setTargetAtTime(700 + power*250 + (boost ? 450 : 0), now, 0.35);
-    f.air_gain.gain.setTargetAtTime(flight ? power*0.014 + (boost ? 0.026 : 0) + turn*0.006 : 0, now, 0.32);
-    f.air_filter.frequency.setTargetAtTime(boost ? 2300 : 1200, now, 0.5);
+    // held, the turbo is a deep roar, not a hiss
+    f.air_gain.gain.setTargetAtTime(flight ? power*0.014 + (boost ? 0.04 : 0) + turn*0.006 : 0, now, 0.32);
+    f.air_filter.frequency.setTargetAtTime(boost ? 700 : 1200, now, 0.5);
     const id = campaign.world;
     const sheltered = player && (distance(player, station) < station_shelter);
     const ambient = flight ? [0.014, 0.034, 0.025, 0.042, 0.035, 0.018, 0.05, 0.028][id]*(sheltered ? 0.35 : 1) : 0;

@@ -12,6 +12,9 @@ const wreck_limit = 10;
 const explosion_light_limit = 2;
 // the smallest blast of a ship (a shard's is 26, a raider's 40): smaller ones are shots' and leave no wreck or light
 const explosion_ship_size = 36;
+// The blasts heard (explosion_sound): from this size, and a flagship's last from this one
+const explosion_sound_min = 12;
+const explosion_sound_huge = 180;
 // A big kill holds the game still for a moment, the frame drawn and nothing moving (js/boot.js): at most once in
 // 0.4 s, and never when the system asks for reduced motion
 let hit_stop = 0;
@@ -33,6 +36,7 @@ function explode(x, y, size, color, delay = 0, kind = 'blast', shake = 0, flash 
         explosion_light_add(x, y, size, color, delay, kind);
         return;
     }
+    explosion_sound(x, y, size, delay);
     const sparks = [];
     for (let i = 0, end = Math.round(6 + size/6); i < end; ++i) {
         sparks.push({angle: explosion_random()*Math.PI*2, speed: size*(2.2 + explosion_random()*3), length: 4 + explosion_random()*size*0.3});
@@ -63,6 +67,17 @@ function explode(x, y, size, color, delay = 0, kind = 'blast', shake = 0, flash 
     if (full_fx && (size >= explosion_ship_size)) {
         wreck_add(x, y, size, hull, delay + duration*0.3, Math.round(1 + size/30));
     }
+}
+
+// A blast is heard by its size, as it goes off (a delayed one later): a pop for a missile's, a boom for a ship's, a
+// long roar for a flagship's last (src/js/sfx/blast*.js); a smaller one than explosion_sound_min goes unheard
+function explosion_sound(x, y, size, delay)
+{
+    if (!sound.ctx || (size < explosion_sound_min)) {
+        return;
+    }
+    const kind = (size >= explosion_sound_huge) ? 'blast_huge' : (size >= explosion_ship_size) ? 'blast_big' : 'blast';
+    sfx(kind, 1, {x, y}, sound.ctx.currentTime + delay);
 }
 
 // A flagship goes down in a chain of blasts across its hull, each one felt, then one large one that whitens the

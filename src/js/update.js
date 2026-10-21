@@ -526,6 +526,7 @@ function update(dt, frame_dt = dt)
                 const hx = px + vx*at;
                 const hy = py + vy*at;
                 burst(hx, hy, b.color || cyan, 3, 70);
+                sfx('impact', 0.8, {x: hx, y: hy});
                 // a hull hit throws sparks and chips back the way the shot came; a shield shows its own impact
                 if (shielded) {
                     explode(hx, hy, 10, b.color || cyan, 0, 'spark');

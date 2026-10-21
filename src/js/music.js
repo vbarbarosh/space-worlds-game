@@ -53,21 +53,28 @@ function select_world_music()
     if ((sound.music_world === id) && sound.music_bus) {
         return;
     }
+    music_bus_swap(now, 0.7);
+    sound.music_world = id;
+    sound.enemy_next = 0;
+    sound.environment_next = 0;
+    sound.next = now + 0.035;
+    sound.step = 0;
+}
+
+// The music goes on a new bus from now: the old one fades out over `fade` (s) and is let go once silent, so the notes it
+// already holds (a calm theme's chord rings 9 s) do not play on under the new music
+function music_bus_swap(now, fade)
+{
     if (sound.music_bus) {
         sound.music_bus.gain.cancelScheduledValues(now);
-        sound.music_bus.gain.setTargetAtTime(0, now, 0.7);
+        sound.music_bus.gain.setTargetAtTime(0, now, fade);
         sound.retired_buses.push({bus: sound.music_bus, until: now + 9});
     }
     sound.music_bus = sound.ctx.createGain();
     sound.music_bus.gain.value = 0;
     sound.music_bus.connect(sound.music_trim);
     sound.music_bus.connect(sound.room);
-    sound.music_world = id;
     sound.music_level = null;
-    sound.enemy_next = 0;
-    sound.environment_next = 0;
-    sound.next = now + 0.035;
-    sound.step = 0;
 }
 
 function schedule_music()
@@ -120,7 +127,12 @@ function schedule_music()
         return;
     }
     const p = world_audio[campaign.world];
+    // the music changes at once: the old one's notes fade out on its own bus (the author heard both at a flagship's
+    // arrival), the new one starts at its level
     if (sound.drive !== drive) {
+        music_bus_swap(now, 0.08);
+        sound.music_bus.gain.setValueAtTime(level, now);
+        sound.music_level = level;
         sound.step = 0;
         sound.next = now + 0.03;
         if (drive === 2) {
@@ -244,6 +256,10 @@ const sfx_by_kind = {
     countdown: sfx_countdown,
     go: sfx_go,
     ring: sfx_ring,
+    blast: sfx_blast,
+    blast_big: sfx_blast_big,
+    blast_huge: sfx_blast_huge,
+    impact: sfx_impact,
 };
 function sfx(kind, volume = 1, position = null, when)
 {
@@ -271,9 +287,9 @@ function sfx(kind, volume = 1, position = null, when)
     function note(f, d, a, end = null, type = 'sine', delay = 0, cutoff = 2200) {
         return tone(f, d, type, a*v, t + delay, end, cutoff, bus, shape);
     }
-    // noise in a band round f, sliding to `sweep` when given (a whoosh)
-    function air(d, a, f, delay = 0, sweep = 0) {
-        return noise(d, a*v, f, t + delay, bus, sweep ? {...shape, sweep} : shape);
+    // noise in a band round f (or under it: filter 'lowpass', a boom), sliding to `sweep` when given (a whoosh)
+    function air(d, a, f, delay = 0, sweep = 0, filter = '') {
+        return noise(d, a*v, f, t + delay, bus, (sweep || filter) ? {...shape, sweep, filter} : shape);
     }
     if (effect) {
         effect.play(note, air, t);
