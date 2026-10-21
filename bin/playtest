@@ -556,7 +556,7 @@ function page_bot(options)
             }
             world_entry().time += 1/60;
             // waves 1 and 2 as they are flown: how many raiders are in play, and the seconds with under 3 (quiet)
-            if ((arcade.wave >= 1) && (arcade.wave < arcade_waves) && (arcade.pause <= 0)) {
+            if ((arcade.wave >= 1) && (arcade.wave < arcade_wave_count()) && (arcade.pause <= 0)) {
                 const n = enemies.filter(v => (v.hp > 0) && !v.anchor).length;
                 world_entry().wave_time += 1/60;
                 world_entry().crowd += n/60;

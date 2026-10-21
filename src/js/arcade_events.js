@@ -35,7 +35,10 @@ function arcade_event_start()
 {
     arcade_event_end();
     const pool = arcade_event_pools[campaign.world] || arcade_event_pools[0];
-    const kind = pool[Math.floor(Math.random()*pool.length)];
+    // a world's second event (Free's wave 4) is its other kind
+    const fresh = pool.filter(v => v !== arcade.event_last);
+    const kind = fresh[Math.floor(Math.random()*fresh.length)] || pool[0];
+    arcade.event_last = kind;
     arcade.event = {kind, time: 0, target: null, vents: [], vent_timer: 2};
     show_toast(arcade_event_kinds[kind].title, arcade_event_kinds[kind].line, 4, 'danger');
     if (kind === 'convoy') {

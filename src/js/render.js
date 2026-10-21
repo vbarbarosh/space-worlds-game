@@ -12,7 +12,8 @@ function base_damage_ore(v, amount)
     ring(v.x, v.y, gold, v.r*2, 0.4);
     explode(v.x, v.y, v.r*1.5, '#c9924e');
     sfx('mine', 1, v);
-    for (let i = 0; i < 3; ++i) {
+    const drops = (arcade.active && !arcade_scroll_on()) ? arcade_free_rock_drops : 3;
+    for (let i = 0; i < drops; ++i) {
         drop_pickup(v.x + rand(-25, 25), v.y + rand(-25, 25), 'artifact', 4 + Math.floor(wave/5));
     }
     if (Math.random() < 0.13) {

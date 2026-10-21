@@ -36,10 +36,12 @@ const dev_screen_options = [
     {value: 'map-editor', label: 'Map editor (&kind=free or scroll for the arcade\'s)'},
 ];
 const dev_screen = new URLSearchParams(location.search).get('screen');
-// &wave=n with &screen=arcade (dev_screen_arcade_wave), read before the scenario writes the URL over
-const dev_screen_wave = clamp(Math.round(Number(new URLSearchParams(location.search).get('wave')) || 1), 1, 3);
+// &wave=n with &screen=arcade (dev_screen_arcade_wave), read before the scenario writes the URL over; &wave=flagship
+// is the world's last (Free's sixth, a Scroll lane's third), and a Scroll lane takes a number past its third as that
+const dev_screen_wave_given = new URLSearchParams(location.search).get('wave');
+const dev_screen_wave = (dev_screen_wave_given === 'flagship') ? arcade_free_waves : clamp(Math.round(Number(dev_screen_wave_given) || 1), 1, arcade_free_waves);
 // the wave the panel's Screens tab opens an arcade screen at
-const dev_wave_options = [1, 2, 3].map(v => ({value: v, label: `Wave ${v}${(v === 3) ? ' · flagship' : ''}`}));
+const dev_wave_options = [1, 2, 3, 4, 5, 6].map(v => ({value: v, label: `Wave ${v}${(v === arcade_free_waves) ? ' · flagship' : ''}`}));
 let dev_screen_wave_picked = dev_screen_wave;
 // read at load: starting the scene rewrites the URL
 const dev_screen_modules = new URLSearchParams(location.search).get('modules') || '';
@@ -271,7 +273,7 @@ function dev_screen_arcade_death(left)
     }
     arcade.world = campaign.world;
     arcade.world_start = {score, kills, run_time, snapshot: arcade_snapshot()};
-    arcade.wave = arcade_waves;
+    arcade.wave = arcade_wave_count();
     arcade.lives = left + 1;
     score = dev_screen_long ? 987654321 : 1556825;
     kills = 1700;
@@ -699,11 +701,12 @@ function dev_screen_arcade_wave()
     arcade.world_start = {score, kills, run_time};
     // a Scroll run (&kind=scroll): its lane, the screen where the wave before ended
     arcade_scroll_world_start();
+    const wave = Math.min(dev_screen_wave, arcade_wave_count());
     if (arcade_scroll_on()) {
-        arcade_scroll.s = arcade_scroll_end(dev_screen_wave - 1);
+        arcade_scroll.s = arcade_scroll_end(wave - 1);
         update_camera(0, true);
     }
-    arcade_wave_start(dev_screen_wave);
+    arcade_wave_start(wave);
 }
 
 // On from a world's cleared screen to what follows it: a Scroll run's depot (arcade_lane_clear.js), or the break

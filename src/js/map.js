@@ -102,8 +102,9 @@ function base_generate_map()
                 break;
             }
         }
-        // a Scroll run has no salvage there, only the cache's supply (arcade_base.js)
-        const pieces = (arcade.active && arcade_lane_kind()) ? 0 : 5;
+        // a Scroll run has no salvage there, only the cache's supply (arcade_base.js); a Free world's cache holds less
+        // (arcade_free_cache_pieces)
+        const pieces = arcade.active ? (arcade_lane_kind() ? 0 : arcade_free_cache_pieces) : 5;
         for (let j = 0; j < pieces; ++j) {
             pickups.push({
                 x: x + (seeded() - 0.5)*90,

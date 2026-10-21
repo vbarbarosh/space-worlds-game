@@ -64,7 +64,7 @@ function captain_status()
     if (arcade.active) {
         // the step of the run (the worlds come in the order chosen at each break), the route flown, and the cards in
         // force (src/js/arcade_route.js, src/js/arcade_cards.js)
-        out.arcade = {world: `${arcade_level() + 1} / ${arcade_worlds}`, wave: `${arcade.wave} / ${arcade_waves}`, route: arcade.route.map(v => worlds[v].name), cards: arcade_cards_chips().map(v => v.text)};
+        out.arcade = {world: `${arcade_level() + 1} / ${arcade_worlds}`, wave: `${arcade.wave} / ${arcade_wave_count()}`, route: arcade.route.map(v => worlds[v].name), cards: arcade_cards_chips().map(v => v.text)};
         // the flagship's duel: how it is won now (src/js/boss_duels.js)
         const duel = boss_duel_card();
         if (duel) {

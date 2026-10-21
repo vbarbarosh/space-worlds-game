@@ -121,11 +121,13 @@ there is a decision to make.
 
 ## The arcade
 
-`ARCADE` is a run through the eight worlds: three waves of raiders in each,
-the world's flagship in the third, and a break and the depot between worlds.
+`ARCADE` is a run through the eight worlds, about five minutes each: six
+waves of raiders in each (three on a Scroll lane), the world's flagship in the
+last, and a break and the depot between worlds.
 It starts in Haven and ends in Eclipse; the six between come in an order you
 choose, and the raiders grow with the step of the run, not with the world. A
-wave ends when its raiders are down. Each flagship is a fight of its own,
+wave ends when its raiders are down; in Free the first five bring theirs
+over 48 s each. Each flagship is a fight of its own,
 said when it arrives and in `status` (its `flagship` line): the Crescent
 runs for a gate and gets away with its bounty if it reaches it; nests
 shield the Thorn Beetle; the Sawtooth's blade turns your shots until it rams a

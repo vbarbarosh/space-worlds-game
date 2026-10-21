@@ -124,7 +124,7 @@ async function part_record(browser, hooked, out_dir, part, report)
         }
         return;
     }
-    const page = await page_open(browser, hooked, (part === 'fight') ? 'world=3&screen=arcade&wave=2&god=1' : 'world=3&screen=arcade&wave=3&god=1');
+    const page = await page_open(browser, hooked, (part === 'fight') ? 'world=3&screen=arcade&wave=2&god=1' : 'world=3&screen=arcade&wave=flagship&god=1');
     await page_eval(page, 'window.__played = {}; const play = sfx; sfx = function (kind, ...rest) { window.__played[kind] = (window.__played[kind] || 0) + 1; return play(kind, ...rest); };');
     const file = await page_record(page, out_dir, part, 20000);
     report[part] = {

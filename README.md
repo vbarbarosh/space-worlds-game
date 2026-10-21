@@ -29,8 +29,8 @@ like) are in [docs/principles.md](docs/principles.md).
 
 Three modes:
 
-- **Arcade**: one run through the eight worlds, three waves each, the world's
-  flagship in the third. Raiders come in squadrons; elites lead some of them,
+- **Arcade**: one run through the eight worlds, about five minutes each: six
+  waves, the world's flagship in the last. Raiders come in squadrons; elites lead some of them,
   from Haven on (from the second world on Chill); in the middle worlds a
   squadron fans out round you, and marksmen aim where you will be, a dashed
   line showing their aim; a share of the squadrons fly mixed, and each
@@ -77,8 +77,8 @@ Three modes:
   strewn, in a band, a ring, a belt, columns or outcrops.
 
   The arcade comes in two kinds, picked on its menu row (T turns it): **Free**, as above, and **Scroll**, the same
-  run on a screen that moves on by itself, up, down, left or right by the world, along a lane 12 to 16 km long (3 to
-  4 minutes), the world stretched along it with its rocks and caches. Your ship flies anywhere in the view and the
+  run on a screen that moves on by itself, up, down, left or right by the world, along a lane 16 to 19 km long (about
+  5 minutes with its flagship), the world stretched along it with its rocks and caches. Your ship flies anywhere in the view and the
   back edge pushes it on; the raiders come from ahead, and one the back edge leaves behind is gone, as is salvage it
   passes. Scroll is built up from its base a layer at a time: one speed from a world's start to its end, where the
   world ends, its cleared screen plays and the depot opens before the next; two raiders, the chaser, which turns to you and fires once close,

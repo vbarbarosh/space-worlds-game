@@ -257,6 +257,8 @@ function sync_arcade_card()
     hud_html(document.getElementById('mc_where'), `${ui_world_badge(id)}<span class="small">Arcade · world ${step + 1}/${arcade_worlds}</span><span class="threat" title="Threat ${step + 1} of ${arcade_worlds}">${[0, 1, 2, 3, 4].map(v => `<b class="${(v < pips) ? 'on' : ''}"></b>`).join('')}</span>`);
     const wave = Math.max(1, arcade.wave);
     const left = spawn_left + enemies.filter(v => v.hp > 0).length;
+    // a timed wave (arcade_free_wave_time) says the seconds it has to go, then the raiders left
+    const clock = (arcade_wave_timed() && (arcade.wave_clock < arcade_free_wave_time)) ? Math.ceil(arcade_free_wave_time - arcade.wave_clock) : 0;
     const threat = hud_threat();
     const flagship = enemies.some(v => (v.hp > 0) && (v.type === 'boss'));
     const at_depot = (distance(player, station) < station_reach) && !depot_shield_up();
@@ -264,14 +266,14 @@ function sync_arcade_card()
     // world is flown to its lane's end (arcade_base.js)
     const lane = arcade_scroll_on();
     const kind_el = document.getElementById('mc_kind');
-    hud_text(kind_el, lane ? (flagship ? 'Scroll · flagship' : 'Scroll · chasers and passers') : (arcade.pause > 0) ? `Wave ${wave} of ${arcade_waves} · clear` : `Wave ${wave} of ${arcade_waves} · ${ui_sentence(arcade_wave_names[wave] || '')}`);
+    hud_text(kind_el, lane ? (flagship ? 'Scroll · flagship' : 'Scroll · chasers and passers') : (arcade.pause > 0) ? `Wave ${wave} of ${arcade_wave_count()} · clear` : `Wave ${wave} of ${arcade_wave_count()} · ${ui_sentence(arcade_wave_name(wave))}`);
     kind_el.classList.toggle('eyebrow--red', !!threat);
     kind_el.classList.toggle('eyebrow--gold', !threat);
     // a flagship's duel says how it is won (boss_duels.js)
     const duel = flagship ? boss_duel_card() : null;
     hud_text(document.getElementById('mc_title'), lane ? (flagship ? (duel ? duel.title : `Destroy the flagship of ${worlds[id].name}`) : 'Fly on to the end of the lane') : (arcade.pause > 0)
         ? 'Wave clear: repair at the depot or wait for the next'
-        : duel ? duel.title : flagship ? `Destroy the flagship of ${worlds[id].name}` : `Destroy ${left} raider${(left === 1) ? '' : 's'}`);
+        : duel ? duel.title : flagship ? `Destroy the flagship of ${worlds[id].name}` : clock ? `Fight on: ${clock} s of the wave left` : `Destroy ${left} raider${(left === 1) ? '' : 's'}`);
     const nearest = threat || duel?.target || enemies.filter(v => v.hp > 0).sort((a, b) => distance(a, player) - distance(b, player))[0];
     const dist = document.getElementById('mc_dist');
     set_hidden(dist, !nearest);
@@ -281,8 +283,8 @@ function sync_arcade_card()
         hud_html(document.getElementById('mc_distance'), `${value}<small>${unit}</small>`);
         // folded, the wave is said here (its name, or how many are near in a fight); unfolded, the card's kind says it;
         // on a Scroll lane, how far the screen has yet to go to the lane's end, where the flagship comes (arcade_scroll.js)
-        const eta = lane ? (flagship ? (duel ? duel.eta : 'the lane\'s end') : `${hud_distance(arcade_scroll.length - arcade_scroll.s).join(' ')} to the flagship`) : threat ? `${hud_near_count()} near` : duel ? duel.eta : hud_card_open ? `${left} left` : ui_sentence(arcade_wave_names[wave] || '');
-        hud_text(document.getElementById('mc_eta'), (hud_card_open || lane) ? eta : `Wave ${wave}/${arcade_waves} · ${eta}`);
+        const eta = lane ? (flagship ? (duel ? duel.eta : 'the lane\'s end') : `${hud_distance(arcade_scroll.length - arcade_scroll.s).join(' ')} to the flagship`) : threat ? `${hud_near_count()} near` : duel ? duel.eta : hud_card_open ? (clock ? `${clock} s left` : `${left} left`) : ui_sentence(arcade_wave_name(wave));
+        hud_text(document.getElementById('mc_eta'), (hud_card_open || lane) ? eta : `Wave ${wave}/${arcade_wave_count()} · ${eta}`);
         const a = Math.atan2(nearest.y - player.y, nearest.x - player.x);
         document.getElementById('mc_arrow').style.transform = `rotate(${a + Math.PI/4}rad)`;
     }

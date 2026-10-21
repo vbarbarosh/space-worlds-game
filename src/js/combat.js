@@ -406,7 +406,7 @@ function base_damage_enemy(enemy, damage)
                 child.y = enemy.y + rand(-15, 15);
             }
         }
-        if (!enemy.child && (Math.random() < 0.76)) {
+        if (!enemy.child && (Math.random() < 0.76*arcade_kill_drop_k())) {
             drop_pickup(enemy.x, enemy.y, 'artifact', 2 + Math.floor(threat_wave()/4));
         }
         const drop = Math.random();

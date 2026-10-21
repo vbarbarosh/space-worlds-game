@@ -1,8 +1,28 @@
-// Arcade: one run through the eight worlds, three waves each, the world's flagship in the third; no stations, contracts or saves.
-const arcade = {active: false, world: -1, wave: 0, pause: 0, squad_timer: 0, squads: 0, phase: 0, slowmo: 0, depot_hint: false, marksman_hint: false, missile_hint: false, blasts: [], event: null, between_worlds: null, world_start: null, lives: 0, life_flash: 0, campaign_checkpoint: null, route: [0], seed: 0, cards: [], wind_used: false, flagship_escaped: false, owned: {}, fitted: [], reactor: 0, evade: 0, wave_total: 0, trial: false, retry_depot: false};
+// Arcade: one run through the eight worlds, six waves each in Free (three on a Scroll lane), the world's flagship in the
+// last; no stations, contracts or saves.
+const arcade = {active: false, world: -1, wave: 0, pause: 0, squad_timer: 0, squads: 0, phase: 0, slowmo: 0, depot_hint: false, marksman_hint: false, missile_hint: false, blasts: [], event: null, between_worlds: null, world_start: null, lives: 0, life_flash: 0, campaign_checkpoint: null, route: [0], seed: 0, cards: [], wind_used: false, flagship_escaped: false, owned: {}, fitted: [], reactor: 0, evade: 0, wave_total: 0, wave_clock: 0, trial: false, retry_depot: false, event_last: null};
+// A Scroll lane's waves: two along it, the flagship's at its end; its length sets its time (arcade_scroll.js)
 const arcade_waves = 3;
+// A Free world's waves: five, then the flagship's, so a world lasts about five minutes (the author, 2026-10-21: "five
+// minutes a level is a good time, one minute a bad one"; it was 1 to 2 with three waves). Each of the five brings
+// twice a wave's raiders (arcade_wave_size), its squadrons spread over this many s and never closer than their gap,
+// and ends when they are down. Six waves as they were took the bot 2.5 to 3.2 min a world, as fast as it killed; a
+// wave refilled for its time, 6.2 min and 6.5 times the kills, and it lost every Standard run
+const arcade_free_waves = 6;
+const arcade_free_wave_time = 48;
+const arcade_free_wave_k = 2;
 const arcade_radiation = 0.35;
-const arcade_wave_names = ['', 'SCOUTS', 'ASSAULT', 'FLAGSHIP'];
+const arcade_wave_names = ['', 'SCOUTS', 'ASSAULT', 'RAID', 'SIEGE', 'ONSLAUGHT'];
+// A kill drops salvage this much less often than combat.js's 0.76, so a world made longer for five minutes pays what
+// the short one did: in Free, six waves for three (51 raiders then, 207 now, Standard, Haven); on a Scroll lane, a
+// third longer
+const arcade_free_drop_k = 0.25;
+// A Free world's rocks and caches, there to take in five minutes as they were not in one and a half: a rock drops this
+// many artifacts (3 elsewhere) and a cache holds this many (5), so a world pays near what it did (as they were, the bot
+// earned 1.8 times as much a world)
+const arcade_free_rock_drops = 2;
+const arcade_free_cache_pieces = 3;
+const arcade_scroll_drop_k = 0.75;
 // a run's lives: a death costs one and starts its world again (arcade_retry); the last one ends the run
 const arcade_lives = 3;
 // how long the life just lost blinks in the HUD after a retry, in seconds
@@ -326,6 +346,10 @@ function arcade_update(dt)
         }
         return;
     }
+    // a Free wave before the flagship's spreads its squadrons over its time (arcade_squads_update)
+    if (arcade_wave_timed()) {
+        arcade.wave_clock += dt;
+    }
     arcade_blasts_update(dt);
     arcade_event_update(dt);
     arcade_squads_update(dt);
@@ -338,7 +362,7 @@ function arcade_update(dt)
         return;
     }
     // the card says the wave is clear, and then the next one: no news for either
-    if (arcade.wave < arcade_waves) {
+    if (arcade.wave < arcade_wave_count()) {
         arcade.pause = 2.5;
         return;
     }
@@ -348,6 +372,7 @@ function arcade_update(dt)
 function arcade_wave_start(n)
 {
     arcade.wave = n;
+    arcade.wave_clock = 0;
     play_log_wave(n);
     arcade.squad_timer = 0.8;
     arcade.squads = 0;
@@ -359,8 +384,9 @@ function arcade_wave_start(n)
     // a world begins clear of the last one's mines and packs
     if (n === 1) {
         raider_jobs_reset(false);
+        arcade.event_last = null;
     }
-    if (n === arcade_waves) {
+    if (n === arcade_wave_count()) {
         arcade_flagship_spawn();
     }
     // a Scroll lane has no shelter to fly back to: the lining is full as each wave begins
@@ -369,8 +395,8 @@ function arcade_wave_start(n)
     }
     // a wave-2 event, on a Scroll lane as its second half begins (arcade_events.js), but in the run's last world: its
     // second half and flagship are the run's hardest already (with an event there the bot won 7 Standard runs of 18,
-    // every loss at Eclipse; without, 15)
-    if ((n === 2) && !(arcade_scroll_on() && (arcade_level() >= arcade_worlds - 1))) {
+    // every loss at Eclipse; without, 15); in Free another at wave 4, of the world's other kind
+    if (((n === 2) || ((n === 4) && !arcade_scroll_on())) && !(arcade_scroll_on() && (arcade_level() >= arcade_worlds - 1))) {
         arcade_event_start();
     }
     else {
@@ -380,10 +406,36 @@ function arcade_wave_start(n)
 
 // A wave's raiders by the run's step and the wave, and a card's factor. One more a step, not two: with waves 1 and 2
 // full again (no world goals since 2026-10-18), two a step made Eclipse's second wave 31 raiders and the bot won 3
-// runs of 12; with one, 8 of 12, as with the goals.
+// runs of 12; with one, 8 of 12, as with the goals. Four more a wave up to the third, none past it; Free's waves
+// before the flagship's bring twice that over their time (arcade_free_wave_k), so a longer world is not a denser one.
 function arcade_wave_size(n)
 {
-    return Math.round((10 + arcade_level() + (n - 1)*4 + arcade_mode().wave)*arcade_card_k.raiders);
+    const timed = !arcade_scroll_on() && (n < arcade_free_waves);
+    return Math.round((10 + arcade_level() + Math.min(2, n - 1)*4 + arcade_mode().wave)*arcade_card_k.raiders*(timed ? arcade_free_wave_k : 1));
+}
+
+// The share of combat.js's kill drops that still drop: 1 out of the arcade
+function arcade_kill_drop_k()
+{
+    return arcade.active ? (arcade_scroll_on() ? arcade_scroll_drop_k : arcade_free_drop_k) : 1;
+}
+
+// How many waves a world has: Free's or a Scroll lane's; the last is the flagship's
+function arcade_wave_count()
+{
+    return arcade_scroll_on() ? arcade_waves : arcade_free_waves;
+}
+
+// Whether this wave's squadrons spread over its time (arcade_free_wave_time): Free's, but the flagship's
+function arcade_wave_timed()
+{
+    return !arcade_scroll_on() && (arcade.wave >= 1) && (arcade.wave < arcade_free_waves);
+}
+
+// A wave's name on its card: the last one is the flagship's
+function arcade_wave_name(n)
+{
+    return (n >= arcade_wave_count()) ? 'FLAGSHIP' : (arcade_wave_names[n] || '');
 }
 
 // Raiders come in squadrons from one side, not one by one; a squadron waits while the sky is crowded (on a Scroll
@@ -402,11 +454,13 @@ function arcade_squads_update(dt)
     }
     // one the floor calls tops the lane up to two past it, no more: a full squadron there piled up 6 to 9 raiders from
     // Obsidian on, and the bot lost every run
-    const full = 3 + Math.min(3, Math.floor(arcade_level()/2)) + (arcade.wave - 1) + arcade_mode().squad;
+    const full = 3 + Math.min(3, Math.floor(arcade_level()/2)) + Math.min(2, arcade.wave - 1) + arcade_mode().squad;
     const size = short ? Math.min(full, Math.max(3, arcade_scroll_floor() + 2 - alive)) : full;
     arcade_squad_spawn(Math.min(spawn_left, size));
     spawn_left -= Math.min(spawn_left, size);
-    arcade.squad_timer = Math.max(2.6, 5.5 - arcade_level()*0.3)*arcade_mode().gap;
+    // a timed wave's squadrons spread over its time: as many gaps as squadrons in it
+    const spread = arcade_wave_timed() ? arcade_free_wave_time*full/Math.max(1, arcade.wave_total) : 0;
+    arcade.squad_timer = Math.max(Math.max(2.6, 5.5 - arcade_level()*0.3)*arcade_mode().gap, spread);
 }
 
 // A squadron: as it comes (arcade_squad_form), then some of its line raiders swapped for raiders with jobs, and the
@@ -932,7 +986,7 @@ function arcade_depot_fill()
     name.style.color = `var(--w-${world_slug(shown)})`;
     // a Scroll world is its lane, end to end, without the world's tricks (arcade_base.js)
     const lane = arcade_lane_kind();
-    document.getElementById('arcade_depot_next').textContent = `World ${step + ((next === null) ? 1 : 2)} of ${arcade_worlds} · ${lane ? 'its lane, end to end' : `${arcade_waves} waves · flagship`}`;
+    document.getElementById('arcade_depot_next').textContent = `World ${step + ((next === null) ? 1 : 2)} of ${arcade_worlds} · ${lane ? 'its lane, end to end' : `${arcade_free_waves} waves · flagship`}`;
     document.getElementById('cleared_rules').innerHTML = lane ? '' : world_rules[shown].summary.split(' · ').map(v => ui_badge(ui_sentence(v))).join('');
     // what the next step opens, on sale here from now on (src/js/tech.js)
     const opened = (next === null) ? [] : tech_opened(step, step + 1);
@@ -1400,7 +1454,7 @@ function arcade_finish(won)
     toasts_clear();
     // a Scroll world has no waves to name: it is flown again from its lane's start (arcade_base.js)
     const lane = arcade_lane_kind();
-    const reached = lane ? `You reached ${name}, ${hud_distance(arcade_scroll.s).join(' ')} along its lane.` : `You reached ${name}, wave ${arcade.wave} of ${arcade_waves}.`;
+    const reached = lane ? `You reached ${name}, ${hud_distance(arcade_scroll.s).join(' ')} along its lane.` : `You reached ${name}, wave ${arcade.wave} of ${arcade_wave_count()}.`;
     const again = `Retry opens the depot first, with what you had as the world began: change the kit, then fly it again from its ${lane ? 'start' : 'first wave'}.`;
     const salvage_line = salvage ? ` Salvage kept: ◆\u00a0${ui_number(salvage)}, +${ui_number(kept)} points.` : '';
     el.result_eyebrow.textContent = over ? 'ARCADE · RUN OVER' : 'ARCADE · SIGNAL LOST';
@@ -1472,10 +1526,12 @@ function arcade_update_hud()
 {
     hud_text(el.act_label, `ARCADE · WORLD ${arcade_level() + 1} / ${arcade_worlds} · ${world_looks[campaign.world].biome}`);
     hud_text(el.mission_name, worlds[campaign.world].name.toUpperCase());
-    hud_text(el.mission_phase, (arcade.pause > 0) ? `WAVE ${arcade.wave} CLEAR` : `WAVE ${Math.max(1, arcade.wave)} / ${arcade_waves}`);
+    hud_text(el.mission_phase, (arcade.pause > 0) ? `WAVE ${arcade.wave} CLEAR` : `WAVE ${Math.max(1, arcade.wave)} / ${arcade_wave_count()}`);
     const total = arcade_wave_size(arcade.wave);
     const left = spawn_left + enemies.filter(v => v.hp > 0).length;
-    el.sector_progress.style.width = `${clamp((((arcade.wave - 1) + (1 - Math.min(1, left/Math.max(1, total))))/arcade_waves)*100, 0, 100)}%`;
+    // a timed wave fills its share by its clock, another by its raiders down
+    const done = arcade_wave_timed() ? Math.min(1, arcade.wave_clock/arcade_free_wave_time) : 1 - Math.min(1, left/Math.max(1, total));
+    el.sector_progress.style.width = `${clamp((((arcade.wave - 1) + done)/arcade_wave_count())*100, 0, 100)}%`;
     arcade_lives_hud();
 }
 

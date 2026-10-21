@@ -34,7 +34,7 @@ const arcade_scroll_lanes = [
 ];
 // The share of the lane each wave's stretch ends at: the first half, the second, and the flagship where it ends
 const arcade_scroll_stretches = [0.5, 1, 1];
-// The screen's one pace, in m a second: a lane of 12 km under 3 min, of 16 km under 4 (at 54 m/s, 6 min a world; the
+// The screen's one pace, in m a second: a lane of 16 km in 3.7 min, of 19 km in 4.4 (at 54 m/s, 6 min a world; the
 // author: "feels very boring")
 const arcade_scroll_pace = 72;
 // The middle worlds' lanes are busier: a wave brings this share more raiders, and this many more come at once, from

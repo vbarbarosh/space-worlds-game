@@ -790,7 +790,7 @@ function play_log_world_enter(how)
     play_log_kit_due = true;
 }
 
-// The arcade's world cleared: its three waves in so many seconds, and the bonus
+// The arcade's world cleared: its waves in so many seconds, and the bonus
 function play_log_world_cleared(bonus)
 {
     if (play_log_session) {

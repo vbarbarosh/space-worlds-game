@@ -6,9 +6,11 @@ read from the code; a change to the code changes this file too.
 
 Two modes share one combat core and differ in tuning:
 
-- **Arcade** (`src/js/arcade.js`): one run through the eight worlds, three
-  waves each, the flagship in the third. Its numbers are tuned for a short,
-  dense run; three difficulty rows in `arcade_modes` change them. The worlds
+- **Arcade** (`src/js/arcade.js`): one run through the eight worlds, about
+  five minutes each (the author, 2026-10-21: "five minutes a level is a good
+  time"): in Free six waves, the first five 48 s each, the flagship in the
+  last; on a Scroll lane three, along a lane of 16 to 19 km. Its numbers are
+  tuned for a dense run; three difficulty rows in `arcade_modes` change them. The worlds
   come in an order of the player's (a route, a card at each break: see
   [The arcade's route and cards](#the-arcades-route-and-cards)), so its
   numbers go by the run's **step** (0 for the first world flown to 7 for
@@ -510,7 +512,8 @@ time?", not with the whole shop bought.
   | tank | armour, shield, drones, nanites, then Hotter plasma | 8 of 12 | 18: Haven 1, Verdant 3, Ion Reach 1, Obsidian 4, Eclipse 9 | armour 3, shield 3, drones 3, nanites 3, Hotter plasma 1 | 572–2224 |
   | evasion | Evasive thrusters, the pulse and its reactor, Slipstream, Turbo drive, Guided plasma | 6 of 12 | 24: Haven 1, Verdant 2, Dustfall 1, Ion Reach 1, Obsidian 2, Eclipse 17 | evasion 3, Pulse amplifier 3, Pulse reactor 3, Slipstream 2, Turbo drive 1 | 433–3059 |
 
-  A won run takes 700–890 s (median). Before the arcade's own numbers the
+  A won run took 700–890 s (median), before the worlds of five minutes
+  (2026-10-21): now about 40 min. Before the arcade's own numbers the
   guns won 1 to 2 runs of 12, the tank 0 to 1, evasion none (it died in Ion
   Reach); with evasion at 20% a level and Slipstream 10% (90% of the shots
   slipping) evasion won 11 of 12; at 17% and 8% with no cap (up to 75%) 7 of
@@ -632,13 +635,16 @@ clear Obsidian's siege on any of three seeds.
 
 Salvage (◆) is the one currency.
 
-- **Kills:** a raider drops an artifact 76% of the time, worth
+- **Kills:** a raider drops an artifact 76% of the time (in the arcade ×0.25
+  in Free, ×0.75 on a Scroll lane: `arcade_kill_drop_k`, so a world of five
+  minutes pays near what one of one and a half did), worth
   2 + wave / 4 (rounded down; in the arcade the step's wave, 1 + 2 × step,
   `threat_wave`): 2 in Haven and Verdant, 3 in Dustfall and Ion
   Reach, 4 in Obsidian and Cryosphere, 5 in Nova Forge and Eclipse. Shards drop
   none. A flagship drops 12 artifacts of 10. (`base_damage_enemy` in
   `src/js/combat.js`.) The Relic processor adds 25% a level.
-- **Rocks:** a broken ore rock drops 3 artifacts of 4 + wave / 5
+- **Rocks:** a broken ore rock drops 3 artifacts of 4 + wave / 5 (2 in an
+  arcade Free world, `arcade_free_rock_drops`; a cache there holds 3, not 5)
   (`base_damage_ore` in `src/js/render.js`); a broken drifting rock or wreck
   one of 2. A Dustfall cliff that falls (arcade) drops 2 of them and one more
   a raider it crushed ([Dustfall's cliffs](#dustfalls-cliffs)).
@@ -651,9 +657,15 @@ Salvage (◆) is the one currency.
   flagship), and cargo sells at stations.
 
 An arcade world at NORMAL, as a rough sum from these formulas: Haven sends
-13 + 17 + 21 raiders and 3 + 4 flagship escorts, so about 58 kills × 76% × 2,
-about 88, plus 120 from the flagship and the 80 bonus: near 290 salvage
-before rocks and the Relic processor.
+26 + 34 + 42 + 42 + 42 raiders over its five timed waves (twice a wave's,
+`arcade_free_wave_k`, spread over 48 s each), 21 with its flagship and 3 + 4
+escorts, so about 214 kills × 76% × 0.25 × 2, about 81, plus 120 from the
+flagship and the 80 bonus: near 280 salvage before rocks and the Relic
+processor. The bot (`bin/playtest`, seeds 1-3, 2026-10-21): a run's median
+world 4.8 to 6.0 min on every difficulty (1.3 to 2.3 with three waves), 1 380 to 1 490 salvage a
+world on NORMAL (1 050 to 1 200 before); NORMAL and CHILL won every run, no
+death; OVERLOAD won 1 of 3, the other two lost three lives in Haven (it drops
+no repairs, and the first ship does not last five minutes of it).
 
 ## Salvage out
 
@@ -1279,7 +1291,7 @@ their layer. The notes stay for the numbers they found.
 
 The arcade's second kind (`src/js/arcade_scroll.js`) flies the same run on a
 screen that moves on by itself, up, down, left or right by the world (two
-worlds each), along a lane 12 to 16 km long: the world stretched along it, its
+worlds each), along a lane 16 to 19 km long: the world stretched along it, its
 rocks, caches, Dustfall's cliffs and the storms and flares spread along the way.
 The screen keeps one speed and stops only where the lane ends, for the
 flagship; the waves come by distance, squadron by squadron. Its own numbers,
@@ -1288,7 +1300,7 @@ each measured with the bot (`bin/playtest --kind=scroll`, NORMAL, seeds 1–12):
 | On a lane | Value | In Free | Why |
 |---|---|---|---|
 | The screen's pace | 72 m/s, all the way | - | one speed (the author: "it should always be the same"); it stops only at the lane's end; at 54 m/s a world took 6 min ("feels very boring") |
-| A lane | 12 to 16 km (`scroll` in `arcade_shapes`) | - | 3 to 4 min; at 4.3 km it was over in a minute and a half ("about nothing", the author) |
+| A lane | 16 to 19 km (`scroll` in `arcade_shapes`) | - | 3.7 to 4.4 min, about 5 with the flagship (the author, 2026-10-21: five minutes a world; 12 to 16 km took 3 to 4); at 4.3 km it was over in a minute and a half ("about nothing", the author) |
 | A wave of a lane's half | Free's wave × the half's length / 3.1 km, ×1.5 from the second world to the seventh | - | its squadrons spread over the half, one as the screen gets far enough along for what is left; the middle worlds busier (the author's run: a kill every 3 to 4 s, no hull lost in Dustfall), not Haven's first ship nor Eclipse |
 | Raiders alive before the next squadron waits | 12, 16 in the middle worlds | 14 | |
 | Raider reload | ×1.1 | ×1 | |
@@ -1298,7 +1310,7 @@ each measured with the bot (`bin/playtest --kind=scroll`, NORMAL, seeds 1–12):
 | Formations | 6 squadrons of 10: a line sweeping across the screen (170 m/s) or a V flying down it (150 m/s) | - | firing as they pass, gone once out of the view, no points |
 | The Eclipse Eye's hull | ×0.7 | ×1 | it fights round a ring at the lane's end, with no hole swallowing the raiders round it |
 | A bulwark's shield turn | ×0.6 | ×1 | the view's edges cut the circle round it short; a slow ship never got round, its wave held for hours of game time |
-| Rocks and caches along a lane | a field every 2 km, a cache every 1.8 km | 12 fields, 22 caches a world | a run earns about what it does in Free |
+| Rocks and caches along a lane | a field every 2.7 km, a cache every 2.4 km | 12 fields, 22 caches a world | a run earns about what it does in Free; as many a lane as on the shorter lanes |
 | The radiation lining | refilled every 2.2 km (about 40 s) | at the station | no shelter to fly back to |
 
 The long lanes came out too easy or too hard by whole steps: with the short
