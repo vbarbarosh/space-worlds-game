@@ -581,6 +581,10 @@ function page_bot(options)
         else if ((state === 'finale') && (finale.world >= 0)) {
             finale_leave('depot');
         }
+        // a Scroll world's cleared screen (src/js/arcade_lane_clear.js)
+        else if (state === 'lane_clear') {
+            lane_clear_leave();
+        }
         else if (state === 'arcade_break') {
             pause_break();
         }

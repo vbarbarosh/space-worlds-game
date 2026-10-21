@@ -178,7 +178,7 @@ function dev_screen_open()
         player.hp = hull_max()*0.32;
         salvage = 375;
         arcade_world_clear();
-        finale_leave('depot');
+        dev_world_cleared_leave();
         return;
     }
     if (dev_screen === 'arcade-depot') {
@@ -197,6 +197,8 @@ function dev_screen_open()
         run_time = 761;
         salvage = 375;
         finale.frozen = (dev_screen_time === null) ? null : Number(dev_screen_time);
+        // a Scroll run's (&kind=scroll) plays on the lane (arcade_lane_clear.js)
+        lane_clear.frozen = finale.frozen;
         arcade_world_clear();
         return;
     }
@@ -477,7 +479,7 @@ function dev_screen_depot_open()
     }
     arcade_world_clear();
     dev_screen_modules_set();
-    finale_leave('depot');
+    dev_world_cleared_leave();
     player.hp = hull_max()*0.32;
     arcade_break.step = 'route';
     arcade_break.chosen = 0;
@@ -702,4 +704,15 @@ function dev_screen_arcade_wave()
         update_camera(0, true);
     }
     arcade_wave_start(dev_screen_wave);
+}
+
+// On from a world's cleared screen to what follows it: a Scroll run's depot (arcade_lane_clear.js), or the break
+function dev_world_cleared_leave()
+{
+    if (lane_clear.open) {
+        lane_clear_leave();
+    }
+    else {
+        finale_leave('depot');
+    }
 }

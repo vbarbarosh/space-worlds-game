@@ -1,0 +1,197 @@
+/* A Scroll world's cleared screen (arcade_lane_clear.js), over the lane itself: no backdrop of its own but a band of
+   dark behind the words, so the flagship's last blasts and your ship boosting away show through; each part comes in
+   when the script lights its step (is-title, is-in, is-next, is-go) */
+.ui.overlay#lane_clear {
+    display: block;
+    padding: 0;
+    background: linear-gradient(180deg, transparent 8%, #050b18b8 30%, #050b18d9 62%, transparent 94%);
+    pointer-events: auto;
+}
+
+.ui .lc {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 22px;
+    padding: 24px 16px;
+    container-type: inline-size;
+    cursor: pointer;
+}
+
+.ui .lc-title {
+    text-align: center;
+}
+
+.ui .lc-title .eyebrow {
+    display: block;
+    letter-spacing: 0.4em;
+    opacity: 0;
+    transition: opacity 0.4s;
+}
+
+.ui .lc-title h1 {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    column-gap: 0.28em;
+    margin: 10px 0 0;
+    font: 900 clamp(34px, 8cqw, 104px)/0.95 var(--font-ui);
+    letter-spacing: -0.04em;
+    text-transform: uppercase;
+    color: var(--text-1);
+}
+
+/* the world's name slides in from the left, CLEARED from the right, in the world's colour (--lc-accent) */
+.ui .lc-title h1 span {
+    display: inline-block;
+    opacity: 0;
+    transition: transform 0.45s cubic-bezier(0.2, 1.4, 0.4, 1), opacity 0.3s;
+}
+
+.ui .lc-name {
+    transform: translateX(-40cqw);
+}
+
+.ui .lc-word {
+    transform: translateX(40cqw);
+    color: var(--lc-accent, var(--cyan));
+    text-shadow: 0 0 50px color-mix(in srgb, var(--lc-accent, var(--cyan)) 45%, transparent);
+}
+
+.ui .lc-title p {
+    margin: 14px 0 0;
+    font: 500 18px/1.3 var(--font-ui);
+    color: var(--text-2);
+    opacity: 0;
+    transition: opacity 0.4s 0.3s;
+}
+
+.ui .lc.is-title .eyebrow,
+.ui .lc.is-title .lc-title p,
+.ui .lc.is-title .lc-title h1 span {
+    opacity: 1;
+    transform: none;
+}
+
+/* the world's numbers, one row under the other, each counting up as it comes in */
+.ui .lc-tally {
+    display: grid;
+    grid-template-columns: minmax(0, auto) auto;
+    column-gap: 48px;
+    row-gap: 8px;
+    min-width: min(420px, 100%);
+    max-width: 100%;
+}
+
+.ui .lc-row {
+    display: contents;
+}
+
+.ui .lc-row > * {
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.25s, transform 0.25s;
+}
+
+.ui .lc-row.is-in > * {
+    opacity: 1;
+    transform: none;
+}
+
+.ui .lc-row .eyebrow {
+    align-self: center;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ui .lc-row .readout {
+    justify-self: end;
+    font-size: clamp(22px, 3.2cqw, 34px);
+    white-space: nowrap;
+}
+
+.ui .lc-row.is-gold .readout {
+    color: var(--gold);
+}
+
+.ui .lc-next {
+    margin: 0;
+    font: 600 18px/1.3 var(--font-ui);
+    color: var(--text-1);
+    opacity: 0;
+    transition: opacity 0.4s;
+}
+
+.ui .lc.is-next .lc-next {
+    opacity: 1;
+}
+
+.ui .lc-acts {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s;
+}
+
+.ui .lc.is-go .lc-acts {
+    opacity: 1;
+    visibility: visible;
+}
+
+.ui .lc-skip {
+    position: absolute;
+    right: 20px;
+    bottom: 18px;
+    font: 500 12px/1 var(--font-mono);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-3);
+}
+
+.ui .lc.is-go .lc-skip {
+    display: none;
+}
+
+/* the lane's HUD makes way while the world's cleared screen is up */
+body.lane-clearing #hud_root {
+    opacity: 0;
+    transition: opacity 0.5s;
+}
+
+/* a short window (a phone on its side, a laptop's browser with its bars): the title and the rows close up, so the
+   button stays on screen */
+@media (max-height: 560px) {
+    .ui .lc {
+        gap: 10px;
+        padding: 12px 16px;
+    }
+
+    .ui .lc-title h1 {
+        margin-top: 4px;
+        font-size: min(clamp(28px, 8cqw, 104px), 13vh);
+    }
+
+    .ui .lc-title p {
+        display: none;
+    }
+
+    .ui .lc-tally {
+        row-gap: 0;
+    }
+
+    .ui .lc-row .readout {
+        font-size: min(clamp(18px, 3.2cqw, 34px), 6.2vh);
+        line-height: 1.15;
+    }
+}
+
+/* a narrow phone: the eyebrow keeps to one line */
+@media (max-width: 420px) {
+    .ui .lc-title .eyebrow {
+        letter-spacing: 0.16em;
+    }
+}

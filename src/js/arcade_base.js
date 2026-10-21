@@ -177,10 +177,9 @@ function arcade_base_flagship_hull(scale)
 }
 
 // A Scroll world ends with its flagship, at the lane's end: the raiders still in the view go up with it; the run's last
-// is won; any other pays the world's bonus, grows the guns a tier and plays its cleared screen (arcade_finale.js: the
-// flagship's death, the world lit in the ring, its numbers; the author, 2026-10-21: "a beautiful animation, wow, we
-// won, and then on to the shop"), whose button opens the depot, which launches to the next world of the route
-// (arcade_depot_close); no break, no card
+// is won; any other pays the world's bonus, grows the guns a tier and plays its cleared screen on the lane
+// (arcade_lane_clear.js; the author, 2026-10-21: "a beautiful animation, wow, we won, and then on to the shop"), whose
+// button opens the depot, which launches to the next world of the route (arcade_depot_close); no break, no card
 function arcade_base_world_end()
 {
     toasts_clear();
@@ -202,7 +201,7 @@ function arcade_base_world_end()
     arcade_guns_grow();
     set_hidden(el.bossbar, true);
     arcade.between_worlds = {world: campaign.world, bonus, won: [], next: arcade_route_offers()[0]};
-    arcade_world_cleared_open(campaign.world, arcade_world_run(bonus));
+    lane_clear_open(campaign.world, arcade_world_run(bonus));
 }
 
 // A passer's ring (render, in the world): where it fires at you

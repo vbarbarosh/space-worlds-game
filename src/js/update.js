@@ -108,6 +108,11 @@ function update(dt, frame_dt = dt)
         }
         return;
     }
+    // a Scroll world's cleared screen, played on the lane (arcade_lane_clear.js)
+    if (state === 'lane_clear') {
+        lane_clear_update(frame_dt);
+        return;
+    }
     if (state !== 'playing') {
         return;
     }

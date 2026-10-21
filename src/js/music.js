@@ -88,7 +88,7 @@ function schedule_music()
     // no voices for music nobody hears: a hidden tab, all sound off, the music or the master at zero; heard again, it
     // picks up at the start of its chord and fades in
     const audible = !muted && (volume_settings.music > 0) && (volume_settings.master > 0);
-    const active = (settings_open || ['menu', 'playing', 'upgrade', 'transit', 'victory', 'finale'].includes(state)) && !document.hidden && audible;
+    const active = (settings_open || ['menu', 'playing', 'upgrade', 'transit', 'victory', 'finale', 'lane_clear'].includes(state)) && !document.hidden && audible;
     const level = active
         ? (now < sound.duck_until)
             ? 0.38
