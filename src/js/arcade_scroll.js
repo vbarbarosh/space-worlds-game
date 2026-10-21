@@ -569,21 +569,14 @@ function arcade_scroll_figure(kind, n)
         }
     }
     else if ((kind === 'pyramid') || (kind === 'diamond')) {
-        // rows of 1, 2, 3...; a diamond's rows grow and shrink again
+        // rows of 1, 2, 3...; a diamond's grow to its widest, w, and shrink again (w × w raiders in all: 9 are 1, 2,
+        // 3, 2, 1), the last row taking what is left
+        const widest = Math.ceil(Math.sqrt(n));
         const rows = [];
-        for (let left = n, r = 1; left > 0; ++r) {
+        for (let left = n, i = 0; left > 0; ++i) {
+            const r = (kind === 'diamond') ? Math.max(1, widest - Math.abs(widest - 1 - i)) : i + 1;
             rows.push(Math.min(left, r));
             left -= Math.min(left, r);
-        }
-        if (kind === 'diamond') {
-            const half = rows.slice(0, Math.ceil(rows.length/2));
-            rows.length = 0;
-            let left = n;
-            for (let i = 0; left > 0; ++i) {
-                const r = (i < half.length) ? half[i] : Math.max(1, half[half.length - 1] - (i - half.length + 1));
-                rows.push(Math.min(left, r));
-                left -= Math.min(left, r);
-            }
         }
         for (const [r, count] of rows.entries()) {
             for (let i = 0; i < count; ++i) {
