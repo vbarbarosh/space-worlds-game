@@ -1,0 +1,390 @@
+# Sound: what the game plays, and what each world asks of it
+
+Every sound World Explorer plays, as the code stands (2026-10-21, after
+`cde0869`): the mix, each sound effect, the steady sounds of flight, the
+music, and each world's character, so new sounds can be made for it by a
+sound designer, by hand or by a tool, and checked against what it replaces.
+
+All of it is made in code today, with the browser's Web Audio: no sound file
+ships with the game. The code is in `src/js/audio.js` (the mix, `tone()`,
+`noise()`, the flight's steady sounds), `src/js/music.js` (`sfx()`, the calm
+themes), `src/js/music_drive.js` (the arcade's and the flagship's music) and
+`src/js/sfx/`, one file per effect. `bin/sound-render` records the game's own
+output as it plays, and the dev page's Sounds tab (`build/dev.html`) plays any
+effect on demand.
+
+## What the author has said so far
+
+The sound was reworked on 2026-10-21; this is what the author heard and said,
+so a new sound does not walk back into it:
+
+- **The music:** all the themes "sound alike, sad, quiet, calm; for the arcade
+  they don't fit at all". The arcade now plays a driving version of each
+  world's theme.
+- **The boss:** it should bring "more movement and energy at once". A flagship
+  in reach now turns the music into a piece of its own at once. Its first
+  version stacked the boss's layers over the world's tune, and the author
+  heard "two musics playing together".
+- **Shots and boosts:** "sound like a cheap Tetris" (square and triangle beeps,
+  a major chord on the turbo). They were remade with noise and falling zaps;
+  the turbo once more after "the turbo's sound is not great".
+- **Explosions:** "not heard at all" (no explosion made a sound). Then, in
+  turn: "as if someone hit a tin can" (ringing high bands, buzzing tones);
+  several at once "op, nothing at all" where they should go "pa-pa-pa-pam,
+  fuller"; then six recorded explosions sent as examples ("everything so far
+  was bad"). The explosions fitted to them by measurement were "terrible,
+  just terrible", and the two last explosion changes were reverted
+  (`cde0869`). **Today's explosions are the ones the author called a tin can,
+  and a chain of them still plays as one.** They are the first thing to make
+  anew.
+- The author's six examples are in their message of 2026-10-21 22:00
+  (`agentdir/messages/20261021_215000-me/files/`): a sci-fi explosion, a
+  medium one, debris breaking, a big one, a cartoon one, a missile's. Measured
+  (the share of energy by octave in the first 0.25 s, and how fast they fade):
+  about half their energy at 63 Hz, a few % over 2 kHz, swelling for 0.06 to
+  0.5 s, 20 dB down in 0.5 to 1.6 s and 40 dB in 0.9 to 2.5 s.
+
+## The mix
+
+| Stage | What | Numbers |
+|---|---|---|
+| Master | the player's master volume | 0.85 by default |
+| Compressor | evens out the whole | −16 dB, ratio 3, knee 18, attack 15 ms, release 280 ms |
+| Limiter | keeps it from clipping | −3 dB, ratio 20, attack 2 ms, release 120 ms |
+| Effects bus | every sound effect, the engine and the flight's air | 0.85 by default |
+| Music bus | the music, and a room (a 2.6 s reverb, 30% wet) | 0.65 by default |
+| Ambience bus | the world's space hum and the reactor's tone | 0.7 by default |
+
+The settings panel sets the four volumes and mutes all (M); Test plays a
+chord, a pickup and a thump. The music dips to 0.38 of its level while a hit
+(0.55 s), a pulse (1.1 s) or a portal (1.5 s) sounds.
+
+**Where an effect plays from:** one played at a place (a raider, a blast) is
+panned by how far left or right of you it is (750 m to one side is ±0.85, the
+most) and quieter with distance (×(1 − d/1500), at least ×0.12). Raiders'
+shots play at ×0.65, only within 900 m, and one every 0.16 s at most for all
+the raiders together.
+
+**How often:** each effect has a cooldown; a call within it is dropped, not
+delayed (so a chain of explosions plays as its first one). In a 20 s arcade
+fight in Ion Reach the game played: your shot 101 times, its hit on a raider
+96, raider ion shots 44 to 65, small blasts 12 to 17, raider missiles 5 to
+8, a ship's blast 1 to 3, a portal 2 to 4, a kill 1 to 3. At most 35 to 50
+sounds at once.
+
+## The sound effects
+
+Levels are the effect's peak alone, at full volume and in the middle (as
+`bin/sound-render effects` records them, through the mix); length is how long
+until it falls under −50 dB. Every effect is a few tones (`note`: a waveform,
+a pitch that may slide, a lowpass) and a few noises (`air`: the game's own
+noise in a band, which holds next to nothing over 1 kHz) at given volumes and
+delays, some a little off in pitch each time.
+
+### Your weapons
+
+| Effect | When | Cooldown | How it is made now | Peak, length |
+|---|---|---|---|---|
+| `shot` | your Pulse cannon (plasma) fires; also its shots in the hangar's preview | 0.065 s | a click (noise at 4.2 kHz, 22 ms), a sawtooth zap falling 620 → 150 Hz, a thump 124 → 52 Hz, a short hiss; pitch ±6% each time | −19.4 dB, 0.13 s |
+| `missile` | your Seeker launcher fires | 0.12 s | a thump 72 → 40 Hz, a puff of noise, then the motor: a hiss at 2.4 kHz and a sawtooth rising 160 → 480 Hz | −20.4 dB, 0.38 s |
+| `enemy_scatter` | your Scatter gun fires, and raiders' scatter guns | 0.1 s | a crack, grit falling 1.8 kHz → 500 Hz, a sawtooth 150 → 45 Hz, a thump 70 Hz | −17.2 dB, 0.19 s |
+| `enemy_ion` | your Ion gun, and raiders' ion guns | 0.08 s | an electric snap: a square 880 → 220 Hz, a sawtooth 1.3 kHz → 420 Hz, crackle at 5.2 kHz, a thump 110 Hz | −22 dB, 0.14 s |
+| `enemy_railgun` | your Rail gun, and raiders' | 0.12 s | a crack at 5 kHz, a sawtooth 2.4 kHz → 300 Hz, a ringing sine at 1.76 kHz, a thump 80 Hz, the air closing | −19.6 dB, 0.26 s |
+| `enemy_beam` | your Beam, raiders' beams, a flagship's beams, Ion Reach's arc pylons | 0.1 s | a sizzle: a sawtooth 340 → 240 Hz, a square 680 → 480 Hz, noise at 4.2 kHz, a hum at 85 Hz | −23.6 dB, 0.2 s |
+| `impact` | your shot landing on a raider's hull or shield | 0.05 s | a square knock 190 → 90 Hz and a tick at 6 kHz | −25.9 dB, 0.12 s |
+
+The game's names come from the raiders' guns: your own scatter, ion, rail and
+beam guns play the raiders' sounds at full volume.
+
+### Raiders
+
+| Effect | When | Cooldown | How it is made now | Peak, length |
+|---|---|---|---|---|
+| `enemy_plasma` | a raider's plasma shot (Haven's and others') | 0.08 s | your shot's darker cousin: a zap 420 → 110 Hz, a thump 96 → 48 Hz | −23.2 dB, 0.13 s |
+| `enemy_missile` | a raider or a flagship launches a missile (dart, seeker, torpedo) | 0.18 s | a rush of noise at 650 Hz, a triangle rising 82 → 145 Hz | −18.8 dB, 0.28 s |
+| `kill` | a raider destroyed; a Dustfall cliff falling; a flagship's part destroyed or rammed | 0.09 s | noise at 480 Hz, a thump 72 → 29 Hz, a triangle 142 → 44 Hz | −13.4 dB, 0.34 s |
+
+### Explosions (to make anew)
+
+Every explosion the game draws (`explode()`, `src/js/explosions.js`) plays
+one of three by its size; a smaller one than 12 (a spark, a shot's flash)
+plays none.
+
+| Effect | What explodes (size) | Cooldown | How it is made now | Peak, length |
+|---|---|---|---|---|
+| `blast` | a missile's blast, a mine, a shard or a drone dying (12 to 35) | 0.07 s | a crack at 4.5 kHz, noise from 2.6 kHz to 260 Hz, a thump 80 → 32 Hz, debris at 5.2 kHz | −12 dB, 0.39 s |
+| `blast_big` | every other raider dying (a chaser 40, a shooter 46, a lancer or splitter 48, a bulwark 70, a tank 72, a carrier 74); a flagship's chain of blasts (36 to 179) | 0.12 s | a crack, noise from 1.9 kHz to 160 Hz, a thump 58 → 26 Hz, a sawtooth growl 112 → 40 Hz, debris at 4.2 and 3 kHz | −6.1 dB, 0.64 s |
+| `blast_huge` | a flagship's last blast (180 and over) | 0.8 s | a crack, a roar from 1.5 kHz to 70 Hz for 2.4 s, a sub 44 → 21 Hz, a sawtooth 88 → 30 Hz, a rumble at 240 Hz, debris four times over 1.4 s | −4.7 dB, 1.78 s |
+
+What they should be, from the author: heavy, not a tin can; several at once
+heard one after another and swelling together ("pa-pa-pa-pam"), not one pop;
+like the six examples above. A raider dies with `kill` and `blast_big` together.
+
+### You
+
+| Effect | When | Cooldown | How it is made now | Peak, length |
+|---|---|---|---|---|
+| `hit` | your ship hit (shield or hull alike); the radiation alert; a bump in a race | 0.18 s | noise at 950 Hz, a thump 105 → 38 Hz, a triangle 210 → 82 Hz; the music dips | −13.6 dB, 0.2 s |
+| `boost` | your dash (Shift: a burst of turbo); a flagship charging; a rival's turbo in a race | 0.08 s | a thump 56 → 34 Hz, a roar opening from 280 Hz to 2.4 kHz, a whoosh 900 Hz → 3.8 kHz, a whine 320 → 980 Hz, a sawtooth rumble | −12.8 dB, 0.64 s |
+| `pulse` | your pulse (Space) going off; an EMP charge; falling into a black hole's core | 0.08 s | noise at 450 Hz for 0.95 s, a thump 155 → 30 Hz, a sine 310 → 62 Hz; the music dips. The loudest but the blasts | −10.2 dB, 0.68 s |
+| `dash` | a stasis charge used (the name is old) | 0.08 s | a whoosh falling 3.6 kHz → 600 Hz, a thump 95 → 45 Hz, a sawtooth zip 260 → 820 Hz | −20.5 dB, 0.26 s |
+| `portal` | your jump through a portal or gate; a flagship escaping (Haven's Crescent) or jumping | 0.6 s | noise at 850 Hz for 1.4 s, three sines rising an octave each (D3, A3, D4, staggered), a sub 44 → 75 Hz; the music dips | −13.1 dB, 1.14 s |
+| `mine` | an ore rock broken; drifting debris hit; a Dustfall cliff struck; a flagship's mine | 0.12 s | noise at 1.8 kHz, a triangle 480 → 230 Hz, a thump 135 → 60 Hz | −20.7 dB, 0.17 s |
+
+### Rewards, the shop, the race
+
+| Effect | When | Cooldown | How it is made now | Peak, length |
+|---|---|---|---|---|
+| `pickup` | salvage or a supply picked up; buying in a shop; cargo traded; the depot opened; a card chosen; a medkit used | 0.16 s | triangles E5 then B5, a sine E6 over them | −23.3 dB, 0.35 s |
+| `upgrade` | a module, gun, ship or drone bought or fitted; a contract claimed; on from the break | 0.25 s | sines C4, G4, C5, 0.14 s apart | −22.7 dB, 0.74 s |
+| `win` | a flagship destroyed; a goal reached; a mission's step done | 0.5 s | sines C4, G4, C5, E5, 0.14 s apart | −22.7 dB, 0.88 s |
+| `countdown` | a race's start count, each second | 0.5 s | a square beep D5 | −23.4 dB, 0.19 s |
+| `go` | a race's green light | 0.5 s | a square D6, a sine D5, a rush of air | −19.1 dB, 0.41 s |
+| `ring` | through a race's ring; a race finished | 0.2 s | triangles G5 then D6 | −22.3 dB, 0.27 s |
+
+### The worlds' hazards
+
+| Effect | When | Cooldown | How it is made now | Peak, length |
+|---|---|---|---|---|
+| `gravity` | flying into a gravity well (the warning); a flagship's gravity moves | 1.2 s | triangles G3, then D3 0.31 s later | −23 dB, 0.23 s and again |
+| `storm` | inside an Ion Reach storm (every 2.5 s); an arc pylon's strike; a flagship's storm | 1.5 s | noise at 1.8 kHz, a thump 82 → 36 Hz | −19.2 dB, 0.42 s |
+| `flare` | inside a Nova Forge flare (every 2.5 s); a flagship's heat; a flagship's second phase | 1.5 s | noise at 480 Hz, a thump 61 → 32 Hz | −17.7 dB, 0.56 s |
+
+### Moments with no sound
+
+Nothing plays when: you dock or undock; a button is pressed (no click
+anywhere); a wave starts or is cleared; a world is cleared (only its
+flagship's `win` as it dies); a life is lost and the world starts again; your shield
+breaks (a hit on the shield sounds as one on the hull).
+
+## The steady sounds of flight
+
+Played all through flight, faded in and out with it (`create_flight_audio`
+and `update_audio_scene` in `src/js/audio.js`):
+
+| Sound | Bus | Made of | Follows |
+|---|---|---|---|
+| Engine | effects | sines at 62 Hz and 220 Hz (the upper one wavering ±11 cents at 0.23 Hz) through a lowpass at 700 Hz | thrust: level 0.012 + 0.036 × thrust (+0.022 in turbo), the lowpass opening +250 Hz (+450 in turbo) |
+| Air | effects | the game's noise in a band at 1.2 kHz | thrust ×0.014, turning ×0.006; in turbo +0.04 and the band down to 700 Hz (a deep roar) |
+| Space | ambience | the game's noise played slow (×0.42) under a lowpass, by world (below) | its level by world, ×0.35 near the station |
+| Reactor | ambience | a sine by world (below) at 0.008 | |
+
+## The music
+
+Each world has a theme (its file's `music`: tempo, root note, four chords, a
+scale, a short tune, a rhythm and a filter); the game plays it three ways.
+
+**The calm theme** (`music_step` in `src/js/music.js`): the menu, the
+campaign, the station, the shop. A cycle of 256 eighths: each chord 16
+eighths (two bars), the four chords four times, a section of 64 eighths
+apart. Over it: a pad of the chord's notes an octave up (sines and a softer
+triangle, 8 beats, slow in, slow out), a bass on the root every 8 eighths, the
+tune on every fourth eighth (its register changing by section), and the
+world's percussion (its `rhythm`, 0 to 7). In a fight in the campaign
+(raiders within 850 m) a kick, a snare and hats join, and the music drops to
+0.65 of its level.
+
+**The drive** (`src/js/music_drive.js`): the arcade. The same chords, scale and
+tune, faster (`drive.bpm`), over a drum kit (`kit`: four on the floor, broken,
+or half time), a running bass (`bass`: eighths, offbeat or gallop), an
+arpeggio of the chord in sixteenths (`arp`, the lead's sound) from the start,
+the tune doubled a little out of tune from the second section (about 15 s
+in), a quiet sawtooth pad, a crash every 64 eighths.
+
+**The boss** (`music_drive.js`): a flagship within 1.8 km, until it is down.
+It starts with a hit (a boom 120 → 32 Hz, a crash, the chord stabbed) and is a
+piece of its own: 8% faster, a kick on every beat and an extra one before each
+bar, a snare on 2 and 4 and a roll into every fourth bar, hats in sixteenths,
+the bass in sixteenths jumping an octave, a dark riff in eighths (semitones
+over the chord's root: 0 0 1 0 3 0 1 6) in a sawtooth with a square under it,
+the chord stabbed on its change and on the and of three. The world's tune,
+arpeggio and pad stop. A change of music starts on a fresh bus and the old
+one fades out in about 0.1 s.
+
+**Its level by the game's state:** the menu 0.42, flight 0.8 (0.65 in a
+campaign fight), docked at the station or choosing an upgrade 0.54, a jump 0.42, under a hit or a
+pulse 0.38; none while the tab is hidden, sound is off, or the music or the
+master volume is at zero.
+
+## The worlds
+
+Each world, Haven to Eclipse (`src/js/worlds/`, `campaign.world` 0 to 7): what
+the player sees and flies through, what fights them, what it sounds like now,
+and what its sounds can carry. Every world has gate jumps (`portal`); in the
+campaign every world has a black hole (the `gravity` warning repeats every
+1.4 s inside it, 3.5 s in its outer field), in the arcade only Eclipse. The
+raiders' shots are their world's gun. Arcade events (none has a sound of its
+own): a convoy (a freighter of salvage), an ace (an elite that jumps away in
+20 s), a jammer (blinds the minimap and radar), a heat surge (eight vents
+along a line, 1.4 s warning).
+
+Notes are the theme's root (MIDI number and note); its chords are semitones
+over the root.
+
+| World | Calm theme | Tempo | Root | Rhythm | Drive: tempo, lead, bass, kit | Space level, lowpass | Reactor |
+|---|---|---|---|---|---|---|---|
+| Haven | Home among the stars | 72 | 48, C3 | 0 | 124, square, eighths, four | 0.014, 420 Hz | 62 Hz |
+| Verdant | The breathing nebula | 78 | 50, D3 | 1 | 118, triangle, offbeat, broken | 0.034, 950 Hz | 73 Hz |
+| Dustfall | Caravan of dust | 84 | 43, G2 | 2 | 132, sawtooth, gallop, four | 0.025, 380 Hz | 55 Hz |
+| Ion Reach | Signals in the rain | 94 | 45, A2 | 3 | 140, square, eighths, broken | 0.042, 1500 Hz | 82 Hz |
+| Obsidian | Silent machinery | 64 | 36, C2 | 4 | 112, sawtooth, offbeat, half time | 0.035, 260 Hz | 46 Hz |
+| Cryosphere | A sky made of glass | 60 | 50, D3 | 5 | 126, triangle, offbeat, four | 0.018, 1100 Hz | 88 Hz |
+| Nova Forge | The sun below | 96 | 45, A2 | 6 | 136, sawtooth, gallop, broken | 0.05, 650 Hz | 65 Hz |
+| Eclipse | Between distant tides | 56 | 38, D2 | 7 | 120, square, eighths, half time | 0.028, 190 Hz | 38 Hz |
+
+### Haven: blue shores
+
+- **Look:** an ocean planet, soft blue nebulae and orbital traffic (navy, teal,
+  pale cyan stars). The first world and the calmest.
+- **Flight:** "stable orbit": strong stabilisers stop the ship when you let
+  go; no radiation, no zones.
+- **Raiders:** the Rim Corsairs, light unarmoured scouts with plasma
+  (`enemy_plasma`); no marksmen. Elites fire a fan of three plasma shots.
+  Events: convoy, ace.
+- **Flagship, the Crescent:** circles you at 380 m fanning plasma from its
+  wingtips, strafes in a charge (`boost`); in its second phase a ring with one
+  gap and two chasers. In the arcade it runs for a gate: each third of its
+  hull lost stalls its engine (`kill`), and at the gate it escapes (`portal`)
+  with its bounty.
+- **Music:** C major, warm and open (chords I, IV, vi, V with added ninths; a
+  pentatonic tune).
+- **Its sounds can carry:** home, light and clean; the arcade's first steps.
+
+### Verdant: the living veil
+
+- **Look:** an emerald gas giant with a ringed eye-storm, luminous spores
+  drifting, organic structures (deep greens, pale green light).
+- **Flight:** "living currents": the nebula's current pushes ships, shots,
+  ore and pickups (up to about 60 m/s, its direction changing slowly; the HUD
+  shows it); the hull mends itself 0.4 a second after 5 s unhit.
+- **Raiders:** the Thorn Swarm, with scatter guns (`enemy_scatter`); a fifth
+  are marksmen. Elites sow two spore mines. Events: convoy, jammer.
+- **Flagship, the Thorn Beetle:** drifts with the current; spine spirals,
+  drifting spore mines (`mine`), a thorn ring; its brood hatches in its second
+  phase (`portal`). In the arcade, nests hold a green shield over it that no
+  hit gets through, and it sows new ones at half hull.
+- **Music:** D minor (Dorian), breathing.
+- **Its sounds can carry:** something alive: wet, organic, spores and
+  currents. The current has no sound now.
+
+### Dustfall: the dune belt
+
+- **Look:** a cratered desert moon, amber dust and a dense asteroid belt;
+  grit blows across the screen.
+- **Flight:** "low-gravity drift": you coast, slow to turn and stop; shots
+  fly farther; rocks are solid cover that enemy fire wears down.
+- **Cliffs (arcade):** six rock faces; struck, a cliff rumbles for 0.6 s
+  ("ROCKFALL", `mine`) and falls (`kill`), crushing raiders and you and
+  leaving rubble. Half the squadrons warp in under a cliff.
+- **Raiders:** the Dune Marauders, with missiles (`enemy_missile`, reloading
+  twice as slowly in the arcade); a third are marksmen. Elites charge.
+  Events: jammer, convoy.
+- **Flagship, the Sawtooth:** coasts; missiles from its hatches, flak from its
+  pods, a spinning saw charge (`boost`) that leaves bursts of dust. In the
+  arcade it jousts: its blade lets half a shot through, and a charge that ends
+  on a rock stuns it with its hull open (`kill` as it rams).
+- **Music:** G minor pentatonic, a caravan's trot.
+- **Its sounds can carry:** dry and gritty: sand, stone, rockfalls, the saw.
+
+### Ion Reach: the electric storm
+
+- **Look:** an indigo storm planet with lightning veins, flashes across the
+  sky, suspended prisms.
+- **Flight:** "conductive storms": shots fly farther; the shield recharges
+  twice as fast; radiation.
+- **Storms:** four ion fields round the station on a 16 s cycle (3 s of
+  warning, then 4 s active; `storm` every 2.5 s inside): they charge the
+  pulse and drain the shield.
+- **Arc pylons:** eight (six in the arcade); come within 230 m and one charges
+  for 1.1 s (`enemy_beam`) and strikes for 18 (`storm`, quieter if you got
+  clear), then rests 2.4 s. Violet fields round them charge the pulse.
+- **Raiders:** the Volt Collective, with ion guns (`enemy_ion`) that drain
+  the pulse; a third are marksmen. Elites blink 300 m. Events: ace, convoy.
+- **Flagship, the Storm Wheel:** spins at range; four-way ion volleys,
+  lightning spokes sweeping a quarter turn, blink jumps; pods shield its hub
+  in its second phase. In the arcade a turning shell with two gaps; its arcs
+  light every plate but the gaps (`enemy_beam`, then `storm`).
+- **Music:** A minor, a brisk rain of notes.
+- **Its sounds can carry:** electricity: crackle, hum, thunder.
+
+### Obsidian: the iron expanse
+
+- **Look:** a fortified industrial planet, steel wreckage and armoured
+  outposts (graphite, rose-pink lights, a dark ring).
+- **Flight:** "heavy gravity": slow and heavy; shots fly shorter; the black
+  hole pulls 65% harder and the planet pulls gently; rocks are solid;
+  radiation.
+- **Magnetic spires:** seven (six in the arcade), each a 40 m body in a 280 m
+  field that draws ships in at up to 30 m/s and bends passing shots into it;
+  a crash costs hull. They make no sound.
+- **Raiders:** the Iron Dominion, with rail guns (`enemy_railgun`), armour
+  and shields. Elites lock a tracking rail lance before they fire. Events:
+  jammer, ace.
+- **Flagship, the Iron Stair:** slow, stepping forward every 2.4 s; rail
+  sights lock 0.35 s before they fire, gravity wells (`gravity`), a six-lane
+  broadside. In the arcade a siege: armour stops every shot but at one glowing
+  weak point, stern, flanks, bow, each a quarter of its hull (`kill` as it
+  breaks).
+- **Music:** C minor pentatonic, the lowest root, slow.
+- **Its sounds can carry:** weight and metal: magnetic hum, steel, machinery.
+
+### Cryosphere: the frozen aurora
+
+- **Look:** a fractured ice moon, aurora ribbons (aqua and blue) across the
+  screen, glinting crystal fields, falling ice motes.
+- **Flight:** "frozen inertia": the longest drift of all, a slow shield
+  recharge, guns firing faster. No zones, no cold damage.
+- **Raiders:** the Frost Sentinels, with cryo scatter guns
+  (`enemy_scatter`), heavy shields. Elites cast a frost ring. Events: convoy,
+  ace.
+- **Flagship, the Frost Crystal:** glides; ice plates orbit it and stop your
+  shots; shard spirals, icicles dropping where you are (`mine`), a frost nova
+  that pulls the plates in (`enemy_beam`, then `pulse`). In the arcade it can
+  be hurt only while it glows.
+- **Music:** D minor, the slowest but one, the brightest filter.
+- **Its sounds can carry:** ice and glass: chimes, crystal, cracking, a cold
+  shimmer. Nothing of it sounds now.
+
+### Nova Forge: the solar foundry
+
+- **Look:** a molten planet with gold fissures, a blazing corona, embers rising
+  with tails, volcanic debris.
+- **Flight:** "reactor heat": every shot and the turbo add heat; at 100 the
+  guns lock until it falls under 55. Heavy radiation.
+- **Flares:** four solar fields round the station on a 20 s cycle (3 s of
+  warning, then 4 s active; `flare` every 2.5 s inside): heat +15 a second and
+  10 damage a second. Storms and flares also line its arcade Scroll lane.
+- **Raiders:** the Ember Legion, with seeker volleys (`enemy_missile`).
+  Elites drop three embers where you are. Events: heat surge, ace.
+- **Flagship, the Furnace:** lumbers in close; a sweeping flame beam that
+  heats your guns, mortar embers leaving slag (`mine`), missile salvos, a
+  flare wave that opens its core (`flare`). In the arcade a ring of fire
+  closes on you as it heats (`flare` each step); outside it you burn.
+- **Music:** A minor, the fastest calm theme.
+- **Its sounds can carry:** fire and furnace: roar, sizzle, molten metal,
+  overheating. Overheated guns have no sound now.
+
+### Eclipse: the black crown
+
+- **Look:** an eclipsed world, a dark disc with violet rings and a pink and
+  gold crescent rim, a corona, broken void monuments; the stars dimmed.
+- **Flight:** "tidal void": the black hole pulls 210% harder and its core
+  kills even through a shield or a dash; the pulse leaks; each dash costs
+  energy; the heaviest radiation. The arcade's only black hole.
+- **Raiders:** the Void Armada, with void rail guns (`enemy_railgun`),
+  heavy armour and shields. Elites blink 320 m. Events: heat surge, ace.
+- **Flagship, the Eclipse Eye:** hovers and blinks (`portal`); an eye beam
+  that turns after you and drains energy, fans of rail lanes, a singularity
+  well (`gravity`) while its dome is open. In the arcade it keeps to the
+  hole's edge, and its surge makes the hole pull harder ("THE HOLE SURGES",
+  `gravity`).
+- **Music:** D minor, the slowest theme, the darkest space hum (190 Hz) and
+  the lowest reactor (38 Hz).
+- **Its sounds can carry:** the end of the world: void, vast and dark,
+  gravity you can hear.
+
+## What has no sound of its own
+
+Beyond the moments above: Verdant's current, Obsidian's spires, anything of
+Cryosphere's cold, the heat surge's vents, Nova Forge's overheated guns,
+radiation (its alerts play `hit`), the arcade's events (convoy, ace, jammer).

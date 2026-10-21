@@ -35,3 +35,6 @@ at stations, takes contracts, trades between worlds and jumps through gates.
 - [performance-2026-10-05.md](performance-2026-10-05.md): where a frame's time goes in every world, what was made faster, before and after; the adaptive resolution.
 - [designer/missiles.md](designer/missiles.md): the designer's brief for the
   homing missiles, their motors and module icons.
+- [designer/sound.md](designer/sound.md): every sound the game plays (the mix,
+  each effect, the steady sounds of flight, the music) and each world's
+  character, with what the author has said of them: the brief for new sounds.
