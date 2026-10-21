@@ -22,9 +22,10 @@
 // its own raiders. Layer 7 (2026-10-21): each world's own gun (Verdant's scatter, Dustfall's and Nova Forge's
 // missiles, Ion Reach's ion bolts, Obsidian's and Eclipse's rail guns), and every second passer a missile from the
 // run's second world (spawn_enemy), as in Free; the CHILL mode still leaves plasma raiders unarmed. Layer 8: each
-// world's flagship fights its duel (boss_duels.js) at the lane's end, its hull times what the duel asks, the lane's
-// raiders warping out as it comes. Layer 9: each world's trick along its lane, as the Scroll of before had them:
-// Dustfall's cliffs, Ion Reach's pylons and charge fields, Obsidian's spires, Ion Reach's and Nova Forge's storms,
+// world's flagship fights its duel (boss_duels.js) at the lane's end, its hull times what the duel asks, but Haven's
+// chase; it comes past the front edge, the screen flying up to it, the lane's raiders staying, and its escorts guard
+// it (arcade_base_guards). Layer 9: each world's trick along its lane, as the Scroll of before had them: Dustfall's
+// cliffs, Ion Reach's pylons and charge fields, Obsidian's spires, Ion Reach's and Nova Forge's storms,
 // Eclipse's black hole beside the lane at three quarters of it (arcade_scroll_lanes). Left out: the cards and the
 // wave-2 events.
 
@@ -56,7 +57,11 @@ function arcade_base_squad(size)
     // an elite leads every other squadron from the mode's elite world on, from wave 2 (arcade_squad_form)
     const elite = (arcade_level() >= arcade_mode().elite_world) && (arcade.wave >= 2) && (arcade.squads % 2 === 1);
     arcade.squads++;
-    if (Math.random() < arcade_base_passers) {
+    const boss = enemies.find(v => (v.type === 'boss') && (v.hp > 0));
+    if (boss) {
+        arcade_base_guards(boss, size, elite);
+    }
+    else if (Math.random() < arcade_base_passers) {
         arcade_scroll_formation('shooter', size, elite, null, true);
     }
     else {
@@ -76,6 +81,28 @@ function arcade_base_squad(size)
     for (const enemy of enemies.slice(first)) {
         enemy.passer = !!enemy.path;
         enemy.fire_range = enemy.passer ? arcade_base_passer_range : arcade_base_chaser_range;
+    }
+}
+
+// A flagship's escorts on a lane (arcade_base_squad, while it flies): the world's raiders in a ring round it, keeping
+// their places by it and turning on you once you come within 300 m (arcade_role_steer), not passers flying by (the
+// author, 2026-10-21: "they should guard the boss, try to kill me")
+function arcade_base_guards(boss, size, elite)
+{
+    const type = arcade_base_line_type();
+    const far = boss.r + 110;
+    for (let i = 0; i < size; ++i) {
+        const a = Math.PI*2*i/size;
+        const offset = [Math.cos(a)*far, Math.sin(a)*far];
+        const x = boss.x + Math.cos(boss.angle)*offset[0] - Math.sin(boss.angle)*offset[1];
+        const y = boss.y + Math.sin(boss.angle)*offset[0] + Math.cos(boss.angle)*offset[1];
+        const enemy = arcade_squad_warp(type, x, y, i);
+        enemy.angle = boss.angle;
+        enemy.guard = boss;
+        enemy.guard_offset = offset;
+        if (elite && (i === 0)) {
+            arcade_elite_make(enemy);
+        }
     }
 }
 
@@ -156,17 +183,16 @@ function arcade_base_update()
         if (spawn_left <= 0) {
             spawn_left = Math.max(1, arcade.wave_total);
         }
-        if (arcade_scroll.s < arcade_scroll.length) {
+        // the flagship comes past the front edge as the screen nears the end, so it stops with it half the view ahead
+        if (arcade_scroll.length - arcade_scroll.s > arcade_scroll_view().h*0.5 + arcade_scroll_flagship_ahead) {
             return false;
         }
-        // the lane's raiders still in the view warp out as it comes: the fight is the flagship's and its escorts'
-        // (arcade_flagship_update), its own way (boss_duels.js); with them there, Eclipse's cost the bot 1367 hull
-        for (const v of enemies.filter(vv => vv.hp > 0)) {
-            explode(v.x, v.y, v.r, '#a8e4ff', 0, 'warp');
-            v.hp = 0;
-        }
         arcade_wave_start(arcade_waves);
+        // the raiders still in the view stay; no more squadrons, but its guards (arcade_base_guards): two with it in
+        // Haven, four in Eclipse (six cost the bot more at Eclipse; the lane's raiders rallied round it, more again:
+        // Eclipse's duel takes you to its edge, among them)
         spawn_left = 0;
+        arcade_squad_spawn(2 + Math.floor(arcade_level()/3));
         return false;
     }
     if (enemies.some(v => (v.type === 'boss') && (v.hp > 0))) {

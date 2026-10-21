@@ -450,7 +450,10 @@ function arcade_scroll_raiders()
                 v.hp = 0;
                 continue;
             }
-            arcade_scroll_keep(v, v.r + arcade_scroll_leash, arcade_scroll_ahead + v.r + arcade_scroll_leash, false, !boss);
+            // once the screen stands at the lane's end, the flagship is kept inside the view: one that stands still (Obsidian's
+            // Stair) would wait out of sight past the front edge
+            const ahead = (boss && arcade_scroll.held) ? 0 : arcade_scroll_ahead + v.r + arcade_scroll_leash;
+            arcade_scroll_keep(v, v.r + arcade_scroll_leash, ahead, false, !boss);
         }
     }
 }
@@ -505,15 +508,20 @@ function arcade_scroll_ambush_rocks()
     });
 }
 
-// The flagship on a lane (arcade_flagship_spawn): ahead in the view, in the middle across it
+// The flagship on a lane (arcade_flagship_spawn): this far past the front edge, in the middle across it, out of sight,
+// so the screen flies up to it (arcade_base_update) rather than it appearing in the view (the author, 2026-10-21: "I
+// must come up to it smoothly, no jumps")
+const arcade_scroll_flagship_ahead = 260;
+
 function arcade_scroll_flagship(v)
 {
     if (!arcade_scroll_on()) {
         return;
     }
     const view = arcade_scroll_view();
-    v.x = clamp(view.x + arcade_scroll.way.x*view.h*0.55, 90, world.w - 90);
-    v.y = clamp(view.y + arcade_scroll.way.y*view.h*0.55, 90, world.h - 90);
+    const a = view.h + arcade_scroll_flagship_ahead;
+    v.x = clamp(view.x + arcade_scroll.way.x*a, 90, world.w - 90);
+    v.y = clamp(view.y + arcade_scroll.way.y*a, 90, world.h - 90);
 }
 
 // A flagship's hull on a lane: a duel bound to a hole (Eclipse's Eye) fights round a ring at the lane's end, with no
@@ -524,12 +532,4 @@ const arcade_scroll_ring_hull = 0.7;
 function arcade_scroll_flagship_k()
 {
     return (arcade_scroll_on() && (boss_duel_design()?.kind === 'edge')) ? arcade_scroll_ring_hull : 1;
-}
-
-// Haven's Crescent on a lane (boss_duel_gate): it runs for a gate just past the front edge, as there are no portals
-function arcade_scroll_gate()
-{
-    const view = arcade_scroll_view();
-    const a = view.h + 60;
-    return {x: clamp(view.x + arcade_scroll.way.x*a, 40, world.w - 40), y: clamp(view.y + arcade_scroll.way.y*a, 40, world.h - 40), r: 46};
 }

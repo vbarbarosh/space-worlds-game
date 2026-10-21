@@ -1513,6 +1513,22 @@ the deaths at Eclipse but one; Chill 3 of 3 with no deaths. Eclipse's damage is
 its bulwarks' (1310–1434 hull a run, as without the hole, 1497): the next thing
 for the balance pass. Frames on the lanes with tricks: p95 7.6–8.5 ms.
 
+### The flagship as the author played it (2026-10-21)
+
+The author, in Haven: the raiders vanished and the flagship appeared at once,
+"I must come up to it smoothly, no jumps", the raiders left "let them stay";
+the flagship "stands like a statue" (the Crescent's chase crawled to a gate a
+few hundred metres off, over 46 s); at the boss the ships "should guard the
+boss, try to kill me". Now the flagship comes past the front edge as the screen
+nears the end and the screen stops with it half the view ahead; the lane's
+raiders stay; Haven's flagship fights without its chase on a lane; its escorts
+come as guards in a ring round it, turning on you within 300 m, two with it in
+Haven, four in Eclipse. The bot, seeds 1–6: Standard won 2 of 6, every loss at
+Eclipse's flagship (the lane's raiders warping out had won 5 of 6; six guards
+on arrival 2 of 6; the lane's raiders rallying round it 1 of 6, Eclipse's duel
+taking you to its edge among them); Chill 3 of 3 with no deaths. Eclipse, its
+bulwarks' rail guns above all, is the balance pass's first.
+
 ## The arcade's world shapes
 
 Each arcade world has its own size, station and rock pattern

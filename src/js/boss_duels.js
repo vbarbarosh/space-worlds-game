@@ -171,8 +171,10 @@ const boss_duels = [
 // The world's duel in the arcade, null elsewhere
 function boss_duel_design(world = campaign.world)
 {
-    // a Scroll run's too, at the lane's end where the screen stands (arcade_base.js, layer 8)
-    return arcade.active ? boss_duels[world] || null : null;
+    // a Scroll run's too, at the lane's end where the screen stands (arcade_base.js, layer 8), but Haven's chase: its
+    // gate there would be a few hundred metres off, and it crawled to it over 46 s, a statue (the author, 2026-10-21)
+    const duel = arcade.active ? boss_duels[world] || null : null;
+    return (duel && (duel.kind === 'chase') && arcade_lane_kind()) ? null : duel;
 }
 
 // A number by the mode: CHILL, NORMAL, OVERLOAD
@@ -1324,10 +1326,6 @@ boss_attack_kinds.surge = {
 // 3 km off, away from you, when none is
 function boss_duel_gate(v)
 {
-    // on an arcade Scroll lane: just past the front edge (arcade_scroll.js)
-    if (arcade_scroll_on()) {
-        return arcade_scroll_gate();
-    }
     let best = null;
     for (const p of portals) {
         const far = distance(p, v);
