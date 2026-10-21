@@ -526,8 +526,9 @@ function arcade_scroll_flagship(v)
 
 // A flagship's hull on a lane: a duel bound to a hole (Eclipse's Eye) fights round a ring at the lane's end, with no
 // hole to swallow the raiders round it, and has this share of its hull (at its whole hull the bot lost 1100 hull a
-// run to it, and Eclipse took 20 lives in 12 runs)
-const arcade_scroll_ring_hull = 0.7;
+// run to it, and Eclipse took 20 lives in 12 runs; at 0.7, with its guards and the lane's raiders there, the bot won 9
+// Standard runs of 18, at 0.45 13 of 18)
+const arcade_scroll_ring_hull = 0.45;
 
 function arcade_scroll_flagship_k()
 {

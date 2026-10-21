@@ -1541,6 +1541,14 @@ flagship, its guards' tanks (rail guns) now the most of it; Chill 3 of 3 with
 no deaths. Fewer escorts at the flagship's calls on a lane (two to four, as its
 guards) lost 8 of 9, unexplained: not kept.
 
+### Eclipse's flagship on a lane: 0.45 of its hull (2026-10-21)
+
+The bot's runs vary more with any change than nine seeds can tell apart, so
+from here each variant is 18 Standard seeds. With the bulwarks' range: 9 of 18
+won, the losses at Eclipse's flagship. Eclipse's Eye on a lane at 0.45 of its
+duel hull (was 0.7): 13 of 18, kept. Its guards drawn without tanks (a tank's
+place a chaser): 7 of 18, not kept.
+
 ## The arcade's world shapes
 
 Each arcade world has its own size, station and rock pattern
