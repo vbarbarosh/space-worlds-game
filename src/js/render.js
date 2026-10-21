@@ -339,6 +339,7 @@ function render()
     }
     render_blast_screen();
     render_radiation_edge();
+    render_boss_warning();
     ctx.restore();
 }
 

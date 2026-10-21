@@ -70,6 +70,7 @@ function base_update_hud()
 function update_effects(dt)
 {
     update_explosions(dt);
+    boss_warning_update(dt);
     for (const particle of particles) {
         particle.x += particle.vx*dt;
         particle.y += particle.vy*dt;

@@ -431,6 +431,30 @@ function shot_traces_draw()
         const dx = v.x1 - v.x0;
         const dy = v.y1 - v.y0;
         ctx.strokeStyle = v.color;
+        // a beam's lances, and less a rail slug's streak, glow wide along their whole way, light added to what is under
+        // them (Galaxy Attack's thick beams, the author's screenshots)
+        const beam = v.b.weapon === 'beam';
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(v.x0, v.y0);
+        ctx.lineTo(v.x1, v.y1);
+        // two layers, wide and faint, then narrower and brighter: a glow falling off to its edges, not a flat band
+        for (const [wide, alpha] of beam ? [[8, 0.1], [3.6, 0.22]] : [[5, 0.07], [2.4, 0.14]]) {
+            ctx.globalAlpha = alpha*fade;
+            ctx.lineWidth = v.width*wide;
+            ctx.stroke();
+        }
+        // a beam's white-hot core along it all
+        if (beam) {
+            ctx.strokeStyle = '#ffffff';
+            ctx.globalAlpha = 0.55*fade;
+            ctx.lineWidth = v.width*0.6;
+            ctx.stroke();
+            ctx.strokeStyle = v.color;
+        }
+        ctx.lineCap = 'butt';
+        ctx.globalCompositeOperation = 'source-over';
         ctx.lineWidth = v.width*(1.2 + (1 - fade)*1.5);
         for (const [from, to, alpha] of shot_trace_steps) {
             ctx.globalAlpha = alpha*fade;

@@ -908,22 +908,38 @@ const boss_attack_kinds = {
                     boss_dash(x0, y0, x1, y1, boss_tell_color, 0.25 + f*0.6, (1 + f*1.5)/zoom);
                     continue;
                 }
+                // a thick beam, as Galaxy Attack's (the author's screenshots): a wide glow of light added to what is
+                // under it, its colour, a white-hot core, and a flare where it leaves the hull and where it ends
                 ctx.lineCap = 'round';
-                ctx.globalAlpha = 0.3;
+                ctx.globalCompositeOperation = 'lighter';
+                ctx.globalAlpha = 0.22 + Math.sin(clock*31)*0.04;
                 ctx.strokeStyle = v.color || pink;
-                ctx.lineWidth = p.width*1.8;
+                ctx.lineWidth = p.width*3.4;
                 ctx.beginPath();
                 ctx.moveTo(x0, y0);
                 ctx.lineTo(x1, y1);
                 ctx.stroke();
-                ctx.globalAlpha = 0.85;
-                ctx.lineWidth = p.width*0.7;
+                ctx.globalCompositeOperation = 'source-over';
+                ctx.globalAlpha = 0.35;
+                ctx.lineWidth = p.width*1.8;
                 ctx.stroke();
                 ctx.globalAlpha = 0.9;
+                ctx.lineWidth = p.width*0.8;
+                ctx.stroke();
+                ctx.globalAlpha = 1;
                 ctx.strokeStyle = '#ffffff';
-                ctx.lineWidth = p.width*0.25 + Math.sin(clock*50)*1.5;
+                ctx.lineWidth = p.width*0.38 + Math.sin(clock*50)*1.5;
                 ctx.stroke();
                 ctx.lineCap = 'butt';
+                if (full_fx) {
+                    const glow = shot_glow(v.color || pink);
+                    ctx.globalCompositeOperation = 'lighter';
+                    ctx.globalAlpha = 0.85;
+                    for (const [x, y, r] of [[x0, y0, p.width*3.2], [x1, y1, p.width*2.4]]) {
+                        ctx.drawImage(glow, x - r, y - r, r*2, r*2);
+                    }
+                    ctx.globalCompositeOperation = 'source-over';
+                }
             }
         },
     },
