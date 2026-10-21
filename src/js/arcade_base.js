@@ -23,11 +23,10 @@
 // missiles, Ion Reach's ion bolts, Obsidian's and Eclipse's rail guns), and every second passer a missile from the
 // run's second world (spawn_enemy), as in Free; the CHILL mode still leaves plasma raiders unarmed. Layer 8: each
 // world's flagship fights its duel (boss_duels.js) at the lane's end, its hull times what the duel asks, the lane's
-// raiders warping out as it comes. Left out, to be laid on one by one: the cards, the wave-2 events and each world's
-// trick (cliffs, pylons, spires, the hole). The
-// Scroll of before had them on its lanes, and their lane code is kept for its layer, off until then: Haven's gate and
-// Eclipse's ring (arcade_scroll_gate, arcade_scroll_flagship_k), the tricks along a lane (cliffs, pylons, spires,
-// storms, the hole).
+// raiders warping out as it comes. Layer 9: each world's trick along its lane, as the Scroll of before had them:
+// Dustfall's cliffs, Ion Reach's pylons and charge fields, Obsidian's spires, Ion Reach's and Nova Forge's storms,
+// Eclipse's black hole beside the lane at three quarters of it (arcade_scroll_lanes). Left out: the cards and the
+// wave-2 events.
 
 // How far a passer fires (its ring) and a chaser, m
 const arcade_base_passer_range = 460;

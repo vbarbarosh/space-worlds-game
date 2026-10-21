@@ -41,8 +41,7 @@ function generate_environment()
     if (campaign.world === 1) {
         recenter_mining_fields();
     }
-    // none on an arcade Scroll lane, which has no world tricks yet (arcade_base.js)
-    if (((campaign.world === 3) || (campaign.world === 6)) && !(arcade.active && arcade_lane_kind())) {
+    if ((campaign.world === 3) || (campaign.world === 6)) {
         // round the station; on an arcade Scroll run's lane along it instead, one every 2.6 km, either side in turn
         const lane = arcade.active && arcade_lane_kind();
         const count = lane ? Math.round(arcade_shape().scroll/2600) : 0;

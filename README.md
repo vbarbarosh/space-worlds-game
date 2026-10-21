@@ -90,7 +90,8 @@ Three modes:
   flagship where the lane ends, the screen standing still, the world over once it is down (layer 5); the squadrons that are not passers come as the world's own mix has them, chasers, tanks leading
   a wall or a convoy, splitters, lancers lying in wait by the rocks ahead (layer 6); each world's own gun, scatter,
   missiles, ion bolts or rail guns, and missiles among the passers (layer 7); each world's flagship duel, the
-  lane's raiders warping out as the flagship comes (layer 8); no cards, wave-2 events or world tricks yet.
+  lane's raiders warping out as the flagship comes (layer 8); each world's trick along its lane, cliffs, pylons,
+  spires, storms, Eclipse's black hole beside it (layer 9); no cards or wave-2 events.
   No portals, and the depot opens between worlds only. (Until 2026-10-21 this was a third kind, Base, beside a
   Scroll that had all of those; there is one Scroll now.) Each kind keeps its own best.
 - **Races**: ring races alone, at Easy, Normal or Hard, course after course

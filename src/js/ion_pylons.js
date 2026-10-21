@@ -58,7 +58,7 @@ function pylons_generate()
     pylons = [];
     charge_fields = [];
     // or the world's map file's (map_files.js)
-    if ((campaign.world !== pylon_world) || race_mode.active || (arcade.active && arcade_lane_kind()) || map_file_pylons()) {
+    if ((campaign.world !== pylon_world) || race_mode.active || map_file_pylons()) {
         return;
     }
     const random = visual_random_from_seed(3917);

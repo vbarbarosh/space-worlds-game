@@ -133,11 +133,10 @@ const screens = [
     {value: 'race-results', label: 'race-results', query: '&race_place=last&race_crashes=3&race_long=1', phone: true},
     {value: 'race-results', label: 'race-results-wrecked', query: '&race_end=wrecked&race_crashes=6', phone: true},
     // the dev page's map editor (src/js/dev/map_editor.js): the largest world, a cliff's panel at its fullest (its five
-    // numbers) on arcade Dustfall, and Ion Reach's long lane (no pylons on it: src/js/arcade_base.js) with its depot
-    // selected
+    // numbers) on arcade Dustfall, and Ion Reach's long lane with a pylon selected
     {value: 'map-editor', label: 'map-editor', world: 'eclipse', phone: true},
     {value: 'map-editor', label: 'map-editor-cliff', world: 'dustfall', query: '&kind=free&select=cliff', phone: true},
-    {value: 'map-editor', label: 'map-editor-lane', world: 'ion-reach', query: '&kind=scroll&select=station', phone: true},
+    {value: 'map-editor', label: 'map-editor-lane', world: 'ion-reach', query: '&kind=scroll&select=pylon', phone: true},
 ];
 // The designer's twelve window sizes, from 1440p down to a half-width window and a short strip; then phones, two held
 // upright and one on its side, for the screens marked phone (the crowded HUD, the race and the maps not yet)

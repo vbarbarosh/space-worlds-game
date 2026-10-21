@@ -8,8 +8,7 @@
 
 // The kinds a map file may hold besides its size and station, each where the game has it (bin/build checks the
 // same): holes in the campaign and arcade Eclipse, storms in Ion Reach and Nova Forge (flares there), pylons and
-// charge fields in Ion Reach, spires in Obsidian, cliffs in arcade Dustfall; an arcade Scroll lane and the Races mode
-// have no world tricks
+// charge fields in Ion Reach, spires in Obsidian, cliffs in arcade Dustfall; the Races mode has no world tricks
 const map_kinds = ['fields', 'caches', 'holes', 'storms', 'pylons', 'charge_fields', 'spires', 'cliffs'];
 
 // The layout of the map being made: the campaign's (the Races mode's too), arcade Free's, or a Scroll run's lane
@@ -53,19 +52,19 @@ function map_file_stamp()
 // Whether the world being made has a kind at all (map_kinds)
 function map_kind_here(kind)
 {
-    const tricks = !race_mode.active && !(arcade.active && arcade_lane_kind());
+    const tricks = !race_mode.active;
     switch (kind) {
     case 'holes':
-        return !arcade.active || ((campaign.world === 7) && !arcade_lane_kind());
+        return !arcade.active || (campaign.world === 7);
     case 'storms':
-        return [3, 6].includes(campaign.world) && !(arcade.active && arcade_lane_kind());
+        return [3, 6].includes(campaign.world);
     case 'pylons':
     case 'charge_fields':
         return (campaign.world === pylon_world) && tricks;
     case 'spires':
         return (campaign.world === spire_world) && tricks;
     case 'cliffs':
-        return arcade.active && (campaign.world === cliff_world) && !arcade_lane_kind();
+        return arcade.active && (campaign.world === cliff_world);
     default:
         return true;
     }

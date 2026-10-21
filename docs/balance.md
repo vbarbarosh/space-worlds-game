@@ -1503,6 +1503,16 @@ out as the flagship comes, seeds 1–6: Standard won 5 of 6 (deaths 0, 0, 2, 1,
 takes the bot 3–11 s in Haven, 40–80 s in Nova Forge, 70–150 s at Eclipse, and
 260–580 s at Obsidian's siege, for little hull.
 
+### Layer 9: each world's trick on its lane (2026-10-21)
+
+Dustfall's cliffs, Ion Reach's pylons and charge fields, Obsidian's spires,
+the storms of Ion Reach and Nova Forge and Eclipse's black hole beside its lane
+(three quarters along) are back on the lanes, placed as the Scroll of before
+placed them. The bot, seeds 1–6: Standard won 4 of 6 (deaths 1, 0, 3, 0, 2, 3),
+the deaths at Eclipse but one; Chill 3 of 3 with no deaths. Eclipse's damage is
+its bulwarks' (1310–1434 hull a run, as without the hole, 1497): the next thing
+for the balance pass. Frames on the lanes with tricks: p95 7.6–8.5 ms.
+
 ## The arcade's world shapes
 
 Each arcade world has its own size, station and rock pattern

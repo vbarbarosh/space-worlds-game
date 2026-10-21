@@ -9,8 +9,7 @@ One file per world and layout: `<world>-<layout>.json`.
   `verdant`, `dustfall`, `ion-reach`, `obsidian`, `cryosphere`, `nova-forge`,
   `eclipse`.
 - **layout** is `campaign` (the campaign and the Races mode), `free` (arcade
-  Free) or `lane` (arcade Scroll; it has no world tricks yet, so it leaves out the
-  pylons, spires, cliffs, storms and hole).
+  Free) or `lane` (arcade Scroll, the world's tricks along its lane).
 
 `bin/build` packs every such file into the game, and fails naming the file if
 one is not a map: an unknown key, a place without its numbers or out of the
