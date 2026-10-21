@@ -84,8 +84,23 @@ function render_engine_plumes()
         // Turning fires a steering jet at the nose on one side and at the tail on the other.
         ctx.globalCompositeOperation = 'lighter';
         const flicker = full_fx ? Math.sin(clock*31)*0.08 : 0;
+        // longer and brighter than they were, with a glow of light behind each nozzle (Galaxy Attack's ships, the
+        // author's screenshots)
         if (power > 0.03) {
-            sprite_flames(ctx, anchors.flames.main, boost ? 1 : power*0.45, '#90c9ff', flicker);
+            const reach = boost ? 1.3 : power*0.6;
+            sprite_flames(ctx, anchors.flames.main, reach, '#90c9ff', flicker);
+            if (full_fx) {
+                const glow = shot_glow('#90c9ff');
+                ctx.globalAlpha = Math.min(1, 0.7 + reach*0.3);
+                for (const f of anchors.flames.main) {
+                    const length = Math.hypot(f.dx, f.dy)*reach;
+                    const r = f.width*2.5 + length*0.9;
+                    const x = f.x + f.dx/Math.max(1, Math.hypot(f.dx, f.dy))*length*0.35;
+                    const y = f.y + f.dy/Math.max(1, Math.hypot(f.dx, f.dy))*length*0.35;
+                    ctx.drawImage(glow, x - r, y - r, r*2, r*2);
+                }
+                ctx.globalAlpha = 1;
+            }
         }
         if (Math.abs(turn) > 0.15) {
             const side = -Math.sign(turn);
