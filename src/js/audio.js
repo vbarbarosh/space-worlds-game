@@ -63,12 +63,6 @@ function create_audio_graph(context)
         previous = (previous + random()*0.11)/1.03;
         data[i] = previous*2.1;
     }
-    // white noise, all of the band: explosions' grit and crackle (the noise above holds next to nothing over 1 kHz)
-    sound.white = c.createBuffer(1, c.sampleRate*2, c.sampleRate);
-    const white = sound.white.getChannelData(0);
-    for (let i = 0; i < white.length; i++) {
-        white[i] = random()*0.9;
-    }
     sound.room = c.createConvolver();
     const impulse = c.createBuffer(2, c.sampleRate*2.6, c.sampleRate);
     for (let channel = 0; channel < 2; channel++) {
@@ -82,24 +76,6 @@ function create_audio_graph(context)
     wet.gain.value = 0.3;
     sound.room.connect(wet);
     wet.connect(sound.music_trim);
-    // explosions ring out in a room of their own, so blasts on top of each other swell into one roar (sfx's `room`):
-    // shorter than the music's and dying faster (the music's 2.6 s held a blast at 14 dB under its peak for 2 s)
-    sound.fx_room = c.createConvolver();
-    const fx_impulse = c.createBuffer(2, c.sampleRate*1.3, c.sampleRate);
-    for (let channel = 0; channel < 2; channel++) {
-        const d = fx_impulse.getChannelData(channel);
-        for (let i = 0; i < d.length; i++) {
-            d[i] = random()*Math.pow(1 - i/d.length, 4)*((i < c.sampleRate*0.012) ? 0 : 0.3);
-        }
-    }
-    sound.fx_room.buffer = fx_impulse;
-    const fx_wet = c.createGain();
-    fx_wet.gain.value = 0.3;
-    sound.fx_room.connect(fx_wet);
-    fx_wet.connect(sound.fx_bus);
-    sound.blast_bus = c.createGain();
-    sound.blast_bus.connect(sound.fx_bus);
-    sound.blast_bus.connect(sound.fx_room);
     sound.cues = {};
     sound.music_world = -1;
     sound.retired_buses = [];
@@ -195,7 +171,7 @@ function noise(duration, volume, frequency, when, bus, shape = {})
     const gain = c.createGain();
     const filter = c.createBiquadFilter();
     const nodes = [source, gain, filter];
-    source.buffer = shape.white ? sound.white : sound.noise;
+    source.buffer = sound.noise;
     source.loop = true;
     source.playbackRate.value = shape.rate || 1;
     filter.type = shape.filter || 'bandpass';
@@ -208,8 +184,7 @@ function noise(duration, volume, frequency, when, bus, shape = {})
     source.connect(filter);
     filter.connect(gain);
     gain.gain.setValueAtTime(0, t);
-    // a swell (shape.attack) for a roar building up, else a quick start
-    gain.gain.linearRampToValueAtTime(volume, t + (shape.attack || Math.min(0.025, duration*0.15)));
+    gain.gain.linearRampToValueAtTime(volume, t + Math.min(0.025, duration*0.15));
     gain.gain.exponentialRampToValueAtTime(0.0001, t + duration);
     gain.gain.linearRampToValueAtTime(0, t + duration + 0.02);
     let output = gain;
@@ -221,8 +196,7 @@ function noise(duration, volume, frequency, when, bus, shape = {})
         nodes.push(pan);
     }
     output.connect(bus || sound.fx_bus);
-    // white noise starts anywhere in its buffer, so bursts at once do not sound alike
-    source.start(t, shape.white ? Math.random()*1.5 : 0);
+    source.start(t);
     source.stop(t + duration + 0.03);
     sound.voices++;
     sound.peak_voices = Math.max(sound.peak_voices, sound.voices);
