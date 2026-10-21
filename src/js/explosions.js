@@ -819,8 +819,8 @@ function explosion_impact_draw(explosion, x, y, scale)
     // small, as a beam lands thirty hits a second
     if (full_fx) {
         if (p < 0.6) {
-            const r = size*(1.3 + p);
-            ctx.globalAlpha = (1 - p/0.6)*0.75;
+            const r = size*(2.2 + p*1.5);
+            ctx.globalAlpha = 1 - p/0.6;
             ctx.drawImage(shot_glow(explosion.color), x - r, y - r, r*2, r*2);
         }
         ctx.globalAlpha = fade*0.7;
@@ -833,6 +833,8 @@ function explosion_impact_draw(explosion, x, y, scale)
     ctx.fillStyle = '#ffffff';
     explosion_circle(x, y, size*0.42*(1 - p*0.6));
     ctx.fill();
+    // a starburst: the long flare across the shot, a short one along it, and four rays between (a burst of light where
+    // the shot lands, as in Galaxy Attack)
     ctx.strokeStyle = '#ffffff';
     ctx.lineWidth = Math.max(1, 2.2*scale*(1 - p*0.5));
     ctx.beginPath();
@@ -840,6 +842,12 @@ function explosion_impact_draw(explosion, x, y, scale)
     ctx.lineTo(x + Math.cos(across)*long, y + Math.sin(across)*long);
     ctx.moveTo(x - Math.cos(explosion.angle)*short, y - Math.sin(explosion.angle)*short);
     ctx.lineTo(x + Math.cos(explosion.angle)*short, y + Math.sin(explosion.angle)*short);
+    for (const turn of [0.785, 2.356]) {
+        const a = explosion.angle + turn;
+        const ray = (long + short)*0.45;
+        ctx.moveTo(x - Math.cos(a)*ray, y - Math.sin(a)*ray);
+        ctx.lineTo(x + Math.cos(a)*ray, y + Math.sin(a)*ray);
+    }
     ctx.stroke();
     ctx.globalAlpha = 1 - p;
     ctx.strokeStyle = explosion.spark_color;

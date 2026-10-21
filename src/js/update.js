@@ -534,7 +534,7 @@ function update(dt, frame_dt = dt)
                 }
                 else {
                     // a beam's lances land ten a second a gun: smaller hits, that run together into its glowing contact point
-                    explode_impact(hx, hy, Math.atan2(b.vy, b.vx), (9 + Math.min(9, b.damage*0.35))*((b.weapon === 'beam') ? 0.65 : 1), b.color || cyan, '#aab4bf');
+                    explode_impact(hx, hy, Math.atan2(b.vy, b.vx), 1.6*(9 + Math.min(9, b.damage*0.35))*((b.weapon === 'beam') ? 0.65 : 1), b.color || cyan, '#aab4bf');
                 }
                 if (b.life <= 0) {
                     break;

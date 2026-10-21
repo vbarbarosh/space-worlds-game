@@ -178,11 +178,12 @@ function render_projectiles()
 
 // Each gun's bolt: its tail in seconds of its flight, its white core's share of the tail and of the width, its round
 // head and the glow round it in widths (no head: a streak). A plasma bolt is a hot round head with a tail, a pellet a
-// short spark, a slug a long white streak, a lance long and flickering.
+// short spark, a slug a long white streak, a lance long and flickering. Bright as Galaxy Attack's (the author's
+// screenshots, 2026-10-21): the bolts' heads, glows and tails half again or more what they were.
 const shot_looks = {
-    plasma: {length: 0.018, core: 0.3, core_width: 0.75, head: 2.3, glow: 7},
-    ion: {length: 0.014, core: 0.3, core_width: 0.8, head: 2.6, glow: 8.5},
-    scatter: {length: 0.01, core: 0.4, core_width: 0.8, head: 1.9, glow: 5.5},
+    plasma: {length: 0.032, core: 0.3, core_width: 0.75, head: 3, glow: 12},
+    ion: {length: 0.025, core: 0.3, core_width: 0.8, head: 3.4, glow: 14},
+    scatter: {length: 0.018, core: 0.4, core_width: 0.8, head: 2.5, glow: 9.5},
     rail: {length: 0.032, core: 0.85, core_width: 0.55, head: 0, glow: 4.5},
     // a lance as long as the way to the next one: while the gun fires, they join into a beam
     beam: {length: 0.1, core: 0.9, core_width: 0.35, head: 0, glow: 3.5},
@@ -196,25 +197,29 @@ function shot_group_draw(group)
     const look = shot_looks[group.type] || shot_looks.plasma;
     // A player's shot is as wide as the bore it left; a drone's or a platform's by its gun
     const bore = items[0].width;
-    const width = bore ? Math.max(1.4, bore) : (group.type === 'rail') ? 4 : (group.type === 'beam') ? 5 : 3;
+    // a third wider than the bore with full effects: bright bolts, as Galaxy Attack's
+    const width = (bore ? Math.max(1.4, bore) : (group.type === 'rail') ? 4 : (group.type === 'beam') ? 5 : 3)*(full_fx ? 1.35 : 1);
     const hot = 1 + ((items[0].tier || 1) - 1)*0.1;
     // a lance's core flickers, all of a gun's lances together, as a beam would
     const flicker = (full_fx && (group.type === 'beam')) ? 0.75 + Math.sin(clock*57)*0.25 + Math.sin(clock*23)*0.12 : 1;
     if (full_fx) {
+        // the glow and the bolt's colour round its body are light, added to what is under them
+        ctx.globalCompositeOperation = 'lighter';
         const glow = shot_glow(group.color);
         const r = width*look.glow*hot;
-        ctx.globalAlpha = 0.75;
+        ctx.globalAlpha = 0.9;
         for (let i = 0, end = items.length; i < end; ++i) {
             ctx.drawImage(glow, items[i].x - r, items[i].y - r, r*2, r*2);
         }
         // the bolt's colour, wide and faint, round its body; a lance's afterimage is its glow (shot_traces_draw)
         if (group.type !== 'beam') {
-            ctx.globalAlpha = 0.22;
+            ctx.globalAlpha = 0.35;
             ctx.strokeStyle = group.color;
-            ctx.lineWidth = width*2.6;
+            ctx.lineWidth = width*3.4;
             shot_path(items, 0, look.length);
             ctx.stroke();
         }
+        ctx.globalCompositeOperation = 'source-over';
     }
     ctx.globalAlpha = 1;
     ctx.strokeStyle = group.color;
@@ -254,7 +259,7 @@ function hostile_group_draw(group)
     const items = group.items;
     const color = hostile_shot_color(group.color);
     const rail = group.type === 'rail';
-    const width = rail ? 2.2 : (group.type === 'scatter') ? 4 : (group.type === 'ion') ? 5.4 : 5;
+    const width = (rail ? 2.2 : (group.type === 'scatter') ? 4 : (group.type === 'ion') ? 5.4 : 5)*(full_fx ? 1.25 : 1);
     if (rail) {
         ctx.strokeStyle = color;
         if (full_fx) {
@@ -273,6 +278,17 @@ function hostile_group_draw(group)
         ctx.stroke();
         return;
     }
+    // a glow round each bolt, light added to what is under it (Galaxy Attack's bright bolts, the author's screenshots)
+    if (full_fx) {
+        const glow = shot_glow(color);
+        const r = width*4.5;
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.globalAlpha = 0.7;
+        for (let i = 0, end = items.length; i < end; ++i) {
+            ctx.drawImage(glow, items[i].x - r, items[i].y - r, r*2, r*2);
+        }
+        ctx.globalCompositeOperation = 'source-over';
+    }
     ctx.fillStyle = color;
     hostile_lozenge_path(items, width, 1);
     // the glow: the lozenges' own outline, wide and faint, in one stroke for all of them, as dozens of raiders
@@ -280,11 +296,11 @@ function hostile_group_draw(group)
     if (full_fx) {
         ctx.strokeStyle = color;
         ctx.lineJoin = 'round';
-        ctx.globalAlpha = 0.16;
-        ctx.lineWidth = width*3.2;
+        ctx.globalAlpha = 0.24;
+        ctx.lineWidth = width*3.6;
         ctx.stroke();
-        ctx.globalAlpha = 0.3;
-        ctx.lineWidth = width*1.4;
+        ctx.globalAlpha = 0.4;
+        ctx.lineWidth = width*1.6;
         ctx.stroke();
         ctx.lineJoin = 'miter';
     }
