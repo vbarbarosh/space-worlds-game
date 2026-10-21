@@ -119,6 +119,12 @@ function raider_kind_spawn(kind, x, y)
     if (['carrier', 'sniper', 'minelayer', 'drone'].includes(kind)) {
         enemy.gun_cd = Infinity;
     }
+    // on a Scroll lane one firing its world's gun fires only from a chaser's range (arcade_base.js), as the lane's
+    // raiders do: a bulwark there fired Eclipse's rail gun from 900 m, its shield to you, the most of what the bot lost
+    // there; a sniper's long shot is its job
+    if (arcade_scroll_on() && ((kind === 'bulwark') || (kind === 'interceptor'))) {
+        enemy.fire_range = arcade_base_chaser_range;
+    }
     if (kind === 'sniper') {
         enemy.weapon = 'rail';
         enemy.job.phase = 'move';

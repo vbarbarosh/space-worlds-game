@@ -1529,6 +1529,18 @@ on arrival 2 of 6; the lane's raiders rallying round it 1 of 6, Eclipse's duel
 taking you to its edge among them); Chill 3 of 3 with no deaths. Eclipse, its
 bulwarks' rail guns above all, is the balance pass's first.
 
+### Eclipse on Standard: the bulwarks' range (2026-10-21)
+
+A raider with a job is made after its squadron's fire range is set
+(raider_squad_after), so a bulwark or an interceptor on a lane fired its
+world's gun from anywhere in the view, up to 900 m: at Eclipse, a rail gun
+from behind a shield, 1300–1500 hull a run. Now they fire from a chaser's
+range, 340 m, as the lane's raiders do; a sniper's long shot is its job. The
+bot, seeds 1–9: Standard won 5 of 9 (2 of 6 before), the losses at Eclipse's
+flagship, its guards' tanks (rail guns) now the most of it; Chill 3 of 3 with
+no deaths. Fewer escorts at the flagship's calls on a lane (two to four, as its
+guards) lost 8 of 9, unexplained: not kept.
+
 ## The arcade's world shapes
 
 Each arcade world has its own size, station and rock pattern
