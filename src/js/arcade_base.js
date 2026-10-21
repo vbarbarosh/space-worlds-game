@@ -26,7 +26,8 @@
 // chase; it comes past the front edge, the screen flying up to it, the lane's raiders staying, and its escorts guard
 // it (arcade_base_guards). Layer 9: each world's trick along its lane, as the Scroll of before had them: Dustfall's
 // cliffs, Ion Reach's pylons and charge fields, Obsidian's spires, Ion Reach's and Nova Forge's storms,
-// Eclipse's black hole beside the lane at three quarters of it (arcade_scroll_lanes). Left out: the cards and the
+// Eclipse's black hole beside the lane at three quarters of it (arcade_scroll_lanes). The cards (2026-10-21): a card
+// and the next world between worlds, as in Free, their factors on a lane's raiders and flagship too. Left out: the
 // wave-2 events.
 
 // How far a passer fires (its ring) and a chaser, m
@@ -55,7 +56,7 @@ function arcade_base_squad(size)
 {
     const first = enemies.length;
     // an elite leads every other squadron from the mode's elite world on, from wave 2 (arcade_squad_form)
-    const elite = (arcade_level() >= arcade_mode().elite_world) && (arcade.wave >= 2) && (arcade.squads % 2 === 1);
+    const elite = (arcade_level() >= arcade_mode().elite_world) && (arcade.wave >= 2) && ((arcade.squads % 2 === 1) || !!arcade_card_k.elites);
     arcade.squads++;
     const boss = enemies.find(v => (v.type === 'boss') && (v.hp > 0));
     if (boss) {
@@ -210,9 +211,9 @@ function arcade_base_flagship_hull(scale)
 }
 
 // A Scroll world ends with its flagship, at the lane's end: the raiders still in the view go up with it; the run's last
-// is won; any other pays the world's bonus, grows the guns a tier and plays its cleared screen on the lane
-// (arcade_lane_clear.js; the author, 2026-10-21: "a beautiful animation, wow, we won, and then on to the shop"), whose
-// button opens the depot, which launches to the next world of the route (arcade_depot_close); no break, no card
+// is won; any other pays the world's bonus and a gamble won for it (arcade_cards.js), grows the guns a tier and plays
+// its cleared screen on the lane (arcade_lane_clear.js; the author, 2026-10-21: "a beautiful animation, wow, we won,
+// and then on to the shop"), whose button opens the break: a card, the next world, then the depot (arcade_break.js)
 function arcade_base_world_end()
 {
     toasts_clear();
@@ -222,6 +223,8 @@ function arcade_base_world_end()
         v.hp = 0;
     }
     if (arcade_level() >= arcade_worlds - 1) {
+        // a gamble taken for the last world pays in score (arcade_cards.js)
+        arcade_cards_world_cleared();
         play_log_world_cleared(0);
         state = 'victory';
         victory_timer = 2.5;
@@ -231,9 +234,10 @@ function arcade_base_world_end()
     salvage += bonus;
     play_log_earn('world bonus', bonus);
     play_log_world_cleared(bonus);
+    const won = arcade_cards_world_cleared();
     arcade_guns_grow();
     set_hidden(el.bossbar, true);
-    arcade.between_worlds = {world: campaign.world, bonus, won: [], next: arcade_route_offers()[0]};
+    arcade.between_worlds = {world: campaign.world, bonus, won, next: null};
     lane_clear_open(campaign.world, arcade_world_run(bonus));
 }
 

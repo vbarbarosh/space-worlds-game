@@ -1559,6 +1559,16 @@ Haven 10 → 35 s, Obsidian 275 → 116 s; Verdant 42, Dustfall 51, Ion Reach
 118, Cryosphere 90, Nova Forge 76, Eclipse 82 s. Standard won 13 of 18, as
 before, 29 of its 31 deaths at Eclipse; Chill 3 of 3 with no deaths.
 
+### Cards on Scroll (2026-10-21)
+
+A Scroll world's cleared screen leads to the break, as in Free: a card, then
+the next world of the two the route offers, then the depot. On a lane three
+cards did nothing till now and do their part: Armoured raiders (a lane's raider
+hull is built against your kit; the card's factor on it), Flagship wager (the
+flagship's), Elite hunt (an elite leads every squadron). A gamble won pays when
+its world ends, the last world's in score. The bot, 18 Standard seeds: 15 won
+(13 before); Chill 3 of 3 with no deaths.
+
 ## The arcade's world shapes
 
 Each arcade world has its own size, station and rock pattern

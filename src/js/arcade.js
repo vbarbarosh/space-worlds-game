@@ -243,7 +243,7 @@ function arcade_hull_scale(enemy)
     const shop = ((enemy.type === 'boss') ? arcade_shop_flagship : arcade_shop_hull)[level] ?? 1;
     const growth = (enemy.type === 'boss') ? 1 : mode.hull*(1 + mode.growth*level)*arcade_card_k.raider_hull;
     // a Scroll run's raiders follow your kit's damage instead of the run's step (arcade_base.js)
-    const k = arcade_scroll_on() ? mode.hull*arcade_base_hull_k() : growth*(1 + (shop - 1)*mode.shop)*(mode.tier_hp ? 1 + (weapon_level() - 1)*0.22 : 1);
+    const k = arcade_scroll_on() ? mode.hull*arcade_base_hull_k()*arcade_card_k.raider_hull : growth*(1 + (shop - 1)*mode.shop)*(mode.tier_hp ? 1 + (weapon_level() - 1)*0.22 : 1);
     enemy.hp = Math.round(enemy.hp*k);
     enemy.max_hp = Math.round(enemy.max_hp*k);
 }
@@ -741,7 +741,7 @@ function arcade_flagship_spawn()
     enemy.hp = Math.round(1500*(1 + arcade_level()*0.6)*scale*boss_designs[arcade_level()].hull*duel*arcade_card_k.flagship);
     // a Scroll run's flagship is built against your kit, times what its duel asks (arcade_base.js)
     if (arcade_scroll_on()) {
-        enemy.hp = arcade_base_flagship_hull(scale)*duel;
+        enemy.hp = arcade_base_flagship_hull(scale)*duel*arcade_card_k.flagship;
     }
     // on a Scroll lane, its share of that by its world's duel (arcade_scroll.js)
     enemy.hp = Math.round(enemy.hp*arcade_scroll_flagship_k());

@@ -2,7 +2,7 @@
 // the lane itself rather than over a sky of its own: the flagship and the raiders still in the view go up, the HUD
 // makes way, your ship turns to the lane's way and boosts off the screen; the world's name slides in from the left and
 // CLEARED from the right in its colour; the world's numbers count up one under the other; the next world is named and
-// one button opens the depot. Any key or click skips to the end; Enter there, or the button, goes on. With the Effects
+// one button opens the break, a card and the next world. Any key or click skips to the end; Enter there, or the button, goes on. With the Effects
 // setting off the end comes at once. The run's last world ends in the arcade's finale instead (arcade_finale.js).
 const lane_clear = {open: false, t: 0, frozen: null, rows: []};
 // Its steps, in seconds from the flagship's fall: the ship turns to the way; it boosts (start, end) to this speed, m a
@@ -52,8 +52,9 @@ function lane_clear_open(world, run)
     document.getElementById('lc_stage').style.setProperty('--lc-accent', worlds[world].accent);
     // Haven's Crescent may reach its gate (boss_duels.js)
     document.getElementById('lc_line').textContent = arcade.flagship_escaped ? 'The flagship got away' : 'Flagship down';
-    const next = arcade.between_worlds?.next ?? null;
-    document.getElementById('lc_next').textContent = (next === null) ? '' : `Next: ${worlds[next].name}${(next === arcade_worlds - 1) ? ', the last' : ''}`;
+    // the next world, or the two the route offers, chosen in the break after a card (arcade_break.js)
+    const next = arcade_route_offers().map(v => worlds[v].name);
+    document.getElementById('lc_next').textContent = (next.length > 1) ? `Next: ${next.join(' or ')}, your choice` : next.length ? `Next: ${next[0]}` : '';
     lane_clear.rows = [
         {label: `Score in ${worlds[world].name}`, value: run.score, text: v => ui_number(v), gold: true},
         {label: 'Raiders here', value: run.raiders, text: v => ui_number(v)},
@@ -121,7 +122,8 @@ function lane_clear_skip()
     }
 }
 
-// The button or Enter: on to the depot, which launches to the next world (arcade_depot_close)
+// The button or Enter: on to the break, a card and the next world, then the depot, which launches to it
+// (arcade_break.js, arcade_depot_close)
 function lane_clear_leave()
 {
     if (!lane_clear.open) {
@@ -131,5 +133,5 @@ function lane_clear_leave()
     lane_clear.frozen = null;
     document.body.classList.remove('lane-clearing');
     set_hidden(document.getElementById('lane_clear'), true);
-    arcade_depot_open();
+    arcade_break_open(arcade.between_worlds?.won || []);
 }
