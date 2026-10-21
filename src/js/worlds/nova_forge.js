@@ -74,5 +74,7 @@ const world_nova_forge = {
         cutoff: 1250,
         air: 0.65,
         rhythm: 6,
+        // the arcade's and a flagship fight's (music_drive.js)
+        drive: {bpm: 136, lead: 'sawtooth', bass: 'gallop', kit: 'break', arp: [0, 2, 1, 2, 3, 2]},
     },
 };

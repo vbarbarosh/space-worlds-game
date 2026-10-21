@@ -149,6 +149,12 @@ Three modes:
                      kit as it changed, when the shop ran out, deaths, frame
                      rate; --charts=dir draws its charts as PNGs; the format
                      is in docs/play-log.md
+    bin/sound-render the game's sound recorded as it plays: every effect in a
+                     row, each world's calm theme, each world's arcade
+                     music, an arcade fight and a flagship fight, as WebM
+                     files with their peak and mean levels (ffmpeg), in
+                     data/sound/<label>/; --page records a build kept from
+                     before a change, for before and after
     bin/lint         the rulebook's linter over src/, docs/assets/ and bin/;
                      see AGENTS.md
     bin/map-check    every world's map, campaign and arcade, against
@@ -260,7 +266,9 @@ for the dev page.
     src/css/         styles, in their original order
     src/html/        body markup: the HUD and one file per overlay
     src/js/          game code, one file per part of the game
-    src/js/worlds/   one file per world: map, look, flight rules, expedition, music
+    src/js/worlds/   one file per world: map, look, flight rules, expedition, music (its
+                     calm theme, and the drive the arcade and a flagship fight
+                     play it with, src/js/music_drive.js)
     src/js/ships/    one file per ship class: catalog entry and hull profile
     src/js/sfx/      one file per sound effect: its cooldown and its synth calls
     src/maps/        map files: a world's map as the map editor left it, packed into the page

@@ -67,5 +67,7 @@ const world_verdant = {
         cutoff: 1250,
         air: 1.1,
         rhythm: 1,
+        // the arcade's and a flagship fight's (music_drive.js)
+        drive: {bpm: 118, lead: 'triangle', bass: 'offbeat', kit: 'break', arp: [0, 2, 1, 3]},
     },
 };

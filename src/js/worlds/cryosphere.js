@@ -73,5 +73,7 @@ const world_cryosphere = {
         cutoff: 2200,
         air: 1.25,
         rhythm: 5,
+        // the arcade's and a flagship fight's (music_drive.js)
+        drive: {bpm: 126, lead: 'triangle', bass: 'offbeat', kit: 'four', arp: [3, 2, 1, 0]},
     },
 };

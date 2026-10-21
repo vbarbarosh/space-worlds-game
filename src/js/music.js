@@ -88,6 +88,9 @@ function schedule_music()
     // no voices for music nobody hears: a hidden tab, all sound off, the music or the master at zero; heard again, it
     // picks up at the start of its chord and fades in
     const audible = !muted && (volume_settings.music > 0) && (volume_settings.master > 0);
+    // the arcade and a flagship fight play the driving music (music_drive.js); the change lands on the next step, a
+    // boss fight's with a hit
+    const drive = music_drive_level();
     const active = (settings_open || ['menu', 'playing', 'upgrade', 'transit', 'victory', 'finale', 'lane_clear'].includes(state)) && !document.hidden && audible;
     const level = active
         ? (now < sound.duck_until)
@@ -98,7 +101,7 @@ function schedule_music()
                     ? 0.54
                     : (state === 'transit')
                         ? 0.42
-                        : sound.combat
+                        : (sound.combat && !drive)
                             ? 0.65
                             : 0.8
         : 0;
@@ -117,12 +120,25 @@ function schedule_music()
         return;
     }
     const p = world_audio[campaign.world];
-    const eighth = 60/p.bpm/2;
+    if (sound.drive !== drive) {
+        sound.step = 0;
+        sound.next = now + 0.03;
+        if (drive === 2) {
+            music_drive_hit(p, sound.next);
+        }
+        sound.drive = drive;
+    }
+    const eighth = 60/(drive ? music_drive_bpm(p, drive) : p.bpm)/2;
     if (sound.next < now - 0.2) {
         sound.next = now + 0.035;
     }
     while (sound.next < now + 0.18) {
-        music_step(p, sound.step, sound.next, sound.combat && (state === 'playing'));
+        if (drive) {
+            music_drive_step(p, sound.step, sound.next, eighth, drive);
+        }
+        else {
+            music_step(p, sound.step, sound.next, sound.combat && (state === 'playing'));
+        }
         sound.next += eighth;
         sound.step++;
     }
@@ -255,8 +271,9 @@ function sfx(kind, volume = 1, position = null, when)
     function note(f, d, a, end = null, type = 'sine', delay = 0, cutoff = 2200) {
         return tone(f, d, type, a*v, t + delay, end, cutoff, bus, shape);
     }
-    function air(d, a, f, delay = 0) {
-        return noise(d, a*v, f, t + delay, bus, shape);
+    // noise in a band round f, sliding to `sweep` when given (a whoosh)
+    function air(d, a, f, delay = 0, sweep = 0) {
+        return noise(d, a*v, f, t + delay, bus, sweep ? {...shape, sweep} : shape);
     }
     if (effect) {
         effect.play(note, air, t);

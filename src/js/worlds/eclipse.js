@@ -74,5 +74,7 @@ const world_eclipse = {
         cutoff: 700,
         air: 0.8,
         rhythm: 7,
+        // the arcade's and a flagship fight's (music_drive.js)
+        drive: {bpm: 120, lead: 'square', bass: 'eighths', kit: 'half', arp: [0, 3, 1, 2]},
     },
 };

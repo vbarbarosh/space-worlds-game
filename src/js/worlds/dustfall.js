@@ -73,5 +73,7 @@ const world_dustfall = {
         cutoff: 850,
         air: 0.5,
         rhythm: 2,
+        // the arcade's and a flagship fight's (music_drive.js)
+        drive: {bpm: 132, lead: 'sawtooth', bass: 'gallop', kit: 'four', arp: [0, 1, 2, 3]},
     },
 };

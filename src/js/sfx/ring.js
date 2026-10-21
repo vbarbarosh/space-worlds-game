@@ -2,7 +2,7 @@
 const sfx_ring = {
     limit: 0.2,
     play: function (note, air, t) {
-        note(783.99, 0.14, 0.04, null, 'triangle');
-        note(1174.66, 0.22, 0.035, null, 'triangle', 0.06);
+        note(783.99, 0.14, 0.07, null, 'triangle');
+        note(1174.66, 0.22, 0.06, null, 'triangle', 0.06);
     },
 };

@@ -18,6 +18,8 @@ const sound = {
     cues: {},
     duck_until: 0,
     combat: 0,
+    // the driving music now: 0 none, 1 the arcade's, 2 a boss fight's (music_drive_level)
+    drive: 0,
 };
 function create_audio_graph(context)
 {
@@ -173,8 +175,12 @@ function noise(duration, volume, frequency, when, bus, shape = {})
     source.loop = true;
     source.playbackRate.value = shape.rate || 1;
     filter.type = shape.filter || 'bandpass';
-    filter.frequency.value = frequency;
+    filter.frequency.setValueAtTime(frequency, t);
     filter.Q.value = shape.q || 0.65;
+    // a whoosh: the band slides to `sweep` over the sound
+    if (shape.sweep) {
+        filter.frequency.exponentialRampToValueAtTime(shape.sweep, t + duration);
+    }
     source.connect(filter);
     filter.connect(gain);
     gain.gain.setValueAtTime(0, t);

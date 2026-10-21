@@ -74,5 +74,7 @@ const world_ion_reach = {
         cutoff: 1900,
         air: 0.85,
         rhythm: 3,
+        // the arcade's and a flagship fight's (music_drive.js)
+        drive: {bpm: 140, lead: 'square', bass: 'eighths', kit: 'break', arp: [0, 2, 3, 1, 2, 0]},
     },
 };
