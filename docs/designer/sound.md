@@ -106,6 +106,21 @@ so a new sound does not walk back into it:
   Freesound 681976), its sound centred at 250 Hz, no tone over the rest by
   more than 14 dB; the five other engines were measured the same way and
   have no such whine (The steady sounds of flight).
+- **21:21, the author:** a link to earshot ("ears for coding agents":
+  it says in words what a file sounds like, ranks files by a description,
+  finds moments in a long recording, tells a recording from a code-made
+  sound), "might be helpful"; installed on their word. Its first listen:
+  of the four bursts marked yes!, 05 reads "a gunshot, an explosion"
+  (strong) and 09, then the cannon, "an error buzz, a digital glitch",
+  leaning code-made, closest to "an 8-bit video game sound effect"; in an
+  A/B for "a space cannon firing a beam of energy" 05 is closer. So the
+  cannon is 05 (`shot.mp3`, Freesound 466834); 06 stays the raiders',
+  read as a real recording. The phrase that puts the author's yeses on top
+  of a ranking is "a sci-fi blaster shot with a low thump": the family's
+  name for the other guns. In the Freelancer fight it marks the explosion
+  at 21:07 to 21:12 "an explosion, a deep cinematic boom" (strong,
+  brightness 1 kHz): the explosions' target. Bursts confuse its tagger;
+  single takes read true.
 - **20:41 to 20:59, the author:** the laser shot "a bit better, but as if
   from a simple children's game; it does not fit the style of the rest. No
   commits: make about ten variants, each one file with a burst of shots,
@@ -288,7 +303,7 @@ delays, some a little off in pitch each time.
 
 | Effect | When | Cooldown | How it is made now | Peak, length |
 |---|---|---|---|---|
-| `shot` | your Pulse cannon (plasma) fires; also its shots in the hangar's preview | 0.065 s | a recording, a blaster (`shot.mp3`, 0.103, ±6% in pitch): a fast sweep from 2 kHz down into a low thump; your pick, blind, from thirteen | −22 dB peak, 3 dB under the zap of old; 0.5 s |
+| `shot` | your Pulse cannon (plasma) fires; also its shots in the hangar's preview | 0.065 s | a recording, a blaster (`shot.mp3`, 0.098, ±6% in pitch): a sweep from 1.3 kHz down into a low thump with a gunshot's body; one of your picks, blind, from thirteen | −22 dB peak, 3 dB under the zap of old; 0.6 s |
 | `missile` | your Seeker launcher fires | 0.12 s | a thump 72 → 40 Hz, a puff of noise, then the motor: a hiss at 2.4 kHz and a sawtooth rising 160 → 480 Hz | −20.4 dB, 0.38 s |
 | `enemy_scatter` | your Scatter gun fires, and raiders' scatter guns | 0.1 s | a crack, grit falling 1.8 kHz → 500 Hz, a sawtooth 150 → 45 Hz, a thump 70 Hz | −17.2 dB, 0.19 s |
 | `enemy_ion` | your Ion gun, and raiders' ion guns | 0.08 s | an electric snap: a square 880 → 220 Hz, a sawtooth 1.3 kHz → 420 Hz, crackle at 5.2 kHz, a thump 110 Hz | −22 dB, 0.14 s |
