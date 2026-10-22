@@ -1,9 +1,11 @@
-// A raider's plasma shot: your shot's darker, lower cousin, so you hear whose it is: a recording of a low, punchy
-// blast (src/sounds/shot_enemy.mp3), another of the author's picks from the thirteen bursts, played a little low
+// A raider's plasma shot: your shot's darker, lower cousin, so you hear whose it is
 const sfx_enemy_plasma = {
     limit: 0.08,
-    recorded: true,
-    play: function (note, air, t, clip) {
-        clip('shot_enemy', 0.052, 0.85 + Math.random()*0.1);
+    play: function (note, air, t) {
+        const r = 0.94 + Math.random()*0.12;
+        air(0.02, 0.035, 2600);
+        note(420*r, 0.12, 0.03, 110*r, 'sawtooth', 0, 1500);
+        note(96*r, 0.09, 0.04, 48);
+        air(0.1, 0.012, 1100, 0.01, 500);
     },
 };
