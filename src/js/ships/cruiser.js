@@ -18,6 +18,8 @@ const ship_cruiser = {
         mounts: ['medium', 'medium', 'heavy', 'heavy'],
         color: '#e8c4ff',
         shape: 5,
+        // its engine: src/sounds/engine_cruiser.mp3, one loop of this many seconds (flight_engine_play)
+        engine_loop: 6,
         description: 'A slow flagship with immense shields and four guns, two of them heavy. Prepare for elite expeditions.',
     },
     hull_profile: {radiation: 0.75, traction: 1.9, braking: 1.6, cooling: 0.6, turbo: 1.1, endurance: 7},

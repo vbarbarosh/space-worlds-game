@@ -5,8 +5,8 @@ explosions recorded): the mix, each sound effect, the steady sounds of flight, t
 music, and each world's character, so new sounds can be made for it by a
 sound designer, by hand or by a tool, and checked against what it replaces.
 
-Two kinds of sound go through one mix. The three explosions play
-recordings (`src/sounds/`, MP3 packed into the page, their sources and
+Two kinds of sound go through one mix. The three explosions and your
+ship's engine play recordings (`src/sounds/`, MP3 packed into the page, their sources and
 licences in its README); everything else is made in code as it plays, with
 the browser's Web Audio. No sound file ships beside the page. The code is in `src/js/audio.js` (the mix, `tone()`,
 `noise()`, the flight's steady sounds), `src/js/music.js` (`sfx()`, the calm
@@ -24,9 +24,9 @@ counts, aliases and checksums. The generator rejects silent, non-finite or
 clipped PCM and verifies that every MP3 and Ogg decodes. WAV preserves the
 exact loop frame count; MP3 copies are for listening and sharing.
 
-The pack has 100 assets: the 28 named effects below, six alternate explosion
+The pack has 97 assets: the 28 named effects below, six alternate explosion
 takes, 32 full music loops (calm, campaign combat, arcade and boss for each
-world), eight boss-arrival stingers, 22 flight stems and four listening demos.
+world), eight boss-arrival stingers, 19 flight stems (the engines are recordings, not in it) and four listening demos.
 It uses the existing scores and effect recipes with full-band noise, and new
 non-resonant explosion bodies. It is locally synthesized, not recordings or
 newly composed music. The six reference recordings mentioned below are not
@@ -74,7 +74,9 @@ so a new sound does not walk back into it:
   at all". **The explosions are recordings since:** the author's examples
   in every world, the heavy, deep set in Obsidian and Eclipse.
 - **Next, from the author (2026-10-22):** each ship and each flagship sounds
-  of its own, and a direction that makes all the sounds fit together.
+  of its own, and a direction that makes all the sounds fit together. Of
+  two recorded engines for each ship the first ones (small motors) were
+  "strange"; the second ones are each ship's engine since.
 - The author's six examples are in their message of 2026-10-21 22:00
   (`agentdir/messages/20261021_215000-me/files/`): a sci-fi explosion, a
   medium one, debris breaking, a big one, a cartoon one, a missile's. Measured
@@ -244,7 +246,7 @@ and `update_audio_scene` in `src/js/audio.js`):
 
 | Sound | Bus | Made of | Follows |
 |---|---|---|---|
-| Engine | effects | sines at 62 Hz and 220 Hz (the upper one wavering ±11 cents at 0.23 Hz) through a lowpass at 700 Hz | thrust: level 0.012 + 0.036 × thrust (+0.022 in turbo), the lowpass opening +250 Hz (+450 in turbo) |
+| Engine | effects | your ship's own recording, looped (`src/sounds/engine_<ship>.mp3`, `flight_engine_play`): Wisp Scout a thrust loop, Kestrel Courier a sci-fi engine, Viper Interceptor a hover engine, Mule Prospector a nuclear reactor, Bastion Gunship a spacecraft engine, Aurora Cruiser a plasma engine (the author's picks, 2026-10-22) | thrust: level 0.18 × (0.3 + 0.7 × thrust, +0.5 in turbo), its speed and pitch ×0.92 + 0.12 × thrust (+0.1 in turbo) |
 | Air | effects | the game's noise in a band at 1.2 kHz | thrust ×0.014, turning ×0.006; in turbo +0.04 and the band down to 700 Hz (a deep roar) |
 | Space | ambience | the game's noise played slow (×0.42) under a lowpass, by world (below) | its level by world, ×0.35 near the station |
 | Reactor | ambience | a sine by world (below) at 0.008 | |

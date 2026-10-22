@@ -138,7 +138,8 @@ function jobs_from_inventory(inventory)
             out.push({name: `flight/${world}/${layer}`, category: 'flight', world, id: i, layer, loop: true});
         }
     }
-    for (const layer of ['engine', 'air']) {
+    // the engine is each ship's recording (src/sounds/engine_*.mp3), not made here
+    for (const layer of ['air']) {
         for (const mode of ['idle', 'thrust', 'turbo']) {
             // Idle air is turning at full deflection; straight idle flight is silent.
             out.push({name: `flight/${layer}-${mode}`, category: 'flight', layer, mode, loop: true});
@@ -226,11 +227,7 @@ async function render_asset(job)
         const flight = sound.flight;
         const thrust = job.mode !== 'idle';
         const turbo = job.mode === 'turbo';
-        if (job.layer === 'engine') {
-            flight.engine.gain.value = 0.012 + (thrust ? 0.036 : 0) + (turbo ? 0.022 : 0);
-            flight.filter.frequency.value = 700 + (thrust ? 250 : 0) + (turbo ? 450 : 0);
-        }
-        else if (job.layer === 'air') {
+        if (job.layer === 'air') {
             flight.air_gain.gain.value = thrust ? 0.014 + (turbo ? 0.04 : 0) : 0.006;
             flight.air_filter.frequency.value = turbo ? 700 : 1200;
         }
@@ -455,8 +452,8 @@ with its own ending's tails, a flight stem's end is blended into its start; mani
 the join over the loop's typical step (about 1 is seamless; over 8 is refused).
 Use WAV for sample-accurate loops; MP3 is provided for listening and sharing.
 
-Flight stems include engine idle/thrust/turbo, air turning/thrust/turbo, and each world's
-space and reactor. air-idle means turning without thrust: straight idle air is silent.
+Flight stems include air turning/thrust/turbo and each world's space and reactor; the
+engines are the game's recordings, src/sounds/engine_*.mp3. air-idle means turning without thrust: straight idle air is silent.
 Flight stems share a fixed gain of four; other files are individually peak normalized.
 Use manifest levels to balance them during integration. Station shelter is space at 0.35 gain;
 menu/docked/ducked states are mixer gains, not additional compositions.

@@ -19,6 +19,8 @@ const ship_scout = {
         mounts: ['light'],
         color: cyan,
         shape: 0,
+        // its engine: src/sounds/engine_scout.mp3, one loop of this many seconds (flight_engine_play)
+        engine_loop: 1.3,
         description: 'Your first ship, balanced. Low running costs and responsive flight.',
     },
     hull_profile: {radiation: 0, traction: 1, braking: 1, cooling: 0, turbo: 1, endurance: 0},

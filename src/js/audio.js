@@ -254,37 +254,10 @@ function noise(duration, volume, frequency, when, bus, shape = {})
 function create_flight_audio()
 {
     const c = sound.ctx;
+    // the engine: your ship's recording (flight_engine_play), into this gain
     const engine = c.createGain();
     engine.gain.value = 0;
     engine.connect(sound.fx_bus);
-    const filter = c.createBiquadFilter();
-    filter.type = 'lowpass';
-    filter.frequency.value = 700;
-    filter.Q.value = 0.5;
-    filter.connect(engine);
-    const body = c.createOscillator();
-    const overtone = c.createOscillator();
-    body.type = 'sine';
-    overtone.type = 'sine';
-    body.frequency.value = 62;
-    overtone.frequency.value = 220;
-    const body_gain = c.createGain();
-    const overtone_gain = c.createGain();
-    body_gain.gain.value = 0.34;
-    overtone_gain.gain.value = 0.11;
-    body.connect(body_gain);
-    body_gain.connect(filter);
-    overtone.connect(overtone_gain);
-    overtone_gain.connect(filter);
-    body.start();
-    overtone.start();
-    const shimmer = c.createOscillator();
-    const shimmer_depth = c.createGain();
-    shimmer.frequency.value = 0.23;
-    shimmer_depth.gain.value = 11;
-    shimmer.connect(shimmer_depth);
-    shimmer_depth.connect(overtone.detune);
-    shimmer.start();
     const air = c.createBufferSource();
     const air_filter = c.createBiquadFilter();
     const air_gain = c.createGain();
@@ -319,7 +292,29 @@ function create_flight_audio()
     reactor.connect(reactor_gain);
     reactor_gain.connect(sound.ambient_bus);
     reactor.start();
-    sound.flight = {engine, body, overtone, filter, air_gain, air_filter, space_gain, space_filter, reactor, reactor_gain};
+    sound.flight = {engine, engine_source: null, engine_ship: null, air_gain, air_filter, space_gain, space_filter, reactor, reactor_gain};
+}
+
+// Your ship's engine, src/sounds/engine_<id>.mp3, looped: the file holds its loop twice, and the loop is played from
+// the middle (a quarter to three quarters of the file), clear of the silence MP3 puts at a file's ends
+function flight_engine_play(f, ship)
+{
+    const buffer = sound.samples[`engine_${ship.id}`];
+    if (!buffer || (f.engine_ship === ship.id)) {
+        return;
+    }
+    if (f.engine_source) {
+        f.engine_source.stop();
+    }
+    const source = sound.ctx.createBufferSource();
+    source.buffer = buffer;
+    source.loop = true;
+    source.loopStart = ship.engine_loop/2;
+    source.loopEnd = ship.engine_loop*1.5;
+    source.connect(f.engine);
+    source.start(sound.ctx.currentTime, ship.engine_loop/2);
+    f.engine_source = source;
+    f.engine_ship = ship.id;
 }
 
 function update_audio_scene()
@@ -334,11 +329,12 @@ function update_audio_scene()
     const power = flight ? clamp(player.engine_thrust || 0, 0, 1) : 0;
     const boost = flight && player.turbo_active;
     const turn = flight ? Math.min(1, Math.abs(player.hull_turn || 0)/3) : 0;
-    // Thrust changes field intensity; the reactor pitch stays steady.
-    f.engine.gain.setTargetAtTime(flight ? 0.012 + power*0.036 + (boost ? 0.022 : 0) : 0, now, 0.28);
-    f.body.frequency.setTargetAtTime(62, now, 0.2);
-    f.overtone.frequency.setTargetAtTime(220, now, 0.2);
-    f.filter.frequency.setTargetAtTime(700 + power*250 + (boost ? 450 : 0), now, 0.35);
+    // the engine louder and a little higher with thrust, more in turbo; the reactor's pitch stays steady
+    flight_engine_play(f, current_ship());
+    f.engine.gain.setTargetAtTime(flight ? 0.18*(0.3 + power*0.7 + (boost ? 0.5 : 0)) : 0, now, 0.25);
+    if (f.engine_source) {
+        f.engine_source.playbackRate.setTargetAtTime(0.92 + power*0.12 + (boost ? 0.1 : 0), now, 0.4);
+    }
     // held, the turbo is a deep roar, not a hiss
     f.air_gain.gain.setTargetAtTime(flight ? power*0.014 + (boost ? 0.04 : 0) + turn*0.006 : 0, now, 0.32);
     f.air_filter.frequency.setTargetAtTime(boost ? 700 : 1200, now, 0.5);
