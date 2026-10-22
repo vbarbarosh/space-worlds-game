@@ -358,11 +358,13 @@ function update_audio_scene()
     const power = flight ? clamp(player.engine_thrust || 0, 0, 1) : 0;
     const boost = flight && player.turbo_active;
     const turn = flight ? Math.min(1, Math.abs(player.hull_turn || 0)/3) : 0;
-    // the engine louder and a little higher with thrust, more in turbo; the reactor's pitch stays steady
-    flight_engine_play(f, current_ship());
+    // the engine louder and a little higher with thrust, more in turbo, at the ship's own pitch (engine_rate: a fighter
+    // higher and faster, a heavy ship lower); the reactor's pitch stays steady
+    const ship = current_ship();
+    flight_engine_play(f, ship);
     f.engine.gain.setTargetAtTime(flight ? 0.115*(0.3 + power*0.7 + (boost ? 0.5 : 0)) : 0, now, 0.25);
     if (f.engine_source) {
-        f.engine_source.playbackRate.setTargetAtTime(0.92 + power*0.12 + (boost ? 0.1 : 0), now, 0.4);
+        f.engine_source.playbackRate.setTargetAtTime((0.92 + power*0.12 + (boost ? 0.1 : 0))*(ship.engine_rate || 1), now, 0.4);
     }
     // held, the turbo is a deep roar, not a hiss
     f.air_gain.gain.setTargetAtTime(flight ? power*0.014 + (boost ? 0.04 : 0) + turn*0.006 : 0, now, 0.32);

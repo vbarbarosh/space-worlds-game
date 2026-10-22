@@ -37,7 +37,7 @@ sharp "medium explosion" of the first cut.
 | `engine_courier.mp3` | the Kestrel Courier's engine | "FX_PURPLE_ENGINE_LOOP" by JakeAMT, [Freesound 681976](https://freesound.org/people/JakeAMT/sounds/681976/), 1.2 s | [CC0](https://creativecommons.org/publicdomain/zero/1.0/) |
 | `engine_interceptor.mp3` | the Viper Interceptor's engine | "SpaceFighterEngine" by Starkadr, [Freesound 641194](https://freesound.org/people/Starkadr/sounds/641194/), 1.3 s | [CC0](https://creativecommons.org/publicdomain/zero/1.0/) |
 | `engine_miner.mp3` | the Mule Prospector's engine | "Nuclear reactor" by Bachsambora, [Freesound 749979](https://freesound.org/people/Bachsambora/sounds/749979/), 6 s from 2 s | [CC0](https://creativecommons.org/publicdomain/zero/1.0/) |
-| `engine_gunship.mp3` | the Bastion Gunship's engine | "Spacecraft Engine Loop 01" by Tim_Verberne, [Freesound 488959](https://freesound.org/people/Tim_Verberne/sounds/488959/), 6 s from 10 s | [CC0](https://creativecommons.org/publicdomain/zero/1.0/) |
+| `engine_gunship.mp3` | the Bastion Gunship's engine | "FX_BOSS_ENGINE_loop" by JakeAMT, [Freesound 681975](https://freesound.org/people/JakeAMT/sounds/681975/), 1.2 s | [CC0](https://creativecommons.org/publicdomain/zero/1.0/) |
 | `engine_cruiser.mp3` | the Aurora Cruiser's engine | "plasma engine fx" by Insu, [Freesound 196266](https://freesound.org/people/Insu/sounds/196266/), 6 s from 5 s | [CC0](https://creativecommons.org/publicdomain/zero/1.0/) |
 
 | `boss_haven.mp3` | The Crescent's own sound as it nears, looped | "battle mode space ship background hum loop" by qubodup, [Freesound 861428](https://freesound.org/people/qubodup/sounds/861428/), 5 s from 1 s | [CC0](https://creativecommons.org/publicdomain/zero/1.0/) |
@@ -53,7 +53,9 @@ An engine, and a flagship's sound, is one loop made seamless (its next 0.2 to 0.
 head, equal power, at -20 dB RMS), stored twice in a row, mono MP3 at 64 kbps;
 the game loops it from a quarter to three quarters of the file
 (`flight_engine_play`), clear of the silence MP3 adds at the ends. Its
-loop's length is the ship's `engine_loop`.
+loop's length is the ship's `engine_loop`; a ship with an `engine_rate`
+plays its loop at that pitch and speed (the Interceptor higher, the
+Prospector lower), so three smooth hums of one register tell apart.
 
 The Pixabay licence allows them in a game with no credit; it forbids
 selling or sharing a file on its own, as it was downloaded.
