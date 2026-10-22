@@ -74,6 +74,8 @@ const world_obsidian = {
         cutoff: 640,
         air: 0.4,
         rhythm: 4,
+        // its flagship's own sound as it nears (flight_presence_play): a battle mech walking; the file's loop, in seconds
+        presence: {file: 'boss_obsidian', loop: 5.5},
         // its explosions, a blast and an echo combined (explosion_play, sfx/blast.js): iron: the heavy, deep set, a lower echo
         explosions: {body: 'deep', echo: 'deep', level: 1, rate: 0.9},
         // the arcade's and a flagship fight's (music_drive.js)

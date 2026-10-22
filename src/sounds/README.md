@@ -40,7 +40,16 @@ sharp "medium explosion" of the first cut.
 | `engine_gunship.mp3` | the Bastion Gunship's engine | "Spacecraft Engine Loop 01" by Tim_Verberne, [Freesound 488959](https://freesound.org/people/Tim_Verberne/sounds/488959/), 6 s from 10 s | [CC0](https://creativecommons.org/publicdomain/zero/1.0/) |
 | `engine_cruiser.mp3` | the Aurora Cruiser's engine | "plasma engine fx" by Insu, [Freesound 196266](https://freesound.org/people/Insu/sounds/196266/), 6 s from 5 s | [CC0](https://creativecommons.org/publicdomain/zero/1.0/) |
 
-An engine is one loop made seamless (its next 0.2 to 0.5 s blended into its
+| `boss_haven.mp3` | The Crescent's own sound as it nears, looped | "battle mode space ship background hum loop" by qubodup, [Freesound 861428](https://freesound.org/people/qubodup/sounds/861428/), 5 s from 1 s | [CC0](https://creativecommons.org/publicdomain/zero/1.0/) |
+| `boss_verdant.mp3` | The Thorn Beetle's own sound as it nears, looped | "Space monster Drone" by XfiXy8, [Freesound 467288](https://freesound.org/people/XfiXy8/sounds/467288/), 8 s from 10 s | [CC0](https://creativecommons.org/publicdomain/zero/1.0/) |
+| `boss_dustfall.mp3` | The Sawtooth's own sound as it nears, looped | "Warbly Alien Spaceship Engine" by DeVern, [Freesound 609467](https://freesound.org/people/DeVern/sounds/609467/), 5 s from 1 s | [CC0](https://creativecommons.org/publicdomain/zero/1.0/) |
+| `boss_ion_reach.mp3` | The Storm Wheel's own sound as it nears, looped | "ELECArc_Electric arc hum and buzz" by pryanic, [Freesound 776446](https://freesound.org/people/pryanic/sounds/776446/), 8 s from 30 s | [CC0](https://creativecommons.org/publicdomain/zero/1.0/) |
+| `boss_obsidian.mp3` | The Iron Stair's own sound as it nears, looped | "Battle Mech walks" by Breviceps, [Freesound 557594](https://freesound.org/people/Breviceps/sounds/557594/), 5.5 s | [CC0](https://creativecommons.org/publicdomain/zero/1.0/) |
+| `boss_cryosphere.mp3` | The Frost Crystal's own sound as it nears, looped | "Ice 9 - Slow" by JarredGibb, [Freesound 263914](https://freesound.org/people/JarredGibb/sounds/263914/), 5.5 s from 0.5 s | [CC0](https://creativecommons.org/publicdomain/zero/1.0/) |
+| `boss_nova_forge.mp3` | The Furnace's own sound as it nears, looped | "burning air" by sergeeo, [Freesound 242721](https://freesound.org/people/sergeeo/sounds/242721/), 6 s from 1 s | [CC0](https://creativecommons.org/publicdomain/zero/1.0/) |
+| `boss_eclipse.mp3` | The Eclipse Eye's own sound as it nears, looped | "evil space ship warp core hum loop" by qubodup, [Freesound 861430](https://freesound.org/people/qubodup/sounds/861430/), 8 s from 2 s | [CC0](https://creativecommons.org/publicdomain/zero/1.0/) |
+
+An engine, and a flagship's sound, is one loop made seamless (its next 0.2 to 0.5 s blended into its
 head, equal power, at -20 dB RMS), stored twice in a row, mono MP3 at 64 kbps;
 the game loops it from a quarter to three quarters of the file
 (`flight_engine_play`), clear of the silence MP3 adds at the ends. Its

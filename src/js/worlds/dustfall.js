@@ -73,6 +73,8 @@ const world_dustfall = {
         cutoff: 850,
         air: 0.5,
         rhythm: 2,
+        // its flagship's own sound as it nears (flight_presence_play): a warbly alien engine; the file's loop, in seconds
+        presence: {file: 'boss_dustfall', loop: 5},
         // its explosions, a blast and an echo combined (explosion_play, sfx/blast.js): dry dust: a short, higher echo
         explosions: {body: 'a', echo: 'a', level: 0.5, rate: 1.1},
         // the arcade's and a flagship fight's (music_drive.js)

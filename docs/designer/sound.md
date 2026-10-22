@@ -82,6 +82,11 @@ so a new sound does not walk back into it:
   examples. A steep filter at 900 Hz made them sound "under water" (13:03);
   it is a gentle one from 3 kHz now. The same message: the ship's engine
   "a little lower"; it is 4 dB down.
+- **13:53, the author:** the sounds "already better"; "I don't know what the
+  questions were or what to answer: better that you decide, and I'll comment
+  from the game; on the page they sound different from in the game". So the
+  flagships' sounds were chosen without asking (The steady sounds of
+  flight), and no reply asks a question that a decision can take.
 - **13:38, the author:** "already better". The pulse's sound (Space) "I
   don't like; try another": it is a recording now. Rocks and ships "explode
   with one sound; better different ones: different ships different sounds,
@@ -147,7 +152,7 @@ not louder; to make one louder, change its rung here first.
 |---|---|---|
 | 1, under everything | −38 to −34 | your shot (−34.6), its hit on a raider (`impact`, −37.5) |
 | 2, the raiders' guns | −33 to −29 | plasma, ion, scatter, rail, beam, missiles; your missile; a countdown beep, a gravity warning, a pickup (−31) |
-| 3, things that happen to you | −29 to −26 | a hit on you (−26.8), a rock broken (`mine`, −29), a race ring, an upgrade, a storm, a flare, the win chime |
+| 3, things that happen to you | −30 to −26 | a flagship's own sound at 300 m (about −30, rising as it closes), a hit on you (−26.8), a rock broken (`mine`, −29), a race ring, an upgrade, a storm, a flare, the win chime |
 | 4, a small blast and its kin | −24 to −21 | a small blast (−23.8), a rock breaking (−21.6), a mine going off (−22), a raider's `kill` (−22.6 alone, played at 0.55 under its blast), the turbo (−23.6) |
 | 5, a ship's blast | −18, a heavy one −16 | a raider dying (−17.7); a bulwark, a tank or a carrier (−16.3) |
 | 6, the loudest | −19 to −13 | a portal (−18.7), your pulse (−16), a flagship's last blast (−12.8) |
@@ -306,6 +311,7 @@ and `update_audio_scene` in `src/js/audio.js`):
 | Air | effects | the game's noise in a band at 1.2 kHz | thrust ×0.014, turning ×0.006; in turbo +0.04 and the band down to 700 Hz (a deep roar) |
 | Space | ambience | the game's noise played slow (×0.42) under a lowpass, by world (below) | its level by world, ×0.35 near the station |
 | Reactor | ambience | a sine by world (below) at 0.008 | |
+| A flagship near | effects | the world's flagship's own recording, looped (`src/sounds/boss_<world>.mp3`, `flight_presence_play`; its music's `presence`): the Crescent a battle-mode hum, the Thorn Beetle a space monster's drone, the Sawtooth a warbly alien engine, the Storm Wheel an electric arc, the Iron Stair a battle mech walking, the Frost Crystal ice ringing, the Furnace burning air, the Eclipse Eye an evil warp core (chosen by the agent, 2026-10-22 13:53, the author having asked for decisions, not questions) | how near the flagship is: level 0.35 × near², near 1 at 0 m to 0 at 2.5 km; panned to its side (±0.85 at 750 m) |
 
 ## The music
 
@@ -379,7 +385,7 @@ over the root.
 - **Raiders:** the Rim Corsairs, light unarmoured scouts with plasma
   (`enemy_plasma`); no marksmen. Elites fire a fan of three plasma shots.
   Events: convoy, ace.
-- **Flagship, the Crescent:** circles you at 380 m fanning plasma from its
+- **Flagship, the Crescent** (its own sound as it nears: a battle-mode hum)**:** circles you at 380 m fanning plasma from its
   wingtips, strafes in a charge (`boost`); in its second phase a ring with one
   gap and two chasers. In the arcade it runs for a gate: each third of its
   hull lost stalls its engine (`kill`), and at the gate it escapes (`portal`)
@@ -397,7 +403,7 @@ over the root.
   shows it); the hull mends itself 0.4 a second after 5 s unhit.
 - **Raiders:** the Thorn Swarm, with scatter guns (`enemy_scatter`); a fifth
   are marksmen. Elites sow two spore mines. Events: convoy, jammer.
-- **Flagship, the Thorn Beetle:** drifts with the current; spine spirals,
+- **Flagship, the Thorn Beetle** (its own sound as it nears: a space monster's drone)**:** drifts with the current; spine spirals,
   drifting spore mines (`mine`), a thorn ring; its brood hatches in its second
   phase (`portal`). In the arcade, nests hold a green shield over it that no
   hit gets through, and it sows new ones at half hull.
@@ -417,7 +423,7 @@ over the root.
 - **Raiders:** the Dune Marauders, with missiles (`enemy_missile`, reloading
   twice as slowly in the arcade); a third are marksmen. Elites charge.
   Events: jammer, convoy.
-- **Flagship, the Sawtooth:** coasts; missiles from its hatches, flak from its
+- **Flagship, the Sawtooth** (its own sound as it nears: a warbly alien engine)**:** coasts; missiles from its hatches, flak from its
   pods, a spinning saw charge (`boost`) that leaves bursts of dust. In the
   arcade it jousts: its blade lets half a shot through, and a charge that ends
   on a rock stuns it with its hull open (`kill` as it rams).
@@ -438,7 +444,7 @@ over the root.
   clear), then rests 2.4 s. Violet fields round them charge the pulse.
 - **Raiders:** the Volt Collective, with ion guns (`enemy_ion`) that drain
   the pulse; a third are marksmen. Elites blink 300 m. Events: ace, convoy.
-- **Flagship, the Storm Wheel:** spins at range; four-way ion volleys,
+- **Flagship, the Storm Wheel** (its own sound as it nears: an electric arc humming)**:** spins at range; four-way ion volleys,
   lightning spokes sweeping a quarter turn, blink jumps; pods shield its hub
   in its second phase. In the arcade a turning shell with two gaps; its arcs
   light every plate but the gaps (`enemy_beam`, then `storm`).
@@ -458,7 +464,7 @@ over the root.
 - **Raiders:** the Iron Dominion, with rail guns (`enemy_railgun`), armour
   and shields. Elites lock a tracking rail lance before they fire. Events:
   jammer, ace.
-- **Flagship, the Iron Stair:** slow, stepping forward every 2.4 s; rail
+- **Flagship, the Iron Stair** (its own sound as it nears: a battle mech walking)**:** slow, stepping forward every 2.4 s; rail
   sights lock 0.35 s before they fire, gravity wells (`gravity`), a six-lane
   broadside. In the arcade a siege: armour stops every shot but at one glowing
   weak point, stern, flanks, bow, each a quarter of its hull (`kill` as it
@@ -475,7 +481,7 @@ over the root.
 - **Raiders:** the Frost Sentinels, with cryo scatter guns
   (`enemy_scatter`), heavy shields. Elites cast a frost ring. Events: convoy,
   ace.
-- **Flagship, the Frost Crystal:** glides; ice plates orbit it and stop your
+- **Flagship, the Frost Crystal** (its own sound as it nears: ice, slowed, ringing)**:** glides; ice plates orbit it and stop your
   shots; shard spirals, icicles dropping where you are (`mine`), a frost nova
   that pulls the plates in (`enemy_beam`, then `pulse`). In the arcade it can
   be hurt only while it glows.
@@ -494,7 +500,7 @@ over the root.
   10 damage a second. Storms and flares also line its arcade Scroll lane.
 - **Raiders:** the Ember Legion, with seeker volleys (`enemy_missile`).
   Elites drop three embers where you are. Events: heat surge, ace.
-- **Flagship, the Furnace:** lumbers in close; a sweeping flame beam that
+- **Flagship, the Furnace** (its own sound as it nears: burning air)**:** lumbers in close; a sweeping flame beam that
   heats your guns, mortar embers leaving slag (`mine`), missile salvos, a
   flare wave that opens its core (`flare`). In the arcade a ring of fire
   closes on you as it heats (`flare` each step); outside it you burn.
@@ -511,7 +517,7 @@ over the root.
   energy; the heaviest radiation. The arcade's only black hole.
 - **Raiders:** the Void Armada, with void rail guns (`enemy_railgun`),
   heavy armour and shields. Elites blink 320 m. Events: heat surge, ace.
-- **Flagship, the Eclipse Eye:** hovers and blinks (`portal`); an eye beam
+- **Flagship, the Eclipse Eye** (its own sound as it nears: an evil warp core)**:** hovers and blinks (`portal`); an eye beam
   that turns after you and drains energy, fans of rail lanes, a singularity
   well (`gravity`) while its dome is open. In the arcade it keeps to the
   hole's edge, and its surge makes the hole pull harder ("THE HOLE SURGES",

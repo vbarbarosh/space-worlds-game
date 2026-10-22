@@ -292,7 +292,36 @@ function create_flight_audio()
     reactor.connect(reactor_gain);
     reactor_gain.connect(sound.ambient_bus);
     reactor.start();
-    sound.flight = {engine, engine_source: null, engine_ship: null, air_gain, air_filter, space_gain, space_filter, reactor, reactor_gain};
+    // a flagship's presence: the world's flagship recording (flight_presence_play), from the flagship's side
+    const presence = c.createGain();
+    const presence_pan = c.createStereoPanner();
+    presence.gain.value = 0;
+    presence.connect(presence_pan);
+    presence_pan.connect(sound.fx_bus);
+    sound.flight = {engine, engine_source: null, engine_ship: null, presence, presence_pan, presence_source: null, presence_world: -1, air_gain, air_filter, space_gain, space_filter, reactor, reactor_gain};
+}
+
+// The world's flagship's own sound, src/sounds/boss_<world>.mp3, looped as a ship's engine is (flight_engine_play):
+// the file holds its loop twice, played from the middle
+function flight_presence_play(f, id)
+{
+    const presence = world_audio[id].presence;
+    const buffer = sound.samples[presence.file];
+    if (!buffer || (f.presence_world === id)) {
+        return;
+    }
+    if (f.presence_source) {
+        f.presence_source.stop();
+    }
+    const source = sound.ctx.createBufferSource();
+    source.buffer = buffer;
+    source.loop = true;
+    source.loopStart = presence.loop/2;
+    source.loopEnd = presence.loop*1.5;
+    source.connect(f.presence);
+    source.start(sound.ctx.currentTime, presence.loop/2);
+    f.presence_source = source;
+    f.presence_world = id;
 }
 
 // Your ship's engine, src/sounds/engine_<id>.mp3, looped: the file holds its loop twice, and the loop is played from
@@ -345,6 +374,14 @@ function update_audio_scene()
     f.space_filter.frequency.setTargetAtTime([420, 950, 380, 1500, 260, 1100, 650, 190][id], now, 0.8);
     f.reactor_gain.gain.setTargetAtTime(flight ? 0.008 : 0, now, 0.3);
     f.reactor.frequency.setTargetAtTime([62, 73, 55, 82, 46, 88, 65, 38][id], now, 0.7);
+    // a flagship alive: its own sound, growing as it nears from 2.5 km, from its side
+    const boss = flight ? enemies.find(v => (v.type === 'boss') && (v.hp > 0)) : null;
+    const near = boss ? clamp(1 - distance(player, boss)/2500, 0, 1) : 0;
+    if (boss) {
+        flight_presence_play(f, id);
+    }
+    f.presence.gain.setTargetAtTime(0.35*near*near, now, 0.3);
+    f.presence_pan.pan.setTargetAtTime(boss ? clamp((boss.x - player.x)/750, -0.85, 0.85) : 0, now, 0.3);
     sound.combat = (flight && enemies.some(v => (v.hp > 0) && (distance(v, player) < 850))) ? 1 : 0;
 }
 

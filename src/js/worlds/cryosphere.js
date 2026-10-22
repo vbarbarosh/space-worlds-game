@@ -73,6 +73,8 @@ const world_cryosphere = {
         cutoff: 2200,
         air: 1.25,
         rhythm: 5,
+        // its flagship's own sound as it nears (flight_presence_play): ice, slowed, ringing; the file's loop, in seconds
+        presence: {file: 'boss_cryosphere', loop: 5.5},
         // its explosions, a blast and an echo combined (explosion_play, sfx/blast.js): ice and glass: a high, ringing echo
         explosions: {body: 'a', echo: 'a', level: 1, rate: 1.3},
         // the arcade's and a flagship fight's (music_drive.js)
