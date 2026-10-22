@@ -290,9 +290,10 @@ function sfx(kind, volume = 1, position = null, when)
     function note(f, d, a, end = null, type = 'sine', delay = 0, cutoff = 2200) {
         return tone(f, d, type, a*v, t + delay, end, cutoff, bus, shape);
     }
-    // noise in a band round f (or under it: filter 'lowpass', a boom), sliding to `sweep` when given (a whoosh)
-    function air(d, a, f, delay = 0, sweep = 0, filter = '') {
-        return noise(d, a*v, f, t + delay, bus, (sweep || filter) ? {...shape, sweep, filter} : shape);
+    // noise in a band round f (or under it: filter 'lowpass', a boom), sliding to `sweep` when given (a whoosh); `q`
+    // narrows the band (the helper's own 0.65 is wide: a hiss; 2 is a streak with a pitch)
+    function air(d, a, f, delay = 0, sweep = 0, filter = '', q = 0) {
+        return noise(d, a*v, f, t + delay, bus, (sweep || filter || q) ? {...shape, sweep, filter, q} : shape);
     }
     // a recording of src/sounds/ at volume a, its pitch (and speed) ×rate, `delay` s after the effect's start
     function clip(name, a, rate = 1, delay = 0) {

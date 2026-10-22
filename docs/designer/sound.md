@@ -106,6 +106,21 @@ so a new sound does not walk back into it:
   Freesound 681976), its sound centred at 250 Hz, no tone over the rest by
   more than 14 dB; the five other engines were measured the same way and
   have no such whine (The steady sounds of flight).
+- **20:07, the author:** the sound track of a Freelancer gameplay video
+  (YouTube xo4lt_-oUgk, 33 min, in the message's files): "at about 20:48
+  the shots are heard; make ours roughly like those. Look through the file,
+  no hurry: how the effects are made there, the shots, the explosions,
+  maybe more, how a missile flies; in that style ours should be." Measured
+  (`scratchpad/tools/streaks.py`: a 5 ms spectrogram with the bed
+  subtracted, the bursts over it): at 20:44–20:52 a gun fires 8 shots a
+  second, each a 30 ms streak of air whose centre falls from 6.3 kHz to
+  4.9 kHz, only 5 to 8 dB over the engine bed; at 21:29–21:39 a second gun,
+  6 a second, 45 ms, round 2.5 kHz, barely falling. The explosions heard in
+  the fight (21:31, 21:36) are low: half to two thirds of their energy
+  under 125 Hz, over a second to fade. No missile's flight found yet in the
+  minutes measured. So `shot` and `enemy_plasma` are streaks of air now
+  (Your weapons, Raiders), no thump, no zap; the explosions wait on the
+  author's word on the five takes.
 - **19:17, the author:** "the explosions need work too: the explosion
   should be a bit more muffled; now it is somehow sharp. Make several takes
   and put a different one on each object; I will say which were good and
@@ -195,7 +210,7 @@ not louder; to make one louder, change its rung here first.
 
 | Rung | dBFS | Sounds |
 |---|---|---|
-| 1, under everything | −38 to −34 | your shot (−34.6), its hit on a raider (`impact`, −37.5) |
+| 1, under everything | −38 to −34 | your shot (−39 since it is a 35 ms streak: a sound that short reads low in 300 ms, so it is set by its peak, −18.6 dB, as the zap it replaced), its hit on a raider (`impact`, −37.5) |
 | 2, the raiders' guns | −33 to −29 | plasma, ion, scatter, rail, beam, missiles; your missile; a countdown beep, a gravity warning, a pickup (−31) |
 | 3, things that happen to you | −30 to −26 | a flagship's own sound at 300 m (about −30, rising as it closes), a hit on you (−26.8), a rock broken (`mine`, −29), a race ring, an upgrade, a storm, a flare, the win chime |
 | 4, a small blast and its kin | −24 to −21 | a small blast (−23.8), a rock breaking (−21.6), a mine going off (−22), a raider's `kill` (−22.6 alone, played at 0.55 under its blast), the turbo (−23.6) |
@@ -247,7 +262,7 @@ delays, some a little off in pitch each time.
 
 | Effect | When | Cooldown | How it is made now | Peak, length |
 |---|---|---|---|---|
-| `shot` | your Pulse cannon (plasma) fires; also its shots in the hangar's preview | 0.065 s | a click (noise at 4.2 kHz, 22 ms), a sawtooth zap falling 620 → 150 Hz, a thump 124 → 52 Hz, a short hiss; pitch ±6% each time | −19.4 dB, 0.13 s |
+| `shot` | your Pulse cannon (plasma) fires; also its shots in the hangar's preview | 0.065 s | a streak of air, 35 ms, falling 7 → 3.8 kHz (a narrow band, Q 1.5), a fainter tick 2.4 → 1.9 kHz under it; no thump; pitch ±6% each time (Freelancer's gun, the author's track at 20:48) | −18.6 dB peak, as before; −39 dBFS loud; 0.045 s |
 | `missile` | your Seeker launcher fires | 0.12 s | a thump 72 → 40 Hz, a puff of noise, then the motor: a hiss at 2.4 kHz and a sawtooth rising 160 → 480 Hz | −20.4 dB, 0.38 s |
 | `enemy_scatter` | your Scatter gun fires, and raiders' scatter guns | 0.1 s | a crack, grit falling 1.8 kHz → 500 Hz, a sawtooth 150 → 45 Hz, a thump 70 Hz | −17.2 dB, 0.19 s |
 | `enemy_ion` | your Ion gun, and raiders' ion guns | 0.08 s | an electric snap: a square 880 → 220 Hz, a sawtooth 1.3 kHz → 420 Hz, crackle at 5.2 kHz, a thump 110 Hz | −22 dB, 0.14 s |
@@ -262,7 +277,7 @@ beam guns play the raiders' sounds at full volume.
 
 | Effect | When | Cooldown | How it is made now | Peak, length |
 |---|---|---|---|---|
-| `enemy_plasma` | a raider's plasma shot (Haven's and others') | 0.08 s | your shot's darker cousin: a zap 420 → 110 Hz, a thump 96 → 48 Hz | −23.2 dB, 0.13 s |
+| `enemy_plasma` | a raider's plasma shot (Haven's and others') | 0.08 s | your shot's darker cousin: a streak of air, 45 ms, round 2.6 → 2.3 kHz (Q 2), a tick 1.2 → 1 kHz under it (Freelancer's second gun, the track at 21:30) | −19 dB peak, as before; −41 dBFS loud; 0.075 s |
 | `enemy_missile` | a raider or a flagship launches a missile (dart, seeker, torpedo) | 0.18 s | a rush of noise at 650 Hz, a triangle rising 82 → 145 Hz | −18.8 dB, 0.28 s |
 | `kill` | a raider destroyed; a Dustfall cliff falling; a flagship's part destroyed or rammed | 0.09 s | noise at 480 Hz, a thump 72 → 29 Hz, a triangle 142 → 44 Hz | −13.4 dB, 0.34 s |
 

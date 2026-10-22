@@ -1,12 +1,11 @@
-// Your plasma shot: a click, a zap falling from its pitch, a low thump and a short hiss; each a little off the last, so
-// a stream of them does not ring as one beep
+// Your plasma shot, in the style of Freelancer's guns as the author's track has them (docs/designer/sound.md, the
+// author's notes, 2026-10-22 20:07): a bright 35 ms streak of air falling from 6.3 kHz to 4.9 kHz, a faint lower tick
+// under it, no thump; each a little off the last, so a stream of them does not ring as one beep
 const sfx_shot = {
     limit: 0.065,
     play: function (note, air, t) {
         const r = 0.94 + Math.random()*0.12;
-        air(0.022, 0.062, 4200);
-        note(620*r, 0.1, 0.042, 150*r, 'sawtooth', 0, 2400);
-        note(124*r, 0.09, 0.062, 52);
-        air(0.11, 0.017, 1500, 0.015, 600);
+        air(0.035, 0.66, 7000*r, 0, 3800*r, '', 1.5);
+        air(0.025, 0.22, 2400*r, 0.003, 1900*r, '', 1.5);
     },
 };
