@@ -82,6 +82,13 @@ so a new sound does not walk back into it:
   examples. A steep filter at 900 Hz made them sound "under water" (13:03);
   it is a gentle one from 3 kHz now. The same message: the ship's engine
   "a little lower"; it is 4 dB down.
+- **15:56, the author:** the Viper Interceptor's engine "not a spaceship's;
+  something else": a hover engine recording with a tone at 1.3 kHz, 41 dB
+  over the rest (a fan). It is a space fighter's engine now
+  (`engine_interceptor.mp3`, Freesound 641194): low, no tone standing out,
+  the same level. The Mule Prospector, the Bastion Gunship and the Aurora
+  Cruiser keep theirs until the author says otherwise: a reactor, a
+  spacecraft engine and a plasma engine hum low, with no such whine.
 - **15:48, the author:** the Kestrel Courier's engine "works just like a
   vacuum cleaner": its recording had a whine at 1 kHz (its loudest tone
   31 dB over the rest). It is a smooth engine loop now (`engine_courier.mp3`,
@@ -318,7 +325,7 @@ and `update_audio_scene` in `src/js/audio.js`):
 
 | Sound | Bus | Made of | Follows |
 |---|---|---|---|
-| Engine | effects | your ship's own recording, looped (`src/sounds/engine_<ship>.mp3`, `flight_engine_play`): Wisp Scout a thrust loop, Kestrel Courier a smooth engine loop (the sci-fi engine chosen first "worked like a vacuum cleaner", 15:48), Viper Interceptor a hover engine, Mule Prospector a nuclear reactor, Bastion Gunship a spacecraft engine, Aurora Cruiser a plasma engine (the author's picks, 2026-10-22) | thrust: level 0.115 × (0.3 + 0.7 × thrust, +0.5 in turbo), its speed and pitch ×0.92 + 0.12 × thrust (+0.1 in turbo) |
+| Engine | effects | your ship's own recording, looped (`src/sounds/engine_<ship>.mp3`, `flight_engine_play`): Wisp Scout a thrust loop, Kestrel Courier a smooth engine loop (the sci-fi engine chosen first "worked like a vacuum cleaner", 15:48), Viper Interceptor a space fighter's engine (the hover engine chosen first was "not a spaceship's", 15:56), Mule Prospector a nuclear reactor, Bastion Gunship a spacecraft engine, Aurora Cruiser a plasma engine (the author's picks, 2026-10-22) | thrust: level 0.115 × (0.3 + 0.7 × thrust, +0.5 in turbo), its speed and pitch ×0.92 + 0.12 × thrust (+0.1 in turbo) |
 | Air | effects | the game's noise in a band at 1.2 kHz | thrust ×0.014, turning ×0.006; in turbo +0.04 and the band down to 700 Hz (a deep roar) |
 | Space | ambience | the game's noise played slow (×0.42) under a lowpass, by world (below) | its level by world, ×0.35 near the station |
 | Reactor | ambience | a sine by world (below) at 0.008 | |

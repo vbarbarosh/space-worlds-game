@@ -19,7 +19,7 @@ const ship_interceptor = {
         color: pink,
         shape: 2,
         // its engine: src/sounds/engine_interceptor.mp3, one loop of this many seconds (flight_engine_play)
-        engine_loop: 5,
+        engine_loop: 1.3,
         description: 'Quick and agile, with two medium guns on a small frame. Light hull demands careful flying.',
     },
     hull_profile: {radiation: 0.04, traction: 0.95, braking: 1.5, cooling: 0.05, turbo: 1.4, endurance: 1},
