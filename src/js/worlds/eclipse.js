@@ -74,6 +74,8 @@ const world_eclipse = {
         cutoff: 700,
         air: 0.8,
         rhythm: 7,
+        // its explosions: the heavy, deep recordings (src/sounds/explosion_deep*.mp3, sfx/blast.js)
+        explosions: 'deep',
         // the arcade's and a flagship fight's (music_drive.js)
         drive: {bpm: 120, lead: 'square', bass: 'eighths', kit: 'half', arp: [0, 3, 1, 2]},
     },

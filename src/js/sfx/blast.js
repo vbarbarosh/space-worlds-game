@@ -1,11 +1,22 @@
-// A small blast (a missile's, a mine's, a raider's death): a crack, a boom falling from bright to dull, a thump
+// A small blast (a missile's, a mine's, a drone dying): a recording (src/sounds/), the world's kind of explosion
+// (blast_set); a ship's played faster where the world has no small one of its own
 const sfx_blast = {
     limit: 0.07,
-    play: function (note, air, t) {
-        const r = 0.9 + Math.random()*0.2;
-        air(0.04, 0.085, 4500);
-        air(0.5, 0.14, 2600*r, 0, 260, 'lowpass');
-        note(80*r, 0.35, 0.085, 32);
-        air(0.3, 0.025, 5200, 0.04, 2200);
+    play: function (note, air, t, clip) {
+        const r = 0.93 + Math.random()*0.14;
+        if (blast_set() === 'deep') {
+            clip('explosion_deep_small', 0.3, r);
+        }
+        else {
+            clip('explosion_medium', 0.27, 1.35*r);
+        }
     },
 };
+
+// The world's kind of explosion: 'deep' (heavy, low: Obsidian, Eclipse) or 'medium' (every other world), by its
+// music's `explosions`
+function blast_set()
+{
+    const v = world_audio[campaign.world];
+    return (v && v.explosions) || 'medium';
+}

@@ -1,12 +1,14 @@
 # Sound: what the game plays, and what each world asks of it
 
-Every sound World Explorer plays, as the code stands (2026-10-21, after
-`cde0869`): the mix, each sound effect, the steady sounds of flight, the
+Every sound World Explorer plays, as the code stands (2026-10-22, the
+explosions recorded): the mix, each sound effect, the steady sounds of flight, the
 music, and each world's character, so new sounds can be made for it by a
 sound designer, by hand or by a tool, and checked against what it replaces.
 
-All of it is made in code today, with the browser's Web Audio: no sound file
-ships with the game. The code is in `src/js/audio.js` (the mix, `tone()`,
+Two kinds of sound go through one mix. The three explosions play
+recordings (`src/sounds/`, MP3 packed into the page, their sources and
+licences in its README); everything else is made in code as it plays, with
+the browser's Web Audio. No sound file ships beside the page. The code is in `src/js/audio.js` (the mix, `tone()`,
 `noise()`, the flight's steady sounds), `src/js/music.js` (`sfx()`, the calm
 themes), `src/js/music_drive.js` (the arcade's and the flagship's music) and
 `src/js/sfx/`, one file per effect. `bin/sound-render` records the game's own
@@ -65,15 +67,56 @@ so a new sound does not walk back into it:
   fuller"; then six recorded explosions sent as examples ("everything so far
   was bad"). The explosions fitted to them by measurement were "terrible,
   just terrible", and the two last explosion changes were reverted
-  (`cde0869`). **Today's explosions are the ones the author called a tin can,
-  and a chain of them still plays as one.** They are the first thing to make
-  anew.
+  (`cde0869`). The ones left were "a barrel struck, not an explosion"
+  (2026-10-22). Four sets of real recordings were then played in the game
+  side by side: the author's own examples were "good", the heavy, deep set
+  had "something cool" for a world, Kenney's Sci-Fi Sounds were "not liked
+  at all". **The explosions are recordings since:** the author's examples
+  in every world, the heavy, deep set in Obsidian and Eclipse.
+- **Next, from the author (2026-10-22):** each ship and each flagship sounds
+  of its own, and a direction that makes all the sounds fit together.
 - The author's six examples are in their message of 2026-10-21 22:00
   (`agentdir/messages/20261021_215000-me/files/`): a sci-fi explosion, a
   medium one, debris breaking, a big one, a cartoon one, a missile's. Measured
   (the share of energy by octave in the first 0.25 s, and how fast they fade):
   about half their energy at 63 Hz, a few % over 2 kHz, swelling for 0.06 to
   0.5 s, 20 dB down in 0.5 to 1.6 s and 40 dB in 0.9 to 2.5 s.
+
+## The direction: how every sound fits together
+
+The author's call, 2026-10-22: every sound should belong to one game, and
+each ship and each flagship should sound like itself. What each new sound
+follows:
+
+- **Recorded, not made in code,** for every sound heard as an event: a
+  blast, a shot, a hit, an engine. Two rounds of explosions made in code
+  were rejected ("a tin can", "a barrel struck"), and fitting them to the
+  author's examples by numbers was "terrible". Code stays for what follows
+  the game live: the music and the steady hums of flight.
+- **The author's examples set the weight:** low and full (most of the
+  energy under 125 Hz), a hard start, a tail of half a second to two; no
+  pitched ring (the barrel, the tin can), no beeps (the "cheap Tetris").
+- **Size is heard:** the bigger, the lower, longer and louder. A small one
+  may be a big one's recording played faster (a small blast is a ship's
+  at ×1.35).
+- **Each world a family of its own,** chosen from its look (below, The
+  worlds): Haven clean and light, Verdant wet and organic, Dustfall grit
+  and sand, Ion Reach crackle and thunder, Obsidian heavy iron, Cryosphere
+  ice and glass, Nova Forge fire, Eclipse the deep void. Explosions so far:
+  the author's examples in every world, the heavy, deep set in Obsidian and
+  Eclipse.
+- **Each ship its own voice:** your six ships (Wisp Scout, Kestrel Courier,
+  Viper Interceptor, Mule Prospector, Bastion Gunship, Aurora Cruiser) an
+  engine and a gun each; each kind of raider its engine and its death by
+  its size; each flagship its presence as it nears, its attacks, its turn
+  to a second phase and its end.
+- **One mix for all:** a recording goes through the same buses, panning,
+  distance and limiter as a sound made in code (`sample()` in
+  `src/js/audio.js`). Shots sit under hits, hits under explosions.
+- **How one gets in:** recordings found with a licence that allows a game
+  (CC0, or Pixabay's), played in the game itself beside what they replace,
+  all levelled alike, on one listening page; the author picks by ear; only
+  then into the game, with its source in `src/sounds/README.md`.
 
 ## The mix
 
@@ -135,21 +178,27 @@ beam guns play the raiders' sounds at full volume.
 | `enemy_missile` | a raider or a flagship launches a missile (dart, seeker, torpedo) | 0.18 s | a rush of noise at 650 Hz, a triangle rising 82 → 145 Hz | −18.8 dB, 0.28 s |
 | `kill` | a raider destroyed; a Dustfall cliff falling; a flagship's part destroyed or rammed | 0.09 s | noise at 480 Hz, a thump 72 → 29 Hz, a triangle 142 → 44 Hz | −13.4 dB, 0.34 s |
 
-### Explosions (to make anew)
+### Explosions (recordings)
 
 Every explosion the game draws (`explode()`, `src/js/explosions.js`) plays
 one of three by its size; a smaller one than 12 (a spark, a shot's flash)
-plays none.
+plays none. Each is a recording of `src/sounds/`, by the world's kind of
+explosion (its music's `explosions`, `blast_set()`): `deep` in Obsidian and
+Eclipse, the author's examples (medium) in every other world. Each plays
+±7% in pitch (±4% the largest) so two in a row differ.
 
-| Effect | What explodes (size) | Cooldown | How it is made now | Peak, length |
+| Effect | What explodes (size) | Cooldown | The recording (its volume) | Peak, length |
 |---|---|---|---|---|
-| `blast` | a missile's blast, a mine, a shard or a drone dying (12 to 35) | 0.07 s | a crack at 4.5 kHz, noise from 2.6 kHz to 260 Hz, a thump 80 → 32 Hz, debris at 5.2 kHz | −12 dB, 0.39 s |
-| `blast_big` | every other raider dying (a chaser 40, a shooter 46, a lancer or splitter 48, a bulwark 70, a tank 72, a carrier 74); a flagship's chain of blasts (36 to 179) | 0.12 s | a crack, noise from 1.9 kHz to 160 Hz, a thump 58 → 26 Hz, a sawtooth growl 112 → 40 Hz, debris at 4.2 and 3 kHz | −6.1 dB, 0.64 s |
-| `blast_huge` | a flagship's last blast (180 and over) | 0.8 s | a crack, a roar from 1.5 kHz to 70 Hz for 2.4 s, a sub 44 → 21 Hz, a sawtooth 88 → 30 Hz, a rumble at 240 Hz, debris four times over 1.4 s | −4.7 dB, 1.78 s |
+| `blast` | a missile's blast, a mine, a shard or a drone dying (12 to 35) | 0.07 s | `explosion_medium` played ×1.35 (0.27); deep: `explosion_deep_small` (0.3) | −10.8 dB, 0.58 s; deep 1.1 s |
+| `blast_big` | every other raider dying (a chaser 40, a shooter 46, a lancer or splitter 48, a bulwark 70, a tank 72, a carrier 74); a flagship's chain of blasts (36 to 179) | 0.12 s | `explosion_medium` (0.74); deep: `explosion_deep` (0.37) | −3.3 dB, 0.78 s; deep 2.5 s |
+| `blast_huge` | a flagship's last blast (180 and over) | 0.8 s | `explosion_big` (0.66); deep: `explosion_deep_huge` (0.53) | −4 dB, 5 s; deep 5 s |
 
-What they should be, from the author: heavy, not a tin can; several at once
-heard one after another and swelling together ("pa-pa-pa-pam"), not one pop;
-like the six examples above. A raider dies with `kill` and `blast_big` together.
+What they should be, from the author: heavy, not a tin can or a struck
+barrel; several at once heard one after another and swelling together
+("pa-pa-pa-pam"), not one pop; like the six examples above. A raider dies
+with `kill` (still made in code) and `blast_big` together. The levels are
+the ones the author heard and chose from: all four sets levelled alike,
+about 9 dB over the explosions made in code before.
 
 ### You
 

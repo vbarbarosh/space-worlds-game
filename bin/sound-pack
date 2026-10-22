@@ -103,6 +103,8 @@ function source_from_game()
     return [
         'let muted = false; const volume_settings = {master: 0.85, effects: 0.85, music: 0.65, ambience: 0.7};',
         'function clamp(n, a, b) { return Math.max(a, Math.min(b, n)); }',
+        // the game's recorded explosions are left out: the pack makes its own (explosion_schedule)
+        'const sound_files = {};',
         prefix(read('audio.js'), 'function sync_settings()'),
         ...WORLDS.map(v => read(`worlds/${v.replaceAll('-', '_')}.js`)),
         'const world_audio = [world_haven, world_verdant, world_dustfall, world_ion_reach, world_obsidian, world_cryosphere, world_nova_forge, world_eclipse].map(v => v.music);',

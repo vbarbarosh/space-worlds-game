@@ -10,6 +10,8 @@ const sound = {
     music_level: null,
     retired_buses: [],
     noise: null,
+    // the recordings of src/sounds/ by name, each there once decoded (sound_samples_decode)
+    samples: {},
     next: 0,
     step: 0,
     timer: null,
@@ -82,7 +84,48 @@ function create_audio_graph(context)
     sound.voices = 0;
     sound.peak_voices = 0;
     create_flight_audio();
+    sound_samples_decode(c);
     sound.next = c.currentTime + 0.08;
+}
+
+// The recordings of src/sounds/ decoded for this context; one not decoded yet (the first moments) plays nothing
+function sound_samples_decode(c)
+{
+    sound.samples = {};
+    for (const [name, base64] of Object.entries(sound_files)) {
+        const bytes = Uint8Array.from(atob(base64), v => v.charCodeAt(0));
+        c.decodeAudioData(bytes.buffer).then(function (buffer) {
+            if (sound.ctx === c) {
+                sound.samples[name] = buffer;
+            }
+        }).catch(function () {});
+    }
+}
+
+// A recording of src/sounds/ played at t on `bus`, panned as `shape` says, at `rate` (also its pitch)
+function sample(name, volume, rate, when, bus, shape = {})
+{
+    const buffer = sound.samples[name];
+    if (!sound.ctx || muted || !buffer || (volume <= 0)) {
+        return;
+    }
+    const c = sound.ctx;
+    const source = c.createBufferSource();
+    source.buffer = buffer;
+    source.playbackRate.value = rate;
+    const gain = c.createGain();
+    gain.gain.value = volume;
+    const pan = c.createStereoPanner();
+    pan.pan.value = shape.pan || 0;
+    source.connect(gain);
+    gain.connect(pan);
+    pan.connect(bus);
+    source.start(when);
+    sound.voices++;
+    sound.peak_voices = Math.max(sound.peak_voices, sound.voices);
+    source.onended = function () {
+        sound.voices--;
+    };
 }
 
 function start_audio()

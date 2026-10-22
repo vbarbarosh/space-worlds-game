@@ -11,6 +11,7 @@ const build_time = new Date().toISOString();
 const include_regex = /^<!-- include (.+) -->\n$/;
 const slot_regex = /^<!-- slot (.+) -->\n$/;
 const svgs_regex = /^<!-- svgs (.+) as (.+) -->\n$/;
+const sounds_regex = /^<!-- sounds (.+) as (.+) -->\n$/;
 const missions_regex = /^<!-- missions (.+) as (.+) -->\n$/;
 const maps_regex = /^<!-- maps (.+) as (.+) -->\n$/;
 // A map file's kinds (src/maps/README.md): each a list of places, with the numbers each place needs, and the worlds
@@ -74,6 +75,7 @@ function html_from_template(template, lines_by_slot)
     for (const line of lines) {
         const match = line.match(include_regex);
         const svgs = line.match(svgs_regex);
+        const sounds = line.match(sounds_regex);
         const missions = line.match(missions_regex);
         const maps = line.match(maps_regex);
         const build = line.match(build_regex);
@@ -82,6 +84,9 @@ function html_from_template(template, lines_by_slot)
         }
         else if (svgs) {
             parts.push(svgs_js(svgs[1], svgs[2]));
+        }
+        else if (sounds) {
+            parts.push(sounds_js(sounds[1], sounds[2]));
         }
         else if (missions) {
             parts.push(`const ${missions[2]} = ${JSON.stringify(missions_from_dir(path.join(src_dir, missions[1])))};\n`);
@@ -112,6 +117,17 @@ function build_js(name)
 {
     const version = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8')).version || null;
     return `const ${name} = ${JSON.stringify({version, time: build_time})};\n`;
+}
+
+// A `<!-- sounds sounds as sound_files -->` line becomes `const sound_files = {...};`: every .mp3 of src/sounds/ by
+// its name without the extension, as base64
+function sounds_js(dir, name)
+{
+    const files = {};
+    for (const file of fs.readdirSync(path.join(src_dir, dir)).filter(v => v.endsWith('.mp3')).sort()) {
+        files[file.slice(0, -4)] = fs.readFileSync(path.join(src_dir, dir, file)).toString('base64');
+    }
+    return `const ${name} = ${JSON.stringify(files)};\n`;
 }
 
 function svgs_from_dir(dir)
