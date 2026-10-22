@@ -106,6 +106,21 @@ so a new sound does not walk back into it:
   Freesound 681976), its sound centred at 250 Hz, no tone over the rest by
   more than 14 dB; the five other engines were measured the same way and
   have no such whine (The steady sounds of flight).
+- **20:41 to 20:59, the author:** the laser shot "a bit better, but as if
+  from a simple children's game; it does not fit the style of the rest. No
+  commits: make about ten variants, each one file with a burst of shots,
+  and I will say which is closer, blind." Thirteen bursts went, each a
+  CC0 recording held as the cannon in the game, levelled alike, numbered
+  (the key: 01 Freesound 351429, 02 702000, 03 489428, 04 785380,
+  05 466834, 06 730564, 07 815426, 08 423211, 09 819682, 10 805193,
+  11 531861, 12 Kenney laserSmall_002, 13 752035), marked on a page in the
+  agent's Documents. The marks: **yes!** 05, 06, 09, 12; **maybe** 08, 11;
+  **no** 01, 02, 03 ("very funny; it belongs to a different world"), 07,
+  10, 13. The yeses share one shape: a fast sweep from bright down into a
+  low thump, a blaster with body; the nos are the tonal lasers and the
+  slow heavy ones. So your shot is 09 (`shot.mp3`, Freesound 819682), a
+  raider's plasma 06 (`shot_enemy.mp3`, 730564), the lowest of the yeses,
+  so whose shot it is is heard; 05 and 12 are kept for the other guns.
 - **20:29, the author:** the shots made to Freelancer's measure "sound
   like a bug; very bad. Try again: do the best you can for the shots. What
   is it? A spaceship; a space cannon fires beams of energy." So the shots
@@ -273,7 +288,7 @@ delays, some a little off in pitch each time.
 
 | Effect | When | Cooldown | How it is made now | Peak, length |
 |---|---|---|---|---|
-| `shot` | your Pulse cannon (plasma) fires; also its shots in the hangar's preview | 0.065 s | a recording, a laser shot (`shot.mp3`, 0.077, ±6% in pitch): a tone falling 720 → 230 Hz in a quarter second, a cannon's beam of energy | −32 dBFS loud (−22 dB peak, 3 dB under the zap before: a tone of 0.3 s reads louder than a zap); 0.3 s |
+| `shot` | your Pulse cannon (plasma) fires; also its shots in the hangar's preview | 0.065 s | a recording, a blaster (`shot.mp3`, 0.103, ±6% in pitch): a fast sweep from 2 kHz down into a low thump; your pick, blind, from thirteen | −22 dB peak, 3 dB under the zap of old; 0.5 s |
 | `missile` | your Seeker launcher fires | 0.12 s | a thump 72 → 40 Hz, a puff of noise, then the motor: a hiss at 2.4 kHz and a sawtooth rising 160 → 480 Hz | −20.4 dB, 0.38 s |
 | `enemy_scatter` | your Scatter gun fires, and raiders' scatter guns | 0.1 s | a crack, grit falling 1.8 kHz → 500 Hz, a sawtooth 150 → 45 Hz, a thump 70 Hz | −17.2 dB, 0.19 s |
 | `enemy_ion` | your Ion gun, and raiders' ion guns | 0.08 s | an electric snap: a square 880 → 220 Hz, a sawtooth 1.3 kHz → 420 Hz, crackle at 5.2 kHz, a thump 110 Hz | −22 dB, 0.14 s |
@@ -288,7 +303,7 @@ beam guns play the raiders' sounds at full volume.
 
 | Effect | When | Cooldown | How it is made now | Peak, length |
 |---|---|---|---|---|
-| `enemy_plasma` | a raider's plasma shot (Haven's and others') | 0.08 s | your shot's darker cousin: a recording of a softer laser (`shot_enemy.mp3`, 0.082, at ×0.85 to ×0.95): a tone falling 1 kHz → 300 Hz with a body under it | −23 dB peak, as before; 0.6 s |
+| `enemy_plasma` | a raider's plasma shot (Haven's and others') | 0.08 s | your shot's darker cousin: a recording of a low, punchy blast (`shot_enemy.mp3`, 0.052, at ×0.85 to ×0.95), most of it under 300 Hz; your pick too | −23.5 dB peak, as before; 0.6 s |
 | `enemy_missile` | a raider or a flagship launches a missile (dart, seeker, torpedo) | 0.18 s | a rush of noise at 650 Hz, a triangle rising 82 → 145 Hz | −18.8 dB, 0.28 s |
 | `kill` | a raider destroyed; a Dustfall cliff falling; a flagship's part destroyed or rammed | 0.09 s | noise at 480 Hz, a thump 72 → 29 Hz, a triangle 142 → 44 Hz | −13.4 dB, 0.34 s |
 
