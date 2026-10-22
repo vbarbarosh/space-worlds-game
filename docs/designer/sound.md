@@ -106,6 +106,13 @@ so a new sound does not walk back into it:
   Freesound 681976), its sound centred at 250 Hz, no tone over the rest by
   more than 14 dB; the five other engines were measured the same way and
   have no such whine (The steady sounds of flight).
+- **19:12, the author:** the pulse (Space) "is very strange. A pulse is
+  something spreading out: as after an explosion a wave spreads, here too
+  a wave should spread. Try another take." Its sound was an impact: loud
+  at once, then a decay. It is a wave now (`pulse.mp3`, Freesound 745443,
+  a cinematic whoosh): it swells for 0.6 s, the time the ring takes to
+  reach its 480 m, brightens at its peak and washes away over 1.5 s; the
+  music dips for 1.6 s. At −19 dBFS, as before.
 - **15:45, the author:** the pulse (Space) "cuts the ear; the earlier one
   was softer". The electromagnetic pulse recording was a buzz centred in
   125 to 500 Hz at −16 dBFS, the loudest rung. It is a low, swelling impact
@@ -203,7 +210,7 @@ loud. A fight's average level came down 2 dB with the ladder.
 
 The settings panel sets the four volumes and mutes all (M); Test plays a
 chord, a pickup and a thump. The music dips to 0.38 of its level while a hit
-(0.55 s), a pulse (1.1 s) or a portal (1.5 s) sounds.
+(0.55 s), a pulse (1.6 s) or a portal (1.5 s) sounds.
 
 **Where an effect plays from:** one played at a place (a raider, a blast) is
 panned by how far left or right of you it is (750 m to one side is ±0.85, the
@@ -298,7 +305,7 @@ blast) and `blast_big` together. The levels follow the ladder above, 4 to
 |---|---|---|---|---|
 | `hit` | your ship hit (shield or hull alike); the radiation alert; a bump in a race | 0.18 s | noise at 950 Hz, a thump 105 → 38 Hz, a triangle 210 → 82 Hz; the music dips | −13.6 dB, 0.2 s |
 | `boost` | your dash (Shift: a burst of turbo); a flagship charging; a rival's turbo in a race | 0.08 s | a thump 56 → 34 Hz, a roar opening from 280 Hz to 2.4 kHz, a whoosh 900 Hz → 3.8 kHz, a whine 320 → 980 Hz, a sawtooth rumble | −12.8 dB, 0.64 s |
-| `pulse` | your pulse (Space) going off; an EMP charge; falling into a black hole's core | 0.08 s | a recording, a low swelling impact (`pulse.mp3`, 0.24, ±4% in pitch), softened like the explosions; the music dips | −19 dBFS loud, 1.5 s |
+| `pulse` | your pulse (Space) going off; an EMP charge; falling into a black hole's core | 0.08 s | a recording of a wave spreading out (`pulse.mp3`, 0.35, ±4% in pitch): a 0.6 s swell as the ring grows, then a wash; the music dips | −19 dBFS loud, 2.4 s |
 | `dash` | a stasis charge used (the name is old) | 0.08 s | a whoosh falling 3.6 kHz → 600 Hz, a thump 95 → 45 Hz, a sawtooth zip 260 → 820 Hz | −20.5 dB, 0.26 s |
 | `portal` | your jump through a portal or gate; a flagship escaping (Haven's Crescent) or jumping | 0.6 s | noise at 850 Hz for 1.4 s, three sines rising an octave each (D3, A3, D4, staggered), a sub 44 → 75 Hz; the music dips | −13.1 dB, 1.14 s |
 | `mine` | an ore rock broken; drifting debris hit; a Dustfall cliff struck; a flagship's mine | 0.12 s | noise at 1.8 kHz, a triangle 480 → 230 Hz, a thump 135 → 60 Hz | −20.7 dB, 0.17 s |
