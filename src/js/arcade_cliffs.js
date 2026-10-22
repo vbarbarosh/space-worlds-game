@@ -220,7 +220,7 @@ function cliff_fall_update(c, dt)
     const uy = Math.sin(c.fall);
     for (; (c.marks <= 4) && ((c.marks/4)*end <= c.front); ++c.marks) {
         const p = cliff_point(c, (c.marks/4)*end, 0);
-        explode(p.x, p.y, v.r*(1.1 - c.marks*0.12), '#c9924e', 0, 'rock');
+        explode(p.x, p.y, v.r*(1.1 - c.marks*0.12), '#c9924e');
         burst(p.x, p.y, cliff_colors.rim, 16, 260);
     }
     for (const enemy of enemies.slice()) {

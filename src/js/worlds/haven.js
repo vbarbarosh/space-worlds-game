@@ -67,10 +67,6 @@ const world_haven = {
         cutoff: 1600,
         air: 0.9,
         rhythm: 0,
-        // its flagship's own sound as it nears (flight_presence_play): a battle-mode hum; the file's loop, in seconds
-        presence: {file: 'boss_haven', loop: 5},
-        // its explosions, a blast and an echo combined (explosion_play, sfx/blast.js): open space: the author's examples, a light echo
-        explosions: {echo: 'a', level: 0.8, rate: 1},
         // the arcade's and a flagship fight's (music_drive.js)
         drive: {bpm: 124, lead: 'square', bass: 'eighths', kit: 'four', arp: [0, 1, 2, 1]},
     },

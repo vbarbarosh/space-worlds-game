@@ -12,10 +12,8 @@ const wreck_limit = 10;
 const explosion_light_limit = 2;
 // the smallest blast of a ship (a shard's is 26, a raider's 40): smaller ones are shots' and leave no wreck or light
 const explosion_ship_size = 36;
-// The blasts heard (explosion_sound): from this size, a heavy ship's (a bulwark 70, a tank 72, a carrier 74) from
-// this one, and a flagship's last from this one
+// The blasts heard (explosion_sound): from this size, and a flagship's last from this one
 const explosion_sound_min = 12;
-const explosion_heavy_size = 60;
 const explosion_sound_huge = 180;
 // A big kill holds the game still for a moment, the frame drawn and nothing moving (js/boot.js): at most once in
 // 0.4 s, and never when the system asks for reduced motion
@@ -30,20 +28,15 @@ const hurt_duration = 0.45;
 const explosion_durations = {spark: 0.25, muzzle: 0.07, flash: 0.09, shield: 0.45, warp: 0.4, smoke: 0.9, impact: 0.38, collect: 0.34};
 
 // size is the fireball's radius in world units: about 40 for a raider, 70 for a tank, 220 for a flagship;
-// kind 'blast' is the full explosion, 'rock' and 'barrel' the same blast heard as a rock breaking or a mine going
-// off (explosion_sound), the others are the small effects listed in explosion_durations;
+// kind 'blast' is the full explosion, the others are the small effects listed in explosion_durations;
 // shake and flash, for a blast, are what the screen does the moment it goes off (a delayed one included)
 function explode(x, y, size, color, delay = 0, kind = 'blast', shake = 0, flash = 0)
 {
-    const voice = kind;
-    if (['rock', 'barrel'].includes(kind)) {
-        kind = 'blast';
-    }
     if (kind !== 'blast') {
         explosion_light_add(x, y, size, color, delay, kind);
         return;
     }
-    explosion_sound(x, y, size, delay, voice);
+    explosion_sound(x, y, size, delay);
     shock_wave_add(x, y, size, delay);
     const sparks = [];
     for (let i = 0, end = Math.round(6 + size/6); i < end; ++i) {
@@ -77,15 +70,14 @@ function explode(x, y, size, color, delay = 0, kind = 'blast', shake = 0, flash 
     }
 }
 
-// A blast is heard by what it is and its size, as it goes off (a delayed one later): a rock breaking, a mine (a
-// barrel) going off, or by size a missile's pop, a ship's boom, a heavy ship's deeper one, a long roar for a
-// flagship's last (src/js/sfx/blast*.js); a smaller one than explosion_sound_min goes unheard
-function explosion_sound(x, y, size, delay, voice = 'blast')
+// A blast is heard by its size, as it goes off (a delayed one later): a pop for a missile's, a boom for a ship's, a
+// long roar for a flagship's last (src/js/sfx/blast*.js); a smaller one than explosion_sound_min goes unheard
+function explosion_sound(x, y, size, delay)
 {
     if (!sound.ctx || (size < explosion_sound_min)) {
         return;
     }
-    const kind = (voice === 'rock') ? 'blast_rock' : (voice === 'barrel') ? 'blast_barrel' : (size >= explosion_sound_huge) ? 'blast_huge' : (size >= explosion_heavy_size) ? 'blast_heavy' : (size >= explosion_ship_size) ? 'blast_big' : 'blast';
+    const kind = (size >= explosion_sound_huge) ? 'blast_huge' : (size >= explosion_ship_size) ? 'blast_big' : 'blast';
     sfx(kind, 1, {x, y}, sound.ctx.currentTime + delay);
 }
 

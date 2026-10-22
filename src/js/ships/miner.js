@@ -19,10 +19,6 @@ const ship_miner = {
         mining: 2.5,
         color: '#eabb7e',
         shape: 3,
-        // its engine: src/sounds/engine_miner.mp3, one loop of this many seconds (flight_engine_play)
-        engine_loop: 6,
-        // heavy: its loop played lower and slower than the file (update_audio_scene)
-        engine_rate: 0.85,
         description: '150 cargo slots and 2.5× damage to ore. Durable industrial frame.',
     },
     hull_profile: {radiation: 0.35, traction: 1.45, braking: 1.25, cooling: 0.2, turbo: 0.9, endurance: 4},

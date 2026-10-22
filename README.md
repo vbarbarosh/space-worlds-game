@@ -276,13 +276,11 @@ for the dev page.
                      calm theme, and the drive the arcade and a flagship fight
                      play it with, src/js/music_drive.js)
     src/js/ships/    one file per ship class: catalog entry and hull profile
-    src/js/sfx/      one file per sound effect: its cooldown and its synth calls, or the recording it plays
+    src/js/sfx/      one file per sound effect: its cooldown and its synth calls
     src/maps/        map files: a world's map as the map editor left it, packed into the page
     src/sprites/     drawings (SVG): ships in 3d/ (the shaded set), weapons, pickups, worlds/<world>; a
                      `<!-- svgs sprites as sprite_svgs -->` line packs them
                      into the page
-    src/sounds/      recordings (MP3) the effects play, each with its source and licence in its README; a
-                     `<!-- sounds sounds as sound_files -->` line packs them into the page
     src/dev.html     what the dev page adds into the slots of src/index.html
     src/js/dev/      the dev panel: time, cheats, scenario, one file per tab
     src/agent.html   what the agent's page adds: storage of its own, the captain hook

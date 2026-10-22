@@ -1350,7 +1350,7 @@ function boss_mine_update(v, s, e, dt)
         e.life = e.t + e.fuse;
     }
     if (e.t + dt >= e.life) {
-        explode(e.x, e.y, e.reach*0.6, boss_mine_color(e.look), 0, 'barrel');
+        explode(e.x, e.y, e.reach*0.6, boss_mine_color(e.look));
         if (distance(e, player) < e.reach + player.r) {
             boss_hit(v, e.damage, true);
         }

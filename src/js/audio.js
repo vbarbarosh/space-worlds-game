@@ -10,8 +10,6 @@ const sound = {
     music_level: null,
     retired_buses: [],
     noise: null,
-    // the recordings of src/sounds/ by name, each there once decoded (sound_samples_decode)
-    samples: {},
     next: 0,
     step: 0,
     timer: null,
@@ -84,48 +82,7 @@ function create_audio_graph(context)
     sound.voices = 0;
     sound.peak_voices = 0;
     create_flight_audio();
-    sound_samples_decode(c);
     sound.next = c.currentTime + 0.08;
-}
-
-// The recordings of src/sounds/ decoded for this context; one not decoded yet (the first moments) plays nothing
-function sound_samples_decode(c)
-{
-    sound.samples = {};
-    for (const [name, base64] of Object.entries(sound_files)) {
-        const bytes = Uint8Array.from(atob(base64), v => v.charCodeAt(0));
-        c.decodeAudioData(bytes.buffer).then(function (buffer) {
-            if (sound.ctx === c) {
-                sound.samples[name] = buffer;
-            }
-        }).catch(function () {});
-    }
-}
-
-// A recording of src/sounds/ played at t on `bus`, panned as `shape` says, at `rate` (also its pitch)
-function sample(name, volume, rate, when, bus, shape = {})
-{
-    const buffer = sound.samples[name];
-    if (!sound.ctx || muted || !buffer || (volume <= 0)) {
-        return;
-    }
-    const c = sound.ctx;
-    const source = c.createBufferSource();
-    source.buffer = buffer;
-    source.playbackRate.value = rate;
-    const gain = c.createGain();
-    gain.gain.value = volume;
-    const pan = c.createStereoPanner();
-    pan.pan.value = shape.pan || 0;
-    source.connect(gain);
-    gain.connect(pan);
-    pan.connect(bus);
-    source.start(when);
-    sound.voices++;
-    sound.peak_voices = Math.max(sound.peak_voices, sound.voices);
-    source.onended = function () {
-        sound.voices--;
-    };
 }
 
 function start_audio()
@@ -254,10 +211,37 @@ function noise(duration, volume, frequency, when, bus, shape = {})
 function create_flight_audio()
 {
     const c = sound.ctx;
-    // the engine: your ship's recording (flight_engine_play), into this gain
     const engine = c.createGain();
     engine.gain.value = 0;
     engine.connect(sound.fx_bus);
+    const filter = c.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.value = 700;
+    filter.Q.value = 0.5;
+    filter.connect(engine);
+    const body = c.createOscillator();
+    const overtone = c.createOscillator();
+    body.type = 'sine';
+    overtone.type = 'sine';
+    body.frequency.value = 62;
+    overtone.frequency.value = 220;
+    const body_gain = c.createGain();
+    const overtone_gain = c.createGain();
+    body_gain.gain.value = 0.34;
+    overtone_gain.gain.value = 0.11;
+    body.connect(body_gain);
+    body_gain.connect(filter);
+    overtone.connect(overtone_gain);
+    overtone_gain.connect(filter);
+    body.start();
+    overtone.start();
+    const shimmer = c.createOscillator();
+    const shimmer_depth = c.createGain();
+    shimmer.frequency.value = 0.23;
+    shimmer_depth.gain.value = 11;
+    shimmer.connect(shimmer_depth);
+    shimmer_depth.connect(overtone.detune);
+    shimmer.start();
     const air = c.createBufferSource();
     const air_filter = c.createBiquadFilter();
     const air_gain = c.createGain();
@@ -292,58 +276,7 @@ function create_flight_audio()
     reactor.connect(reactor_gain);
     reactor_gain.connect(sound.ambient_bus);
     reactor.start();
-    // a flagship's presence: the world's flagship recording (flight_presence_play), from the flagship's side
-    const presence = c.createGain();
-    const presence_pan = c.createStereoPanner();
-    presence.gain.value = 0;
-    presence.connect(presence_pan);
-    presence_pan.connect(sound.fx_bus);
-    sound.flight = {engine, engine_source: null, engine_ship: null, presence, presence_pan, presence_source: null, presence_world: -1, air_gain, air_filter, space_gain, space_filter, reactor, reactor_gain};
-}
-
-// The world's flagship's own sound, src/sounds/boss_<world>.mp3, looped as a ship's engine is (flight_engine_play):
-// the file holds its loop twice, played from the middle
-function flight_presence_play(f, id)
-{
-    const presence = world_audio[id].presence;
-    const buffer = sound.samples[presence.file];
-    if (!buffer || (f.presence_world === id)) {
-        return;
-    }
-    if (f.presence_source) {
-        f.presence_source.stop();
-    }
-    const source = sound.ctx.createBufferSource();
-    source.buffer = buffer;
-    source.loop = true;
-    source.loopStart = presence.loop/2;
-    source.loopEnd = presence.loop*1.5;
-    source.connect(f.presence);
-    source.start(sound.ctx.currentTime, presence.loop/2);
-    f.presence_source = source;
-    f.presence_world = id;
-}
-
-// Your ship's engine, src/sounds/engine_<id>.mp3, looped: the file holds its loop twice, and the loop is played from
-// the middle (a quarter to three quarters of the file), clear of the silence MP3 puts at a file's ends
-function flight_engine_play(f, ship)
-{
-    const buffer = sound.samples[`engine_${ship.id}`];
-    if (!buffer || (f.engine_ship === ship.id)) {
-        return;
-    }
-    if (f.engine_source) {
-        f.engine_source.stop();
-    }
-    const source = sound.ctx.createBufferSource();
-    source.buffer = buffer;
-    source.loop = true;
-    source.loopStart = ship.engine_loop/2;
-    source.loopEnd = ship.engine_loop*1.5;
-    source.connect(f.engine);
-    source.start(sound.ctx.currentTime, ship.engine_loop/2);
-    f.engine_source = source;
-    f.engine_ship = ship.id;
+    sound.flight = {engine, body, overtone, filter, air_gain, air_filter, space_gain, space_filter, reactor, reactor_gain};
 }
 
 function update_audio_scene()
@@ -358,14 +291,11 @@ function update_audio_scene()
     const power = flight ? clamp(player.engine_thrust || 0, 0, 1) : 0;
     const boost = flight && player.turbo_active;
     const turn = flight ? Math.min(1, Math.abs(player.hull_turn || 0)/3) : 0;
-    // the engine louder and a little higher with thrust, more in turbo, at the ship's own pitch (engine_rate: a fighter
-    // higher and faster, a heavy ship lower); the reactor's pitch stays steady
-    const ship = current_ship();
-    flight_engine_play(f, ship);
-    f.engine.gain.setTargetAtTime(flight ? 0.115*(0.3 + power*0.7 + (boost ? 0.5 : 0)) : 0, now, 0.25);
-    if (f.engine_source) {
-        f.engine_source.playbackRate.setTargetAtTime((0.92 + power*0.12 + (boost ? 0.1 : 0))*(ship.engine_rate || 1), now, 0.4);
-    }
+    // Thrust changes field intensity; the reactor pitch stays steady.
+    f.engine.gain.setTargetAtTime(flight ? 0.012 + power*0.036 + (boost ? 0.022 : 0) : 0, now, 0.28);
+    f.body.frequency.setTargetAtTime(62, now, 0.2);
+    f.overtone.frequency.setTargetAtTime(220, now, 0.2);
+    f.filter.frequency.setTargetAtTime(700 + power*250 + (boost ? 450 : 0), now, 0.35);
     // held, the turbo is a deep roar, not a hiss
     f.air_gain.gain.setTargetAtTime(flight ? power*0.014 + (boost ? 0.04 : 0) + turn*0.006 : 0, now, 0.32);
     f.air_filter.frequency.setTargetAtTime(boost ? 700 : 1200, now, 0.5);
@@ -376,14 +306,6 @@ function update_audio_scene()
     f.space_filter.frequency.setTargetAtTime([420, 950, 380, 1500, 260, 1100, 650, 190][id], now, 0.8);
     f.reactor_gain.gain.setTargetAtTime(flight ? 0.008 : 0, now, 0.3);
     f.reactor.frequency.setTargetAtTime([62, 73, 55, 82, 46, 88, 65, 38][id], now, 0.7);
-    // a flagship alive: its own sound, growing as it nears from 2.5 km, from its side
-    const boss = flight ? enemies.find(v => (v.type === 'boss') && (v.hp > 0)) : null;
-    const near = boss ? clamp(1 - distance(player, boss)/2500, 0, 1) : 0;
-    if (boss) {
-        flight_presence_play(f, id);
-    }
-    f.presence.gain.setTargetAtTime(0.35*near*near, now, 0.3);
-    f.presence_pan.pan.setTargetAtTime(boss ? clamp((boss.x - player.x)/750, -0.85, 0.85) : 0, now, 0.3);
     sound.combat = (flight && enemies.some(v => (v.hp > 0) && (distance(v, player) < 850))) ? 1 : 0;
 }
 

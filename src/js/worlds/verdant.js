@@ -67,10 +67,6 @@ const world_verdant = {
         cutoff: 1250,
         air: 1.1,
         rhythm: 1,
-        // its flagship's own sound as it nears (flight_presence_play): a space monster's drone; the file's loop, in seconds
-        presence: {file: 'boss_verdant', loop: 8},
-        // its explosions, a blast and an echo combined (explosion_play, sfx/blast.js): wet and close: a fuller, lower echo
-        explosions: {echo: 'a', level: 1.1, rate: 0.9},
         // the arcade's and a flagship fight's (music_drive.js)
         drive: {bpm: 118, lead: 'triangle', bass: 'offbeat', kit: 'break', arp: [0, 2, 1, 3]},
     },

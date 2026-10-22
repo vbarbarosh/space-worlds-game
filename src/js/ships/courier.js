@@ -18,8 +18,6 @@ const ship_courier = {
         mounts: ['light', 'light'],
         color: gold,
         shape: 1,
-        // its engine: src/sounds/engine_courier.mp3, one loop of this many seconds (flight_engine_play)
-        engine_loop: 1.2,
         description: 'Fast transport with 100 cargo slots. Ideal for multi-world supply chains.',
     },
     hull_profile: {radiation: 0.12, traction: 1.1, braking: 1.15, cooling: 0.1, turbo: 1.1, endurance: 3},

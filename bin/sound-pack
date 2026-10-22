@@ -34,9 +34,7 @@ async function main()
     try {
         const page = await browser.newPage();
         await page.addScriptTag({content: source});
-        // an effect that plays a recording (`recorded`) is not made here, but the three blasts, which the pack makes
-        // its own way (explosion_schedule)
-        const inventory = await page.evaluate(() => ({effects: Object.keys(sfx_by_kind).filter(v => !sfx_by_kind[v].recorded || ['blast', 'blast_big', 'blast_huge'].includes(v)), music: world_audio}));
+        const inventory = await page.evaluate(() => ({effects: Object.keys(sfx_by_kind), music: world_audio}));
         await page.close();
         const jobs = jobs_from_inventory(inventory);
         fs.mkdirSync(directory, {recursive: true});
@@ -105,8 +103,6 @@ function source_from_game()
     return [
         'let muted = false; const volume_settings = {master: 0.85, effects: 0.85, music: 0.65, ambience: 0.7};',
         'function clamp(n, a, b) { return Math.max(a, Math.min(b, n)); }',
-        // the game's recorded explosions are left out: the pack makes its own (explosion_schedule)
-        'const sound_files = {};',
         prefix(read('audio.js'), 'function sync_settings()'),
         ...WORLDS.map(v => read(`worlds/${v.replaceAll('-', '_')}.js`)),
         'const world_audio = [world_haven, world_verdant, world_dustfall, world_ion_reach, world_obsidian, world_cryosphere, world_nova_forge, world_eclipse].map(v => v.music);',
@@ -140,8 +136,7 @@ function jobs_from_inventory(inventory)
             out.push({name: `flight/${world}/${layer}`, category: 'flight', world, id: i, layer, loop: true});
         }
     }
-    // the engine is each ship's recording (src/sounds/engine_*.mp3), not made here
-    for (const layer of ['air']) {
+    for (const layer of ['engine', 'air']) {
         for (const mode of ['idle', 'thrust', 'turbo']) {
             // Idle air is turning at full deflection; straight idle flight is silent.
             out.push({name: `flight/${layer}-${mode}`, category: 'flight', layer, mode, loop: true});
@@ -229,7 +224,11 @@ async function render_asset(job)
         const flight = sound.flight;
         const thrust = job.mode !== 'idle';
         const turbo = job.mode === 'turbo';
-        if (job.layer === 'air') {
+        if (job.layer === 'engine') {
+            flight.engine.gain.value = 0.012 + (thrust ? 0.036 : 0) + (turbo ? 0.022 : 0);
+            flight.filter.frequency.value = 700 + (thrust ? 250 : 0) + (turbo ? 450 : 0);
+        }
+        else if (job.layer === 'air') {
             flight.air_gain.gain.value = thrust ? 0.014 + (turbo ? 0.04 : 0) : 0.006;
             flight.air_filter.frequency.value = turbo ? 700 : 1200;
         }
@@ -454,8 +453,8 @@ with its own ending's tails, a flight stem's end is blended into its start; mani
 the join over the loop's typical step (about 1 is seamless; over 8 is refused).
 Use WAV for sample-accurate loops; MP3 is provided for listening and sharing.
 
-Flight stems include air turning/thrust/turbo and each world's space and reactor; the
-engines are the game's recordings, src/sounds/engine_*.mp3. air-idle means turning without thrust: straight idle air is silent.
+Flight stems include engine idle/thrust/turbo, air turning/thrust/turbo, and each world's
+space and reactor. air-idle means turning without thrust: straight idle air is silent.
 Flight stems share a fixed gain of four; other files are individually peak normalized.
 Use manifest levels to balance them during integration. Station shelter is space at 0.35 gain;
 menu/docked/ducked states are mixer gains, not additional compositions.
