@@ -1,22 +1,27 @@
-// A small blast (a missile's, a mine's, a drone dying): a recording (src/sounds/), the world's kind of explosion
-// (blast_set)
+// A small blast (a missile's, a mine's, a drone dying): its two layers, as the world combines them (explosion_play)
 const sfx_blast = {
     limit: 0.07,
     play: function (note, air, t, clip) {
-        const r = 0.93 + Math.random()*0.14;
-        if (blast_set() === 'deep') {
-            clip('explosion_deep_small', 0.1, r);
-        }
-        else {
-            clip('explosion_small', 0.135, r);
-        }
+        explosion_play(clip, 'small');
     },
 };
 
-// The world's kind of explosion: 'deep' (heavy, low: Obsidian, Eclipse) or 'medium' (every other world), by its
-// music's `explosions`
-function blast_set()
+// An explosion's two recordings (src/sounds/), by its set and size: the blast's own volume on the ladder, and where
+// its echo begins (s into the blast)
+const explosion_layers = {
+    a: {small: {gain: 0.19, at: 0.4}, ship: {gain: 0.36, at: 0.75}, big: {gain: 0.41, at: 1}},
+    deep: {small: {gain: 0.1, at: 0.35}, ship: {gain: 0.185, at: 0.5}, big: {gain: 0.285, at: 1.2}},
+};
+
+// An explosion as the world combines it (its music's `explosions`): the blast of one set, the echo of one, the echo
+// at the world's level and pitch; ±7% in pitch each time so two in a row differ
+function explosion_play(clip, size)
 {
     const v = world_audio[campaign.world];
-    return (v && v.explosions) || 'medium';
+    const world = (v && v.explosions) || {body: 'a', echo: 'a', level: 0.8, rate: 1};
+    const r = 0.93 + Math.random()*0.14;
+    const body = explosion_layers[world.body][size];
+    const echo = explosion_layers[world.echo][size];
+    clip(`body_${world.body}_${size}`, body.gain, r);
+    clip(`echo_${world.echo}_${size}`, echo.gain*world.level, r*world.rate, body.at/r);
 }

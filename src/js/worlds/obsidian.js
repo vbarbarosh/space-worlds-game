@@ -74,8 +74,8 @@ const world_obsidian = {
         cutoff: 640,
         air: 0.4,
         rhythm: 4,
-        // its explosions: the heavy, deep recordings (src/sounds/explosion_deep*.mp3, sfx/blast.js)
-        explosions: 'deep',
+        // its explosions, a blast and an echo combined (explosion_play, sfx/blast.js): iron: the heavy, deep set, a lower echo
+        explosions: {body: 'deep', echo: 'deep', level: 1, rate: 0.9},
         // the arcade's and a flagship fight's (music_drive.js)
         drive: {bpm: 112, lead: 'sawtooth', bass: 'offbeat', kit: 'half', arp: [0, 0, 2, 1]},
     },

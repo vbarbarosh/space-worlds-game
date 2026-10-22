@@ -8,6 +8,12 @@ plays one with `clip(name, volume, rate)` (`sfx` in `src/js/music.js`).
 Each is cut from its first sound, faded out over its last 0.3 s, peaked at
 -1 dB, stereo MP3 at 96 kbps. Chosen by the author on 2026-10-22 from four
 recorded sets played in the game (`docs/designer/sound.md`, Explosions).
+Each explosion is two recordings, cut from one take: its **blast** (the
+take to the cut, faded over its last 0.15 s) and its **echo** (the take from
+0.1 s before the cut, eased in), so a world can combine them its own way
+(`explosion_play` in `src/js/sfx/blast.js`, each world's `explosions`: the
+blast of one set, the echo of one, the echo's level and pitch). The sets:
+`a`, the author's examples; `deep`, the heavy, deep recordings.
 The explosions are softened as the author asked ("softer, like Warzone's";
 the first cut "sounded like a shot"): a gentle lowpass (6 dB an octave from
 3 kHz; 2.5 kHz for the large ones) takes the edge off the crack, and the
@@ -18,12 +24,12 @@ sharp "medium explosion" of the first cut.
 
 | File | Plays as | Source | Licence |
 |---|---|---|---|
-| `explosion_small.mp3` | a small blast (a missile's, a mine, a drone) | "Missile Explosion" by voicebosch, Pixabay sound 168600 (sent by the author as `voicebosch-missile-explosion-168600.mp3`), its first 2.2 s | [Pixabay Content License](https://pixabay.com/service/license-summary/) |
-| `explosion_ship.mp3` | a ship's blast | "Sci-Fi Explosion 09" by daviddumaisaudio, Pixabay sound 190268 (sent by the author as `daviddumaisaudio-sci-fi-explosion-09-190268.mp3`), its first 3 s | [Pixabay Content License](https://pixabay.com/service/license-summary/) |
-| `explosion_big.mp3` | a flagship's last blast | "Big Explosion" by rsf_studios, Pixabay sound 592670 (sent by the author as `rsf_studios-big-explosion-592670.mp3`), its first 5 s | [Pixabay Content License](https://pixabay.com/service/license-summary/) |
-| `explosion_deep_small.mp3` | a small blast in Obsidian and Eclipse | "Explosion" by tgerginov, [Freesound 665092](https://freesound.org/people/tgerginov/sounds/665092/), played ×1.2, its first 2 s | [CC0](https://creativecommons.org/publicdomain/zero/1.0/) |
-| `explosion_deep.mp3` | a ship's blast in Obsidian and Eclipse | "Explosion" by tgerginov, [Freesound 665092](https://freesound.org/people/tgerginov/sounds/665092/), its first 2.5 s | [CC0](https://creativecommons.org/publicdomain/zero/1.0/) |
-| `explosion_deep_huge.mp3` | a flagship's last blast in Obsidian and Eclipse | "Self Destruct/Alpha-11 Warhead Explosion" by FusionWolf3740, [Freesound 568877](https://freesound.org/people/FusionWolf3740/sounds/568877/), its first 5 s | [CC0](https://creativecommons.org/publicdomain/zero/1.0/) |
+| `body_a_small.mp3` and `echo_a_small.mp3` | a small blast and its echo (set a), the echo from 0.5 s | "Missile Explosion" by voicebosch, Pixabay sound 168600 (sent by the author as `voicebosch-missile-explosion-168600.mp3`), its first 2.2 s | [Pixabay Content License](https://pixabay.com/service/license-summary/) |
+| `body_a_ship.mp3` and `echo_a_ship.mp3` | a ship's blast and its echo (set a), the echo from 0.85 s | "Sci-Fi Explosion 09" by daviddumaisaudio, Pixabay sound 190268 (sent by the author as `daviddumaisaudio-sci-fi-explosion-09-190268.mp3`), its first 3 s | [Pixabay Content License](https://pixabay.com/service/license-summary/) |
+| `body_a_big.mp3` and `echo_a_big.mp3` | a flagship's last blast and its echo (set a), the echo from 1.1 s | "Big Explosion" by rsf_studios, Pixabay sound 592670 (sent by the author as `rsf_studios-big-explosion-592670.mp3`), its first 5 s | [Pixabay Content License](https://pixabay.com/service/license-summary/) |
+| `body_deep_small.mp3` and `echo_deep_small.mp3` | a small blast and its echo (set deep), the echo from 0.45 s | "Explosion" by tgerginov, [Freesound 665092](https://freesound.org/people/tgerginov/sounds/665092/), played ×1.2, its first 2 s | [CC0](https://creativecommons.org/publicdomain/zero/1.0/) |
+| `body_deep_ship.mp3` and `echo_deep_ship.mp3` | a ship's blast and its echo (set deep), the echo from 0.6 s | "Explosion" by tgerginov, [Freesound 665092](https://freesound.org/people/tgerginov/sounds/665092/), its first 2.5 s | [CC0](https://creativecommons.org/publicdomain/zero/1.0/) |
+| `body_deep_big.mp3` and `echo_deep_big.mp3` | a flagship's last blast and its echo (set deep), the echo from 1.3 s | "Self Destruct/Alpha-11 Warhead Explosion" by FusionWolf3740, [Freesound 568877](https://freesound.org/people/FusionWolf3740/sounds/568877/), its first 5 s | [CC0](https://creativecommons.org/publicdomain/zero/1.0/) |
 
 | `engine_scout.mp3` | the Wisp Scout's engine, looped | "Thrust Loop" by unfa, [Freesound 584181](https://freesound.org/people/unfa/sounds/584181/), 1.3 s | [CC0](https://creativecommons.org/publicdomain/zero/1.0/) |
 | `engine_courier.mp3` | the Kestrel Courier's engine | "Sci-Fi Engine Loop" by Sojan, [Freesound 407540](https://freesound.org/people/Sojan/sounds/407540/), 1.5 s | [CC0](https://creativecommons.org/publicdomain/zero/1.0/) |

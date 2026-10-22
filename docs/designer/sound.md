@@ -212,16 +212,31 @@ beam guns play the raiders' sounds at full volume.
 
 Every explosion the game draws (`explode()`, `src/js/explosions.js`) plays
 one of three by its size; a smaller one than 12 (a spark, a shot's flash)
-plays none. Each is a recording of `src/sounds/`, by the world's kind of
-explosion (its music's `explosions`, `blast_set()`): `deep` in Obsidian and
-Eclipse, the author's examples (medium) in every other world. Each plays
-±7% in pitch (±4% the largest) so two in a row differ.
+plays none. Each is **two recordings of `src/sounds/` combined by the
+world** (`explosion_play`, the world's `explosions`): the **blast** of one
+set and the **echo** of one, the echo at the world's level and pitch, begun
+where the blast's own echo began in the take. The sets: `a`, the author's
+examples; `deep`, the heavy, deep recordings. Each plays ±7% in pitch so
+two in a row differ. The author's idea (2026-10-22 13:07): "the sound is
+made of parts, the blast, the echo; combine them, and each world can leave
+its own imprint on its sounds".
+
+| World | Blast | Echo | Echo's level, pitch | Meant as |
+|---|---|---|---|---|
+| Haven | a | a | 0.8, ×1 | open space, a light echo |
+| Verdant | a | a | 1.1, ×0.9 | wet and close: fuller, lower |
+| Dustfall | a | a | 0.5, ×1.1 | dry dust: short, higher |
+| Ion Reach | a | a | 0.9, ×1.2 | charged air: bright, higher |
+| Obsidian | deep | deep | 1, ×0.9 | iron: heavy, lower |
+| Cryosphere | a | a | 1, ×1.3 | ice and glass: high, ringing |
+| Nova Forge | a | deep | 1, ×1 | fire: the blast with the deep roar under it |
+| Eclipse | deep | deep | 1.3, ×0.8 | the void: the longest, lowest echo |
 
 | Effect | What explodes (size) | Cooldown | The recording (its volume) | Peak, length |
 |---|---|---|---|---|
-| `blast` | a missile's blast, a mine, a shard or a drone dying (12 to 35) | 0.07 s | `explosion_small`, a missile's explosion (0.135); deep: `explosion_deep_small` (0.1) | −17.3 dB, 2.2 s; deep 2 s |
-| `blast_big` | every other raider dying (a chaser 40, a shooter 46, a lancer or splitter 48, a bulwark 70, a tank 72, a carrier 74); a flagship's chain of blasts (36 to 179) | 0.12 s | `explosion_ship`, a sci-fi explosion swelling for 0.4 s (0.315); deep: `explosion_deep` (0.185) | −10.5 dB, 3 s; deep 2.5 s |
-| `blast_huge` | a flagship's last blast (180 and over) | 0.8 s | `explosion_big` (0.41); deep: `explosion_deep_huge` (0.285) | −8 dB, 5 s; deep 5 s |
+| `blast` | a missile's blast, a mine, a shard or a drone dying (12 to 35) | 0.07 s | `body_a_small` + `echo_a_small`, a missile's explosion (0.19, the echo from 0.4 s); deep: `body_deep_small` + `echo_deep_small` (0.1, from 0.35 s) | −17 dB, 2.2 s; deep 2 s |
+| `blast_big` | every other raider dying (a chaser 40, a shooter 46, a lancer or splitter 48, a bulwark 70, a tank 72, a carrier 74); a flagship's chain of blasts (36 to 179) | 0.12 s | `body_a_ship` + `echo_a_ship`, a sci-fi explosion swelling for 0.4 s (0.36, the echo from 0.75 s); deep: `body_deep_ship` + `echo_deep_ship` (0.185, from 0.5 s) | −10 dB, 3 s; deep 2.5 s |
+| `blast_huge` | a flagship's last blast (180 and over) | 0.8 s | `body_a_big` + `echo_a_big` (0.41, the echo from 1 s); deep: `body_deep_big` + `echo_deep_big` (0.285, from 1.2 s) | −8 dB, 5 s; deep 5 s |
 
 What they should be, from the author: heavy, not a tin can or a struck
 barrel; several at once heard one after another and swelling together

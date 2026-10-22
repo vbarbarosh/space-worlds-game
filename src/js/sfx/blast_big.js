@@ -1,13 +1,7 @@
-// A ship's blast (a raider, a flagship's chain): a recording (src/sounds/), the world's kind of explosion (blast_set)
+// A ship's blast (a raider, a flagship's chain): its two layers, as the world combines them (explosion_play)
 const sfx_blast_big = {
     limit: 0.12,
     play: function (note, air, t, clip) {
-        const r = 0.93 + Math.random()*0.14;
-        if (blast_set() === 'deep') {
-            clip('explosion_deep', 0.185, r);
-        }
-        else {
-            clip('explosion_ship', 0.315, r);
-        }
+        explosion_play(clip, 'ship');
     },
 };
