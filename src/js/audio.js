@@ -331,7 +331,7 @@ function update_audio_scene()
     const turn = flight ? Math.min(1, Math.abs(player.hull_turn || 0)/3) : 0;
     // the engine louder and a little higher with thrust, more in turbo; the reactor's pitch stays steady
     flight_engine_play(f, current_ship());
-    f.engine.gain.setTargetAtTime(flight ? 0.18*(0.3 + power*0.7 + (boost ? 0.5 : 0)) : 0, now, 0.25);
+    f.engine.gain.setTargetAtTime(flight ? 0.115*(0.3 + power*0.7 + (boost ? 0.5 : 0)) : 0, now, 0.25);
     if (f.engine_source) {
         f.engine_source.playbackRate.setTargetAtTime(0.92 + power*0.12 + (boost ? 0.1 : 0), now, 0.4);
     }

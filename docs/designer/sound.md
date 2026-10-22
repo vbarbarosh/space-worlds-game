@@ -76,8 +76,11 @@ so a new sound does not walk back into it:
   they were "too loud" and the blast "more like a shot"; the author asked
   for softer ones, "like Warzone's" (2026-10-22 12:43). Every sound was then
   put on one loudness ladder (below, The ladder): the explosions 4 to 7 dB
-  down and softened (the crack filtered off, the start eased), the small and
-  the ship's blast from the longer, swelling takes of the author's examples.
+  down and softened (the crack's edge filtered off, the start eased), the
+  small and the ship's blast from the longer, swelling takes of the author's
+  examples. A steep filter at 900 Hz made them sound "under water" (13:03);
+  it is a gentle one from 3 kHz now. The same message: the ship's engine
+  "a little lower"; it is 4 dB down.
 - **Next, from the author (2026-10-22):** each ship and each flagship sounds
   of its own, and a direction that makes all the sounds fit together. Of
   two recorded engines for each ship the first ones (small motors) were
@@ -271,7 +274,7 @@ and `update_audio_scene` in `src/js/audio.js`):
 
 | Sound | Bus | Made of | Follows |
 |---|---|---|---|
-| Engine | effects | your ship's own recording, looped (`src/sounds/engine_<ship>.mp3`, `flight_engine_play`): Wisp Scout a thrust loop, Kestrel Courier a sci-fi engine, Viper Interceptor a hover engine, Mule Prospector a nuclear reactor, Bastion Gunship a spacecraft engine, Aurora Cruiser a plasma engine (the author's picks, 2026-10-22) | thrust: level 0.18 × (0.3 + 0.7 × thrust, +0.5 in turbo), its speed and pitch ×0.92 + 0.12 × thrust (+0.1 in turbo) |
+| Engine | effects | your ship's own recording, looped (`src/sounds/engine_<ship>.mp3`, `flight_engine_play`): Wisp Scout a thrust loop, Kestrel Courier a sci-fi engine, Viper Interceptor a hover engine, Mule Prospector a nuclear reactor, Bastion Gunship a spacecraft engine, Aurora Cruiser a plasma engine (the author's picks, 2026-10-22) | thrust: level 0.115 × (0.3 + 0.7 × thrust, +0.5 in turbo), its speed and pitch ×0.92 + 0.12 × thrust (+0.1 in turbo) |
 | Air | effects | the game's noise in a band at 1.2 kHz | thrust ×0.014, turning ×0.006; in turbo +0.04 and the band down to 700 Hz (a deep roar) |
 | Space | ambience | the game's noise played slow (×0.42) under a lowpass, by world (below) | its level by world, ×0.35 near the station |
 | Reactor | ambience | a sine by world (below) at 0.008 | |

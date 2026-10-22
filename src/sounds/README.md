@@ -9,8 +9,9 @@ Each is cut from its first sound, faded out over its last 0.3 s, peaked at
 -1 dB, stereo MP3 at 96 kbps. Chosen by the author on 2026-10-22 from four
 recorded sets played in the game (`docs/designer/sound.md`, Explosions).
 The explosions are softened as the author asked ("softer, like Warzone's";
-the first cut "sounded like a shot"): a lowpass at 900 Hz (700 Hz for the
-large ones) takes the crack off, and the first 50 to 80 ms are eased in; the
+the first cut "sounded like a shot"): a gentle lowpass (6 dB an octave from
+3 kHz; 2.5 kHz for the large ones) takes the edge off the crack, and the
+first 30 to 50 ms are eased in; a steeper one at 900 Hz was "under water"; the
 takes for a small blast and a ship's are the longer, swelling ones of the
 author's examples (a missile's explosion, a sci-fi explosion), not the
 sharp "medium explosion" of the first cut.
