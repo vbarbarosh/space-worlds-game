@@ -32,11 +32,16 @@ const explosion_durations = {spark: 0.25, muzzle: 0.07, flash: 0.09, shield: 0.4
 // shake and flash, for a blast, are what the screen does the moment it goes off (a delayed one included)
 function explode(x, y, size, color, delay = 0, kind = 'blast', shake = 0, flash = 0)
 {
+    // a rock breaking looks like a blast and has a sound of its own (the author's pick for stones, blast_rock)
+    const voice = kind;
+    if (kind === 'rock') {
+        kind = 'blast';
+    }
     if (kind !== 'blast') {
         explosion_light_add(x, y, size, color, delay, kind);
         return;
     }
-    explosion_sound(x, y, size, delay);
+    explosion_sound(x, y, size, delay, voice);
     shock_wave_add(x, y, size, delay);
     const sparks = [];
     for (let i = 0, end = Math.round(6 + size/6); i < end; ++i) {
@@ -72,12 +77,12 @@ function explode(x, y, size, color, delay = 0, kind = 'blast', shake = 0, flash 
 
 // A blast is heard by its size, as it goes off (a delayed one later): a pop for a missile's, a boom for a ship's, a
 // long roar for a flagship's last (src/js/sfx/blast*.js); a smaller one than explosion_sound_min goes unheard
-function explosion_sound(x, y, size, delay)
+function explosion_sound(x, y, size, delay, voice = 'blast')
 {
     if (!sound.ctx || (size < explosion_sound_min)) {
         return;
     }
-    const kind = (size >= explosion_sound_huge) ? 'blast_huge' : (size >= explosion_ship_size) ? 'blast_big' : 'blast';
+    const kind = (voice === 'rock') ? 'blast_rock' : (size >= explosion_sound_huge) ? 'blast_huge' : (size >= explosion_ship_size) ? 'blast_big' : 'blast';
     sfx(kind, 1, {x, y}, sound.ctx.currentTime + delay);
 }
 

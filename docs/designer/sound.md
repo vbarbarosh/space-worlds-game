@@ -143,9 +143,10 @@ plays none.
 
 | Effect | What explodes (size) | Cooldown | How it is made now | Peak, length |
 |---|---|---|---|---|
-| `blast` | a missile's blast, a mine, a shard or a drone dying (12 to 35) | 0.07 s | a crack at 4.5 kHz, noise from 2.6 kHz to 260 Hz, a thump 80 → 32 Hz, debris at 5.2 kHz | −12 dB, 0.39 s |
-| `blast_big` | every other raider dying (a chaser 40, a shooter 46, a lancer or splitter 48, a bulwark 70, a tank 72, a carrier 74); a flagship's chain of blasts (36 to 179) | 0.12 s | a crack, noise from 1.9 kHz to 160 Hz, a thump 58 → 26 Hz, a sawtooth growl 112 → 40 Hz, debris at 4.2 and 3 kHz | −6.1 dB, 0.64 s |
-| `blast_huge` | a flagship's last blast (180 and over) | 0.8 s | a crack, a roar from 1.5 kHz to 70 Hz for 2.4 s, a sub 44 → 21 Hz, a sawtooth 88 → 30 Hz, a rumble at 240 Hz, debris four times over 1.4 s | −4.7 dB, 1.78 s |
+| `blast` | a missile's blast, a mine, a shard or a drone dying (12 to 35) | 0.07 s | a recording, the author's explosion (`explosion.mp3`, 0.24, ×1.02 to ×1.14 in pitch) | −12 dB, 0.39 s |
+| `blast_big` | every other raider dying (a chaser 40, a shooter 46, a lancer or splitter 48, a bulwark 70, a tank 72, a carrier 74); a flagship's chain of blasts (36 to 179) | 0.12 s | the same recording, fuller and lower (`explosion.mp3`, 0.44, ×0.9 to ×1.02) | −6.1 dB, 0.64 s |
+| `blast_huge` | a flagship's last blast (180 and over) | 0.8 s | the same recording twice, loudest and lowest (`explosion.mp3`, 0.37 at ×0.78, then 0.28 at ×0.7 a third of a second later) | −4.7 dB, 1.78 s |
+| `blast_rock` | a rock breaking: an ore rock, drifting debris, a duel's rock (`explode()` with the kind `rock`) | 0.1 s | a recording, the author's pick for stones (`explosion_rock.mp3`, 0.4, ×0.95 to ×1.07) | as a small blast |
 
 What they should be, from the author: heavy, not a tin can; several at once
 heard one after another and swelling together ("pa-pa-pa-pam"), not one pop;
@@ -422,6 +423,15 @@ radiation (its alerts play `hit`), the arcade's events (convoy, ace, jammer).
 
 ## The author's notes
 
+- **23:09 and 23:10, the author:** from ten explosions played blind by
+  the game, "use explosion-04" and "explosion-05 for stones". 04 is their
+  own medium explosion example (Pixabay 40472), 05 a deep Freesound one
+  (665092). So every blast is the one recording at its size's volume and
+  pitch (`explosion.mp3`), and a rock breaking its own (`explosion_rock.mp3`,
+  `explode()` with the kind `rock`); the recording plumbing (`sample`,
+  `clip`, the build's sounds line) is back for these two files only. The
+  other eight: 01 592670, 02 190268, 03 168600, 06 568877, 07 734095,
+  08 114049, 09 482993, 10 150211.
 - **22:43, the author:** "undo all sfx to the state before 24h". Done:
   every sound file is as it was before 2026-10-22's work (the recordings,
   the per-world echoes, the engine loops, the flagships' presence, the

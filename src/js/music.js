@@ -259,6 +259,7 @@ const sfx_by_kind = {
     blast: sfx_blast,
     blast_big: sfx_blast_big,
     blast_huge: sfx_blast_huge,
+    blast_rock: sfx_blast_rock,
     impact: sfx_impact,
 };
 function sfx(kind, volume = 1, position = null, when)
@@ -291,8 +292,12 @@ function sfx(kind, volume = 1, position = null, when)
     function air(d, a, f, delay = 0, sweep = 0, filter = '') {
         return noise(d, a*v, f, t + delay, bus, (sweep || filter) ? {...shape, sweep, filter} : shape);
     }
+    // a recording of src/sounds/ at volume a, its pitch (and speed) ×rate, `delay` s after the effect's start
+    function clip(name, a, rate = 1, delay = 0) {
+        sample(name, a*v, rate, t + delay, bus, shape);
+    }
     if (effect) {
-        effect.play(note, air, t);
+        effect.play(note, air, t, clip);
     }
 }
 

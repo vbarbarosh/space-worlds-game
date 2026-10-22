@@ -16,6 +16,8 @@ const sound = {
     voices: 0,
     peak_voices: 0,
     cues: {},
+    // the recordings of src/sounds/ by name, each there once decoded (sound_samples_decode)
+    samples: {},
     duck_until: 0,
     combat: 0,
     // the driving music now: 0 none, 1 the arcade's, 2 a boss fight's (music_drive_level)
@@ -25,6 +27,7 @@ function create_audio_graph(context)
 {
     sound.ctx = context;
     const c = context;
+    sound_samples_decode(c);
     sound.master = c.createGain();
     sound.master.gain.value = muted ? 0 : volume_settings.master;
     const compressor = c.createDynamicsCompressor();
@@ -448,4 +451,44 @@ for (const v of document.querySelectorAll('[data-mode]')) {
         }
         sync_mode_note();
     });
+}
+
+// The recordings of src/sounds/ decoded for this context; one not decoded yet (the first moments) plays nothing
+function sound_samples_decode(c)
+{
+    sound.samples = {};
+    for (const [name, base64] of Object.entries(sound_files)) {
+        const bytes = Uint8Array.from(atob(base64), v => v.charCodeAt(0));
+        c.decodeAudioData(bytes.buffer).then(function (buffer) {
+            if (sound.ctx === c) {
+                sound.samples[name] = buffer;
+            }
+        }).catch(function () {});
+    }
+}
+
+// A recording of src/sounds/ played at t on `bus`, panned as `shape` says, at `rate` (also its pitch)
+function sample(name, volume, rate, when, bus, shape = {})
+{
+    const buffer = sound.samples[name];
+    if (!sound.ctx || muted || !buffer || (volume <= 0)) {
+        return;
+    }
+    const c = sound.ctx;
+    const source = c.createBufferSource();
+    source.buffer = buffer;
+    source.playbackRate.value = rate;
+    const gain = c.createGain();
+    gain.gain.value = volume;
+    const pan = c.createStereoPanner();
+    pan.pan.value = shape.pan || 0;
+    source.connect(gain);
+    gain.connect(pan);
+    pan.connect(bus);
+    source.start(when);
+    sound.voices++;
+    sound.peak_voices = Math.max(sound.peak_voices, sound.voices);
+    source.onended = function () {
+        sound.voices--;
+    };
 }
