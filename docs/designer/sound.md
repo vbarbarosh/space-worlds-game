@@ -72,7 +72,12 @@ so a new sound does not walk back into it:
   side by side: the author's own examples were "good", the heavy, deep set
   had "something cool" for a world, Kenney's Sci-Fi Sounds were "not liked
   at all". **The explosions are recordings since:** the author's examples
-  in every world, the heavy, deep set in Obsidian and Eclipse.
+  in every world, the heavy, deep set in Obsidian and Eclipse. Once in,
+  they were "too loud" and the blast "more like a shot"; the author asked
+  for softer ones, "like Warzone's" (2026-10-22 12:43). Every sound was then
+  put on one loudness ladder (below, The ladder): the explosions 4 to 7 dB
+  down and softened (the crack filtered off, the start eased), the small and
+  the ship's blast from the longer, swelling takes of the author's examples.
 - **Next, from the author (2026-10-22):** each ship and each flagship sounds
   of its own, and a direction that makes all the sounds fit together. Of
   two recorded engines for each ship the first ones (small motors) were
@@ -119,6 +124,26 @@ follows:
   (CC0, or Pixabay's), played in the game itself beside what they replace,
   all levelled alike, on one listening page; the author picks by ear; only
   then into the game, with its source in `src/sounds/README.md`.
+
+## The ladder: how loud each sound is against the others
+
+Measured as the game plays it, at full volume, in the middle, through the
+mix: the loudest 300 ms of the sound (RMS, dBFS), as `bin/sound-render
+effects` records it (measured 2026-10-22). A new sound is set on its rung,
+not louder; to make one louder, change its rung here first.
+
+| Rung | dBFS | Sounds |
+|---|---|---|
+| 1, under everything | −38 to −34 | your shot (−34.6), its hit on a raider (`impact`, −37.5) |
+| 2, the raiders' guns | −33 to −29 | plasma, ion, scatter, rail, beam, missiles; your missile; a countdown beep, a gravity warning, a pickup (−31) |
+| 3, things that happen to you | −29 to −26 | a hit on you (−26.8), a rock broken (`mine`, −29), a race ring, an upgrade, a storm, a flare, the win chime |
+| 4, a small blast and its kin | −24 to −22 | a small blast (−23.8), a raider's `kill` (−22.6 alone, played at 0.55 under its blast), the turbo (−23.6) |
+| 5, a ship's blast | −18 | a raider dying (−17.7) |
+| 6, the loudest | −19 to −13 | a portal (−18.7), your pulse (−15.5), a flagship's last blast (−12.8) |
+
+Before the ladder (2026-10-22 12:38) a ship's blast was at −10.7 and a
+flagship's last at −9.6, 23 dB over a shot, and the author found them too
+loud. A fight's average level came down 2 dB with the ladder.
 
 ## The mix
 
@@ -191,16 +216,16 @@ Eclipse, the author's examples (medium) in every other world. Each plays
 
 | Effect | What explodes (size) | Cooldown | The recording (its volume) | Peak, length |
 |---|---|---|---|---|
-| `blast` | a missile's blast, a mine, a shard or a drone dying (12 to 35) | 0.07 s | `explosion_medium` played ×1.35 (0.27); deep: `explosion_deep_small` (0.3) | −10.8 dB, 0.58 s; deep 1.1 s |
-| `blast_big` | every other raider dying (a chaser 40, a shooter 46, a lancer or splitter 48, a bulwark 70, a tank 72, a carrier 74); a flagship's chain of blasts (36 to 179) | 0.12 s | `explosion_medium` (0.74); deep: `explosion_deep` (0.37) | −3.3 dB, 0.78 s; deep 2.5 s |
-| `blast_huge` | a flagship's last blast (180 and over) | 0.8 s | `explosion_big` (0.66); deep: `explosion_deep_huge` (0.53) | −4 dB, 5 s; deep 5 s |
+| `blast` | a missile's blast, a mine, a shard or a drone dying (12 to 35) | 0.07 s | `explosion_small`, a missile's explosion (0.135); deep: `explosion_deep_small` (0.1) | −17.3 dB, 2.2 s; deep 2 s |
+| `blast_big` | every other raider dying (a chaser 40, a shooter 46, a lancer or splitter 48, a bulwark 70, a tank 72, a carrier 74); a flagship's chain of blasts (36 to 179) | 0.12 s | `explosion_ship`, a sci-fi explosion swelling for 0.4 s (0.315); deep: `explosion_deep` (0.185) | −10.5 dB, 3 s; deep 2.5 s |
+| `blast_huge` | a flagship's last blast (180 and over) | 0.8 s | `explosion_big` (0.41); deep: `explosion_deep_huge` (0.285) | −8 dB, 5 s; deep 5 s |
 
 What they should be, from the author: heavy, not a tin can or a struck
 barrel; several at once heard one after another and swelling together
 ("pa-pa-pa-pam"), not one pop; like the six examples above. A raider dies
-with `kill` (still made in code) and `blast_big` together. The levels are
-the ones the author heard and chose from: all four sets levelled alike,
-about 9 dB over the explosions made in code before.
+with `kill` (still made in code, at 0.55 so its crack stays under the
+blast) and `blast_big` together. The levels follow the ladder above, 4 to
+7 dB under the ones the author chose from on the page and found too loud.
 
 ### You
 

@@ -4,10 +4,10 @@ const sfx_blast_big = {
     play: function (note, air, t, clip) {
         const r = 0.93 + Math.random()*0.14;
         if (blast_set() === 'deep') {
-            clip('explosion_deep', 0.37, r);
+            clip('explosion_deep', 0.185, r);
         }
         else {
-            clip('explosion_medium', 0.74, r);
+            clip('explosion_ship', 0.315, r);
         }
     },
 };

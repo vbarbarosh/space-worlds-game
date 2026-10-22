@@ -369,7 +369,7 @@ function base_damage_enemy(enemy, damage)
     if (arcade.active && (enemy.type === 'boss')) {
         arcade.slowmo = 1.4;
     }
-    sfx('kill', 1, enemy);
+    sfx('kill', (enemy.type === 'boss') ? 1 : 0.55, enemy);
     hull_break_enemy(enemy);
     if (enemy.type === 'boss') {
         explode_flagship(enemy.x, enemy.y, enemy.r, enemy.color || pink);
