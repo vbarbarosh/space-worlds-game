@@ -106,6 +106,15 @@ so a new sound does not walk back into it:
   Freesound 681976), its sound centred at 250 Hz, no tone over the rest by
   more than 14 dB; the five other engines were measured the same way and
   have no such whine (The steady sounds of flight).
+- **19:17, the author:** "the explosions need work too: the explosion
+  should be a bit more muffled; now it is somehow sharp. Make several takes
+  and put a different one on each object; I will say which were good and
+  which not." And: "with the sounds the game became more interesting, more
+  exciting, more movement, more life; though they are strange still, as if
+  from another game." So each thing that explodes has a take of its own
+  now, all muffled alike (Explosions): a small blast, a light raider, a
+  heavy raider, a flagship's last, a rock; the mine keeps the one the
+  author chose for barrels. Each on its rung of the ladder.
 - **19:12, the author:** the pulse (Space) "is very strange. A pulse is
   something spreading out: as after an explosion a wave spreads, here too
   a wave should spread. Try another take." Its sound was an impact: loud
@@ -263,32 +272,37 @@ Every explosion the game draws (`explode()`, `src/js/explosions.js`) plays
 one of six: by what it is (a rock breaking, a mine, both `explode()`'s kind),
 else by its size (a small one, a ship's, a heavy ship's from 60, a
 flagship's last from 180); a smaller one than 12 (a spark, a shot's flash)
-plays none. Each is **two recordings of `src/sounds/` combined by the
-world** (`explosion_play`, the world's `explosions`): the **blast** of one
-set and the **echo** of one, the echo at the world's level and pitch, begun
-where the blast's own echo began in the take. The sets: `a`, the author's
-examples; `deep`, the heavy, deep recordings. Each plays ±7% in pitch so
-two in a row differ. The author's idea (2026-10-22 13:07): "the sound is
-made of parts, the blast, the echo; combine them, and each world can leave
-its own imprint on its sounds".
+plays none. Each is **two recordings of `src/sounds/`** (`explosion_play`):
+the **body**, a take of its own for each thing that explodes, and the
+**echo**, which the world adds (its `explosions`): the echo of one set, at
+the world's level and pitch, begun where the body's own echo would. The echo
+sets: `a`, cut from the author's examples; `deep`, from the heavy, deep
+recordings. Each plays ±7% in pitch so two in a row differ. The author's
+idea (2026-10-22 13:07): "the sound is made of parts, the blast, the echo;
+combine them, and each world can leave its own imprint on its sounds".
+Since 19:17 the bodies are five different recordings, one per thing, all
+muffled alike (a lowpass of 12 dB an octave from 1.6 kHz, the first 50 ms
+eased in), for the author to say from play which were good; before, the
+body came from the world's set too (`a` in six worlds, `deep` in Obsidian
+and Eclipse).
 
-| World | Blast | Echo | Echo's level, pitch | Meant as |
-|---|---|---|---|---|
-| Haven | a | a | 0.8, ×1 | open space, a light echo |
-| Verdant | a | a | 1.1, ×0.9 | wet and close: fuller, lower |
-| Dustfall | a | a | 0.5, ×1.1 | dry dust: short, higher |
-| Ion Reach | a | a | 0.9, ×1.2 | charged air: bright, higher |
-| Obsidian | deep | deep | 1, ×0.9 | iron: heavy, lower |
-| Cryosphere | a | a | 1, ×1.3 | ice and glass: high, ringing |
-| Nova Forge | a | deep | 1, ×1 | fire: the blast with the deep roar under it |
-| Eclipse | deep | deep | 1.3, ×0.8 | the void: the longest, lowest echo |
+| World | Echo | Echo's level, pitch | Meant as |
+|---|---|---|---|
+| Haven | a | 0.8, ×1 | open space, a light echo |
+| Verdant | a | 1.1, ×0.9 | wet and close: fuller, lower |
+| Dustfall | a | 0.5, ×1.1 | dry dust: short, higher |
+| Ion Reach | a | 0.9, ×1.2 | charged air: bright, higher |
+| Obsidian | deep | 1, ×0.9 | iron: heavy, lower |
+| Cryosphere | a | 1, ×1.3 | ice and glass: high, ringing |
+| Nova Forge | deep | 1, ×1 | fire: the deep roar under the blast |
+| Eclipse | deep | 1.3, ×0.8 | the void: the longest, lowest echo |
 
 | Effect | What explodes (size) | Cooldown | The recording (its volume) | Peak, length |
 |---|---|---|---|---|
-| `blast` | a missile's blast, a mine, a shard or a drone dying (12 to 35) | 0.07 s | `body_a_small` + `echo_a_small`, a missile's explosion (0.19, the echo from 0.4 s); deep: `body_deep_small` + `echo_deep_small` (0.1, from 0.35 s) | −17 dB, 2.2 s; deep 2 s |
-| `blast_big` | a light raider dying (a chaser 40, a shooter 46, a lancer or splitter 48); a flagship's chain of blasts (36 to 59) | 0.12 s | `body_a_ship` + `echo_a_ship`, a sci-fi explosion swelling for 0.4 s (0.36, the echo from 0.75 s); deep: `body_deep_ship` + `echo_deep_ship` (0.185, from 0.5 s) | −10 dB, 3 s; deep 2.5 s |
-| `blast_huge` | a flagship's last blast (180 and over) | 0.8 s | `body_a_big` + `echo_a_big` (0.41, the echo from 1 s); deep: `body_deep_big` + `echo_deep_big` (0.285, from 1.2 s) | −8 dB, 5 s; deep 5 s |
-| `blast_heavy` | a heavy raider dying: a bulwark (70), a tank (72), a carrier (74); a structure lost (70), a transport lost (90) | 0.12 s | `body_deep_ship` at ×0.92 (0.235) + the world's echo of a ship's | −16.3 dBFS loud |
+| `blast` | a missile's blast, a shard or a drone dying (12 to 35) | 0.07 s | `body_small`, an explosion (0.108, the echo from 0.4 s) + the world's echo of a small one | −22.8 dBFS loud, 1.4 s |
+| `blast_big` | a light raider dying (a chaser 40, a shooter 46, a lancer or splitter 48); a flagship's chain of blasts (36 to 59) | 0.12 s | `body_raider`, a designed explosion swelling for 0.4 s (0.48, the echo from 0.6 s) + the world's echo of a ship's | −17.8 dBFS loud, 1.8 s |
+| `blast_huge` | a flagship's last blast (180 and over) | 0.8 s | `body_flagship`, a large explosion swelling for 1.4 s (0.52, the echo from 1.5 s) + the world's echo of a big one | −12.5 dBFS loud, 3 s |
+| `blast_heavy` | a heavy raider dying: a bulwark (70), a tank (72), a carrier (74); a structure lost (70), a transport lost (90) | 0.12 s | `body_heavy`, a large explosion at ×0.92 (0.152, the echo from 0.6 s) + the world's echo of a ship's | −16.3 dBFS loud, 2 s |
 | `blast_rock` | a rock breaking: an ore rock, a drifting asteroid, a Dustfall cliff's fall, a duel's rock | 0.1 s | `body_rock`, debris breaking (0.143, the echo from 0.9 s) + the world's echo of a small blast at 0.7 | −21.6 dBFS loud |
 | `blast_barrel` | a mine going off: a raider's, a flagship's | 0.12 s | made in code, the game's old ship blast ("a barrel struck"): a crack, a boom 1.9 kHz → 160 Hz, a thump 58 → 26 Hz, a sawtooth growl, debris | −22 dBFS loud |
 

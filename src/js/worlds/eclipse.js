@@ -77,7 +77,7 @@ const world_eclipse = {
         // its flagship's own sound as it nears (flight_presence_play): an evil warp core; the file's loop, in seconds
         presence: {file: 'boss_eclipse', loop: 8},
         // its explosions, a blast and an echo combined (explosion_play, sfx/blast.js): the void: the deep set, the longest and lowest echo
-        explosions: {body: 'deep', echo: 'deep', level: 1.3, rate: 0.8},
+        explosions: {echo: 'deep', level: 1.3, rate: 0.8},
         // the arcade's and a flagship fight's (music_drive.js)
         drive: {bpm: 120, lead: 'square', bass: 'eighths', kit: 'half', arp: [0, 3, 1, 2]},
     },

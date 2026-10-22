@@ -77,7 +77,7 @@ const world_ion_reach = {
         // its flagship's own sound as it nears (flight_presence_play): an electric arc humming; the file's loop, in seconds
         presence: {file: 'boss_ion_reach', loop: 8},
         // its explosions, a blast and an echo combined (explosion_play, sfx/blast.js): charged air: a bright, higher echo
-        explosions: {body: 'a', echo: 'a', level: 0.9, rate: 1.2},
+        explosions: {echo: 'a', level: 0.9, rate: 1.2},
         // the arcade's and a flagship fight's (music_drive.js)
         drive: {bpm: 140, lead: 'square', bass: 'eighths', kit: 'break', arp: [0, 2, 3, 1, 2, 0]},
     },
