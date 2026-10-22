@@ -1,11 +1,10 @@
-// Your plasma shot, in the style of Freelancer's guns as the author's track has them (docs/designer/sound.md, the
-// author's notes, 2026-10-22 20:07): a bright 35 ms streak of air falling from 6.3 kHz to 4.9 kHz, a faint lower tick
-// under it, no thump; each a little off the last, so a stream of them does not ring as one beep
+// Your plasma shot, a cannon firing a beam of energy: a recording of a laser shot (src/sounds/shot.mp3), a tone falling
+// from 720 Hz to 230 Hz in a quarter second; each a little off the last in pitch, so a stream of them does not ring
+// as one beep. (The streaks of air made to Freelancer's measure "sounded like a bug", the author, 2026-10-22 20:29.)
 const sfx_shot = {
     limit: 0.065,
-    play: function (note, air, t) {
-        const r = 0.94 + Math.random()*0.12;
-        air(0.035, 0.66, 7000*r, 0, 3800*r, '', 1.5);
-        air(0.025, 0.22, 2400*r, 0.003, 1900*r, '', 1.5);
+    recorded: true,
+    play: function (note, air, t, clip) {
+        clip('shot', 0.077, 0.94 + Math.random()*0.12);
     },
 };
