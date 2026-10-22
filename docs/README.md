@@ -8,6 +8,8 @@ look.
 
 The game's inspiration is Microsoft's *Freelancer* (2003): a pilot who docks
 at stations, takes contracts, trades between worlds and jumps through gates.
+To see it played: [Freelancer, how does it look in 2023](https://www.youtube.com/watch?v=xo4lt_-oUgk)
+(a gameplay video by Gaming in a Daydream, YouTube).
 
 ## Pages
 
