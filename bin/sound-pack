@@ -34,7 +34,9 @@ async function main()
     try {
         const page = await browser.newPage();
         await page.addScriptTag({content: source});
-        const inventory = await page.evaluate(() => ({effects: Object.keys(sfx_by_kind), music: world_audio}));
+        // an effect that plays a recording (`recorded`) is not made here, but the three blasts, which the pack makes
+        // its own way (explosion_schedule)
+        const inventory = await page.evaluate(() => ({effects: Object.keys(sfx_by_kind).filter(v => !sfx_by_kind[v].recorded || ['blast', 'blast_big', 'blast_huge'].includes(v)), music: world_audio}));
         await page.close();
         const jobs = jobs_from_inventory(inventory);
         fs.mkdirSync(directory, {recursive: true});

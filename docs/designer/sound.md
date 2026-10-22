@@ -24,7 +24,8 @@ counts, aliases and checksums. The generator rejects silent, non-finite or
 clipped PCM and verifies that every MP3 and Ogg decodes. WAV preserves the
 exact loop frame count; MP3 copies are for listening and sharing.
 
-The pack has 97 assets: the 28 named effects below, six alternate explosion
+The pack has 96 assets (the effects that play recordings are left out; the
+three blasts it makes its own way): the named effects below but the recorded ones, six alternate explosion
 takes, 32 full music loops (calm, campaign combat, arcade and boss for each
 world), eight boss-arrival stingers, 19 flight stems (the engines are recordings, not in it) and four listening demos.
 It uses the existing scores and effect recipes with full-band noise, and new
@@ -81,6 +82,13 @@ so a new sound does not walk back into it:
   examples. A steep filter at 900 Hz made them sound "under water" (13:03);
   it is a gentle one from 3 kHz now. The same message: the ship's engine
   "a little lower"; it is 4 dB down.
+- **13:38, the author:** "already better". The pulse's sound (Space) "I
+  don't like; try another": it is a recording now. Rocks and ships "explode
+  with one sound; better different ones: different ships different sounds,
+  rocks their own"; the explosion of the time "suits rocks or barrels", and
+  the mines ("flying barrels") could have the old barrel-like blast: so a
+  rock breaking, a mine, a light ship, a heavy ship and a flagship each
+  have a sound of their own now (Explosions below).
 - **Next, from the author (2026-10-22):** each ship and each flagship sounds
   of its own, and a direction that makes all the sounds fit together. Of
   two recorded engines for each ship the first ones (small motors) were
@@ -140,9 +148,9 @@ not louder; to make one louder, change its rung here first.
 | 1, under everything | −38 to −34 | your shot (−34.6), its hit on a raider (`impact`, −37.5) |
 | 2, the raiders' guns | −33 to −29 | plasma, ion, scatter, rail, beam, missiles; your missile; a countdown beep, a gravity warning, a pickup (−31) |
 | 3, things that happen to you | −29 to −26 | a hit on you (−26.8), a rock broken (`mine`, −29), a race ring, an upgrade, a storm, a flare, the win chime |
-| 4, a small blast and its kin | −24 to −22 | a small blast (−23.8), a raider's `kill` (−22.6 alone, played at 0.55 under its blast), the turbo (−23.6) |
-| 5, a ship's blast | −18 | a raider dying (−17.7) |
-| 6, the loudest | −19 to −13 | a portal (−18.7), your pulse (−15.5), a flagship's last blast (−12.8) |
+| 4, a small blast and its kin | −24 to −21 | a small blast (−23.8), a rock breaking (−21.6), a mine going off (−22), a raider's `kill` (−22.6 alone, played at 0.55 under its blast), the turbo (−23.6) |
+| 5, a ship's blast | −18, a heavy one −16 | a raider dying (−17.7); a bulwark, a tank or a carrier (−16.3) |
+| 6, the loudest | −19 to −13 | a portal (−18.7), your pulse (−16), a flagship's last blast (−12.8) |
 
 Before the ladder (2026-10-22 12:38) a ship's blast was at −10.7 and a
 flagship's last at −9.6, 23 dB over a shot, and the author found them too
@@ -211,7 +219,9 @@ beam guns play the raiders' sounds at full volume.
 ### Explosions (recordings)
 
 Every explosion the game draws (`explode()`, `src/js/explosions.js`) plays
-one of three by its size; a smaller one than 12 (a spark, a shot's flash)
+one of six: by what it is (a rock breaking, a mine, both `explode()`'s kind),
+else by its size (a small one, a ship's, a heavy ship's from 60, a
+flagship's last from 180); a smaller one than 12 (a spark, a shot's flash)
 plays none. Each is **two recordings of `src/sounds/` combined by the
 world** (`explosion_play`, the world's `explosions`): the **blast** of one
 set and the **echo** of one, the echo at the world's level and pitch, begun
@@ -235,8 +245,11 @@ its own imprint on its sounds".
 | Effect | What explodes (size) | Cooldown | The recording (its volume) | Peak, length |
 |---|---|---|---|---|
 | `blast` | a missile's blast, a mine, a shard or a drone dying (12 to 35) | 0.07 s | `body_a_small` + `echo_a_small`, a missile's explosion (0.19, the echo from 0.4 s); deep: `body_deep_small` + `echo_deep_small` (0.1, from 0.35 s) | −17 dB, 2.2 s; deep 2 s |
-| `blast_big` | every other raider dying (a chaser 40, a shooter 46, a lancer or splitter 48, a bulwark 70, a tank 72, a carrier 74); a flagship's chain of blasts (36 to 179) | 0.12 s | `body_a_ship` + `echo_a_ship`, a sci-fi explosion swelling for 0.4 s (0.36, the echo from 0.75 s); deep: `body_deep_ship` + `echo_deep_ship` (0.185, from 0.5 s) | −10 dB, 3 s; deep 2.5 s |
+| `blast_big` | a light raider dying (a chaser 40, a shooter 46, a lancer or splitter 48); a flagship's chain of blasts (36 to 59) | 0.12 s | `body_a_ship` + `echo_a_ship`, a sci-fi explosion swelling for 0.4 s (0.36, the echo from 0.75 s); deep: `body_deep_ship` + `echo_deep_ship` (0.185, from 0.5 s) | −10 dB, 3 s; deep 2.5 s |
 | `blast_huge` | a flagship's last blast (180 and over) | 0.8 s | `body_a_big` + `echo_a_big` (0.41, the echo from 1 s); deep: `body_deep_big` + `echo_deep_big` (0.285, from 1.2 s) | −8 dB, 5 s; deep 5 s |
+| `blast_heavy` | a heavy raider dying: a bulwark (70), a tank (72), a carrier (74); a structure lost (70), a transport lost (90) | 0.12 s | `body_deep_ship` at ×0.92 (0.235) + the world's echo of a ship's | −16.3 dBFS loud |
+| `blast_rock` | a rock breaking: an ore rock, a drifting asteroid, a Dustfall cliff's fall, a duel's rock | 0.1 s | `body_rock`, debris breaking (0.143, the echo from 0.9 s) + the world's echo of a small blast at 0.7 | −21.6 dBFS loud |
+| `blast_barrel` | a mine going off: a raider's, a flagship's | 0.12 s | made in code, the game's old ship blast ("a barrel struck"): a crack, a boom 1.9 kHz → 160 Hz, a thump 58 → 26 Hz, a sawtooth growl, debris | −22 dBFS loud |
 
 What they should be, from the author: heavy, not a tin can or a struck
 barrel; several at once heard one after another and swelling together
@@ -251,7 +264,7 @@ blast) and `blast_big` together. The levels follow the ladder above, 4 to
 |---|---|---|---|---|
 | `hit` | your ship hit (shield or hull alike); the radiation alert; a bump in a race | 0.18 s | noise at 950 Hz, a thump 105 → 38 Hz, a triangle 210 → 82 Hz; the music dips | −13.6 dB, 0.2 s |
 | `boost` | your dash (Shift: a burst of turbo); a flagship charging; a rival's turbo in a race | 0.08 s | a thump 56 → 34 Hz, a roar opening from 280 Hz to 2.4 kHz, a whoosh 900 Hz → 3.8 kHz, a whine 320 → 980 Hz, a sawtooth rumble | −12.8 dB, 0.64 s |
-| `pulse` | your pulse (Space) going off; an EMP charge; falling into a black hole's core | 0.08 s | noise at 450 Hz for 0.95 s, a thump 155 → 30 Hz, a sine 310 → 62 Hz; the music dips. The loudest but the blasts | −10.2 dB, 0.68 s |
+| `pulse` | your pulse (Space) going off; an EMP charge; falling into a black hole's core | 0.08 s | a recording, an electromagnetic pulse (`pulse.mp3`, 0.89, ±4% in pitch); the music dips | −16 dBFS loud, 1.6 s |
 | `dash` | a stasis charge used (the name is old) | 0.08 s | a whoosh falling 3.6 kHz → 600 Hz, a thump 95 → 45 Hz, a sawtooth zip 260 → 820 Hz | −20.5 dB, 0.26 s |
 | `portal` | your jump through a portal or gate; a flagship escaping (Haven's Crescent) or jumping | 0.6 s | noise at 850 Hz for 1.4 s, three sines rising an octave each (D3, A3, D4, staggered), a sub 44 → 75 Hz; the music dips | −13.1 dB, 1.14 s |
 | `mine` | an ore rock broken; drifting debris hit; a Dustfall cliff struck; a flagship's mine | 0.12 s | noise at 1.8 kHz, a triangle 480 → 230 Hz, a thump 135 → 60 Hz | −20.7 dB, 0.17 s |

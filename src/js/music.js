@@ -259,6 +259,9 @@ const sfx_by_kind = {
     blast: sfx_blast,
     blast_big: sfx_blast_big,
     blast_huge: sfx_blast_huge,
+    blast_heavy: sfx_blast_heavy,
+    blast_rock: sfx_blast_rock,
+    blast_barrel: sfx_blast_barrel,
     impact: sfx_impact,
 };
 function sfx(kind, volume = 1, position = null, when)

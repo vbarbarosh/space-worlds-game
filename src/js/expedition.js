@@ -422,8 +422,7 @@ function drifting_debris_hit(piece, damage)
     if (piece.hp > 0) {
         return;
     }
-    explode(piece.x, piece.y, piece.r*1.5, (piece.kind === 'wreck') ? '#9fb6c8' : '#c9924e');
-    sfx('mine', 1, piece);
+    explode(piece.x, piece.y, piece.r*1.5, (piece.kind === 'wreck') ? '#9fb6c8' : '#c9924e', 0, (piece.kind === 'wreck') ? 'blast' : 'rock');
     drop_pickup(piece.x, piece.y, 'artifact', 2);
     drifting_debris = drifting_debris.filter(v => v !== piece);
 }

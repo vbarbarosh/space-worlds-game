@@ -1520,7 +1520,7 @@ function boss_duel_ram(v, s, d, k, rock)
     d.flash = rock;
     d.flash_t = 0.8;
     shake = Math.max(shake, 16);
-    explode((v.x + rock.x)/2, (v.y + rock.y)/2, 70, '#e4c98a');
+    explode((v.x + rock.x)/2, (v.y + rock.y)/2, 70, '#e4c98a', 0, 'rock');
     burst((v.x + rock.x)/2, (v.y + rock.y)/2, '#e4c98a', 40, 320);
     label(v.x, v.y - v.r*2.6, 'STUNNED · HIT IT NOW', gold);
     sfx('kill', 0.9, v);

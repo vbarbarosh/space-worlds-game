@@ -470,7 +470,7 @@ function raider_mines_update(dt)
             continue;
         }
         mine.life = 0;
-        explode(mine.x, mine.y, 34, mine.color, 0, 'blast');
+        explode(mine.x, mine.y, 34, mine.color, 0, 'barrel');
         ring(mine.x, mine.y, '#ff4d5e', mine_blast, 0.3);
         if (d < mine_blast + player.r) {
             damage_player(mine_damage*mine.scale*arcade_mode().blast*(1 - 0.5*Math.min(1, d/mine_blast)), true, 'mine', mine.owner);
