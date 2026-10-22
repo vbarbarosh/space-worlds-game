@@ -4,7 +4,7 @@ const sfx_pulse = {
     limit: 0.08,
     recorded: true,
     play: function (note, air, t, clip) {
-        clip('pulse', 0.89, 0.96 + Math.random()*0.08);
+        clip('pulse', 0.24, 0.96 + Math.random()*0.08);
         sound.duck_until = t + 1.1;
     },
 };

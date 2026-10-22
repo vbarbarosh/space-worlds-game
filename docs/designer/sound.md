@@ -82,6 +82,17 @@ so a new sound does not walk back into it:
   examples. A steep filter at 900 Hz made them sound "under water" (13:03);
   it is a gentle one from 3 kHz now. The same message: the ship's engine
   "a little lower"; it is 4 dB down.
+- **15:48, the author:** the Kestrel Courier's engine "works just like a
+  vacuum cleaner": its recording had a whine at 1 kHz (its loudest tone
+  31 dB over the rest). It is a smooth engine loop now (`engine_courier.mp3`,
+  Freesound 681976), its sound centred at 250 Hz, no tone over the rest by
+  more than 14 dB; the five other engines were measured the same way and
+  have no such whine (The steady sounds of flight).
+- **15:45, the author:** the pulse (Space) "cuts the ear; the earlier one
+  was softer". The electromagnetic pulse recording was a buzz centred in
+  125 to 500 Hz at −16 dBFS, the loudest rung. It is a low, swelling impact
+  now (`pulse.mp3`, Freesound 812744), softened like the explosions, at
+  −19 dBFS, 3 dB down.
 - **13:53, the author:** the sounds "already better"; "I don't know what the
   questions were or what to answer: better that you decide, and I'll comment
   from the game; on the page they sound different from in the game". So the
@@ -155,7 +166,7 @@ not louder; to make one louder, change its rung here first.
 | 3, things that happen to you | −30 to −26 | a flagship's own sound at 300 m (about −30, rising as it closes), a hit on you (−26.8), a rock broken (`mine`, −29), a race ring, an upgrade, a storm, a flare, the win chime |
 | 4, a small blast and its kin | −24 to −21 | a small blast (−23.8), a rock breaking (−21.6), a mine going off (−22), a raider's `kill` (−22.6 alone, played at 0.55 under its blast), the turbo (−23.6) |
 | 5, a ship's blast | −18, a heavy one −16 | a raider dying (−17.7); a bulwark, a tank or a carrier (−16.3) |
-| 6, the loudest | −19 to −13 | a portal (−18.7), your pulse (−16), a flagship's last blast (−12.8) |
+| 6, the loudest | −19 to −13 | a portal (−18.7), your pulse (−19), a flagship's last blast (−12.8) |
 
 Before the ladder (2026-10-22 12:38) a ship's blast was at −10.7 and a
 flagship's last at −9.6, 23 dB over a shot, and the author found them too
@@ -269,7 +280,7 @@ blast) and `blast_big` together. The levels follow the ladder above, 4 to
 |---|---|---|---|---|
 | `hit` | your ship hit (shield or hull alike); the radiation alert; a bump in a race | 0.18 s | noise at 950 Hz, a thump 105 → 38 Hz, a triangle 210 → 82 Hz; the music dips | −13.6 dB, 0.2 s |
 | `boost` | your dash (Shift: a burst of turbo); a flagship charging; a rival's turbo in a race | 0.08 s | a thump 56 → 34 Hz, a roar opening from 280 Hz to 2.4 kHz, a whoosh 900 Hz → 3.8 kHz, a whine 320 → 980 Hz, a sawtooth rumble | −12.8 dB, 0.64 s |
-| `pulse` | your pulse (Space) going off; an EMP charge; falling into a black hole's core | 0.08 s | a recording, an electromagnetic pulse (`pulse.mp3`, 0.89, ±4% in pitch); the music dips | −16 dBFS loud, 1.6 s |
+| `pulse` | your pulse (Space) going off; an EMP charge; falling into a black hole's core | 0.08 s | a recording, a low swelling impact (`pulse.mp3`, 0.24, ±4% in pitch), softened like the explosions; the music dips | −19 dBFS loud, 1.5 s |
 | `dash` | a stasis charge used (the name is old) | 0.08 s | a whoosh falling 3.6 kHz → 600 Hz, a thump 95 → 45 Hz, a sawtooth zip 260 → 820 Hz | −20.5 dB, 0.26 s |
 | `portal` | your jump through a portal or gate; a flagship escaping (Haven's Crescent) or jumping | 0.6 s | noise at 850 Hz for 1.4 s, three sines rising an octave each (D3, A3, D4, staggered), a sub 44 → 75 Hz; the music dips | −13.1 dB, 1.14 s |
 | `mine` | an ore rock broken; drifting debris hit; a Dustfall cliff struck; a flagship's mine | 0.12 s | noise at 1.8 kHz, a triangle 480 → 230 Hz, a thump 135 → 60 Hz | −20.7 dB, 0.17 s |
@@ -307,7 +318,7 @@ and `update_audio_scene` in `src/js/audio.js`):
 
 | Sound | Bus | Made of | Follows |
 |---|---|---|---|
-| Engine | effects | your ship's own recording, looped (`src/sounds/engine_<ship>.mp3`, `flight_engine_play`): Wisp Scout a thrust loop, Kestrel Courier a sci-fi engine, Viper Interceptor a hover engine, Mule Prospector a nuclear reactor, Bastion Gunship a spacecraft engine, Aurora Cruiser a plasma engine (the author's picks, 2026-10-22) | thrust: level 0.115 × (0.3 + 0.7 × thrust, +0.5 in turbo), its speed and pitch ×0.92 + 0.12 × thrust (+0.1 in turbo) |
+| Engine | effects | your ship's own recording, looped (`src/sounds/engine_<ship>.mp3`, `flight_engine_play`): Wisp Scout a thrust loop, Kestrel Courier a smooth engine loop (the sci-fi engine chosen first "worked like a vacuum cleaner", 15:48), Viper Interceptor a hover engine, Mule Prospector a nuclear reactor, Bastion Gunship a spacecraft engine, Aurora Cruiser a plasma engine (the author's picks, 2026-10-22) | thrust: level 0.115 × (0.3 + 0.7 × thrust, +0.5 in turbo), its speed and pitch ×0.92 + 0.12 × thrust (+0.1 in turbo) |
 | Air | effects | the game's noise in a band at 1.2 kHz | thrust ×0.014, turning ×0.006; in turbo +0.04 and the band down to 700 Hz (a deep roar) |
 | Space | ambience | the game's noise played slow (×0.42) under a lowpass, by world (below) | its level by world, ×0.35 near the station |
 | Reactor | ambience | a sine by world (below) at 0.008 | |
