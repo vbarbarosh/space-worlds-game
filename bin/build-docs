@@ -113,10 +113,29 @@ function href_from_link(href, page)
 function html_from_page(template, page, pages)
 {
     const root = '../'.repeat(page.href.split('/').length - 1);
-    const nav = pages.map(v => `<li><a href="${root}${v.href}"${(v === page) ? ' class="on"' : ''}>${html_escape(v.title)}</a></li>`).join('\n');
     const world = page.world ? ` data-world="${page.world}"` : '';
-    const values = {content: html_from_markdown(page), nav: `<ul>\n${nav}\n</ul>`, root, title: html_escape(page.title), world};
+    const values = {content: html_from_markdown(page), nav: nav_html(pages, page, root), root, title: html_escape(page.title), world};
     return template.replace(/\{\{(\w+)\}\}/g, (match, name) => values[name]);
+}
+
+// The page list as a tree: a page of a folder that has its own index page (worlds/haven.md under worlds/README.md,
+// scenario/chapters.md under scenario/README.md) is listed inside it, indented; the rest in the pages' order
+function nav_html(pages, page, root)
+{
+    function parent(v) {
+        const dir = path.posix.dirname(v.file);
+        return ((dir === '.') || (v.file === `${dir}/README.md`)) ? null : pages.find(vv => vv.file === `${dir}/README.md`) || null;
+    }
+    function list(items, depth) {
+        const indent = '    '.repeat(depth);
+        const rows = items.map(function (v) {
+            const children = pages.filter(vv => parent(vv) === v);
+            const link = `<a href="${root}${v.href}"${(v === page) ? ' class="on"' : ''}>${html_escape(v.title)}</a>`;
+            return `${indent}<li>${link}${children.length ? `\n${list(children, depth + 1)}\n${indent}` : ''}</li>`;
+        });
+        return `${indent}<ul>\n${rows.join('\n')}\n${indent}</ul>`;
+    }
+    return list(pages.filter(v => !parent(v)), 0);
 }
 
 function html_from_markdown(page)

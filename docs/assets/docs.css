@@ -201,6 +201,9 @@ li:has(> a:first-child[href$="elements.html"]) { --card-i: url("data:image/svg+x
 
 /* ---------- 4. Page list (both copies) ----------------------------------- */
 .pages ul, .picker-list ul { list-style: none; margin: 0; padding: 0; }
+/* a folder's pages under its index page: indented, a thin line down their left from the index page's icon */
+.pages li > ul, .picker-list li > ul { margin: 2px 0 6px 19px; padding-left: 9px; border-left: 1px solid var(--line-2); }
+.pages li > ul a, .picker-list li > ul a { padding-top: 5px; padding-bottom: 5px; font-size: 14px; }
 .pages a, .picker-list a {
     position: relative; display: flex; align-items: center; gap: 10px; padding: 7px 10px; border-radius: var(--r-sm);
     color: var(--text); text-decoration: none; font-size: 14.5px; line-height: 1.35;
