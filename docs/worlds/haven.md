@@ -3,6 +3,8 @@
 
 Blue Shores · the first world · home of the Rim Corsairs
 
+[Home among the stars · Haven's track](haven/music.mp3)
+
 ![Haven: the station in the middle of a fight with raiders](haven/world.jpg)
 
 Haven is where every pilot starts, and it feels like a harbour. A blue ocean

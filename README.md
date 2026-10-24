@@ -131,6 +131,10 @@ Three modes:
                      from build/dev.html with no HUD: each world in a fight,
                      its station, its raiders, its flagship, its special
                      thing; and its sprites copied beside them
+    bin/world-music  a world's five-minute track for its page, docs/worlds/
+                     <world>/music.mp3, composed with the game's own music
+                     and instruments in the shape of a level (bin/world-music
+                     haven); needs Playwright's Chromium and ffmpeg
     bin/perf         frame times, garbage and drawing costs over 57 scenes
                      (every world calm and in a fight, zoom 100% and 50%,
                      the arcade from Dustfall on, Scroll lanes in Dustfall,

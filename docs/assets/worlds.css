@@ -109,7 +109,7 @@
 /* ---------- 4. The article ----------------------------------------------- */
 /* the world in a fight under the title, and the flagship under its heading: the article's full width; the other
    pictures (the station, the special thing) the text's */
-[data-world] .content > :is(h1 + p + p, h2 + p):has(> img:only-child) { max-width: none; }
+[data-world] .content > :is(h1 + p + p, h1 + p + .track + p, h2 + p):has(> img:only-child) { max-width: none; }
 [data-world] .content img { border-radius: var(--w-radius); }
 [data-world] .content > p > img:only-child { width: 100%; border: 1px solid var(--line-2); box-shadow: 0 18px 50px -24px #000000; }
 /* the world's tagline under the title */

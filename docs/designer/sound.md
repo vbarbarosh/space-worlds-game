@@ -247,6 +247,21 @@ campaign fight), docked at the station or choosing an upgrade 0.54, a jump 0.42,
 pulse 0.38; none while the tab is hidden, sound is off, or the music or the
 master volume is at zero.
 
+## The tracks
+
+`bin/world-music [world...]` composes a world's five-minute track for its page
+of the docs, `docs/worlds/<world>/music.mp3`, with the game's own music and
+instruments, in the shape of a level: the arrival on the world's calm theme
+(its first section), the first wave with the campaign fight's drums (its
+second), four waves on the arcade's drive in whole bars, each but the first
+announced by a riser and a crash, the flagship with its hit and its whole boss
+cycle, and the win: the calm pad on the world's first chord, the tune slow,
+the root an octave up ringing to the end. Everything goes through the game's
+mix and room; the peak is set to -1 dBFS and the MP3 is 128 kbit/s. The WAV
+master stays in `data/world-music/`. The page plays it (`assets/track.js`):
+by itself where the browser allows, else at the reader's first click. Haven's
+is the first (2026-10-24); the others wait for the author's word.
+
 ## The worlds
 
 Each world, Haven to Eclipse (`src/js/worlds/`, `campaign.world` 0 to 7): what

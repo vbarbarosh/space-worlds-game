@@ -554,6 +554,20 @@ body:has(.content > h1#world-explorer-documentation) .hero {
 /* the game's Scout after the cursor and its trail (assets/ship.js), painted on one canvas over the whole window, over
    everything and never in the way of a click */
 .cursor-ship { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 1000; pointer-events: none; }
+/* a track on the page (assets/track.js): play, its title, the position, the time; its states: playing (the pause
+   icon), blocked (it starts at the first click), error */
+.track { display: flex; align-items: center; gap: 14px; max-width: 640px; margin: 18px 0 22px; padding: 12px 16px; border: 1px solid var(--line-2); border-radius: 12px; background: var(--panel); }
+.track-play { flex: none; display: grid; place-items: center; width: 44px; height: 44px; border: 0; border-radius: 50%; background: var(--link); color: var(--on-accent); cursor: pointer; }
+.track-play:focus-visible { outline: 2px solid var(--text-1); outline-offset: 2px; }
+.track-play svg { width: 22px; height: 22px; }
+.track-play .pause, .track[data-state="playing"] .track-play .play { display: none; }
+.track[data-state="playing"] .track-play .pause { display: block; }
+.track-body { flex: 1; min-width: 0; }
+.track-title { overflow: hidden; color: var(--text-1); font-weight: 600; white-space: nowrap; text-overflow: ellipsis; }
+.track-note { margin-left: 8px; color: var(--text-3); font-weight: 400; }
+.track-note:empty { display: none; }
+.track-seek { display: block; width: 100%; margin: 8px 0 0; accent-color: var(--link); cursor: pointer; }
+.track-time { flex: none; color: var(--text-3); font-size: 14px; font-variant-numeric: tabular-nums; }
 @media (prefers-reduced-motion: reduce) {
     * { animation: none !important; transition: none !important; }
 }
