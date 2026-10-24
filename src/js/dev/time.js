@@ -39,8 +39,8 @@ function dev_time_tick(now)
         dev_time_run_frame();
         ran = true;
     }
-    // the map editor hides the game: nothing of it to draw (dev/map_editor.js)
-    if (!ran && !dev_map.open) {
+    // the map editor and the sound maker hide the game: nothing of it to draw (dev/map_editor.js, dev/sound_maker.js)
+    if (!ran && !dev_map.open && !dev_maker.open) {
         render();
     }
     dev_time.ticks++;

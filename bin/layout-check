@@ -137,6 +137,9 @@ const screens = [
     {value: 'map-editor', label: 'map-editor', world: 'eclipse', phone: true},
     {value: 'map-editor', label: 'map-editor-cliff', world: 'dustfall', query: '&kind=free&select=cliff', phone: true},
     {value: 'map-editor', label: 'map-editor-lane', world: 'ion-reach', query: '&kind=scroll&select=pylon', phone: true},
+    // the dev page's sound maker (src/js/dev/sound_maker.js): a shot's four layers, and a flagship's blast, its nine
+    {value: 'sound-maker', label: 'sound-maker', query: '&sound=shot', phone: true},
+    {value: 'sound-maker', label: 'sound-maker-crowded', query: '&sound=blast_huge', phone: true},
 ];
 // The designer's twelve window sizes, from 1440p down to a half-width window and a short strip; then phones, two held
 // upright and one on its side, for the screens marked phone (the crowded HUD, the race and the maps not yet)
@@ -152,8 +155,8 @@ const selectors = {
         '.hud-toasts > *', '.hud-toasts .toast', '.ui.hud .banners > *', '.ui.hud .race-board', '.hud-bottom .qbar', '.hud-bottom .shipstat', '.hud-bottom .hud-end', '.mm-left',
         '.depot-title', '.depot-stats', '.depot-power', '.depot-wallet', '.depot-filters .seg', '.depot-search', '.depot-ship', '.depot-next',
         '.finale-title', '.finale-res', '.brk-title', '.brk-steps', '.brk-wallet', '.brk-won', '.brk-body', '.brk-foot',
-        '.me-bar', '.me-side', '.me-zoom', '.me-status'],
-    contained: ['.modal', '.pause-layout', '.mm-left', '.has-panel .scene.on', '.depot-side', '.depot-top', '.depot-filters', '.finale-title h1', '.finale-res', '.brk-top', '.brk-foot', '.shipstat .cardfx', '.me-bar', '.me-side', '.me-view'],
+        '.me-bar', '.me-side', '.me-zoom', '.me-status', '.sm-bar', '.sm-side', '.sm-main'],
+    contained: ['.modal', '.pause-layout', '.mm-left', '.has-panel .scene.on', '.depot-side', '.depot-top', '.depot-filters', '.finale-title h1', '.finale-res', '.brk-top', '.brk-foot', '.shipstat .cardfx', '.me-bar', '.me-side', '.me-view', '.sm-bar', '.sm-side', '.sm-main'],
     clip: '.btn, .tab, .badge, .key, .qslot, .size, .alert, .seg button, .wallet, .meter-mini, .me-btn',
     boxes: '.card, .toast, .panel',
     // a mark in a corner of a screen (the menu's build stamp, its Developer button) stays inside the window and clear of

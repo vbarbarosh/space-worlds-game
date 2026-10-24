@@ -107,6 +107,7 @@ function dev_panel_init()
     dev_select_fill('dev_enemy_type', dev_enemy_type_options, 'chaser', null);
     dev_theme_set(dev_theme_initial());
     dev_panel_refresh();
+    const sounds_made = dev_maker_sounds_apply();
     setTimeout(function () {
         // a fight or the station needs a flight under way: in Haven when the URL names no world (screen=station-arsenal
         // alone used to throw, with no station to dock at)
@@ -117,6 +118,7 @@ function dev_panel_init()
         dev_pylon_open();
         dev_spire_open();
         dev_map_play_note();
+        dev_maker_fly_note(sounds_made);
     }, 0);
 }
 
@@ -230,6 +232,10 @@ function dev_theme_set(theme)
     document.documentElement.dataset.theme = theme;
     for (const button of document.querySelectorAll('[data-dev-theme]')) {
         button.setAttribute('aria-pressed', String(button.dataset.devTheme === theme));
+    }
+    // the sound maker's picture takes the theme's colours
+    if (dev_maker.open) {
+        dev_maker_draw();
     }
     try {
         localStorage.setItem('dev_theme', theme);

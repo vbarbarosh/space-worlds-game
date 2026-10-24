@@ -13,6 +13,16 @@ themes), `src/js/music_drive.js` (the arcade's and the flagship's music) and
 output as it plays, and the dev page's Sounds tab (`build/dev.html`) plays any
 effect on demand.
 
+The dev page's sound maker (`build/dev.html?screen=sound-maker`, `&sound=blast`
+for that one) makes an effect by ear: each of the 28 opens as its layers, the
+tones and noises its file plays, a row of sliders each, and plays through
+`sfx()` and the whole mix, so it sounds as in the game; its picture is the
+sound rendered offline through the same mix, with its peak. New sounds start
+from one tone or from a copy. Each change is kept in that browser; Fly with it
+is an arcade run with the changed sounds in place of the game's
+(`&sounds=made`), Copy gives the sound as its file of `src/js/sfx/`, WAV
+downloads it.
+
 `bin/sound-pack --label=my-pack` generates separate stereo 48 kHz WAV masters
 with MP3 and Ogg Vorbis copies in `data/sound/my-pack/`. It needs ffmpeg and Playwright's
 Chromium (`npx playwright install chromium`). A label must be new; existing

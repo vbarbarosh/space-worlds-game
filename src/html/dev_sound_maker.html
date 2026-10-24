@@ -1,0 +1,32 @@
+<section class="sound-maker hidden" id="sound_maker" aria-label="Sound maker">
+<div class="sm-frame">
+    <header class="sm-bar">
+        <b class="sm-title" id="sm_title">SOUND MAKER</b>
+        <span class="sm-actions">
+            <button type="button" class="me-btn me-primary" id="sm_play" title="Play the sound (Space)">▶ Play</button>
+            <button type="button" class="me-btn" id="sm_hold" title="Play it again and again for 2 s, as a held trigger fires it: 8 a second, or its cooldown when longer">Hold</button>
+            <button type="button" class="me-btn" id="sm_undo" title="Undo (Ctrl+Z)">Undo</button>
+            <button type="button" class="me-btn" id="sm_redo" title="Redo (Ctrl+Shift+Z)">Redo</button>
+            <button type="button" class="me-btn" id="sm_fly" title="An arcade run in the Scenario's world, every sound you changed in place of the game's">Fly with it</button>
+            <button type="button" class="me-btn" id="sm_copy" title="Copy the sound as its file of src/js/sfx/, to send">Copy</button>
+            <button type="button" class="me-btn" id="sm_wav" title="Download the sound as a WAV file">WAV</button>
+            <button type="button" class="me-btn" id="sm_reset" title="Forget this browser's change: the game's sound again">Reset</button>
+        </span>
+    </header>
+    <nav class="sm-side" id="sm_side" aria-label="Sounds"></nav>
+    <main class="sm-main">
+        <div class="sm-picture">
+            <canvas class="sm-wave" id="sm_wave" aria-label="The sound as the game plays it: its wave over time, and each layer's time under it"></canvas>
+        </div>
+        <p class="sm-readout" id="sm_readout"></p>
+        <p class="sm-status" id="sm_status" role="status"></p>
+        <div class="sm-sound" id="sm_sound"></div>
+        <ol class="sm-layers" id="sm_layers"></ol>
+        <div class="sm-add">
+            <button type="button" class="me-btn" id="sm_add_tone" title="Add a tone: a note that can slide in pitch">+ Tone</button>
+            <button type="button" class="me-btn" id="sm_add_noise" title="Add a noise: a hiss, a whoosh or, filtered low, a boom">+ Noise</button>
+            <label class="sm-check"><input type="checkbox" id="sm_autoplay" checked> Play on every change</label>
+        </div>
+    </main>
+</div>
+</section>

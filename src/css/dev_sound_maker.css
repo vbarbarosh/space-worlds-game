@@ -1,0 +1,364 @@
+/* The sound maker (js/dev/sound_maker.js): the bar of actions on top, the list of sounds beside the sound open (its
+   picture, its own numbers, its layers, a card each); under a narrow window the list is a row that scrolls sideways,
+   over the sound. Its buttons are the map editor's (.me-btn) */
+.sound-maker {
+    position: fixed;
+    inset: 0;
+    z-index: 900;
+    container-type: size;
+    background: var(--dev-bg);
+    color: var(--dev-text);
+    font: 12px/1.45 ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+    /* the checkboxes, the selects and the number fields in the panel's theme, not the game's dark */
+    color-scheme: light;
+    accent-color: var(--dev-accent);
+}
+
+:root[data-theme='dark'] .sound-maker {
+    color-scheme: dark;
+}
+
+body:not(.dev-collapsed) .sound-maker {
+    right: var(--dev-panel-width);
+}
+
+/* the panel folded: its DEV tab stands on the right edge, halfway down, beside the sound and never over it */
+body.dev-collapsed .sound-maker {
+    box-sizing: border-box;
+    padding-right: 30px;
+}
+
+/* the game stays paused under the maker, and out of sight */
+body.sound-making #screen,
+body.sound-making .dev-fps {
+    visibility: hidden;
+}
+
+.sound-maker.hidden {
+    display: none;
+}
+
+.sm-frame {
+    display: grid;
+    grid-template-columns: minmax(150px, 210px) minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    grid-template-areas: 'bar bar' 'side main';
+    height: 100%;
+}
+
+.sm-bar {
+    grid-area: bar;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 10px;
+    min-width: 0;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--dev-line);
+}
+
+.sm-title {
+    min-width: 0;
+    overflow: hidden;
+    letter-spacing: 0.06em;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.sm-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-left: auto;
+}
+
+.sm-side {
+    grid-area: side;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-height: 0;
+    padding: 8px;
+    overflow-y: auto;
+    border-right: 1px solid var(--dev-line);
+}
+
+.sm-side h3 {
+    margin: 8px 4px 2px;
+    color: var(--dev-muted);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.sm-side h3:first-child {
+    margin-top: 0;
+}
+
+.sm-item {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    padding: 3px 6px;
+    border: 1px solid transparent;
+    border-radius: 5px;
+    background: none;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.sm-item:hover {
+    background: var(--dev-hover);
+}
+
+.sm-item[aria-pressed='true'] {
+    border-color: var(--dev-accent);
+    background: var(--dev-selected);
+}
+
+.sm-label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* a sound this browser changed */
+.sm-dot {
+    flex: none;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--dev-accent);
+}
+
+.sm-dot.hidden {
+    visibility: hidden;
+}
+
+.sm-new {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 4px;
+}
+
+.sm-main {
+    grid-area: main;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+    min-height: 0;
+    padding: 10px;
+    overflow-y: auto;
+}
+
+.sm-picture {
+    position: relative;
+    flex: none;
+    height: 170px;
+    border: 1px solid var(--dev-line);
+    border-radius: 6px;
+    background: var(--dev-surface);
+    overflow: hidden;
+}
+
+.sm-wave {
+    display: block;
+    cursor: default;
+    touch-action: auto;
+}
+
+.sm-readout,
+.sm-status {
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+.sm-readout {
+    font-variant-numeric: tabular-nums;
+}
+
+.sm-status {
+    min-height: 1.45em;
+    color: var(--dev-muted);
+}
+
+.sm-sound {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 6px 14px;
+    padding: 8px;
+    border: 1px solid var(--dev-line);
+    border-radius: 6px;
+}
+
+.sm-layers {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.sm-layer {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 8px;
+    border: 1px solid var(--dev-line);
+    border-left: 4px solid var(--dev-accent);
+    border-radius: 6px;
+    background: var(--dev-surface);
+}
+
+/* a noise's colour, as the picture draws its bar */
+.sm-layer.sm-noise {
+    border-left-color: #e0a030;
+}
+
+.sm-layer.sm-off .sm-fields {
+    opacity: 0.45;
+}
+
+.sm-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 10px;
+}
+
+.sm-tools {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-left: auto;
+}
+
+.sm-fields {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 4px 14px;
+}
+
+/* a number: its name, its slider, the number to type, its unit */
+.sm-field {
+    display: grid;
+    grid-template-columns: 82px minmax(50px, 1fr) 72px 20px;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+}
+
+.sm-field > span:first-child {
+    overflow: hidden;
+    color: var(--dev-muted);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.sm-field select,
+.sm-field input[type='text'] {
+    grid-column: 2 / -1;
+}
+
+.sm-field input[type='range'] {
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+    accent-color: var(--dev-accent);
+}
+
+.sm-field input[type='number'],
+.sm-field input[type='text'],
+.sm-field select {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    padding: 3px 5px;
+    border: 1px solid var(--dev-line);
+    border-radius: 4px;
+    background: var(--dev-bg);
+    color: inherit;
+    font: inherit;
+    font-variant-numeric: tabular-nums;
+    user-select: text;
+}
+
+.sm-unit {
+    color: var(--dev-muted);
+}
+
+.sm-check {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.sm-add {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 10px;
+    padding-bottom: 10px;
+}
+
+/* a window tall enough: the picture stays on top while the layers scroll under it */
+@container (min-height: 600px) {
+    .sm-picture {
+        position: sticky;
+        top: -10px;
+        z-index: 1;
+        box-shadow: 0 -10px 0 var(--dev-bg);
+    }
+}
+
+/* a narrow window: the list a row over the sound, scrolling sideways */
+@container (max-width: 640px) {
+    .sm-frame {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: auto auto minmax(0, 1fr);
+        grid-template-areas: 'bar' 'side' 'main';
+    }
+
+    .sm-side {
+        flex-direction: row;
+        align-items: center;
+        overflow-x: auto;
+        overflow-y: hidden;
+        border-right: 0;
+        border-bottom: 1px solid var(--dev-line);
+    }
+
+    .sm-side h3,
+    .sm-side h3:first-child {
+        flex: none;
+        margin: 0 4px;
+    }
+
+    .sm-new {
+        flex: none;
+        flex-wrap: nowrap;
+        margin-top: 0;
+    }
+
+    .sm-actions {
+        margin-left: 0;
+    }
+
+    .sm-picture {
+        height: 130px;
+    }
+
+    .sm-field {
+        grid-template-columns: 74px minmax(40px, 1fr) 64px 18px;
+    }
+}

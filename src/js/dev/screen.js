@@ -34,6 +34,7 @@ const dev_screen_options = [
     {value: 'settings', label: 'Settings over the flight'},
     {value: 'menu', label: 'Main menu'},
     {value: 'map-editor', label: 'Map editor (&kind=free or scroll for the arcade\'s)'},
+    {value: 'sound-maker', label: 'Sound maker (&sound=blast opens that one)'},
 ];
 const dev_screen = new URLSearchParams(location.search).get('screen');
 // &wave=n with &screen=arcade (dev_screen_arcade_wave), read before the scenario writes the URL over; &wave=flagship
@@ -78,17 +79,18 @@ const dev_screen_news = [
     ['RAID ON YOUR MINING OUTPOST AT THE FAR SIDE OF THE NEBULA', 'A_PATH_WITH_NO_SPACES_AT_ALL_TO_BREAK_IT · 1240 m AWAY · DEFEND IT BEFORE THEY TEAR IT DOWN', 'danger'],
 ];
 
-// The panel's Screens tab: a button a screen, the map editor first, each opening it with the Scenario's choices
+// The panel's Screens tab: a button a screen, the map editor and the sound maker first, each opening it with the
+// Scenario's choices
 function dev_screens_fill()
 {
     const box = document.getElementById('dev_screens');
     box.replaceChildren();
-    const editor = dev_screen_options.find(v => v.value === 'map-editor');
-    for (const option of [editor, ...dev_screen_options.filter(v => v !== editor)]) {
-        const button = dev_button(option.label.replace(/ \(&kind=.*\)$/, ''), function () {
+    const tools = dev_screen_options.filter(v => ['map-editor', 'sound-maker'].includes(v.value));
+    for (const option of [...tools, ...dev_screen_options.filter(v => !tools.includes(v))]) {
+        const button = dev_button(option.label.replace(/ \(&.*\)$/, ''), function () {
             dev_screen_go(option.value);
         });
-        button.classList.toggle('dev-primary', option === editor);
+        button.classList.toggle('dev-primary', tools.includes(option));
         box.append(button);
     }
 }
@@ -123,6 +125,11 @@ function dev_screen_open()
     // the world's map from above, to edit (src/js/dev/map_editor.js)
     if (dev_screen === 'map-editor') {
         dev_map_editor_open();
+        return;
+    }
+    // the game's sounds as layers, to make by ear (src/js/dev/sound_maker.js)
+    if (dev_screen === 'sound-maker') {
+        dev_maker_open();
         return;
     }
     if (dev_screen === 'arcade') {

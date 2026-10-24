@@ -78,6 +78,10 @@ function dev_scenario_save()
     if (dev_map.source === 'edited') {
         params.set('map', 'edited');
     }
+    // the sound maker's sounds played (dev/sound_maker.js), again after a reload
+    if (dev_maker.made) {
+        params.set('sounds', 'made');
+    }
     history.replaceState(null, '', `${location.pathname}?${params.toString()}`);
 }
 

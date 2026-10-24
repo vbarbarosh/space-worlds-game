@@ -1,4 +1,5 @@
-// Sounds tab: one button per sound effect of src/js/sfx/, played through the game's own sfx().
+// Sounds tab: one button per sound effect of src/js/sfx/, played through the game's own sfx(), and one opening it in
+// the sound maker (dev/sound_maker.js).
 function dev_sounds_fill()
 {
     const rows = [];
@@ -6,9 +7,23 @@ function dev_sounds_fill()
         const play = dev_button('Play', function () {
             dev_sound_play(kind);
         });
-        rows.push({value: kind, cells: [kind, `${sfx_by_kind[kind].limit} s`, play]});
+        const make = dev_button('Make', function () {
+            dev_sound_make(kind);
+        });
+        make.title = `Open ${kind} in the sound maker`;
+        rows.push({value: kind, cells: [kind, `${sfx_by_kind[kind].limit} s`, play, make]});
     }
-    dev_table_fill(document.getElementById('dev_sounds'), ['Sound', 'Cooldown', ''], rows, null, null);
+    dev_table_fill(document.getElementById('dev_sounds'), ['Sound', 'Cooldown', '', ''], rows, null, null);
+}
+
+// The sound maker, that sound open in it
+function dev_sound_make(kind)
+{
+    dev_scenario_save();
+    const params = new URLSearchParams(location.search);
+    params.set('screen', 'sound-maker');
+    params.set('sound', kind);
+    location.assign(`${location.pathname}?${params.toString()}`);
 }
 
 function dev_sound_play(kind)

@@ -184,10 +184,11 @@ window under 980 px wide.
 
 `build/dev.html` is the developer mode: the game with a dev panel. It starts
 straight into any world, ship and weapon, and has time controls, cheats,
-enemy and target-dummy spawning, live upgrade levels and a sound board. The
-main menu's Developer button (D) opens it; its Screens tab opens every screen
-below, the map editor first, in the world, ship, difficulty and arcade kind
-chosen under Scenario, so no URL needs remembering. The
+enemy and target-dummy spawning, live upgrade levels, a sound board and a
+sound maker. The main menu's Developer button (D) opens it; its Screens tab
+opens every screen below, the map editor and the sound maker first, in the
+world, ship, difficulty and arcade kind chosen under Scenario, so no URL needs
+remembering. The
 scene lives in the URL, e.g. `dev.html?world=3&ship=gunship&weapon=rail`; a world goes by number or file name (`world=ion-reach`).
 `&screen=station-arsenal` (or flight, combat, arcade, crowded, pause, settings, menu,
 map-plan, ...; the list is in src/js/dev/screen.js) opens that screen with the
@@ -233,6 +234,11 @@ millions, the guide's longest step); `&screen=station-intel` opens TRADE INTEL.
 `&screen=map-editor` is the map editor: the world's campaign map from above (`&kind=free` or `scroll` its
 arcade map), its things to move, add and delete, the rules of docs/placement.md checked as you go; Play flies the edit,
 Export downloads the file to put in src/maps/ ([src/maps/README.md](src/maps/README.md)).
+`&screen=sound-maker` is the sound maker (`&sound=blast` opens that one; the Sounds tab's Make does too): each sound
+effect as its layers, tones and noises, a row of sliders each, played through the game's own mix, with its picture and
+peak; new sounds start from a tone or a copy. Fly with it is an arcade run with this browser's changed sounds
+(`&sounds=made`), Copy gives the sound as its file of src/js/sfx/, WAV downloads it
+([docs/designer/sound.md](docs/designer/sound.md)).
 `&dpr=1.3` draws the canvas at that pixel ratio, whatever Settings → Resolution
 says; `&slow=20` stands in for a slow graphics card, each frame waiting 20 ms
 for every million pixels of the canvas, so Auto steps down;
