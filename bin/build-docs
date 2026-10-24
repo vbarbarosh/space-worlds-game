@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 const cli = require('@vbarbarosh/node-helpers/src/cli');
+const crypto = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
 
@@ -120,7 +121,17 @@ function html_from_page(template, page, pages)
     const root = '../'.repeat(page.href.split('/').length - 1);
     const world = page.world ? ` data-world="${page.world}"` : '';
     const values = {content: html_from_markdown(page), nav: nav_html(pages, page, root), root, title: html_escape(page.title), world};
-    return template.replace(/\{\{(\w+)\}\}/g, (match, name) => values[name]);
+    return assets_stamp(template.replace(/\{\{(\w+)\}\}/g, (match, name) => values[name]));
+}
+
+// A stamp from its content on each stylesheet and script the page links, so a change reaches a browser that holds the
+// old one at once (GitHub Pages serves a file for ten minutes; the author saw a new page with the old stylesheet)
+function assets_stamp(html)
+{
+    return html.replace(/(assets\/[\w-]+\.(?:css|js))"/g, function (match, file) {
+        const hash = crypto.createHash('sha1').update(fs.readFileSync(path.join(docs_dir, file))).digest('hex').slice(0, 8);
+        return `${file}?v=${hash}"`;
+    });
 }
 
 // The page list as a tree: a page of a folder that has its own index page (worlds/haven.md under worlds/README.md,
