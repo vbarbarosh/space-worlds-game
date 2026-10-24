@@ -554,20 +554,31 @@ body:has(.content > h1#world-explorer-documentation) .hero {
 /* the game's Scout after the cursor and its trail (assets/ship.js), painted on one canvas over the whole window, over
    everything and never in the way of a click */
 .cursor-ship { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 1000; pointer-events: none; }
-/* a track on the page (assets/track.js): play, its title, the position, the time; its states: playing (the pause
-   icon), blocked (it starts at the first click), error */
-.track { display: flex; align-items: center; gap: 14px; margin: 18px 0 22px; padding: 12px 16px; border: 1px solid var(--line-2); border-radius: 12px; background: var(--panel); }
-.track-play { flex: none; display: grid; place-items: center; width: 44px; height: 44px; border: 0; border-radius: 50%; background: var(--link); color: var(--on-accent); cursor: pointer; }
-.track-play:focus-visible { outline: 2px solid var(--text-1); outline-offset: 2px; }
+/* a track on the page (assets/track.js): play, the time, the waveform (the played part in the link colour), the
+   length, the volume; its states: playing (the pause icon), blocked (it starts at the first click), error, muted */
+.track { display: grid; grid-template-columns: auto auto 1fr auto auto 90px; align-items: center; gap: 14px; margin: 18px 0 22px; padding: 12px 18px 14px; border: 1px solid var(--line-2); border-radius: 14px; background: var(--panel); }
+.track-title { grid-column: 1 / -1; overflow: hidden; color: var(--text-3); font-size: 14px; font-weight: 600; white-space: nowrap; text-overflow: ellipsis; }
+.track-play { display: grid; place-items: center; width: 48px; height: 48px; border: 2px solid var(--text-1); border-radius: 50%; background: none; color: var(--text-1); cursor: pointer; }
 .track-play svg { width: 22px; height: 22px; }
 .track-play .pause, .track[data-state="playing"] .track-play .play { display: none; }
 .track[data-state="playing"] .track-play .pause { display: block; }
-.track-body { flex: 1; min-width: 0; }
-.track-title { overflow: hidden; color: var(--text-1); font-weight: 600; white-space: nowrap; text-overflow: ellipsis; }
-.track-note { margin-left: 8px; color: var(--text-3); font-weight: 400; }
+.track-play:focus-visible, .track-wave:focus-visible, .track-mute:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
+.track-at, .track-length { color: var(--text-1); font-size: 17px; font-variant-numeric: tabular-nums; }
+.track-wave { height: 56px; min-width: 0; border-radius: 6px; cursor: pointer; touch-action: none; }
+.track-wave canvas { display: block; width: 100%; height: 100%; }
+.track-note { margin-left: 8px; font-weight: 400; }
 .track-note:empty { display: none; }
-.track-seek { display: block; width: 100%; margin: 8px 0 0; accent-color: var(--link); cursor: pointer; }
-.track-time { flex: none; color: var(--text-3); font-size: 14px; font-variant-numeric: tabular-nums; }
+.track-mute { display: grid; place-items: center; width: 34px; height: 34px; border: 0; border-radius: 6px; background: none; color: var(--text-1); cursor: pointer; }
+.track-mute svg { width: 22px; height: 22px; }
+.track-mute .off, .track[data-muted] .track-mute .on { display: none; }
+.track[data-muted] .track-mute .off { display: block; }
+.track-volume { width: 100%; margin: 0; accent-color: var(--text-1); cursor: pointer; }
+@media (max-width: 560px) {
+    .track { grid-template-columns: auto auto 1fr auto auto; gap: 10px; padding: 10px 12px 12px; }
+    .track-title { white-space: normal; }
+    .track-note { display: block; margin-left: 0; }
+    .track-volume { display: none; }
+}
 @media (prefers-reduced-motion: reduce) {
     * { animation: none !important; transition: none !important; }
 }

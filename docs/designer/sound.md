@@ -251,16 +251,19 @@ master volume is at zero.
 
 `bin/world-music [world...]` composes a world's five-minute track for its page
 of the docs, `docs/worlds/<world>/music.mp3`, with the game's own music and
-instruments, in the shape of a level: the arrival on the world's calm theme
-(its first section), the first wave with the campaign fight's drums (its
-second), four waves on the arcade's drive in whole bars, each but the first
-announced by a riser and a crash, the flagship with its hit and its whole boss
-cycle, and the win: the calm pad on the world's first chord, the tune slow,
-the root an octave up ringing to the end. Everything goes through the game's
-mix and room; the peak is set to -1 dBFS and the MP3 is 128 kbit/s. The WAV
-master stays in `data/world-music/`. The page plays it (`assets/track.js`):
-by itself where the browser allows, else at the reader's first click. Haven's
-is the first (2026-10-24); the others wait for the author's word.
+instruments: the world's calm theme as the campaign plays it, fading in over
+its first chord, for as many whole chords as fit, then an ending on its home
+chord (the calm pad, the tune slow, the root an octave up ringing out to
+5:00). One piece, relaxed, as the author asked (2026-10-24: a first version
+followed a level's arc, calm, drive, boss, win, and was heard as "several
+variants combined"). Everything goes through the game's mix and room; the
+master's peak is at -1 dBFS and the MP3 (128 kbit/s) is brought to -16 LUFS,
+background music under the game's own. `music.json` beside it holds the
+waveform the page draws. The WAV master stays in `data/world-music/`. The
+page plays it (`assets/track.js`): play, the time, the waveform, the length,
+the volume; by itself where the browser allows, else at the reader's first
+click; pause and volume hold for every page. Haven's is the first; the others
+wait for the author's word, and an arcade track may follow.
 
 ## The worlds
 

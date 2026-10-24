@@ -10,14 +10,19 @@ const root = path.join(__dirname, '..');
 const data_dir = path.join(root, 'data', 'world-music');
 const out_root = path.join(root, 'docs', 'worlds');
 const worlds = ['haven', 'verdant', 'dustfall', 'ion-reach', 'obsidian', 'cryosphere', 'nova-forge', 'eclipse'];
-// The track's length (s): a level of the arcade lasts about five minutes (arcade.js)
+// The track's length (s): a world of the game lasts about five minutes (the author); the least its ending gets (s), and
+// the bars of the waveform its page draws
 const length = 300;
+const ending_least = 16;
+const bars = 120;
+// The track's loudness (LUFS): background music, under the game's own (the first one at the peak came out at -11)
+const loudness = -16;
 const usage = `usage: bin/world-music [world...]
 
-    Composes each world's five-minute track, docs/worlds/<world>/music.mp3, with the game's own music and instruments
-    (src/js/music.js, music_drive.js, audio.js), shaped like a level: the arrival on the world's calm theme, the first
-    wave with the campaign fight's drums, four waves on the arcade's drive, the flagship on its boss music, and the
-    win. The WAV master stays in data/world-music/. Needs Playwright's Chromium and ffmpeg. Exits 1 on any failure.
+    Composes each world's five-minute track for its page, docs/worlds/<world>/music.mp3, with the game's own music and
+    instruments (src/js/music.js, audio.js): the world's calm theme as the campaign plays it, from a fade-in to an
+    ending on its home chord, through the game's mix and room; and music.json beside it, the waveform the page draws.
+    The WAV master stays in data/world-music/. Needs Playwright's Chromium and ffmpeg. Exits 1 on any failure.
 
     worlds: ${worlds.join(', ')}`;
 
@@ -41,18 +46,21 @@ async function main()
         for (const world of (names.length ? names : worlds)) {
             const page = await browser.newPage();
             await page.addScriptTag({content: source});
-            const track = await page.evaluate(track_render, {id: worlds.indexOf(world), length});
+            const track = await page.evaluate(track_render, {id: worlds.indexOf(world), length, bars, ending: ending_least});
             const wav = path.join(data_dir, `${world}.wav`);
             await wav_write(page, wav, track.frames);
             await page.close();
             const mp3 = path.join(out_root, world, 'music.mp3');
-            child_process.execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-i', wav, '-codec:a', 'libmp3lame', '-b:a', '128k',
+            // the master's peak is at -1 dBFS: the track is brought to its loudness, boosted at most into that headroom
+            const gain = Math.min(1, loudness - audio_measure(wav).loudness);
+            child_process.execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-i', wav, '-af', `volume=${gain.toFixed(2)}dB`, '-codec:a', 'libmp3lame', '-b:a', '128k',
                 '-id3v2_version', '3', '-metadata', `title=${track.title}`, '-metadata', 'artist=World Explorer', mp3]);
-            const measured = mp3_measure(mp3);
+            fs.writeFileSync(path.join(out_root, world, 'music.json'), `${JSON.stringify({title: track.title, bars: track.bars})}\n`);
+            const measured = audio_measure(mp3);
             if (Math.abs(measured.duration - length) > 0.2) {
                 throw new Error(`${world}: ${measured.duration.toFixed(2)} s long, not ${length}`);
             }
-            console.log(`${world}: ${track.title} · ${track.shape} · peak ${track.peak_db.toFixed(1)} dBFS, ${measured.loudness} LUFS · ${(fs.statSync(mp3).size/1048576).toFixed(1)} MB`);
+            console.log(`${world}: ${track.title} · ${track.shape} · ${measured.loudness.toFixed(1)} LUFS (the master ${gain.toFixed(1)} dB) · ${(fs.statSync(mp3).size/1048576).toFixed(1)} MB`);
         }
     }
     finally {
@@ -102,46 +110,16 @@ async function track_render(job)
     function at(t, fn) {
         events.push({t, fn});
     }
-    // The level's shape, in the world's own tempos: the calm theme's first half (its arrival, then its first wave with
-    // the fight's drums), the drive in whole bars for as long as fits, the boss's whole cycle, the win filling the rest
+    // The piece: the world's calm theme as the campaign plays it, fading in over its first chord, for as many whole
+    // chords as fit before the ending, then the ending filling the rest to the track's end
     const calm_eighth = 60/p.bpm/2;
-    const drive_eighth = 60/music_drive_bpm(p, 1)/2;
-    const boss_eighth = 60/music_drive_bpm(p, 2)/2;
-    const calm_length = 128*calm_eighth;
-    const boss_length = 256*boss_eighth;
-    const drive_bars = Math.floor((job.length - 14 - calm_length - boss_length)/(8*drive_eighth));
-    const drive_length = drive_bars*8*drive_eighth;
-    const t_drive = calm_length;
-    const t_boss = t_drive + drive_length;
-    const t_win = t_boss + boss_length;
-    // the arrival: the calm theme fading in over its first chord; the first wave: its drums
+    const steps = Math.floor((job.length - job.ending)/calm_eighth/16)*16;
+    const t_ending = steps*calm_eighth;
     at(0, () => sound.music_bus.gain.linearRampToValueAtTime(0.8, 4));
-    for (let s = 0; s < 128; ++s) {
-        at(s*calm_eighth, () => music_step(p, s, s*calm_eighth, (s >= 64) ? 1 : 0));
+    for (let s = 0; s < steps; ++s) {
+        at(s*calm_eighth, () => music_step(p, s, s*calm_eighth, 0));
     }
-    // four waves on the drive, each but the first announced by a riser and a crash
-    const wave_bars = Math.floor(drive_bars/4);
-    at(t_drive, () => music_swap(t_drive, 0.08));
-    for (let s = 0; s < drive_bars*8; ++s) {
-        const t = t_drive + s*drive_eighth;
-        const wave_start = (s > 0) && (s % (wave_bars*8) === 0) && (s/(wave_bars*8) < 4);
-        if (wave_start) {
-            at(t - 1.4, () => noise(1.4, 0.03, 500, t - 1.4, sound.music_bus, {sweep: 6000}));
-            if (s % 64) {
-                at(t, () => noise(1.2, 0.02, 5500, t, sound.music_bus, {filter: 'highpass', pan: -0.3}));
-            }
-        }
-        at(t, () => music_drive_step(p, s, t, drive_eighth, 1));
-    }
-    // the flagship: its hit, then its whole cycle
-    at(t_boss, function () {
-        music_swap(t_boss, 0.08);
-        music_drive_hit(p, t_boss);
-    });
-    for (let s = 0; s < 256; ++s) {
-        at(t_boss + s*boss_eighth, () => music_drive_step(p, s, t_boss + s*boss_eighth, boss_eighth, 2));
-    }
-    at(t_win, () => music_win(t_win, job.length - t_win));
+    at(t_ending, () => music_ending(t_ending, job.length - t_ending));
     at(job.length - 1.5, function () {
         sound.master.gain.setValueAtTime(sound.master.gain.value, job.length - 1.5);
         sound.master.gain.linearRampToValueAtTime(0, job.length);
@@ -180,6 +158,17 @@ async function track_render(job)
         throw new Error('a silent track');
     }
     window.track = {rendered, gain: Math.pow(10, -1/20)/peak};
+    // the waveform the page draws (track.js): the peak of each of `bars` slices, as a share of the loudest
+    const bars = [];
+    const left = rendered.getChannelData(0);
+    const slice = Math.floor(left.length/job.bars);
+    for (let i = 0; i < job.bars; ++i) {
+        let top = 0;
+        for (let k = i*slice, end = k + slice; k < end; ++k) {
+            top = Math.max(top, Math.abs(left[k]));
+        }
+        bars.push(Math.round(top/peak*100)/100);
+    }
     function time(t) {
         return `${Math.floor(t/60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`;
     }
@@ -187,7 +176,8 @@ async function track_render(job)
         title: p.title,
         frames: rendered.length,
         peak_db: 20*Math.log10(peak),
-        shape: `arrival 0:00, wave 1 ${time(64*calm_eighth)}, drive ${time(t_drive)} (${wave_bars} bars a wave), flagship ${time(t_boss)}, win ${time(t_win)}`,
+        bars,
+        shape: `the calm theme for ${steps/16} chords, the ending from ${time(t_ending)}`,
     };
 
     // The music goes on from a fresh bus, the old one's notes fading out over `fade` (s), as the game changes music
@@ -196,9 +186,9 @@ async function track_render(job)
         sound.music_bus.gain.setValueAtTime(0.8, t);
     }
 
-    // The win, `seconds` long to the track's end: the calm theme's pad on the world's first chord, its bass twice, its
-    // tune slow, and the root an octave up to end on, the pad and that note ringing out through the room to the end
-    function music_win(t, seconds) {
+    // The ending, `seconds` long to the track's end: the calm theme's pad on the world's first chord, its bass twice,
+    // its tune slow, and the root an octave up to end on, the pad and that note ringing out through the room to the end
+    function music_ending(t, seconds) {
         music_swap(t, 0.4);
         const beat = 60/p.bpm;
         const chord = p.chords[0];
@@ -265,9 +255,9 @@ async function wav_write(page, file, frames)
     }
 }
 
-// The MP3's length (s) and its integrated loudness (LUFS), by ffmpeg: the last I: line is its summary, the ones before
-// are the meter's log as it goes
-function mp3_measure(file)
+// An audio file's length (s) and its integrated loudness (LUFS), by ffmpeg: the last I: line is its summary, the ones
+// before are the meter's log as it goes
+function audio_measure(file)
 {
     const text = child_process.spawnSync('ffmpeg', ['-i', file, '-af', 'ebur128', '-f', 'null', '-'], {encoding: 'utf8'}).stderr;
     const duration = text.match(/Duration: (\d+):(\d+):([\d.]+)/);
@@ -275,5 +265,5 @@ function mp3_measure(file)
     if (!duration || !loudness) {
         throw new Error(`ffmpeg could not measure ${file}`);
     }
-    return {duration: Number(duration[1])*3600 + Number(duration[2])*60 + Number(duration[3]), loudness: loudness[1]};
+    return {duration: Number(duration[1])*3600 + Number(duration[2])*60 + Number(duration[3]), loudness: Number(loudness[1])};
 }
