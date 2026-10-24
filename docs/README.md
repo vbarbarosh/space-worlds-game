@@ -19,6 +19,8 @@ To see it played: [Freelancer, how does it look in 2023](https://www.youtube.com
   [Ion Reach](worlds/ion-reach.md), [Obsidian](worlds/obsidian.md),
   [Cryosphere](worlds/cryosphere.md), [Nova Forge](worlds/nova-forge.md),
   [Eclipse](worlds/eclipse.md). `bin/world-pictures` takes the pictures again.
+- [modes.md](modes.md): the three modes in detail: the arcade's raiders,
+  flagships, depot and reactor, Free and Scroll; the races; the campaign.
 - [principles.md](principles.md): the rules the game keeps everywhere (what
   is solid, keys and buttons, seeded maps, the arcade apart from the
   campaign, the middle of the screen kept clear). A change that breaks one changes this file first.

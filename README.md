@@ -27,88 +27,21 @@ built from [docs/](docs/README.md) (Settings → Pages → Source: GitHub Action
 turns it on). The rules the game keeps everywhere (what is solid, and the
 like) are in [docs/principles.md](docs/principles.md).
 
-Three modes:
+Three modes ([docs/modes.md](docs/modes.md) has each in detail):
 
-- **Arcade**: one run through the eight worlds, about five minutes each: six
-  waves, the world's flagship in the last. Raiders come in squadrons; elites lead some of them,
-  from Haven on (from the second world on Chill); in the middle worlds a
-  squadron fans out round you, and marksmen aim where you will be, a dashed
-  line showing their aim; a share of the squadrons fly mixed, and each
-  world's elites have a trick of their own. Each world's flagship is a fight
-  of its own: its own attacks, each shown before it lands, its own way of
-  moving, a second half below 50%, and its own way to be won: the Crescent
-  runs for a gate and gets away if it reaches it, nests shield the Thorn
-  Beetle, the Sawtooth stuns itself on a rock it charges into, the Storm
-  Wheel is hurt through the gaps of its turning shell, the Iron Stair at one
-  weak point at a time, the Frost Crystal while it glows, the Furnace's ring
-  of fire closes in as it heats, and the Eclipse Eye's dome opens only while
-  you are at the black hole's edge with it. Eclipse is the gravity world: its
-  black hole bends every shot, slings a ship that passes close, and swallows
-  the raiders you lead into it. Ion Reach is the lightning world, here and in
-  the campaign: an arc pylon strikes a ship that comes inside its ring once a
-  gold ring has closed on it (1.1 s to get clear; 18, the shield first), and
-  violet charge fields, most of them beside a pylon, fill the pulse while you
-  stay in them. Obsidian is the magnetic world, here and in the campaign: its
-  dark spires draw ships in within 280 m and bend the shots that pass into
-  themselves, yours and the raiders' alike, so a spire covers whoever keeps it
-  between them and the guns; a spire is solid and nothing breaks it. A ship that explodes hurts what is close to it. The salvage you collect buys
-  repairs, weapons, ships, supplies and modules at the station's depot (R); each world opens more of them, and
-  what is not open yet says where it opens. A module level bought is yours for the run but works only installed,
-  and the ship's reactor powers only so many: its own power (Wisp Scout 4 up to Aurora Cruiser 8) and one more for
-  each world cleared, so a run flies a build, not the whole shop (by Eclipse a cruiser holds 15 of the 75 levels'
-  84 power); Hotter plasma, Rapid resonance and Prism draw 2 a level, the rest 1. At the depot a level goes in or
-  out for free, so each world can fly its own build; a ship with a smaller reactor takes out the newest levels and
-  says so. Reactor tuning (600, 1200, 1800 salvage, three a run) adds a unit of power to every ship. The same power
-  drives the generator, 2 energy a second a unit and 5 more a Generator level: it refills the shield first, 2 s
-  after a hit, then the turbo and the pulse, half each; energy cells pour into it, and kills no longer charge the
-  pulse ([docs/balance.md](docs/balance.md#the-generator)). The support
-  levels do more in the arcade (drones that grow with the run, nanites that mend under fire, shots
-  that slip past an evasive ship), so a guns build, a tank and an evasive pulse build each win about half the
-  bot's runs ([docs/balance.md](docs/balance.md#the-arcades-power-budget)). A cleared world pays a fixed bonus, the weapon
-  grows a tier, a cleared screen shows the world's numbers, and the depot opens before the next world. Score, combo and a best score (salvage left at the end scores 10 points each); no
-  stations or contracts. A run has three lives, shown at the top of the HUD: a
-  death costs one and retries its world from the first wave, as you began it, the depot opening first so you can try
-  another kit; the last ends the run, its score against your best. A save keeps the score,
-  salvage, gear and lives, and loading it starts its world again from the first wave.
-
-  Each arcade world has a shape of its own: its size (from Nova Forge's 5.4 ×
-  5.4 km to Dustfall's 7.6 × 6.6 km) and proportions (Verdant 9.6 × 4.4 km
-  long, Obsidian 5.6 × 8 km tall), its station in the middle, at an end or on a rim, and its rock fields
-  strewn, in a band, a ring, a belt, columns or outcrops.
-
-  The arcade comes in two kinds, picked on its menu row (T turns it): **Free**, as above, and **Scroll**, the same
-  run on a screen that moves on by itself, up, down, left or right by the world, along a lane 16 to 19 km long (about
-  5 minutes with its flagship), the world stretched along it with its rocks and caches. Your ship flies anywhere in the view and the
-  back edge pushes it on; the raiders come from ahead, and one the back edge leaves behind is gone, as is salvage it
-  passes. Scroll is built up from its base a layer at a time: one speed from a world's start to its end, where the
-  world ends, its cleared screen plays and the depot opens before the next; two raiders, the chaser, which turns to you and fires once close,
-  and the passer, which flies a straight line through the view, a sweep across it or a V down it, and fires only
-  while you are inside its ring; salvage and the whole depot (layer 1); the raiders with jobs in the chasers' lines,
-  one more kind each world from Haven to Obsidian (layer 2); the raiders built against the kit you bring, their hull
-  following your guns' damage and their hits your hull, shield and armour (layer 3), and firing faster world by
-  world; squadrons that keep coming to the lane's end, and elites leading every other one (layer 4); the world's
-  flagship where the lane ends, the screen standing still, the world over once it is down (layer 5); the squadrons that are not passers come as the world's own mix has them, chasers, tanks leading
-  a wall or a convoy, splitters, lancers lying in wait by the rocks ahead (layer 6); each world's own gun, scatter,
-  missiles, ion bolts or rail guns, and missiles among the passers (layer 7); each world's flagship duel but Haven's
-  chase, the flagship coming into view from ahead, the lane's raiders staying, its escorts guarding it (layer 8); each world's trick along its lane, cliffs, pylons,
-  spires, storms, Eclipse's black hole beside it (layer 9); a card and the next world between worlds, as in Free;
-  a wave-2 event with the lane's second half, placed for a lane, but in the run's last world.
-  No portals, and the depot opens between worlds only. (Until 2026-10-21 this was a third kind, Base, beside a
-  Scroll that had all of those; there is one Scroll now.) Each kind keeps its own best.
-- **Races**: ring races alone, at Easy, Normal or Hard, course after course
-  from Haven through the eight worlds; the start ship, no raiders, the rocks
-  as solid as ever. Two kinds: Steer, flown by hand, and Turbo, where the
-  ship rides a track by itself and you only press and let go of the turbo
-  (too fast in a bend, it spins off). After each: your place and time, then race again, the
-  next course or the menu. Nothing is saved; the play log records each race
-  ([docs/goals.md](docs/goals.md#the-races-mode)).
-- **Campaign**: the stations, contracts, trading and story chapters; see
-  [docs/scenario/](docs/scenario/README.md). Ranks license ships and guns, and
-  a rank is experience: the hull of every raider you destroy (a Haven chaser
-  58, an Eclipse tank 550, a flagship 10 500) and a contract's pay, so a ship
-  is earned in fights; the HANGAR and ARSENAL say what each needs and what you
-  have. Each world reached opens more ships, guns and module levels, as in the arcade
-  ([docs/balance.md](docs/balance.md), What each world opens).
+- **Arcade**: one run through the eight worlds, about five minutes each:
+  six waves of raiders, the world's flagship in the last, each flagship a
+  fight of its own. Salvage buys weapons, ships and modules at the depot
+  between worlds, as many as the ship's reactor can power. Three lives, a
+  score and a best; no stations or contracts. Two kinds: **Free**, the world
+  open around you, and **Scroll**, the same run along a lane that moves on
+  by itself.
+- **Races**: ring races alone, course after course through the eight
+  worlds, at Easy, Normal or Hard: Steer, flown by hand, or Turbo, where
+  the ship rides the track and you work only the turbo.
+- **Campaign**: the stations, contracts, trading and story chapters
+  ([docs/scenario/](docs/scenario/README.md)); ranks earned in fights
+  license ships and guns, and each world reached opens more.
 
 ## Commands
 
