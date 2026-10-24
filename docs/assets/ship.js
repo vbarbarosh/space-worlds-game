@@ -4,15 +4,15 @@
 // to follow) or with reduced motion asked for.
 (function () {
     // its length on screen (px); the circle round the cursor: its radius (px) and the speed along it (px/s: a lap in
-    // about 4.4 s); the chase: its top speed (px/s), how fast it gains speed and how hard it brakes (px/s²), its turn
+    // about 8.4 s); the chase: its top speed (px/s), how fast it gains speed and how hard it brakes (px/s²), its turn
     // (rad/s); the trail: how long it lasts behind the ship (s), at a standstill and at top speed
     const size = 40;
-    const orbit = 56;
-    const speed_orbit = 80;
-    const speed_max = 1300;
-    const thrust_gain = 2200;
-    const brake = 1600;
-    const turn_rate = 6;
+    const orbit = 60;
+    const speed_orbit = 45;
+    const speed_max = 520;
+    const thrust_gain = 650;
+    const brake = 420;
+    const turn_rate = 3;
     const trail_life = [0.12, 0.38];
     if (!matchMedia('(hover: hover) and (pointer: fine)').matches || matchMedia('(prefers-reduced-motion: reduce)').matches) {
         return;
@@ -77,22 +77,18 @@
         requestAnimationFrame(ship_frame);
     }
 
-    // Far from the cursor it heads for it, as fast as its brakes still bring it down to the circle's speed by the time
-    // it gets there; near, it heads along the circle, drawn back onto it as it drifts in or out, and keeps the way
-    // round it came in by. Its thrust is what the trail shows: full while it gains speed, little while it brakes
+    // It aims at the point where its line of flight would touch the circle round the cursor, so it joins the circle
+    // along it, and flies as fast as its brakes still bring it down to the circle's speed by the circle; inside the
+    // circle it heads out along it. The way round is chosen far off, by the side the cursor lies on, and kept near.
+    // Its thrust is what the trail shows: full while it gains speed, little while it brakes
     function ship_steer(dt) {
         const dx = state.target.x - state.x;
         const dy = state.target.y - state.y;
         const d = Math.hypot(dx, dy) || 1;
-        let want = Math.atan2(dy, dx);
-        if (d < orbit*2.2) {
-            const ahead = Math.cos(state.angle)*dy - Math.sin(state.angle)*dx;
-            if (d > orbit*2) {
-                state.side = (ahead > 0) ? 1 : -1;
-            }
-            const pull = Math.max(-1, Math.min(1, (d - orbit)/orbit));
-            want = Math.atan2(dy, dx) - state.side*(Math.PI/2)*(1 - pull);
+        if (d > orbit*2) {
+            state.side = ((Math.cos(state.angle)*dy - Math.sin(state.angle)*dx) > 0) ? 1 : -1;
         }
+        const want = Math.atan2(dy, dx) - state.side*((d > orbit) ? Math.asin(orbit/d) : (Math.PI/2)*(2 - d/orbit));
         const delta = Math.atan2(Math.sin(want - state.angle), Math.cos(want - state.angle));
         state.angle += Math.max(-turn_rate*dt, Math.min(turn_rate*dt, delta));
         const speed = Math.min(speed_max, Math.sqrt(speed_orbit*speed_orbit + 2*brake*Math.max(0, d - orbit)));
