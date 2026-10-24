@@ -1,0 +1,216 @@
+#!/usr/bin/env node
+
+const cli = require('@vbarbarosh/node-helpers/src/cli');
+const fs = require('node:fs');
+const path = require('node:path');
+const {chromium} = require('playwright');
+
+const data_dir = path.join(__dirname, '..', 'data', 'world-pictures');
+const out_root = path.join(__dirname, '..', 'docs', 'worlds');
+const page_file = path.join(__dirname, '..', 'build', 'dev.html');
+const sprites_dir = path.join(__dirname, '..', 'src', 'sprites', 'worlds');
+const worlds = ['haven', 'verdant', 'dustfall', 'ion-reach', 'obsidian', 'cryosphere', 'nova-forge', 'eclipse'];
+// The world's own sprites shown on its page: the planet, the station, rocks, scenery, gates, and what only some worlds
+// have (Haven's satellites, Ion Reach's pylon, Obsidian's spire, Eclipse's black hole)
+const sprites = ['planet-{world}', 'station', 'asteroid-1', 'asteroid-rich-1', 'scenery-1', 'scenery-2', 'scenery-3',
+    'debris-wreck-1', 'beacon', 'jump-gate', 'world-gate', 'satellite-1', 'pylon', 'spire'];
+const sprites_by_world = {eclipse: ['black-hole']};
+// Each world's special thing in the arcade, the shot of it centred on the first one (the game's list of them): Dustfall's
+// cliffs, Ion Reach's arc pylons, Obsidian's magnetic spires, Eclipse's black hole
+const features = {
+    'dustfall': {list: 'cliffs.map(v => v.rock)', zoom: 1.4},
+    'ion-reach': {list: 'pylons', zoom: 2},
+    'obsidian': {list: 'spires', zoom: 1.6},
+    'eclipse': {list: 'black_holes', zoom: 1.2},
+};
+// the shots' sizes in CSS px, and their pixel ratio
+const hero_size = [1600, 900];
+const crop = 200;
+const flagship_size = [900, 640];
+const usage = `usage: bin/world-pictures [world...]
+
+    Takes the pictures of each world's page of the docs (docs/worlds/<world>/) from build/dev.html, as the game draws
+    them, with no HUD: the world in an arcade fight (world.jpg), its station (station.jpg), each kind of raider it
+    sends and an elite, frozen in open space (raider-<kind>.jpg), its flagship in its wave (flagship.jpg), and its
+    special thing when it has one (feature.jpg); and copies the world's sprites there (src/sprites/worlds/). Run it
+    after bin/build, when a world's look changes. Exits 1 on any failure.
+
+    worlds: ${worlds.join(', ')}`;
+
+cli(main);
+
+async function main()
+{
+    const names = process.argv.slice(2);
+    if (names.some(v => !worlds.includes(v))) {
+        console.log(usage);
+        process.exit(2);
+    }
+    const chosen = names.length ? names : worlds;
+    fs.mkdirSync(data_dir, {recursive: true});
+    const html = fs.readFileSync(page_file, 'utf8');
+    const at = html.lastIndexOf('})();');
+    const hooked = path.join(data_dir, `dev-hooked-${process.pid}.html`);
+    const browser = await chromium.launch();
+    const errors = [];
+    try {
+        fs.writeFileSync(hooked, `${html.slice(0, at)}window.__t = function (code) { return eval(code); };\n${html.slice(at)}`);
+        for (const world of chosen) {
+            const out_dir = path.join(out_root, world);
+            fs.mkdirSync(out_dir, {recursive: true});
+            sprites_copy(world, out_dir);
+            const context = await browser.newContext({viewport: {width: hero_size[0], height: hero_size[1]}, deviceScaleFactor: 1.5});
+            const page = await context.newPage();
+            page.on('pageerror', function (v) {
+                errors.push(`${world}: ${v.message}`);
+            });
+            const raiders = await world_shots(page, hooked, world, out_dir);
+            await context.close();
+            console.log(`${world}: ${raiders.join(', ')}`);
+        }
+    }
+    finally {
+        await browser.close();
+        fs.rmSync(hooked, {force: true});
+    }
+    if (errors.length) {
+        throw new Error(`bin/world-pictures failed:\n${errors.join('\n')}`);
+    }
+}
+
+function sprites_copy(world, out_dir)
+{
+    for (const name of [...sprites, ...(sprites_by_world[world] || [])].map(v => v.replace('{world}', world))) {
+        const from = path.join(sprites_dir, world, `${name}.svg`);
+        if (fs.existsSync(from)) {
+            fs.copyFileSync(from, path.join(out_dir, `${name}.svg`));
+        }
+    }
+}
+
+// The shots of one world; the raiders' kinds it took
+async function world_shots(page, hooked, world, out_dir)
+{
+    const quiet = '#hud_root, .vignette, .scanlines, .dev-fps, #dev_open, .dev-panel, .bossbar { display: none !important; }';
+    async function open(query) {
+        await page.goto(`file://${hooked}?world=${world}&screen=arcade${query}`);
+        await page.waitForSelector('#dev_open:not(.hidden)', {state: 'attached', timeout: 20000});
+        await page.addStyleTag({content: quiet});
+        await page.evaluate(v => window.__t(v), `(${page_quiet})()`);
+    }
+    async function run(fn, args) {
+        return page.evaluate(v => window.__t(v), `(${fn})(${JSON.stringify(args)})`);
+    }
+    async function jpeg(name, clip) {
+        await page.waitForTimeout(400);
+        await page.screenshot({path: path.join(out_dir, `${name}.jpg`), type: 'jpeg', quality: 82, clip});
+    }
+    // its station close, as the run starts; then the world in a fight, its third wave eight seconds in, zoomed out
+    await open('&wave=3');
+    await run(page_view, {zoom: 1.2, at: 'station'});
+    await jpeg('station');
+    await run(page_go, {});
+    await page.waitForTimeout(8000);
+    await run(page_view, {zoom: 0.5});
+    await jpeg('world');
+    // its special thing
+    if (features[world]) {
+        await run(page_view, {zoom: features[world].zoom, at: features[world].list});
+        await jpeg('feature');
+    }
+    // its raiders in a row in open space, each cut out
+    await open('');
+    const raiders = await run(page_raiders, {crop});
+    for (const v of raiders) {
+        await jpeg(`raider-${v.name}`, {x: v.x - crop/2, y: v.y - crop/2, width: crop, height: crop});
+    }
+    // its flagship, once it has come in its wave
+    await open('&wave=flagship');
+    await page.waitForFunction(() => window.__t('enemies.some(v => v.type === "boss")'), null, {timeout: 60000, polling: 250});
+    await page.waitForTimeout(3500);
+    const at = await run(page_view, {zoom: 0.9, at: 'boss'});
+    await jpeg('flagship', {x: at.x - flagship_size[0]/2, y: at.y - flagship_size[1]/2, width: flagship_size[0], height: flagship_size[1]});
+    return raiders.map(v => v.name);
+}
+
+// In the page: no target marks, labels or plates over the ships; the dev page's god mode keeps you alive meanwhile
+function page_quiet()
+{
+    render_target_brackets = function () {};
+    render_hostile_marks = function () {};
+}
+
+// In the page: the game paused and the view at a zoom, on your ship or centred on a thing ('station', 'boss', or the
+// first of a list, its expression); where that thing is on the screen
+function page_view(options)
+{
+    dev_time.paused = true;
+    set_zoom(options.zoom, true);
+    update_camera(0, true);
+    let target = null;
+    if (options.at === 'station') {
+        target = station;
+    }
+    else if (options.at === 'boss') {
+        target = enemies.find(v => v.type === 'boss');
+    }
+    else if (options.at) {
+        target = eval(options.at)[0];
+    }
+    if (target) {
+        camera.x = target.x - W/zoom/2;
+        camera.y = target.y - H/zoom/2;
+    }
+    const p = target || player;
+    return {x: (p.x - camera.x)*zoom, y: (p.y - camera.y)*zoom};
+}
+
+// In the page: the game's clock running again
+function page_go()
+{
+    dev_time.paused = false;
+}
+
+// In the page: every kind of raider this world sends (its mix), the one with a job that opens here, and an elite, in
+// a row in the emptiest open space near your ship, frozen facing down; where each one is on the screen
+function page_raiders(options)
+{
+    dev_enemies_clear();
+    const kinds = ['chaser', 'tank', 'shooter', 'splitter', 'lancer'].filter((v, i) => worlds[campaign.world].mix[i] > 0);
+    const job = Object.keys(raider_kinds).find(v => raider_kinds[v].world === campaign.world);
+    // the station counts at its full size, with its shelter round it
+    const things = [{x: station.x, y: station.y, r: station_size*1.5}, ...ore_nodes, ...scenery, ...black_holes, ...world_zones, ...pylons, ...spires, ...world_gates, ...portals, ...drifting_debris];
+    let best = null;
+    for (let i = 0; i < 400; ++i) {
+        const p = {x: rand(world.w*0.1, world.w*0.9), y: rand(world.h*0.1, world.h*0.9)};
+        const room = Math.min(...things.map(v => distance(v, p) - (v.r || v.radius || 0)));
+        if (!best || (room > best.room)) {
+            best = {...p, room};
+        }
+    }
+    player.x = best.x;
+    player.y = best.y + 400;
+    dev_time.paused = true;
+    set_zoom(2, true);
+    update_camera(0, true);
+    const out = [];
+    const all = [...kinds.map(v => ({name: v, enemy: spawn_enemy(v)}))];
+    if (job) {
+        all.push({name: job, enemy: raider_kind_spawn(job, 0, 0)});
+    }
+    const elite = spawn_enemy(kinds[0]);
+    arcade_elite_make(elite);
+    all.push({name: 'elite', enemy: elite});
+    const per_row = Math.floor(W/zoom/(options.crop/zoom + 10));
+    for (let i = 0, end = all.length; i < end; ++i) {
+        const v = all[i].enemy;
+        v.x = camera.x + ((i % per_row) + 0.5)*(options.crop + 10)/zoom;
+        v.y = camera.y + (Math.floor(i/per_row) + 0.5)*(options.crop + 10)/zoom;
+        v.angle = Math.PI/2;
+        v.speed = 0;
+        v.vx = 0;
+        v.vy = 0;
+        out.push({name: all[i].name, x: (v.x - camera.x)*zoom, y: (v.y - camera.y)*zoom});
+    }
+    return out;
+}

@@ -1,0 +1,162 @@
+/* ==========================================================================
+   The worlds' pages (docs/worlds/): each page in its world's own colours and character, light and dark.
+   bin/build-docs sets <html data-world="haven"> on a page that starts `<!-- world: haven -->`; "index" is the page of
+   the eight. The palette is the world's own (src/js/worlds/<world>.js: look.base, cloud, second, star, and its accent);
+   everything else here is made from it.
+   1. Palettes   2. The page from its palette (dark, light)   3. Each world's character
+   4. The article: the banner, the card grids   5. The page of the eight   6. Narrow windows
+   ========================================================================== */
+
+/* ---------- 1. Palettes -------------------------------------------------- */
+[data-world="haven"] { --w-base: #060e1d; --w-cloud: #285883; --w-second: #236465; --w-star: #d7f4ff; --w-accent: #6cf8ec; --w-planet: #397e8c; }
+[data-world="verdant"] { --w-base: #05120e; --w-cloud: #126b46; --w-second: #3d7b4b; --w-star: #c6ffc4; --w-accent: #9dff9b; --w-planet: #39875e; }
+[data-world="dustfall"] { --w-base: #170b07; --w-cloud: #92512c; --w-second: #5f3929; --w-star: #ffdfaa; --w-accent: #ffd16e; --w-planet: #ac764f; }
+[data-world="ion-reach"] { --w-base: #080c23; --w-cloud: #3449a0; --w-second: #25517e; --w-star: #b8cfff; --w-accent: #8d9cff; --w-planet: #6574ba; }
+[data-world="obsidian"] { --w-base: #111017; --w-cloud: #564655; --w-second: #3b424e; --w-star: #e1d2e2; --w-accent: #ed97cf; --w-planet: #67566c; }
+[data-world="cryosphere"] { --w-base: #05151f; --w-cloud: #266879; --w-second: #295688; --w-star: #d3fbff; --w-accent: #8be9ff; --w-planet: #78afb8; }
+[data-world="nova-forge"] { --w-base: #1d070b; --w-cloud: #a12b25; --w-second: #7c3919; --w-star: #ffc7a3; --w-accent: #ff9469; --w-planet: #d47046; }
+[data-world="eclipse"] { --w-base: #03040b; --w-cloud: #311641; --w-second: #25203c; --w-star: #d3b6ff; --w-accent: #ff5baf; --w-planet: #624476; }
+[data-world="index"] { --w-base: #070e1a; --w-cloud: #12304a; --w-second: #2a1f45; --w-star: #d7f4ff; --w-accent: #6cf8ec; --w-planet: #397e8c; }
+
+/* ---------- 2. The page from its palette --------------------------------- */
+:root[data-world] {
+    --w-radius: var(--r);
+    --w-tile: var(--w-base);
+    --bg: var(--w-base);
+    --bg-2: color-mix(in srgb, var(--w-base) 86%, var(--w-cloud));
+    --panel: color-mix(in srgb, var(--w-base) 80%, var(--w-cloud));
+    --panel-2: color-mix(in srgb, var(--w-base) 66%, var(--w-cloud));
+    --pre-bg: color-mix(in srgb, var(--w-base) 88%, var(--w-cloud));
+    --line: color-mix(in srgb, var(--w-star) 16%, transparent);
+    --line-2: color-mix(in srgb, var(--w-star) 30%, transparent);
+    --code-bg: color-mix(in srgb, var(--w-star) 10%, transparent);
+    --text-1: color-mix(in srgb, var(--w-star) 30%, #ffffff);
+    --text: color-mix(in srgb, var(--w-star) 70%, #c8c8c8);
+    --text-3: color-mix(in srgb, var(--w-star) 62%, #8a8a8a);
+    --accent: var(--w-accent);
+    --accent-dim: color-mix(in srgb, var(--w-accent) 14%, transparent);
+    --link: var(--w-accent);
+    --link-line: color-mix(in srgb, var(--w-accent) 40%, transparent);
+    --glow: 0 0 0 1px color-mix(in srgb, var(--w-accent) 40%, transparent), 0 0 18px color-mix(in srgb, var(--w-accent) 18%, transparent);
+    --art-bg: radial-gradient(120% 90% at 70% 20%, color-mix(in srgb, var(--w-cloud) 55%, var(--w-base)) 0%, var(--w-base) 100%);
+}
+/* the world's sky behind the page: its nebula's two colours in the corners */
+:root[data-world] body {
+    background:
+        radial-gradient(70% 55% at 100% 0%, color-mix(in srgb, var(--w-cloud) 42%, transparent), transparent 70%),
+        radial-gradient(55% 45% at 0% 35%, color-mix(in srgb, var(--w-second) 30%, transparent), transparent 70%),
+        var(--bg);
+    background-attachment: fixed;
+}
+/* light: the world's starlight as paper, its accent darkened to read on it; the pictures keep the world's night */
+:root[data-world][data-theme="light"] {
+    --bg: color-mix(in srgb, var(--w-star) 16%, #ffffff);
+    --bg-2: color-mix(in srgb, var(--w-star) 26%, #ffffff);
+    --panel: #ffffff;
+    --panel-2: color-mix(in srgb, var(--w-star) 30%, #ffffff);
+    --pre-bg: color-mix(in srgb, var(--w-star) 20%, #ffffff);
+    --line: color-mix(in srgb, var(--w-base) 16%, transparent);
+    --line-2: color-mix(in srgb, var(--w-base) 30%, transparent);
+    --code-bg: color-mix(in srgb, var(--w-base) 7%, transparent);
+    --text-1: color-mix(in srgb, var(--w-base) 80%, #000000);
+    --text: color-mix(in srgb, var(--w-base) 60%, #2a2a2a);
+    --text-3: color-mix(in srgb, var(--w-base) 45%, #555555);
+    --accent: color-mix(in srgb, var(--w-accent) 60%, #000000);
+    --accent-dim: color-mix(in srgb, var(--w-accent) 18%, transparent);
+    --link: color-mix(in srgb, var(--w-accent) 42%, #000000);
+    --link-line: color-mix(in srgb, var(--w-accent) 50%, transparent);
+    --glow: 0 0 0 1px color-mix(in srgb, var(--w-accent) 50%, transparent), 0 0 0 4px color-mix(in srgb, var(--w-accent) 16%, transparent);
+}
+:root[data-world][data-theme="light"] body {
+    background:
+        radial-gradient(70% 55% at 100% 0%, color-mix(in srgb, var(--w-cloud) 16%, transparent), transparent 70%),
+        radial-gradient(55% 45% at 0% 35%, color-mix(in srgb, var(--w-second) 12%, transparent), transparent 70%),
+        var(--bg);
+    background-attachment: fixed;
+}
+
+/* ---------- 3. Each world's character ------------------------------------ */
+/* Haven: calm water, soft round corners */
+[data-world="haven"] { --w-radius: 14px; }
+/* Verdant: grown, not built: round leaves for corners, a soft glow */
+[data-world="verdant"] { --w-radius: 26px; }
+[data-world="verdant"] .content h1 { text-shadow: 0 0 22px color-mix(in srgb, var(--w-accent) 35%, transparent); }
+/* Dustfall: worn stone and sand: square corners, a dashed rule like a caravan's track */
+[data-world="dustfall"] { --w-radius: 4px; }
+[data-world="dustfall"] .content h2 { background: repeating-linear-gradient(90deg, var(--accent) 0 10px, transparent 10px 16px) left top / 100% 2px no-repeat; }
+/* Ion Reach: electricity: glowing titles, cards lit at their edge */
+[data-world="ion-reach"] .content :is(h1, h2) { text-shadow: 0 0 14px color-mix(in srgb, var(--w-accent) 55%, transparent); }
+[data-world="ion-reach"] .content li:has(> img, > a > img) { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--w-accent) 35%, transparent), 0 0 16px color-mix(in srgb, var(--w-accent) 12%, transparent); }
+/* Obsidian: heavy industry: plates, rivet-hard corners, capital letters */
+[data-world="obsidian"] { --w-radius: 2px; }
+[data-world="obsidian"] .content :is(h1, h2) { text-transform: uppercase; letter-spacing: 0.06em; }
+/* Cryosphere: ice: thin, wide, cut corners */
+[data-world="cryosphere"] { --w-radius: 0; }
+[data-world="cryosphere"] .content :is(h1, h2) { font-weight: 300; letter-spacing: 0.08em; }
+[data-world="cryosphere"] .content li:has(> img, > a > img) { clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px); }
+/* Nova Forge: heat: the title glows like metal from the furnace */
+[data-world="nova-forge"] { --w-radius: 6px; }
+[data-world="nova-forge"] .content h1 {
+    background: linear-gradient(90deg, #ffe3a3, var(--w-accent) 45%, #ff4a2a) text, linear-gradient(90deg, var(--accent), transparent) left bottom / 96px 2px no-repeat;
+    -webkit-background-clip: text, border-box;
+    color: transparent;
+}
+:root[data-world="nova-forge"][data-theme="light"] .content h1 { background: none; color: var(--text-1); }
+/* Eclipse: the dark eye: a pink ring of light round the cards */
+[data-world="eclipse"] { --w-radius: 18px; }
+[data-world="eclipse"] .content li:has(> img, > a > img) { box-shadow: 0 0 0 1px color-mix(in srgb, var(--w-accent) 45%, transparent), 0 0 22px color-mix(in srgb, var(--w-accent) 16%, transparent); }
+
+/* ---------- 4. The article ----------------------------------------------- */
+/* the world in a fight under the title, and the flagship under its heading: the article's full width; the other
+   pictures (the station, the special thing) the text's */
+[data-world] .content > :is(h1 + p + p, h2 + p):has(> img:only-child) { max-width: none; }
+[data-world] .content img { border-radius: var(--w-radius); }
+[data-world] .content > p > img:only-child { width: 100%; border: 1px solid var(--line-2); box-shadow: 0 18px 50px -24px #000000; }
+/* the world's tagline under the title */
+[data-world] .content h1 + p { color: var(--link); font-weight: 600; letter-spacing: 0.04em; opacity: 1; }
+/* a list whose items start with a picture is a grid of cards: the things in the world, its raiders */
+[data-world] .content ul:has(> li > img:first-child, > li > a:first-child > img) {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(168px, 1fr)); gap: 14px;
+    max-width: none; margin: 18px 0 26px; padding: 0;
+}
+[data-world] .content ul > li:has(> img:first-child, > a:first-child > img) {
+    display: block; margin: 0; padding: 0 12px 12px;
+    border: 1px solid var(--line); border-radius: var(--w-radius); background: var(--panel); overflow: hidden;
+    font-size: 14.5px; line-height: 1.45;
+}
+[data-world] .content ul > li:has(> img:first-child, > a:first-child > img)::before { display: none; }
+[data-world] .content ul > li > img:first-child {
+    width: calc(100% + 24px); max-width: none; aspect-ratio: 1; margin: 0 -12px 10px; padding: 14px; object-fit: contain;
+    border: 0; border-radius: 0; background: var(--w-tile);
+}
+/* a raider's picture is already its world's sky: no plate round it */
+[data-world] .content ul > li > img:first-child[src$=".jpg"] { padding: 0; object-fit: cover; }
+[data-world] .content ul > li:has(> img:first-child) > strong:first-of-type { display: block; margin-bottom: 2px; }
+[data-world] .content h2 + p > img:only-child { margin-top: 4px; }
+
+/* ---------- 5. The page of the eight ------------------------------------- */
+[data-world="index"] .content ul:has(> li > a:first-child > img) { grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); }
+[data-world="index"] .content ul > li > a:first-child { display: block; margin-bottom: 4px; color: var(--text-1); text-decoration: none; }
+[data-world="index"] .content ul > li > a:first-child > img {
+    width: calc(100% + 24px); max-width: none; aspect-ratio: 16 / 9; margin: 0 -12px 10px; object-fit: cover; border-radius: 0;
+}
+[data-world="index"] .content ul > li > a:first-child > strong { color: var(--w-card, var(--accent)); font-size: 17px; }
+[data-world="index"] .content ul > li:hover { border-color: var(--w-card, var(--accent)); }
+/* each card in its own world's accent, darker on light */
+[data-world="index"] .content ul > li:nth-child(1) { --w-card: #6cf8ec; }
+[data-world="index"] .content ul > li:nth-child(2) { --w-card: #9dff9b; }
+[data-world="index"] .content ul > li:nth-child(3) { --w-card: #ffd16e; }
+[data-world="index"] .content ul > li:nth-child(4) { --w-card: #8d9cff; }
+[data-world="index"] .content ul > li:nth-child(5) { --w-card: #ed97cf; }
+[data-world="index"] .content ul > li:nth-child(6) { --w-card: #8be9ff; }
+[data-world="index"] .content ul > li:nth-child(7) { --w-card: #ff9469; }
+[data-world="index"] .content ul > li:nth-child(8) { --w-card: #ff5baf; }
+:root[data-world="index"][data-theme="light"] .content ul > li { --w-card-light: color-mix(in srgb, var(--w-card) 42%, #000000); }
+:root[data-world="index"][data-theme="light"] .content ul > li > a:first-child > strong { color: var(--w-card-light); }
+:root[data-world="index"][data-theme="light"] .content ul > li:hover { border-color: var(--w-card-light); }
+
+/* ---------- 6. Narrow windows -------------------------------------------- */
+@media (max-width: 700px) {
+    [data-world] .content ul:has(> li > img:first-child, > li > a:first-child > img) { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+    [data-world="index"] .content ul:has(> li > a:first-child > img) { grid-template-columns: minmax(0, 1fr); }
+}

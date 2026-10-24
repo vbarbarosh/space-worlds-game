@@ -62,10 +62,13 @@ function page_from_file(file)
 {
     const markdown = fs.readFileSync(path.join(docs_dir, file), 'utf8');
     const heading = markdown.match(/^# (.+)$/m);
+    // a world's page (docs/worlds/) starts `<!-- world: haven -->`: the page takes that world's look (assets/worlds.css)
+    const world = markdown.match(/^<!-- world: ([a-z-]+) -->/);
     return {
         file,
         href: href_from_md(file),
         markdown,
+        world: world ? world[1] : null,
         title: heading ? heading[1].replace(/^World Explorer: (.)/, (match, first) => first.toUpperCase()) : file,
     };
 }
@@ -111,7 +114,8 @@ function html_from_page(template, page, pages)
 {
     const root = '../'.repeat(page.href.split('/').length - 1);
     const nav = pages.map(v => `<li><a href="${root}${v.href}"${(v === page) ? ' class="on"' : ''}>${html_escape(v.title)}</a></li>`).join('\n');
-    const values = {content: html_from_markdown(page), nav: `<ul>\n${nav}\n</ul>`, root, title: html_escape(page.title)};
+    const world = page.world ? ` data-world="${page.world}"` : '';
+    const values = {content: html_from_markdown(page), nav: `<ul>\n${nav}\n</ul>`, root, title: html_escape(page.title), world};
     return template.replace(/\{\{(\w+)\}\}/g, (match, name) => values[name]);
 }
 

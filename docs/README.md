@@ -13,6 +13,12 @@ To see it played: [Freelancer, how does it look in 2023](https://www.youtube.com
 
 ## Pages
 
+- [worlds/](worlds/README.md): the eight worlds for a player, a page each in
+  its world's own colours, with pictures from the game: [Haven](worlds/haven.md),
+  [Verdant](worlds/verdant.md), [Dustfall](worlds/dustfall.md),
+  [Ion Reach](worlds/ion-reach.md), [Obsidian](worlds/obsidian.md),
+  [Cryosphere](worlds/cryosphere.md), [Nova Forge](worlds/nova-forge.md),
+  [Eclipse](worlds/eclipse.md). `bin/world-pictures` takes the pictures again.
 - [principles.md](principles.md): the rules the game keeps everywhere (what
   is solid, keys and buttons, seeded maps, the arcade apart from the
   campaign, the middle of the screen kept clear). A change that breaks one changes this file first.

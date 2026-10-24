@@ -126,6 +126,11 @@ Three modes:
     bin/build-docs   docs/ as a website in build/docs, with the game from
                      bin/build in play/; published to GitHub Pages on every
                      push to main (.github/workflows/docs.yml)
+    bin/world-pictures
+                     the pictures of the worlds' pages (docs/worlds/), taken
+                     from build/dev.html with no HUD: each world in a fight,
+                     its station, its raiders, its flagship, its special
+                     thing; and its sprites copied beside them
     bin/perf         frame times, garbage and drawing costs over 57 scenes
                      (every world calm and in a fight, zoom 100% and 50%,
                      the arcade from Dustfall on, Scroll lanes in Dustfall,
