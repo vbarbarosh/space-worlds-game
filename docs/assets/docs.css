@@ -551,11 +551,9 @@ body:has(.content > h1#world-explorer-documentation) .hero {
     body:has(.content > h1#world-explorer-documentation) .hero { height: 120px; }
     main { padding-top: 24px; }
 }
-/* the game's Scout after the cursor (assets/ship.js): over everything, never in the way of a click; its flame from the
-   nozzle at the drawing's 238/256, longer as it flies faster */
-.cursor-ship { position: fixed; left: 0; top: 0; width: 40px; height: 40px; z-index: 1000; pointer-events: none; will-change: transform; }
-.cursor-ship img { position: relative; display: block; width: 100%; height: 100%; filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.35)); }
-.cursor-ship-flame { position: absolute; left: 50%; top: 90%; width: 7px; height: 16px; border-radius: 50%; transform-origin: 50% 0; background: linear-gradient(#ffffff, #8fdcff 35%, rgba(47, 168, 255, 0)); filter: blur(0.6px); }
+/* the game's Scout after the cursor and its trail (assets/ship.js), painted on one canvas over the whole window, over
+   everything and never in the way of a click */
+.cursor-ship { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 1000; pointer-events: none; }
 @media (prefers-reduced-motion: reduce) {
     * { animation: none !important; transition: none !important; }
 }
