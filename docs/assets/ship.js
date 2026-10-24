@@ -33,17 +33,43 @@
         state.target = {x: event.clientX, y: event.clientY};
     }, {passive: true});
     addEventListener('resize', canvas_resize);
+    addEventListener('pagehide', ship_keep);
     drawing.addEventListener('load', bitmap_make);
+    // On the next page of the visit it goes on from where it was, round what it was circling (ship_keep)
+    let kept = null;
+    try {
+        kept = JSON.parse(sessionStorage.getItem('docs_ship'));
+    }
+    catch {
+    }
+    if (kept && kept.target) {
+        Object.assign(state, {x: kept.x, y: kept.y, angle: kept.angle, speed: kept.speed, side: kept.side, target: kept.target});
+        ship_launch(true);
+    }
 
-    // The first move: the ship comes out of the page's logo, top left, and flies to the cursor
-    function ship_launch() {
-        const logo = document.querySelector('.brand-mark');
-        const box = logo ? logo.getBoundingClientRect() : {left: 0, top: 0, width: 0, height: 0};
-        state.x = box.left + box.width/2;
-        state.y = box.top + box.height/2;
+    // The first move: the ship comes out of the page's logo, top left, and flies to the cursor; `placed`, it is already
+    // where the last page left it
+    function ship_launch(placed = false) {
+        if (!placed) {
+            const logo = document.querySelector('.brand-mark');
+            const box = logo ? logo.getBoundingClientRect() : {left: 0, top: 0, width: 0, height: 0};
+            state.x = box.left + box.width/2;
+            state.y = box.top + box.height/2;
+        }
         canvas_resize();
         document.body.append(canvas);
         requestAnimationFrame(ship_frame);
+    }
+
+    // Where it is, which way it flies, how fast, and what it circles, for the next page (sessionStorage docs_ship)
+    function ship_keep() {
+        if (state.target) {
+            try {
+                sessionStorage.setItem('docs_ship', JSON.stringify({x: state.x, y: state.y, angle: state.angle, speed: state.speed, side: state.side, target: state.target}));
+            }
+            catch {
+            }
+        }
     }
 
     function canvas_resize() {
