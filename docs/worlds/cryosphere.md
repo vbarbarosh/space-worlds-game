@@ -3,6 +3,8 @@
 
 Frozen Aurora · the sixth world · home of the Frost Sentinels
 
+[A sky made of glass · Cryosphere's track](cryosphere/music.mp3)
+
 ![Cryosphere: the snowflake station under the aurora](cryosphere/world.jpg)
 
 Cryosphere is a fractured ice moon under ribbons of polar light, with

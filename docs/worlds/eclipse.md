@@ -3,6 +3,8 @@
 
 Black Crown · the last world · home of the Void Armada
 
+[Between distant tides · Eclipse's track](eclipse/music.mp3)
+
 ![Eclipse: the void citadel and a fight in the dark](eclipse/world.jpg)
 
 Eclipse is the end of the road. The world sits in the shadow of its own

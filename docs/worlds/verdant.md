@@ -3,6 +3,8 @@
 
 Living Veil · the second world · home of the Thorn Swarm
 
+[The breathing nebula · Verdant's track](verdant/music.mp3)
+
 ![Verdant: the living station and a fight in the green](verdant/world.jpg)
 
 Verdant is alive. An emerald gas giant fills the sky, spores glow in the

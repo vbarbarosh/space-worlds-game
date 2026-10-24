@@ -3,6 +3,8 @@
 
 Solar Foundry · the seventh world · home of the Ember Legion
 
+[The sun below · Nova Forge's track](nova-forge/music.mp3)
+
 ![Nova Forge: the solar forge over the molten planet](nova-forge/world.jpg)
 
 Nova Forge burns. A molten planet glows below, a blazing corona fills the

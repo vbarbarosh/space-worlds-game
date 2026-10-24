@@ -3,6 +3,8 @@
 
 Iron Expanse · the fifth world · home of the Iron Dominion
 
+[Silent machinery · Obsidian's track](obsidian/music.mp3)
+
 ![Obsidian: the armoured bastion and a fight among the steel](obsidian/world.jpg)
 
 Obsidian is heavy. It is a fortified industrial planet among steel wreckage
