@@ -90,6 +90,8 @@ const screens = [
     {value: 'station-career', label: 'station-goals', phone: true},
     // a pilot one XP short of Commander: the readout's longest numbers, the next licences named
     {value: 'station-career', label: 'station-goals-xp', query: '&xp=219999', phone: true},
+    // reputation in all eight worlds, every tier, and the fines of four worlds this station takes, with salvage in the millions
+    {value: 'station-career', label: 'station-goals-reputation', world: 'ion-reach', query: '&rep=haven:-3,verdant:9,dustfall:-7,ion-reach:-1,obsidian:-10,cryosphere:10,nova-forge:4,eclipse:0&station=full', phone: true},
     {value: 'station-market', label: 'station-market', phone: true},
     // all eleven goods in the hold: every card of the market, each with its picture
     {value: 'station-market', label: 'station-market-all', query: '&cargo=all', phone: true},

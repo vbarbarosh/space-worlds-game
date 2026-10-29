@@ -13,9 +13,9 @@ function market_price(id, index, side)
     const base = commodity_base_price(id, index);
     const key = commodities[index].key;
     if (side === 'sell') {
-        return base - 2 + (((ensure_markets()[id].demand[key] || 0) > 0) ? 6 : 0);
+        return reputation_price(id, side, base - 2 + (((ensure_markets()[id].demand[key] || 0) > 0) ? 6 : 0));
     }
-    return base + ((ensure_markets()[id].demand[key] > 0) ? 6 : 0);
+    return reputation_price(id, side, base + ((ensure_markets()[id].demand[key] > 0) ? 6 : 0));
 }
 
 function trade_total(id, key, side, amount)
@@ -24,7 +24,12 @@ function trade_total(id, key, side, amount)
     if ((i < 0) || !Number.isFinite(amount) || (amount < 0)) {
         return 0;
     }
-    return (side === 'buy') ? market_price(id, i, 'buy')*amount : (commodity_base_price(id, i) - 2)*amount + Math.min(amount, ensure_markets()[id].demand[key] || 0)*6;
+    if (side === 'buy') {
+        return market_price(id, i, 'buy')*amount;
+    }
+    // the units that fill the demand at its price, the rest at the plain one
+    const filled = Math.min(amount, ensure_markets()[id].demand[key] || 0);
+    return reputation_price(id, side, commodity_base_price(id, i) + 4)*filled + reputation_price(id, side, commodity_base_price(id, i) - 2)*(amount - filled);
 }
 let intel_commodity = 'all';
 function trade_opportunities()

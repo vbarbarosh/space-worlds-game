@@ -531,6 +531,7 @@ function update_escort(dt)
         m.escort_state = null;
         escort = null;
         show_toast('CONVOY LOST', 'MEET A REPLACEMENT AT THE STATION / PREVIOUS STAGES PRESERVED', 4);
+        reputation_change(campaign.world, -1, 'freighter lost', -4);
         return;
     }
     m.escort_state = clone(escort);
@@ -736,7 +737,7 @@ function offered_jobs()
         m.world = m.stages[0].world;
         m.target = m.stages[0].target;
         m.level = level;
-        m.reward = contract_reward(m.stages, id, level, m.premium || 1);
+        m.reward = contract_reward(m.stages, id, level, (m.premium || 1)*reputation_tier(id).contracts);
         m.description += ` ${m.stages.map(v => v.title).join(' → ')}.`;
     }
     // side missions written as files, in their world, until done
@@ -821,7 +822,13 @@ function guide_base_claim_contract(id)
     play_log_contract('claimed', m, {xp});
     campaign.xp += xp;
     play_log_xp('contract', xp);
-    campaign.reputation[m.issuer] = (campaign.reputation[m.issuer] || 0) + 1;
+    // a chapter raises its own world's reputation by 2, any other contract the world that offered it by 1
+    if (m.main) {
+        reputation_change(m.world, 2, 'chapter');
+    }
+    else {
+        reputation_change(m.issuer, 1, 'contract');
+    }
     if (m.expedition) {
         campaign.expedition++;
     }
@@ -981,7 +988,6 @@ function render_station()
     expedition_base_render_station();
     sync_sell_all_button();
     const parent = document.getElementById('station_content');
-    const rank = pilot_rank();
     if ((station_tab === 'hangar') || (station_tab === 'arsenal') || (station_tab === 'career') || (station_tab === 'intel')) {
         parent.replaceChildren();
         set_hidden(el.shop_grid, true);
@@ -1002,7 +1008,7 @@ function render_station()
     if (station_tab === 'career') {
         render_station_goals(parent);
     }
-    el.dock_summary.textContent = `${current_ship().name} · rank ${rank_names[rank]} · story ${campaign.story}/${story.length}`;
+    el.dock_summary.textContent = station_summary_text();
     if (['hangar', 'arsenal'].includes(station_tab)) {
         el.dock_status.textContent = 'Ships and guns stay yours. Guns move between ships with their mounts; switching ships repairs the hull.';
     }

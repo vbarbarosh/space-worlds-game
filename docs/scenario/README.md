@@ -89,15 +89,17 @@ choice.
 
 ## Reputation
 
-Each world keeps its own reputation, from −10 to +10. Today it is a counter
-of completed contracts that only the career tab shows.
+Each world keeps its own reputation, from −10 to +10. The game keeps it, its
+tiers, their prices and docking, and the fine
+([goals.md](../goals.md#reputation)); what the guards do by tier comes with
+the guards.
 
 | Tier | Range | What the world does |
 |------|-------|---------------------|
 | **Wanted** | −10 … −5 | guards attack on sight; the station refuses docking |
-| **Suspect** | −4 … −1 | guards stop you for inspection; contraband is taken and a fine is charged; prices are worse |
+| **Suspect** | −4 … −1 | guards stop you for inspection; contraband is taken and a fine is charged; prices 10% worse |
 | **Neutral** | 0 … 2 | nothing special |
-| **Established** | 3 … 7 | better side contracts; 5% off at the market |
+| **Established** | 3 … 7 | side contracts pay 10% more; 5% off at the market |
 | **Trusted** | 8 … 10 | guards escort you near the station; the world signs the Charter |
 
 | Raises it | | Lowers it | |

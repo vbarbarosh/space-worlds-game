@@ -185,6 +185,9 @@ function interact()
         return;
     }
     if (distance(player, station) < station_reach) {
+        if (reputation_dock_refused()) {
+            return;
+        }
         docking_start(dock_station);
         return;
     }
@@ -457,7 +460,7 @@ function guide_base_update_hud()
     hud_html(b, `${hud_dock_icon}<span>${g ? 'Jump' : 'Dock'}</span><span class="key">R</span>`);
     document.getElementById('nav_button').disabled = !['playing', 'paused', 'navigation'].includes(state);
     if ((state === 'playing') && (distance(player, station) < station_reach)) {
-        hud_text(el.navigation_status, `${hud_read(el.navigation_status)} / R DOCK`);
+        hud_text(el.navigation_status, `${hud_read(el.navigation_status)} / ${(reputation_tier().id === 'wanted') ? 'WANTED: NO DOCKING' : 'R DOCK'}`);
     }
     else if (g) {
         hud_text(el.navigation_status, `${hud_read(el.navigation_status)} / ${requirements(g.destination)}`);

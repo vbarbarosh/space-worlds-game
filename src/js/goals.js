@@ -312,8 +312,11 @@ function render_station_goals(parent)
         : tech_open(Math.max(...ship_catalog.map(v => v.opens), ...weapon_catalog.map(v => v.opens)))
             ? 'Every ship and gun is yours to fly.'
             : 'Every licence is yours; new worlds open more ships and guns.';
-    const reputation = campaign.visited.map(v => `<span>${worlds[v].name}</span><span class="b"><i style="width:${Math.min(100, (campaign.reputation[v]/8)*100)}%;background:var(--w-${world_slug(v)})"></i></span><span class="v">${(campaign.reputation[v] >= 8) ? 'trusted' : (campaign.reputation[v] >= 3) ? 'known' : '–'}</span>`).join('');
-    career.innerHTML = `<span class="eyebrow eyebrow--muted">Pilot career</span>${career_head}${career_bar}<p class="small">${career_text}</p><span class="eyebrow eyebrow--muted">Reputation</span><div class="bars">${reputation}</div>`;
+    career.innerHTML = `<span class="eyebrow eyebrow--muted">Pilot career</span>${career_head}${career_bar}<p class="small">${career_text}</p><span class="eyebrow eyebrow--muted">Reputation</span><div class="bars rep-bars">${reputation_rows_html()}</div>`;
+    const fines = reputation_fines_element();
+    if (fines) {
+        career.append(fines);
+    }
     right.append(career);
     const others = document.createElement('div');
     others.className = 'goal-panel';

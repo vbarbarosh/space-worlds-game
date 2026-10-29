@@ -280,9 +280,43 @@ On collecting (`guide_base_claim_contract` in `src/js/operations.js` and
 - experience: as much as the reward, toward the pilot rank that licenses
   ships and guns; the raiders destroyed on the way bring far more, each its
   hull (ranks and kill XP in [balance.md](balance.md#campaign-pace));
-- +1 reputation with the world that issued it. The GOALS tab shows a world as
-  known from 3 and trusted from 8. Reputation changes nothing else yet; the
-  tiers in [scenario/README.md](scenario/README.md#reputation) are a plan.
+- reputation: a story chapter +2 with its own world, any other contract +1
+  with the world that issued it ([Reputation](#reputation)).
+
+## Reputation
+
+Each world keeps its reputation, a whole number from −10 to +10, in five
+tiers (`src/js/reputation.js`; the design is in
+[scenario/README.md](scenario/README.md#reputation)).
+
+| Tier | Range | What the world does |
+|---|---|---|
+| Wanted | −10 … −5 | its station refuses docking; prices as Suspect |
+| Suspect | −4 … −1 | market prices 10% worse, buying and selling |
+| Neutral | 0 … 2 | nothing special |
+| Established | 3 … 7 | 5% off buying at its market; its side contracts pay 10% more |
+| Trusted | 8 … 10 | as Established |
+
+- Raised: a chapter collected +2 with the chapter's world, any other
+  contract +1 with the world that issued it.
+- Lowered: a contract abandoned −1 with its issuer, a convoy's freighter lost
+  −1 with its world; neither takes it below −4, so they leave you Suspect at
+  worst, never Wanted.
+- A fine sets a world back to 0: 120 for every point below 0, × (1 + 0.3 ×
+  the world's tier), to the nearest 10. The GOALS tab offers it for the
+  world you are docked in and for the worlds linked to it; what you cannot
+  afford of it is forgiven.
+- R at the station of a world where you are Wanted refuses docking and names
+  the neighbours where the fine is taken; when you have reached none of
+  them, the station takes the fine itself and docks you. A tow after a
+  wreck still docks.
+- A tier change is told in a toast. The GOALS tab shows a bar per world you
+  know, from its middle: to the left in red below 0, to the right in the
+  world's colour; the station's header line names the tier here.
+- A save from before the tiers counted every contract with no limit: it
+  comes back clamped to the range.
+- Try it: `dev.html?world=haven&screen=station-career&rep=haven:-3,verdant:9,dustfall:-7`
+  (`rep=-6` alone sets the scenario's world; the worlds named are visited).
 
 ## Goals
 
@@ -299,7 +333,7 @@ dropped and picked again.
 - Where: `goal_kinds`, `explorer_steps`, `prospector_steps`;
   `prospector_target` is the 2000.
 - The same tab shows the pilot's rank and XP, and reputation in the worlds
-  seen.
+  seen, with the fines this station takes.
 
 ## Trade plans
 

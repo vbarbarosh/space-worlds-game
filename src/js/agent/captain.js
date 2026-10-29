@@ -43,7 +43,8 @@ function captain_status()
     out.weapon = `${current_weapon().name} T${weapon_level()}`;
     out.rank = rank_names[pilot_rank()];
     out.xp = campaign.xp;
-    out.reputation = campaign.reputation[campaign.world] || 0;
+    out.reputation = reputation_of();
+    out.reputation_tier = reputation_tier().name;
     out.cargo = {...campaign.cargo, capacity: cargo_capacity()};
     out.supplies = {...supplies};
     out.contracts = [];

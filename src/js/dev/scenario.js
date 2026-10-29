@@ -47,7 +47,23 @@ function dev_scenario_from_url()
         // the arcade's kind: kind=scroll for a run on a lane that scrolls by itself (an older link's kind=base too: Base is
         // Scroll now)
         kind: ['scroll', 'base'].includes(params.get('kind')) ? 'scroll' : 'free',
+        // rep=-6: the world's reputation; rep=haven:-6,verdant:9 each world's, and those worlds visited
+        rep: params.get('rep'),
     };
+}
+
+// The reputation a rep= of the URL gives, world by world ({0: -6, 1: 9}), the scenario's world when none is named
+function dev_scenario_reputation(world)
+{
+    const out = {};
+    for (const part of (dev_scenario.rep || '').split(',').filter(Boolean)) {
+        const [name, value] = part.includes(':') ? part.split(':') : [String(world), part];
+        const id = worlds.findIndex((v, i) => (world_slug(i) === name) || (String(i) === name));
+        if ((id >= 0) && Number.isFinite(Number(value))) {
+            out[id] = clamp(Math.round(Number(value)), reputation_min, reputation_max);
+        }
+    }
+    return out;
 }
 
 function dev_scenario_save()
@@ -74,6 +90,9 @@ function dev_scenario_save()
     if (dev_scenario.kind !== 'free') {
         params.set('kind', dev_scenario.kind);
     }
+    if (dev_scenario.rep) {
+        params.set('rep', dev_scenario.rep);
+    }
     // the map editor's edit flown (dev/map_editor.js), again after a reload
     if (dev_map.source === 'edited') {
         params.set('map', 'edited');
@@ -93,6 +112,7 @@ function dev_scenario_start()
     for (const weapon of weapon_catalog) {
         weapon_levels[weapon.id] = (weapon.id === dev_scenario.weapon) ? dev_scenario.tier : 1;
     }
+    const reputation = dev_scenario_reputation(world);
     dev_scenario.started = true;
     difficulty = dev_scenario.difficulty;
     arcade_stop();
@@ -115,7 +135,8 @@ function dev_scenario_start()
             story: 0,
             contracts: [],
             completed: 0,
-            visited: [world],
+            visited: [...new Set([world, ...Object.keys(reputation).map(Number)])],
+            reputation: worlds.map((v, i) => reputation[i] || 0),
             cargo: {ore: 0, cells: 0, relics: 0},
             maps: {},
             serial: 0,

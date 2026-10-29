@@ -171,7 +171,8 @@ pilot's experience (else a Legend's, every licence held), so the HANGAR and
 ARSENAL show the licences a rank still holds back, with the XP each needs.
 `&contracts=full` crowds the station's CONTRACTS (three taken, among them a very long title, and the
 longest board offered) and `&cargo=all` puts all eleven goods in the hold for
-the CARGO MARKET; `&station=full` puts the station's header and NEXT strip at
+the CARGO MARKET; `&rep=-6` sets the world's reputation and `&rep=haven:-6,verdant:9` each world's, those worlds
+visited, for the tiers' prices, docking and fines (`&screen=station-career` shows the bars); `&station=full` puts the station's header and NEXT strip at
 their longest (a very long station name, the hold full, salvage in the
 millions, the guide's longest step); `&screen=station-intel` opens TRADE INTEL.
 `&screen=map-editor` is the map editor: the world's campaign map from above (`&kind=free` or `scroll` its

@@ -225,6 +225,7 @@ function contract_follow(m)
 function contract_abandon(m)
 {
     play_log_contract('abandoned', m);
+    reputation_change(m.issuer, -1, 'abandoned', -4);
     campaign.contracts = campaign.contracts.filter(v => v.id !== m.id);
     escort = null;
     save_checkpoint();
@@ -242,6 +243,7 @@ function guide_base_render_contracts(parent, board = false)
             }
             else if (board) {
                 play_log_contract('abandoned', contract);
+                reputation_change(contract.issuer, -1, 'abandoned', -4);
                 campaign.contracts = campaign.contracts.filter(v => v.id !== contract.id);
                 escort = null;
                 save_checkpoint();
@@ -453,9 +455,15 @@ function sync_station_tab_counts()
     }
 }
 
+// The line under the station's name: your ship, rank, the story so far and what this world thinks of you
+function station_summary_text()
+{
+    return `${current_ship().name} · rank ${rank_names[pilot_rank()]} · story ${campaign.story}/${story.length} · ${reputation_tier().name} here`;
+}
+
 function guide_base_render_station()
 {
-    el.dock_summary.textContent = `${current_ship().name} · rank ${rank_names[pilot_rank()]} · story ${campaign.story}/${story.length}`;
+    el.dock_summary.textContent = station_summary_text();
     for (const b of document.querySelectorAll('[data-station]')) {
         b.classList.toggle('is-active', b.dataset.station === station_tab);
     }

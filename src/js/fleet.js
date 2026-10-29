@@ -151,7 +151,7 @@ function ensure_career()
         campaign.xp = career_xp_rescale(campaign.xp);
         campaign.xp_hull = true;
     }
-    campaign.reputation = campaign.reputation || worlds.map(() => 0);
+    campaign.reputation = reputation_sanitize(campaign.reputation);
     campaign.expedition = campaign.expedition || 1;
     return f;
 }

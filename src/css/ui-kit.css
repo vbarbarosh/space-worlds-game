@@ -336,6 +336,13 @@
 .ui .bars .b { height: 5px; border-radius: 3px; background: var(--space-3); overflow: hidden; }
 .ui .bars .b i { display: block; height: 100%; border-radius: 3px; background: var(--cyan-2); }
 .ui .bars .b i.better { background: var(--green); }
+/* reputation (the GOALS tab): the bar grows from its middle, left in red for a debt; the tier in its colour */
+.ui .rep-bars { grid-template-columns: minmax(58px, auto) 1fr auto; }
+.ui .rep-bars .b i.debt { background: var(--red); }
+.ui .rep-bars .rep-wanted { color: var(--red-2); } .ui .rep-bars .rep-suspect { color: var(--gold); }
+.ui .rep-bars .rep-neutral { color: var(--text-3); } .ui .rep-bars .rep-trusted { color: var(--green); }
+.ui .rep-fines { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.ui .rep-fines .btn { max-width: 100%; }
 
 /* goal steps */
 .ui .steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
