@@ -35,7 +35,7 @@ function map_layers_for_task()
     if (['survey', 'scan'].includes(kind)) {
         return ['route', 'contracts', 'danger'];
     }
-    if (['hunt', 'boss', 'escort', 'defend', 'recover', 'elite'].includes(kind)) {
+    if (['hunt', 'boss', 'escort', 'defend', 'recover', 'elite', 'patrol', 'inspection'].includes(kind)) {
         return ['route', 'danger', 'contracts'];
     }
     return map_layer_names;
@@ -315,6 +315,7 @@ function map_things(every_layer = false)
         add('danger', v, 'raiders', null, '', {small: true});
     }
     arcade_event_marks(add);
+    guards_map_things(out, every_layer);
     return out;
 }
 
@@ -686,7 +687,7 @@ function render_map_legend()
         ['route', [['you', 'You'], ['waypoint', 'Route point'], ['objective', 'Objective']]],
         ['gates', [['world-gate', 'World gate'], ['jump-gate', 'Jump gate']]],
         ['mining', [['mining-field', 'Ore field'], ['mining-field-rich', 'Rich field']]],
-        ['yours', [['station', 'Station'], ['outpost', 'Outpost'], ['platform', 'Defense platform'], ['transport', 'Transport']]],
+        ['yours', [['station', 'Station'], ['guard', 'Guards'], ['outpost', 'Outpost'], ['platform', 'Defense platform'], ['transport', 'Transport']]],
         ['danger', [['black-hole', 'Black hole'], ['storm', 'Storm / radiation'], ['pylon', 'Arc pylon'], ['charge-field', 'Charge field'], ['spire', 'Magnetic spire'], ['raiders', 'Raiders seen']]],
         ['contracts', [['beacon', 'Scan beacon']]],
     ];

@@ -211,6 +211,10 @@ function target_plate_name(target)
     if (target.jammer) {
         return 'JAMMER';
     }
+    // a wanted ace (wanted.js)
+    if (target.ace) {
+        return `WANTED · ${target.ace.toUpperCase()}`;
+    }
     // a flagship's nest (boss_duels.js)
     if (target.duel_owner) {
         return 'NEST';

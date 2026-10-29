@@ -238,6 +238,43 @@ ships. "Modes" is arcade, campaign or both.
   pass through, and they never shoot. Campaign and the Races mode. Where:
   `src/js/race.js`.
 
+### World guards
+
+- Each world's guard wing (campaign only): 2 ships in Haven and Verdant, 3 in
+  Dustfall, Ion Reach and Obsidian, 4 in Cryosphere, Nova Forge and Eclipse,
+  named as the world's guards (the Anchorage Patrol, the Canopy Wardens...).
+  Each wears the world's colour, a shield mark over it, and the wing's name
+  under the one who leads; on the map, a shield in the world's colour.
+- They patrol a loop out of the station through the gates and the beacons
+  (within 8 km of the station: in the wide worlds, Eclipse 240 by 180 km, a
+  point on the way to a farther one), the others in their places behind the
+  one who leads, and turn to fight any
+  raider within 950 m of the wing or of you (not a flagship, a commander or
+  the Leviathan: those are the contracts' own). In a fight they hold on the
+  raider's flanks, square to your line of fire, and fire bolts that lead it;
+  a raider they destroy counts as yours. Raiders fight them back: a raider
+  nearer to a guard than to you within 650 m takes it for its prey, and its
+  bolts and missiles stop on it.
+- By your reputation in the world ([goals.md](goals.md#reputation)): a
+  Trusted pilot within 2.6 km of the station flies with the wing behind; a
+  Suspect one, or one with sealed cargo aboard, may be stopped for a scan
+  ([goals.md](goals.md#contraband-and-inspections)); a Wanted one is
+  attacked on sight within 1.4 km.
+- Your guns aim at raiders, and their shots pass over the guards as over
+  every friendly hull. A shot you aim yourself (the turrets follow the
+  pointer) stops on a guard and hurts it: a stray bolt is forgiven ("watch
+  your fire"); more than five hits at once, each forgotten in two seconds,
+  is fire on the guards (−2 reputation, the wing on you for 25 s); a guard
+  destroyed is −5 and 45 s. A wing that fights you (Wanted, or fired on) is
+  your guns' target too, and all your shots hit it. A raider you destroy
+  while it fights them is +1, once in 90 s.
+- Solid (no hull overlaps them), damageable, a bar once hurt; a shield that
+  mends after 5 s with no hit. A guard lost comes back from the station 75 s
+  later. Strength follows the world at the story's front: a hull of 450 ×
+  the raiders' hit scale, twice the raiders' shield.
+- Where: `src/js/guards.js`; the hooks in `src/js/update.js`,
+  `src/js/bodies.js` and `src/js/missiles.js`.
+
 ### The convoy's freighter
 
 - What escort stages protect: it loads at a mining field and unloads at the

@@ -25,9 +25,11 @@ function render_galaxy_chart(parent, c)
     for (let i = 1, end = c.route.length; i < end; ++i) {
         route_edges.add([c.route[i - 1], c.route[i]].sort((a, b) => a - b).join(':'));
     }
+    // 16 more at the foot with the Hunters' seat, for the bottom row's wanted line
+    const chart_height = career_seat('hunter') ? 356 : 340;
     // A lane is known once you have stood at either end; it reads as open when both worlds are open to you
     let svg =
-        '<svg viewBox="0 0 960 340" role="img" aria-label="Connected worlds. Gold lines mark your route."><defs><radialGradient id="chart_glow"><stop stop-color="#16294a"/><stop offset="1" stop-color="#070d1a"/></radialGradient></defs><rect width="960" height="340" rx="14" fill="url(#chart_glow)"/>';
+        `<svg viewBox="0 0 960 ${chart_height}" role="img" aria-label="Connected worlds. Gold lines mark your route."><defs><radialGradient id="chart_glow"><stop stop-color="#16294a"/><stop offset="1" stop-color="#070d1a"/></radialGradient></defs><rect width="960" height="${chart_height}" rx="14" fill="url(#chart_glow)"/>`;
     for (let i = 0, ii = worlds.length; i < ii; ++i) {
         const world = worlds[i];
         for (const id of world.links.filter(v => v > i)) {
@@ -71,8 +73,10 @@ function render_galaxy_chart(parent, c)
         if (reached && !current) {
             svg += `<circle cx="${p[0] + 24}" cy="${p[1] - 24}" r="8" fill="#0b1a14" stroke="#9dff9b" stroke-width="2"/><path d="M ${p[0] + 20} ${p[1] - 24} l 3 3 l 5 -6" stroke="#9dff9b" stroke-width="2" fill="none"/>`;
         }
+        // the Hunters' seat shows each world's wanted ace (careers.js, wanted.js)
+        const ace = career_seat('hunter') && wanted_ace(i);
         svg +=
-            `<text x="${p[0]}" y="${p[1] + 53}" text-anchor="middle" fill="#e9f6ff" font-size="15" font-weight="bold">${world.name}</text><text x="${p[0]}" y="${p[1] + 70}" text-anchor="middle" fill="${status_color}" font-size="10">${status}</text></g>`;
+            `<text x="${p[0]}" y="${p[1] + 53}" text-anchor="middle" fill="#e9f6ff" font-size="15" font-weight="bold">${world.name}</text><text x="${p[0]}" y="${p[1] + 70}" text-anchor="middle" fill="${status_color}" font-size="10">${status}</text>${ace ? `<text x="${p[0]}" y="${p[1] + 85}" text-anchor="middle" fill="#ff8a96" font-size="10">WANTED: ${ui_escape(ace.toUpperCase())}</text>` : ''}</g>`;
     }
     svg += '</svg>';
     const div = document.createElement('div');

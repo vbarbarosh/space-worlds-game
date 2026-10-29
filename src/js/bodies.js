@@ -81,7 +81,11 @@ function raider_avoid(v, heading)
 // and the freighter (asteroids push the player in resolve_solid_ore, with the impact's damage)
 function bodies_resolve()
 {
+    // the world's guards are hulls among them (guards.js)
     const alive = enemies.filter(v => v.hp > 0);
+    for (const g of guards) {
+        alive.push(g);
+    }
     const n = bodies_numbers_load(alive);
     // a crowd settles over a few passes: pushing one pair apart can press another together
     for (let pass = 0; pass < 4; ++pass) {

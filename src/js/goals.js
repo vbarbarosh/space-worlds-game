@@ -312,12 +312,12 @@ function render_station_goals(parent)
         : tech_open(Math.max(...ship_catalog.map(v => v.opens), ...weapon_catalog.map(v => v.opens)))
             ? 'Every ship and gun is yours to fly.'
             : 'Every licence is yours; new worlds open more ships and guns.';
-    career.innerHTML = `<span class="eyebrow eyebrow--muted">Pilot career</span>${career_head}${career_bar}<p class="small">${career_text}</p><span class="eyebrow eyebrow--muted">Reputation</span><div class="bars rep-bars">${reputation_rows_html()}</div>`;
+    career.innerHTML = `<span class="eyebrow eyebrow--muted">Pilot career</span>${career_head}${career_bar}<p class="small">${career_text}</p>${charter_html()}<span class="eyebrow eyebrow--muted">Reputation</span><div class="bars rep-bars">${reputation_rows_html()}</div>`;
     const fines = reputation_fines_element();
     if (fines) {
         career.append(fines);
     }
-    right.append(career);
+    right.append(career, careers_panel_element());
     const others = document.createElement('div');
     others.className = 'goal-panel';
     others.innerHTML = '<span class="eyebrow eyebrow--muted">Other goals</span>';

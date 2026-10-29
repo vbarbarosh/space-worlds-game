@@ -9,7 +9,9 @@ function turn_toward(angle, target, limit)
 function update_ship_orientation(dt, target, dx, dy)
 {
     let aim = Number.isFinite(player.turret_angle) ? player.turret_angle : player.angle;
-    if (pointer.active && (time - pointer.last < 2) && !mouse_drive.active && !mouse_drive.following) {
+    // aimed by your pointer, not by the guns: a shot then is yours to answer for (guards.js)
+    player.aim_by_pointer = pointer.active && (time - pointer.last < 2) && !mouse_drive.active && !mouse_drive.following;
+    if (player.aim_by_pointer) {
         aim = Math.atan2(pointer.y - player.y, pointer.x - player.x);
     }
     else if (target) {

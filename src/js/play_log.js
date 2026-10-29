@@ -634,7 +634,8 @@ function play_log_spend(kind, id, price, details = null)
     play_log_tally.spent[kind] = (play_log_tally.spent[kind] || 0) + price;
     play_log_salvage_expected -= price;
     const run = play_log_run();
-    const kit = !['trade', 'tow'].includes(kind);
+    // goods, the tug and fines buy no kit
+    const kit = !['trade', 'tow', 'fine'].includes(kind);
     const priciest = kit && (price > run.priciest);
     if (priciest) {
         run.priciest = price;

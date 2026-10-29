@@ -266,6 +266,10 @@ function base_spawn_enemy(type)
         mission_boss: null,
         leviathan: false,
         duel_owner: null,
+        // the guard it fights and when it last chose one (guards.js), and a wanted ace's name (wanted.js)
+        guard_prey: null,
+        guard_fight: -99,
+        ace: null,
     };
     if (difficulty === 'chill') {
         enemy.speed *= 0.8;

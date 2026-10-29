@@ -45,6 +45,8 @@ function captain_status()
     out.xp = campaign.xp;
     out.reputation = reputation_of();
     out.reputation_tier = reputation_tier().name;
+    out.signed = (campaign.signed || []).map(v => worlds[v].name);
+    out.careers = {...campaign.careers};
     out.cargo = {...campaign.cargo, capacity: cargo_capacity()};
     out.supplies = {...supplies};
     out.contracts = [];

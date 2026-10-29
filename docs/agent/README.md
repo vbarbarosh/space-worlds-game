@@ -38,6 +38,14 @@ Write your choice and the reason at the top of your diary.
 Grow as far as you can in the time you play: rank, salvage, ships, weapons,
 story chapters, and reputation in the worlds. Your character decides how.
 
+Reputation is per world, from Wanted to Trusted (`bin/captain status` gives
+`reputation`, `reputation_tier`, the Charter's `signed` worlds and your
+`careers`). Each world has a guard wing: firing on it makes you Wanted there,
+and a Wanted pilot cannot dock in that world. Sealed cargo is contraband
+outside Dustfall and Nova Forge: the guards' scan takes it. Act II's chapters
+open once you are Established in their world. The GOALS tab shows the
+career lines and their seats.
+
 ## Your diary
 
 Keep `data/agent/diary.md`. After every decision that matters (a contract

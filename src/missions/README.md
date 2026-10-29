@@ -29,8 +29,11 @@ A file:
   **World** is a world's name: Haven, Verdant, Dustfall, Ion Reach, Obsidian,
   Cryosphere, Nova Forge, Eclipse.
 - **Where** is empty, `beacon <n>` (1–3) for a scan or a defend (a defend
-  holds beacon 2 when empty), or `commodity <key>` (ore, cells, relics) for a
-  trade.
+  holds beacon 2 when empty), `commodity <key>` (ore, cells, relics) for a
+  trade, or `from <world or station> to <world or station>` for an escort
+  that is a convoy's leg: `from station to Verdant` runs from beside the
+  station to the gate to Verdant, `from Haven to station` from the gate from
+  Haven to the station.
 - No stage needs to bring you back to the station: collecting the reward is
   docking there. A courier to the world you are already in is only a dock;
   send the player to another world only when the story goes that way, and
@@ -49,5 +52,8 @@ A file:
 | escort | 1: the convoy brought through its legs |
 | trade | units of the commodity sold at that world's station from your own hold; what you bought there does not count |
 | lure | 1: the Leviathan, which guns cannot hurt, led into a black hole's core |
+| patrol | points of the world's guard wing's round flown with it |
+| inspection | 1: a guard's scan passed with no sealed cargo aboard |
+| smuggle | units of sealed cargo sold in the back room of that world, where it is banned |
 
 `bin/build` stops with the file and line when a file does not read.

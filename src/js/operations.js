@@ -334,7 +334,11 @@ function update_operations(dt)
         }
         if (m.type === 'elite') {
             if (!enemies.some(v => (v.operation_id === m.id) && (v.operation_stage === stage_index) && v.elite && (v.hp > 0))) {
-                spawn_operation_enemy(m, 'tank', point, true);
+                const elite = spawn_operation_enemy(m, 'tank', point, true);
+                // a wanted ace wears its name (wanted.js)
+                if (m.stages?.[stage_index]?.ace) {
+                    wanted_ace_make(elite, m.stages[stage_index].ace);
+                }
             }
             continue;
         }
@@ -394,6 +398,9 @@ function damage_enemy(enemy, damage)
     // a flagship takes more while its hull is exposed, less while its pods guard it (boss_hit_factor)
     expedition_base_damage_enemy(enemy, (enemy.type === 'boss') ? damage*boss_hit_factor(enemy) : damage);
     play_log_dealt(enemy, health);
+    if (alive && (enemy.hp <= 0)) {
+        guards_raider_down(enemy);
+    }
     if (alive && (enemy.hp <= 0) && enemy.leviathan) {
         show_toast('LEVIATHAN CONSUMED', 'THE BLACK HOLE TOOK IT', 4);
         mission_event('lure', 1, {contract_id: enemy.operation_id});
@@ -417,12 +424,20 @@ const escort_hull = 300;
 const escort_speed = 70;
 // the freighter keeps moving while you are within this; farther, it waits for you
 const escort_leash = 1000;
-const escort_stop_times = {load: 8, unload: 6};
+const escort_stop_times = {load: 8, unload: 6, jump: 2};
+// A convoy's leg through a world takes about this long, however wide the world (s): its freighter flies faster in a
+// wide one
+const convoy_leg_time = 100;
 
 // The convoy's cargo run: from beside the station to the edge of the nearest mining field 1.5-4 km off, where it
-// loads, then to the station's far side, where it unloads; a few kilometres, a couple of minutes
-function escort_route()
+// loads, then to the station's far side, where it unloads; a few kilometres, a couple of minutes. A convoy's leg
+// (a stage with via: [from, to], the worlds it comes from and goes on to, null for the station) runs from the gate it
+// came through, or beside the station, to the gate it leaves by, where it jumps, or to the station, where it unloads
+function escort_route(leg = null)
 {
+    if (leg?.via) {
+        return convoy_route(leg.via[0], leg.via[1]);
+    }
     const start = {x: station.x + station_size/2 + 350, y: station.y + 250};
     const near = mining_fields.filter(v => (distance(v, start) > 1500) && (distance(v, start) < 4000));
     const fields = (near.length ? near : mining_fields).slice().sort((a, b) => distance(a, start) - distance(b, start));
@@ -433,6 +448,33 @@ function escort_route()
     return {start, stops: [load, unload]};
 }
 
+// A convoy's leg through this world: see escort_route
+function convoy_route(from, to)
+{
+    const beside = {x: station.x + station_size/2 + 350, y: station.y + 250, label: 'beside the station'};
+    // a point on the way from a gate to the station, d from the gate
+    function off_gate(g, d) {
+        const l = distance(g, station) || 1;
+        return {x: g.x + ((station.x - g.x)/l)*d, y: g.y + ((station.y - g.y)/l)*d};
+    }
+    const gate_in = (from === null) ? null : world_gates.find(v => v.destination === from);
+    const gate_out = (to === null) ? null : world_gates.find(v => v.destination === to);
+    const start = gate_in ? {...off_gate(gate_in, 260), label: `at the gate from ${worlds[from].name}`} : beside;
+    const stop = gate_out
+        ? {...off_gate(gate_out, 90), job: 'jump', label: `the gate to ${worlds[to].name}`}
+        : {x: station.x - (station_size/2 + 300), y: station.y, job: 'unload', label: worlds[campaign.world].station};
+    return {start, stops: [stop], speed: Math.max(escort_speed, distance(start, stop)/convoy_leg_time)};
+}
+
+// A convoy's leg in words, from its stage alone: "from the gate from Haven to the gate to Ion Reach"
+function convoy_leg_text(v)
+{
+    const [from, to] = v.via;
+    const start = (from === null) ? 'from beside the station' : `from the gate from ${worlds[from].name}`;
+    const end = (to === null) ? `to ${worlds[v.world].station}` : `to the gate to ${worlds[to].name}, where it jumps`;
+    return `${start} ${end}`;
+}
+
 // The run's length and time, with its stops: "4.2 km · about 2 min"
 function escort_route_text(v)
 {
@@ -441,7 +483,7 @@ function escort_route_text(v)
     for (let i = 1, end = points.length; i < end; ++i) {
         length += distance(points[i - 1], points[i]);
     }
-    const seconds = length/escort_speed + escort_stop_times.load + escort_stop_times.unload;
+    const seconds = length/(v.speed || escort_speed) + v.stops.reduce((n, vv) => n + escort_stop_times[vv.job], 0);
     return `${(length/1000).toFixed(1)} km · about ${Math.max(1, Math.round(seconds/60))} min`;
 }
 
@@ -471,10 +513,11 @@ function update_escort(dt)
         escort = clone(m.escort_state);
     }
     if (!escort) {
-        const route = escort_route();
+        const route = escort_route(m.stages?.[m.stage_index]);
         // as sturdy against the world's raiders as it is in Haven: they hit harder farther out and at higher levels
-        const hull = Math.round(escort_hull*raider_hit_scale()*(1 + Math.min(10, (m.level || 1) - 1)*0.12));
-        escort = {x: route.start.x, y: route.start.y, start: route.start, hp: hull, max_hp: hull, active: false, stops: route.stops, leg: 0, stop_timer: -1, waves: [], destination: route.stops[0]};
+        // the Convoy Masters' seat gives it half again (careers.js)
+        const hull = Math.round(escort_hull*raider_hit_scale()*(1 + Math.min(10, (m.level || 1) - 1)*0.12)*(career_seat('escort') ? 1.5 : 1));
+        escort = {x: route.start.x, y: route.start.y, start: route.start, speed: route.speed || escort_speed, hp: hull, max_hp: hull, active: false, stops: route.stops, leg: 0, stop_timer: -1, waves: [], destination: route.stops[0]};
     }
     if (!escort.active && (distance(player, escort) < 450)) {
         escort.active = true;
@@ -503,12 +546,15 @@ function update_escort(dt)
     }
     else if (distance(escort, stop) < 60) {
         escort.stop_timer = escort_stop_times[stop.job];
-        escort_wave(m, `stop-${escort.leg}`, 3);
+        // at a gate it jumps at once: the raiders strike on the way there instead
+        if (stop.job !== 'jump') {
+            escort_wave(m, `stop-${escort.leg}`, 3);
+        }
     }
     else if (distance(player, escort) < escort_leash) {
         const a = Math.atan2(stop.y - escort.y, stop.x - escort.x);
-        escort.x += Math.cos(a)*escort_speed*dt;
-        escort.y += Math.sin(a)*escort_speed*dt;
+        escort.x += Math.cos(a)*(escort.speed || escort_speed)*dt;
+        escort.y += Math.sin(a)*(escort.speed || escort_speed)*dt;
         // halfway along a leg, a raider wave
         const from = (escort.leg === 0) ? escort.start : escort.stops[escort.leg - 1];
         if (distance(escort, stop) < distance(from, stop)*0.5) {
@@ -528,9 +574,11 @@ function update_escort(dt)
     }
     if (escort.hp <= 0) {
         burst(escort.x, escort.y, pink, 50, 250);
+        // the replacement waits where the run starts: beside the station, or at the gate a convoy's leg came through
+        const again = (escort.start?.label || 'at the station').toUpperCase();
         m.escort_state = null;
         escort = null;
-        show_toast('CONVOY LOST', 'MEET A REPLACEMENT AT THE STATION / PREVIOUS STAGES PRESERVED', 4);
+        show_toast('CONVOY LOST', `MEET A REPLACEMENT ${again} / PREVIOUS STAGES PRESERVED`, 4);
         reputation_change(campaign.world, -1, 'freighter lost', -4);
         return;
     }
@@ -706,6 +754,12 @@ function offered_jobs()
     if (race_job) {
         out.push(race_job);
     }
+    out.push(...guard_jobs(id, links, level));
+    // from Pathfinder, the bounty on the ace at the top of the world's wanted list (wanted.js)
+    const wanted = (rank >= 2) ? wanted_offer(id, level) : null;
+    if (wanted) {
+        out.push(wanted);
+    }
     if (rank >= 2) {
         out.push({
             title: `Commander bounty / ${w.faction}`,
@@ -737,12 +791,54 @@ function offered_jobs()
         m.world = m.stages[0].world;
         m.target = m.stages[0].target;
         m.level = level;
-        m.reward = contract_reward(m.stages, id, level, (m.premium || 1)*reputation_tier(id).contracts);
+        m.reward = contract_reward(m.stages, id, level, (m.premium || 1)*reputation_tier(id).contracts*career_reward_k(m));
         m.description += ` ${m.stages.map(v => v.title).join(' → ')}.`;
     }
     // side missions written as files, in their world, until done
     for (const v of side_missions.filter(vv => (vv.world === id) && !(campaign.sides_done || []).includes(vv.file))) {
         out.unshift({...clone(v), level, side: v.file});
+    }
+    return out;
+}
+
+// The work a station gives by your standing there and its trade (docs/goals.md, Stages with the guards): a patrol with
+// its guard wing from Neutral up, a convoy to a neighbour from Established up, and in a free port a smuggling run to
+// a neighbour that bans sealed cargo
+function guard_jobs(id, links, level)
+{
+    const n = level - 1;
+    const rep = reputation_of(id);
+    const wing = guard_wing_names[id];
+    const other = links[(campaign.board || 0) % links.length];
+    const out = [];
+    if (rep >= 0) {
+        out.push({
+            title: `Patrol duty with the ${wing}`,
+            description: `The ${wing} is a pilot short on its round of the gates and beacons. Fly it with them and fight what you meet.`,
+            stages: [stage('patrol', id, 4 + Math.floor(n/3), `Fly the round with the ${wing}`)],
+        });
+    }
+    if (rep >= reputation_tiers.find(v => v.id === 'established').min) {
+        out.push({
+            title: `Convoy to ${worlds[other].name}`,
+            description: `${worlds[id].station} trusts you with a convoy to ${worlds[other].station}: see its freighter to the gate, then through ${worlds[other].name} to the berth.`,
+            premium: 1.3,
+            stages: [
+                stage('escort', id, 1, `See the convoy to the gate to ${worlds[other].name}`, {via: [null, other]}),
+                stage('escort', other, 1, `See it in to ${worlds[other].station}`, {via: [id, null]}),
+            ],
+        });
+    }
+    const banned = links.filter(v => !contraband_port(v));
+    if (contraband_port(id) && banned.length) {
+        const to = banned[(campaign.board || 0) % banned.length];
+        const amount = Math.min(10, 4 + Math.floor(level/2));
+        out.push({
+            title: `Sealed cargo for ${worlds[to].name}`,
+            description: `A buyer in ${worlds[to].station}'s back room pays well for ${amount} sealed cargo, if it gets past the ${guard_wing_names[to]}. Buy it here.`,
+            premium: 1.6,
+            stages: [stage('smuggle', to, amount, `Sell ${amount} sealed cargo in the back room of ${worlds[to].station}`)],
+        });
     }
     return out;
 }
@@ -783,10 +879,18 @@ function stage_minutes(v, from)
         mining: 0.3 + v.target*0.04,
         courier: 0.3,
         trade: 0.5,
+        // a patrol point is about half a minute of the wing's round, with a fight every second one
+        patrol: 0.5 + v.target*0.6,
+        inspection: 1,
+        smuggle: 0.8,
         lure: 3,
         race: 0.5 + v.target*0.12,
     }[v.type] ?? 1;
-    // a convoy's run here is as long as its route: a minute in Haven, three in the far worlds
+    // a convoy's leg through a world takes about convoy_leg_time; a cargo run here is as long as its route: a minute
+    // in Haven, three in the far worlds
+    if ((v.type === 'escort') && v.via) {
+        return 0.5 + (convoy_leg_time + escort_stop_times.jump)/60 + travel;
+    }
     if ((v.type === 'escort') && (v.world === campaign.world)) {
         const route = escort_route();
         const length = distance(route.start, route.stops[0]) + distance(route.stops[0], route.stops[1]);
@@ -822,13 +926,22 @@ function guide_base_claim_contract(id)
     play_log_contract('claimed', m, {xp});
     campaign.xp += xp;
     play_log_xp('contract', xp);
-    // a chapter raises its own world's reputation by 2, any other contract the world that offered it by 1
+    // a chapter raises its own world's reputation (in act II it signs the Charter there: charter.js), any other
+    // contract the world that offered it by 1; a smuggling run costs 1 in the world it smuggled into
     if (m.main) {
-        reputation_change(m.world, 2, 'chapter');
+        charter_chapter_done(campaign.story);
     }
     else {
         reputation_change(m.issuer, 1, 'contract');
     }
+    for (const v of (m.stages || []).filter(vv => vv.type === 'smuggle')) {
+        reputation_change(v.world, -1, 'smuggling', -4);
+    }
+    // a career chapter moves its line on (careers.js), a wanted bounty strikes its ace off the list (wanted.js)
+    if (m.career) {
+        career_chapter_done(m);
+    }
+    wanted_done(m);
     if (m.expedition) {
         campaign.expedition++;
     }
@@ -896,8 +1009,11 @@ function build_guide_context()
         out.instruction = `Your mining drones are all lost. Dock at ${worlds[campaign.world].station} and buy new ones in MODULES, then come back to the field.`;
     }
     if ((m.type === 'escort') && (m.world === campaign.world) && escort) {
+        // a convoy's leg runs to a gate or the berth (convoy_route), a cargo run through its stops
+        const leg = m.stages?.[m.stage_index]?.via;
+        const run = leg ? `Convoy leg to ${escort.stops[escort.leg].label}` : `Cargo run, stop ${escort.leg + 1}/${escort.stops.length}: ${escort.stops[escort.leg].label}`;
         out.instruction =
-            `Cargo run, stop ${escort.leg + 1}/${escort.stops.length}: ${escort.stops[escort.leg].label} · hull ${Math.ceil(escort.hp)}/${escort.max_hp || escort_hull}. Stay within ${escort_leash} m so it keeps moving; raiders strike at the stops.`;
+            `${run} · hull ${Math.ceil(escort.hp)}/${escort.max_hp || escort_hull}. Stay within ${escort_leash} m so it keeps moving; raiders strike ${leg ? 'on the way' : 'at the stops'}.`;
     }
     return out;
 }
@@ -917,6 +1033,18 @@ function stage_description(v, m, index)
     }
     if (v.type === 'elite') {
         return 'Approach the combat zone and destroy its marked elite commander. Ion strips shields; railguns bypass thick armor.';
+    }
+    if (v.type === 'patrol') {
+        return `Fly the ${guard_wing_names[v.world]}'s round with them: ${Math.ceil(left)} points of it, within ${guard_patrol_reach} m of the one who leads, who waits for you. Every second point, raiders meet the wing.`;
+    }
+    if (v.type === 'inspection') {
+        return `Stop beside the ${guard_wing_names[v.world]} and pass their scan: hold slow beside the one who leads for ${inspection_time} seconds, with no sealed cargo aboard.`;
+    }
+    if (v.type === 'smuggle') {
+        return `Sell ${Math.ceil(left)} sealed cargo in the back room of ${worlds[v.world].station}, where it is banned. Dustfall and Nova Forge sell it; a guard's scan on the way takes it and fines you, and the deal costs a point of reputation there.`;
+    }
+    if ((v.type === 'escort') && v.via) {
+        return `A convoy's leg through ${worlds[v.world].name}: see its freighter ${convoy_leg_text(v)}, about ${Math.round((convoy_leg_time + 30)/60)} min. Stay within ${escort_leash} m so it keeps moving; raiders strike on the way. G flies you in formation behind it.`;
     }
     if (v.type === 'escort') {
         return `Meet the freighter beside the station and escort its cargo run: it loads at a mining field, then unloads at the station, ${(v.world === campaign.world) ? escort_route_text(escort || escort_route()) : 'about 2-3 min'}. Stay within ${escort_leash} m so it keeps moving; raiders strike at the stops. G flies you in formation behind it.`;

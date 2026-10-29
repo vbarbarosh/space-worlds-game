@@ -49,6 +49,10 @@ function dev_scenario_from_url()
         kind: ['scroll', 'base'].includes(params.get('kind')) ? 'scroll' : 'free',
         // rep=-6: the world's reputation; rep=haven:-6,verdant:9 each world's, and those worlds visited
         rep: params.get('rep'),
+        // careers=hunter:3,escort:1: the career lines' chapters done (careers=all: every seat)
+        careers: params.get('careers'),
+        // story=8: the chapters behind you (8: act II's first is next)
+        story: clamp(Math.round(Number(params.get('story')) || 0), 0, story.length),
     };
 }
 
@@ -93,6 +97,12 @@ function dev_scenario_save()
     if (dev_scenario.rep) {
         params.set('rep', dev_scenario.rep);
     }
+    if (dev_scenario.story) {
+        params.set('story', dev_scenario.story);
+    }
+    if (dev_scenario.careers) {
+        params.set('careers', dev_scenario.careers);
+    }
     // the map editor's edit flown (dev/map_editor.js), again after a reload
     if (dev_map.source === 'edited') {
         params.set('map', 'edited');
@@ -132,11 +142,12 @@ function dev_scenario_start()
         position: {x: extent[0]/2, y: extent[1]/2 + 700, size: {w: extent[0], h: extent[1]}},
         campaign: {
             world,
-            story: 0,
+            story: dev_scenario.story,
             contracts: [],
             completed: 0,
             visited: [...new Set([world, ...Object.keys(reputation).map(Number)])],
             reputation: worlds.map((v, i) => reputation[i] || 0),
+            careers: (dev_scenario.careers === 'all') ? Object.fromEntries(career_lines.map(v => [v.id, 3])) : Object.fromEntries((dev_scenario.careers || '').split(',').filter(Boolean).map(v => v.split(':')).map(v => [v[0], Number(v[1])])),
             cargo: {ore: 0, cells: 0, relics: 0},
             maps: {},
             serial: 0,

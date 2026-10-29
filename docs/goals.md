@@ -22,11 +22,14 @@ more **stages** done in order. A stage has a kind, a world and an amount
 | recover | you clear the ambush, then hold within 150 m for the amount in seconds |
 | elite | you destroy the marked commander |
 | boss | you destroy the world's flagship at the combat zone |
-| escort | the freighter finishes its cargo run (load at a mining field, unload at the station) |
+| escort | the freighter finishes its cargo run (load at a mining field, unload at the station); a convoy's leg (`via`) instead runs from the gate it came through, or beside the station, to the gate it leaves by, where it jumps, or to the station, in about 100 s however wide the world |
 | trade | you sell the amount of a good at that world's station, from your own hold (what you bought at that station does not count); intercepted like a courier when carried from another world |
 | lure | the Leviathan falls into a black hole's core |
 | survey | you fly within 120 m of three beacons (a one-stage contract) |
 | race | you fly the course's rings in order through the last, the finish, in any place (see [Ring races](#ring-races)) |
+| patrol | you fly the amount of points of the guard wing's round with it, within 900 m of the one who leads (who waits for you): for the stage the wing flies a ring of six points 5 km round the station (a quarter of a small world's width); every second point a raider wing meets it |
+| inspection | you pass a guard's scan clean ([Contraband and inspections](#contraband-and-inspections)): the wing scans you whatever your standing, Wanted aside |
+| smuggle | you sell the amount of sealed cargo in the back room of the stage's world, where it is banned; collecting costs 1 reputation there |
 
 - Progress counts only in the stage's world (`mission_event`). A delivery
   (courier or trade) starts where the stage before it ended, or where the
@@ -60,6 +63,16 @@ contracts go on.
   1450, 1700, 1850, 2150, 2350, 2700, 3400. Their raiders count as level 2,
   and every world fights seven tiers past its own by then (the story's
   front, in [balance.md](balance.md)).
+- **The Charter's signatures** (`src/js/charter.js`): act II's chapter in a
+  world (Haven's 9 to Eclipse's 16) opens once you are Established there (3);
+  until then its card says so and its button counts your reputation (2 of
+  3). Collecting it makes the world sign the Charter and raises its
+  reputation to Trusted (8) at least; chapter 16 is the eighth signature and
+  founds the guild. A world that comes to trust you sooner signs then. A
+  signature stays, whatever your reputation there later. The GOALS tab shows
+  a seal per world, filled in its colour once signed. A save from before
+  the signatures counts the worlds whose chapter is behind it, and the
+  worlds Trusted now.
 - A chapter ends where the next one starts, or on the way to it. A delivery to
   another world is kept only where the story moves you that way, and it is
   intercepted on the way; no chapter sends you back where you came from.
@@ -79,6 +92,9 @@ at most 12, and n = level − 1.
 | Sealed dispatch to a neighbour | courier to it (intercepted), defend 40 + 5n there | always |
 | Supply run: a good to a neighbour | trade: sell 5 + level (at most 12) of this world's cheapest good at the neighbour that pays most for it (intercepted); offered when that pays at least 8 more | always |
 | Ring race: the world's sprint, slalom or loop | race: 5 to 7 rings against 3 or 4 rivals ([Ring races](#ring-races)) | always, in every world |
+| Patrol duty with the world's guards | patrol 4 + n/3 | Neutral or better there |
+| Convoy to a neighbour | escort to the gate, escort from its gate to its station; × 1.3 | Established or better there |
+| Sealed cargo for a neighbour | smuggle 4 + level/2 (at most 10) there; × 1.6 | a free port (Dustfall, Nova Forge) |
 | Commander bounty | scan 16 + n, hunt 6 + n, elite | rank Pathfinder |
 | Frontier expedition n | scan 22 + n here; defend 70 + 6n, elite, recover 20 in a neighbour | rank Ace |
 | Side missions | from their file | in their world, until done |
@@ -280,8 +296,9 @@ On collecting (`guide_base_claim_contract` in `src/js/operations.js` and
 - experience: as much as the reward, toward the pilot rank that licenses
   ships and guns; the raiders destroyed on the way bring far more, each its
   hull (ranks and kill XP in [balance.md](balance.md#campaign-pace));
-- reputation: a story chapter +2 with its own world, any other contract +1
-  with the world that issued it ([Reputation](#reputation)).
+- reputation: an act I chapter +2 with its own world, an act II chapter its
+  world's signature and Trusted there ([Story chapters](#story-chapters)), any
+  other contract +1 with the world that issued it ([Reputation](#reputation)).
 
 ## Reputation
 
@@ -291,17 +308,21 @@ tiers (`src/js/reputation.js`; the design is in
 
 | Tier | Range | What the world does |
 |---|---|---|
-| Wanted | −10 … −5 | its station refuses docking; prices as Suspect |
+| Wanted | −10 … −5 | its station refuses docking, its guards attack on sight; prices as Suspect |
 | Suspect | −4 … −1 | market prices 10% worse, buying and selling |
 | Neutral | 0 … 2 | nothing special |
 | Established | 3 … 7 | 5% off buying at its market; its side contracts pay 10% more |
-| Trusted | 8 … 10 | as Established |
+| Trusted | 8 … 10 | as Established; near the station its guards fly with you |
 
-- Raised: a chapter collected +2 with the chapter's world, any other
-  contract +1 with the world that issued it.
+- Raised: an act I chapter collected +2 with the chapter's world, an act II
+  chapter to Trusted at least, any other contract +1 with the world that
+  issued it. A world that reaches Trusted signs the Charter.
+- Raised too: a raider you destroy while it fights the world's guards, +1,
+  once in 90 s.
 - Lowered: a contract abandoned −1 with its issuer, a convoy's freighter lost
   −1 with its world; neither takes it below −4, so they leave you Suspect at
-  worst, never Wanted.
+  worst, never Wanted. Firing on the guards (more than a stray bolt) −2, a
+  guard destroyed −5 ([World guards](objects.md#world-guards)).
 - A fine sets a world back to 0: 120 for every point below 0, × (1 + 0.3 ×
   the world's tier), to the nearest 10. The GOALS tab offers it for the
   world you are docked in and for the worlds linked to it; what you cannot
@@ -317,6 +338,58 @@ tiers (`src/js/reputation.js`; the design is in
   comes back clamped to the range.
 - Try it: `dev.html?world=haven&screen=station-career&rep=haven:-3,verdant:9,dustfall:-7`
   (`rep=-6` alone sets the scenario's world; the worlds named are visited).
+
+## Career lines
+
+Five short chains of three chapters, one per way of playing
+(`src/js/careers.js`; the chapters are files,
+`src/missions/career-<line>-<n>-<name>.md`). A line's next chapter is
+offered at the station of its world once your rank opens the line; the third
+gives its seat, a title with a lasting perk. The GOALS tab shows each line:
+its chapters done, its next chapter and where, or its seat.
+
+| Line | From rank | Chapters (their worlds) | Seat and perk |
+|---|---|---|---|
+| Trader | Courier | Cheap ore, dear cells (Dustfall → Ion Reach → Dustfall); The market war (Verdant: Dustfall −2); The sealed contract (smuggle into Obsidian) | the Merchants': market prices 5% better wherever you are Established or higher |
+| Escort | Pathfinder | One freighter, one gate (Haven → Verdant); The long convoy (Dustfall → Cryosphere, four legs); The ambush at the Bastion (Obsidian) | the Convoy Masters': escorted freighters have half again the hull; escorts and convoys pay 20% more |
+| Hunter | Pathfinder | Wanted in Haven (Jory Vane); The marauder's trail (Dustfall, Ion Reach, Verdant: Captain Harrow); The Void marshal (Eclipse: Marshal Kest) | the Hunters': bounties pay 25% more; every world's wanted ace on the worlds map |
+| Warden of the lanes | Vanguard | Patrol duty (Haven, six points); Inspection (Haven: the scan, the round, the smuggler Quill); Amnesty (Verdant → Haven) | the Guards': the guards of every world where you are Established or higher join fights within 1.6 km of you |
+| Surveyor | Ace | The silent beacon (Cryosphere); Charts for sale (Ion Reach, sold in Obsidian and Cryosphere); Beyond the edge (Eclipse) | the Cartographers': contracts that open with a scan pay 25% more |
+
+- Try it: `dev.html?world=haven&screen=station-career&careers=all`
+  (`careers=hunter:3,escort:1` sets each line's chapters done).
+
+## Wanted lists
+
+Each world's raiders have three named aces with a price on them
+(`src/js/wanted.js`). From rank Pathfinder a world's station offers the
+bounty on the first still free, "Wanted: Red Kestrel": scan its trail
+(14 + n s at beacon 3), then destroy it, an elite with 30% more hull whose
+plate says WANTED and its name; × 1.6. Collected, the ace is struck off and
+the next takes its place; after the third the list is clear.
+
+## Contraband and inspections
+
+Sealed cargo is the frontier's one contraband, the outlaw's trade
+(`src/js/contraband.js`, `src/js/inspection.js`).
+
+- Two free ports sell it: Dustfall at 28 a unit, Nova Forge at 34. Every
+  other world bans it, and its station's back room buys it: 70, and 12 more
+  a tier farther out (Haven 68 after the 2 off a sale, Eclipse 152). The
+  market shows it in a free port, and wherever you carry some (Contraband);
+  TRADE INTEL leaves it out.
+- A world's guards stop you for a scan: always while you are Suspect there,
+  four times in ten (rolled once a visit) while Neutral or Established with
+  sealed cargo aboard, never while Trusted. The one who leads flies
+  alongside; the scan takes 4 s while you hold within 450 m of it under
+  150 m/s, a ring round your ship filling as it runs.
+- Found: the sealed cargo is taken, a fine of 100 and half its back-room
+  price a unit (what you cannot pay forgiven), −2 reputation. Clean:
+  cleared. Either way the next scan waits 3 minutes.
+- Flying off (1.3 km from the guard, or out through a gate) is −1
+  reputation, and they try again a minute later. Neither a find nor fleeing
+  takes reputation below −4: contraband leaves you Suspect, never Wanted.
+- While a scan runs, the station holds your docking.
 
 ## Goals
 

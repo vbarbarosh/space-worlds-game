@@ -135,7 +135,7 @@ can come without it. A reader skips fields it does not know.
 | `flight_s`, `docked_s` | seconds in flight; seconds in the station, depot, map or inventory |
 | `salvage` | on hand at its end |
 | `earned` | by source: `pickups` (wreck and cache salvage), `contract`, `story` (a story chapter), `race`, `goal`, `world bonus` (arcade), `swallowed` (a raider the arcade's Eclipse hole took), `sell <cargo>` (ore, cells, relics, commodities), `transport` (a transport line's sales), `refund` (a structure still building when you left), `unlogged` |
-| `spent` | by kind: `ship`, `gun`, `gun tier`, `module`, `supply`, `repair` (arcade), `card` (arcade, a card's price), `drone`, `drone tier`, `builder`, `structure`, `transport line`, `trade` (commodities bought), `tow` (the tug after a death), `unlogged` |
+| `spent` | by kind: `ship`, `gun`, `gun tier`, `module`, `supply`, `repair` (arcade), `card` (arcade, a card's price), `drone`, `drone tier`, `builder`, `structure`, `transport line`, `trade` (commodities bought), `tow` (the tug after a death), `fine` (a reputation's fine, or an inspection's for contraband), `unlogged` |
 | `xp_total`, `xp`, `rank` | campaign only (null in the arcade): XP at the end, earned by source (`kill`, `contract`, `unlogged`), the rank. `kill` is the hull of the raiders destroyed, `contract` the pay of the contracts collected (since 2026-10-19; before, 2 to 6 a kill and 28% of the pay + 18 a stage, and a save from then has its XP rescaled once when it loads, which can show as `unlogged`) |
 | `kills` | by raider type: `chaser`, `shooter`, `lancer`, `tank`, `splitter`, `shard`, `boss` |
 | `elite_kills` | of those, elites |
@@ -169,6 +169,9 @@ Every event has `t` and `type`.
 | `rank` | `rank`, `xp` |
 | `milestone` | `what`: `top ship` (the priciest ship owned), `all modules at cap` (all but those needing a launcher you do not carry), `all guns tier 5`; `salvage` |
 | `contract` | `action` (`taken`, `stage done`, `completed`, `claimed`, `abandoned`), `title`, `kind` (the stage's), `stage`, `stages`, `world`, `reward`, `story`, `secs` (since taken), `stage_secs` (since the stage began), and `xp` when claimed |
+| `reputation` | a world's reputation changed: `world` (its index), `from`, `to`, `why` (`contract`, `chapter`, `abandoned`, `freighter lost`, `guard hit`, `guard destroyed`, `helped the guards`, `fled inspection`, `contraband`, `smuggling`, `market war`, `fine`) |
+| `signature` | a world signed the Charter: `world`, `count` (signatures so far) |
+| `career` | a career line's chapter collected: `line`, `step` (1 to 3; 3 is its seat) |
 | `boss` | a flagship killed: `name`, `world`, `secs` (from its first hit), `taken` (the damage you took meanwhile) |
 | `race` | a campaign race over the line: `title`, `world`, `place`, `of`, `time` and `par` (seconds), `prize` |
 | `race` (`mode: race`) | a race of the Races mode at its end: `kind` (`steer`, `turbo`), `level` (`easy`, `normal`, `hard`), `world`, `title`, `end` (`finished`, `wrecked`, `forfeit`), `why` (a forfeit's), `place` (null unless finished), `of`, `time` (yours, null unless finished), `at` (the race's clock at its end), `par`, `rings`, `km`, `reached` (rings you passed), `crashes` (hits on rocks and drifting debris; in a Turbo race, spins off the track), `rock_hull` (the shield and hull they took), `hull_left`, `racers[]`: `name` (`You` for you), `skill` (0 to 1), `time`, `next` (rings passed), `out`, `splits` (seconds since green at each ring passed: the places along the race) |

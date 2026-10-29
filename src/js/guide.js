@@ -131,6 +131,20 @@ function preparation_plan(id)
     return out;
 }
 
+// The guide's marker's name for a contract's goal here: the station, the guard wing, a beacon, a field, the flagship's
+// zone, the freighter, or the patrol area
+function guide_goal_label(m, goal)
+{
+    if (['courier', 'trade', 'smuggle'].includes(m.type)) {
+        return worlds[m.world].station;
+    }
+    if (['patrol', 'inspection'].includes(m.type)) {
+        return guard_wing_names[campaign.world].toUpperCase();
+    }
+    const labels = {survey: `SCAN BEACON ${(goal.index || 0) + 1}`, mining: `MINING FIELD ${(goal.id || 0) + 1}`, boss: 'FLAGSHIP ZONE', escort: 'FREIGHTER'};
+    return labels[m.type] || 'PATROL AREA';
+}
+
 function expedition_base_guide_context()
 {
     const effective_state = (state === 'navigation') ? nav_return : state;
@@ -283,10 +297,25 @@ function expedition_base_guide_context()
             description = 'Fly to the marked flagship zone. The enemy appears when you approach. Keep moving while your cannon and drones fire.';
         }
         if (m.type === 'escort') {
-            goal = escort || {x: station.x + station_size/2 + 350, y: station.y + 250};
+            // a convoy's leg starts at the gate it came through (escort_route)
+            const route = escort || escort_route(m.stages?.[m.stage_index]);
+            goal = escort || route.start;
             description = escort?.active
                 ? `Stay within ${escort_leash} m of the freighter so it keeps moving. Next: ${escort.stops[escort.leg].label}.`
-                : `Meet the freighter beside the station; its cargo run is ${escort_route_text(escort || escort_route())}.`;
+                : `Meet the freighter ${route.start.label || 'beside the station'}; its run is ${escort_route_text(route)}.`;
+        }
+        // the stages flown with the world's guards (guards.js, inspection.js) and the smuggler's (contraband.js)
+        if (m.type === 'patrol') {
+            goal = guards[0] || station;
+            description = `Fly with the ${guard_wing_names[campaign.world]} within ${guard_patrol_reach} m: the one who leads waits for you at each point of its round. ${format_progress(m.target - m.progress)} more points; the wing fights what it meets.`;
+        }
+        if (m.type === 'inspection') {
+            goal = guards[0] || station;
+            description = `Find the ${guard_wing_names[campaign.world]} and hold slow beside the one who leads for its scan, with no sealed cargo aboard.`;
+        }
+        if (m.type === 'smuggle') {
+            goal = station;
+            description = `Bring ${format_progress(m.target - m.progress)} more sealed cargo to ${worlds[m.world].station} and sell it in its back room (CARGO MARKET). Dustfall and Nova Forge sell it; a guard's scan takes it.`;
         }
         if (m.type === 'trade') {
             goal = station;
@@ -303,29 +332,18 @@ function expedition_base_guide_context()
             out.goal = {
                 ...goal,
                 // a goal that moves (the convoy's freighter) is followed live by the marker, not where it was
-                follow: (m.type === 'escort') ? escort : null,
-                label:
-                    ((m.type === 'courier') || (m.type === 'trade'))
-                        ? worlds[m.world].station
-                        : (m.type === 'survey')
-                            ? `SCAN BEACON ${(goal.index || 0) + 1}`
-                            : (m.type === 'mining')
-                                ? `MINING FIELD ${(goal.id || 0) + 1}`
-                                : (m.type === 'boss')
-                                    ? 'FLAGSHIP ZONE'
-                                    : (m.type === 'escort')
-                                        ? 'FREIGHTER'
-                                        : 'PATROL AREA',
+                follow: (m.type === 'escort') ? escort : ['patrol', 'inspection'].includes(m.type) ? (guards[0] || null) : null,
+                label: guide_goal_label(m, goal),
             };
             out.kind = kind;
             out.instruction = description;
             out.action =
-                ((effective_state === 'upgrade') && (m.type === 'trade'))
+                ((effective_state === 'upgrade') && ['trade', 'smuggle'].includes(m.type))
                     ? 'Open cargo market'
                     : ((effective_state === 'upgrade') && (m.type === 'courier'))
                         ? 'Deliver on docking'
                         : 'Fly to objective';
-            if ((m.type === 'courier') || (m.type === 'trade')) {
+            if (['courier', 'trade', 'smuggle'].includes(m.type)) {
                 out.interaction = 'R DOCK';
             }
         }

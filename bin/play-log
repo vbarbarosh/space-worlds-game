@@ -201,7 +201,7 @@ function report_salvage_over_time(runs)
 // a module): money that the shop could not take
 function idle_minutes(run)
 {
-    const priciest = Math.max(0, ...run.events.filter(v => (v.type === 'buy') && !['trade', 'tow'].includes(v.kind)).map(v => v.price));
+    const priciest = Math.max(0, ...run.events.filter(v => (v.type === 'buy') && !['trade', 'tow', 'fine'].includes(v.kind)).map(v => v.price));
     let out = 0;
     for (const record of run.records) {
         if (priciest && (record.salvage > priciest*idle_salvage_factor)) {

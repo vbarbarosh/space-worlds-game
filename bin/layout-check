@@ -76,6 +76,8 @@ const screens = [
     {value: 'station-jobs', label: 'station-contracts', phone: true},
     // three taken (a story chapter, a very long title and paragraph, a finished one) and the longest board offered
     {value: 'station-jobs', label: 'station-contracts-full', query: '&contracts=full', phone: true},
+    // act II's first chapter offered but locked: Established in Haven still to earn (charter.js)
+    {value: 'station-jobs', label: 'station-contracts-locked', query: '&story=8&rep=haven:1', phone: true},
     {value: 'station-arsenal', label: 'station-arsenal', phone: true},
     // the start kit in Haven: guns for sale beside guns a later world opens, their lock badges
     {value: 'station-arsenal', label: 'station-arsenal-locked', query: '&kit=start', phone: true},
@@ -91,6 +93,8 @@ const screens = [
     // a pilot one XP short of Commander: the readout's longest numbers, the next licences named
     {value: 'station-career', label: 'station-goals-xp', query: '&xp=219999', phone: true},
     // reputation in all eight worlds, every tier, and the fines of four worlds this station takes, with salvage in the millions
+    // every career line at its seat, and the Hunters' seat's wanted aces on the worlds map (careers.js)
+    {value: 'station-career', label: 'station-goals-careers', query: '&careers=all&rep=haven:9,verdant:4', phone: true},
     {value: 'station-career', label: 'station-goals-reputation', world: 'ion-reach', query: '&rep=haven:-3,verdant:9,dustfall:-7,ion-reach:-1,obsidian:-10,cryosphere:10,nova-forge:4,eclipse:0&station=full', phone: true},
     {value: 'station-market', label: 'station-market', phone: true},
     // all eleven goods in the hold: every card of the market, each with its picture
@@ -112,6 +116,7 @@ const screens = [
     {value: 'map-local', label: 'map-local'},
     // the chart of the worlds and their lanes
     {value: 'map-worlds', label: 'map-worlds'},
+    {value: 'map-worlds', label: 'map-worlds-wanted', query: '&careers=hunter:3'},
     {value: 'pause', label: 'pause'},
     // the settings panel over the flight (the HUD's gear): every switch, Resolution among them
     {value: 'settings', label: 'settings', phone: true},

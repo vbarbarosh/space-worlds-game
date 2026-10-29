@@ -37,7 +37,7 @@ function trade_opportunities()
     const out = [];
     for (let i = 0, ii = commodities.length; i < ii; ++i) {
         const commodity = commodities[i];
-        if (resource_of(commodity.key) || ((intel_commodity !== 'all') && (intel_commodity !== commodity.key))) {
+        if (resource_of(commodity.key) || (commodity === contraband) || ((intel_commodity !== 'all') && (intel_commodity !== commodity.key))) {
             continue;
         }
         for (let a = 0, aa = worlds.length; a < aa; ++a) {
@@ -188,7 +188,7 @@ function render_trade_intel(parent)
     controls.textContent = 'RESOURCE';
     const select = document.createElement('select');
     select.setAttribute('aria-label', 'Trade intelligence resource');
-    for (const c of [{key: 'all', name: 'All resources'}, ...commodities]) {
+    for (const c of [{key: 'all', name: 'All resources'}, ...commodities.filter(v => v !== contraband)]) {
         const o = document.createElement('option');
         o.value = c.key;
         o.textContent = c.name;
@@ -214,7 +214,8 @@ function render_trade_intel(parent)
         const world = worlds[id];
         for (let i = 0, ii = commodities.length; i < ii; ++i) {
             const commodity = commodities[i];
-            if ((intel_commodity !== 'all') && (intel_commodity !== commodity.key)) {
+            // sealed cargo is no trade to compare: the back rooms keep no board (contraband.js)
+            if ((commodity === contraband) || ((intel_commodity !== 'all') && (intel_commodity !== commodity.key))) {
                 continue;
             }
             const row = document.createElement('tr');

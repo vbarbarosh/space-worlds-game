@@ -2,7 +2,8 @@
 
 The story chapter by chapter. Acts I and II are the 16 chapters the game has
 today: their stages and rewards are the game's own, and the story text around
-them (the thread of the Charter) is new. The career lines at the end are new.
+them (the thread of the Charter) is new. The career lines at the end are in
+the game too, each chapter a file of `src/missions/`.
 The frame is in [README.md](README.md).
 
 Each chapter ends where the next one starts, or on the way to it: a delivery
@@ -122,10 +123,13 @@ collect the chapter there; the frontier expeditions open. (It was founded in
 Haven, after a trip home of about 16 minutes of flight across Cryosphere,
 Obsidian and Ion Reach with nothing left to do.)
 
-## Career lines (new)
+## Career lines
 
 Three chapters each, optional, open with rank. Each ends with a guild seat:
-a title shown in the career tab, and a lasting perk.
+a title shown in the career tab, and a lasting perk. In the game as files,
+`src/missions/career-*.md`, with the stages the game has
+([goals.md](../goals.md#career-lines)); where a chapter below asks for
+something the game has no stage for, its file does it with the nearest.
 
 ### Trader: the Merchants' seat · from rank 1 (Courier)
 1. **Cheap ore, dear cells.** Buy ore in Dustfall, sell it in Ion Reach, and come back with cells: one full trade loop, with a profit target.

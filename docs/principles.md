@@ -99,6 +99,11 @@ shows a health bar (its armour or energy, and how much is left as it is hit).
     bounce off rocks and bump you and each other), raiders' shots and rams
     damage them, a bar once hit; your shots pass through them, and they never
     shoot (`src/js/race.js`).
+  - **World guards** (campaign): solid, a bar once hurt, a shield that mends.
+    Raiders' bolts and missiles damage them. Your guns' own aim passes over
+    them, as over every friendly hull; a shot you aim with the pointer, or
+    any shot once the wing fights you, hits them: they are the world's, not
+    yours, and the outlaw's way goes through them (`src/js/guards.js`).
 - Open question: should ore rocks be shot apart in the campaign as they are
   in the arcade, and if a rock both holds ore and can break, does it show two
   bars (hull and reserve) or one? Not decided yet.
@@ -215,6 +220,9 @@ place to fall back to.
 - Docking repairs the hull, restores the shield, refills the turbo, clears
   the radiation dose and saves the flight (`dock_station` in
   `src/js/station.js`).
+- Not for a Wanted pilot: that world's station refuses docking and its guards
+  attack on sight; the shelter is a neighbour's station, where the fine is
+  paid ([goals.md](goals.md#reputation)).
 - The arcade has no shelter. Its depot raises a shield while raiders are near
   and opens only once they are cleared (`src/js/depot_shield.js`).
 - Where it lives: `station_shelter` in `src/js/worlds.js`; its uses in

@@ -69,7 +69,7 @@ function valid_checkpoint(candidate)
         (candidate.campaign.contracts.length <= 3) &&
         candidate.campaign.contracts.every(function (v) {
             return (
-                ['mining', 'hunt', 'courier', 'survey', 'boss', 'escort', 'trade', 'scan', 'recover', 'defend', 'elite', 'lure', 'race'].includes(v.type) &&
+                ['mining', 'hunt', 'courier', 'survey', 'boss', 'escort', 'trade', 'scan', 'recover', 'defend', 'elite', 'lure', 'race', 'patrol', 'inspection', 'smuggle'].includes(v.type) &&
                 worlds[v.world] &&
                 Number.isFinite(v.progress) &&
                 (v.target > 0) &&
@@ -221,6 +221,7 @@ function visual_base_generate_map()
     patrol_timer = 8;
     save_timer = 15;
     escort = null;
+    guards_spawn();
     for (const contract of campaign.contracts) {
         if ((contract.type === 'recover') && (contract.world === campaign.world)) {
             contract.ambush = false;
@@ -326,6 +327,8 @@ function world_audio_base_enemy_fire(enemy, angle, speed = 210, pattern = false)
             r: (w === 'missile') ? 7 : (w === 'rail') ? 3 : 5,
             weapon: w,
             escort_target: !!enemy.escort_raider,
+            // a raider fighting the guards fires at one of them: its missile flies at it (guards.js)
+            guard: guard_prey_now(enemy),
             // who fired it: in the arcade a raider's hits keep a safe time of their own (arcade_crowds.js)
             raider: enemy,
             // who fired it, for the play log's cause of a death

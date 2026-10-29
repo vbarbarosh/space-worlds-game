@@ -266,6 +266,12 @@ function update(dt, frame_dt = dt)
             seen = visible;
         }
     }
+    // a guard wing that fights you is a target too, its nearest guard (guards.js)
+    const guard = guards_target(near);
+    if (guard) {
+        target = guard;
+        near = distance(guard, player);
+    }
     // the guns pass over an arcade bulwark that has its shield to you, for a raider they can hurt (arcade_raiders.js)
     if (arcade.active && target && (target.type === 'bulwark')) {
         const other = raider_target_past_shield(target);
@@ -374,7 +380,7 @@ function update(dt, frame_dt = dt)
         const enemy_dt = dt*stasis_scale(v);
         v.age += enemy_dt;
         v.flash = Math.max(0, v.flash - dt);
-        const prey = (v.escort_raider && escort) ? escort : (v.robot_raider && survey_robot) ? survey_robot : (structure_prey(v) || race_prey(v));
+        const prey = (v.escort_raider && escort) ? escort : (v.robot_raider && survey_robot) ? survey_robot : (structure_prey(v) || race_prey(v) || guard_prey(v));
         // a race on: the raiders turn away from its course and leave (race_keep_off)
         const waypoint = (race.course && race_keep_off(v, prey)) || prey || (drones.length && drone_prey(v)) || enemy_waypoint(v);
         const a = Math.atan2(waypoint.y - v.y, waypoint.x - v.x);
@@ -404,8 +410,8 @@ function update(dt, frame_dt = dt)
             move = (d < 220) ? -0.6 : (d < 320) ? 0.18 : 1;
             v.fire_cd -= enemy_dt;
             if ((v.fire_cd <= 0) && (v.age > 0.8) && !v.race_leave) {
-                // you and a race's rivals move fast: the shot leads them
-                enemy_fire(v, ((waypoint === player) || waypoint.rival) ? raider_aim(v, waypoint, 180 + threat_wave()*4) : a, 180 + threat_wave()*4);
+                // you, a race's rivals and the guards move fast: the shot leads them
+                enemy_fire(v, ((waypoint === player) || waypoint.rival || waypoint.guard_ship) ? raider_aim(v, waypoint, 180 + threat_wave()*4) : a, 180 + threat_wave()*4);
                 v.fire_cd = Math.max(1.2, 2.1 - threat_wave()*0.04)*raider_reload(v);
                 ring(v.x, v.y, gold, 30, 0.25);
             }
@@ -464,6 +470,8 @@ function update(dt, frame_dt = dt)
             }
         }
     }
+    // the world's guard wing patrols, escorts or fights (guards.js)
+    guards_update(dt);
     // no two hulls overlap: raiders out of asteroids, structures, the freighter, you and each other
     bodies_resolve();
     // a ring race: the rivals fly, bump and pass rings, and yours count (js/race.js)
@@ -543,6 +551,11 @@ function update(dt, frame_dt = dt)
                 }
             }
         }
+        // a guard is a hull: your shot stops on it, and the guards remember (guards.js)
+        if ((b.life > 0) && !b.missile && guards.length && guards_hit_by_your_shot(b, px, py)) {
+            b.life = 0;
+            continue;
+        }
         if (b.life > 0) {
             for (let j = 0; j < ore_nodes.length; ++j) {
                 const v = ore_nodes[j];
@@ -596,7 +609,7 @@ function update(dt, frame_dt = dt)
         }
         const enemy_dt = dt*stasis_scale(b);
         if (b.missile) {
-            missile_fly(b, (b.escort_target && escort) ? escort : player, enemy_dt);
+            missile_fly(b, (b.escort_target && escort) ? escort : (b.guard && guards.includes(b.guard)) ? b.guard : player, enemy_dt);
         }
         b.px = b.x;
         b.py = b.y;
@@ -610,13 +623,18 @@ function update(dt, frame_dt = dt)
             continue;
         }
         if (b.missile) {
-            if (missile_fuse_raider(b)) {
+            if (missile_fuse_raider(b) || (guards.length && guards_missile_fuse(b))) {
                 missile_detonate(b);
             }
             continue;
         }
         // a race's rivals are hulls: a raider's shot stops on them
         if (race.course && race_shot_hit(b)) {
+            b.life = 0;
+            continue;
+        }
+        // and so are the world's guards
+        if (guards.length && guards_hit_by_raider_shot(b)) {
             b.life = 0;
             continue;
         }

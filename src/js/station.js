@@ -12,7 +12,7 @@ function guide_base_accept_contract(template, main = false)
     if ((state !== 'upgrade') || (campaign.contracts.length >= 3)) {
         return;
     }
-    if (main && campaign.contracts.some(v => v.main)) {
+    if (main && (campaign.contracts.some(v => v.main) || charter_chapter_lock(campaign.story))) {
         return;
     }
     if (!main && campaign.contracts.some(v => v.title === template.title)) {
@@ -43,7 +43,7 @@ function expedition_base_guide_base_claim_contract(id)
     if (m.main) {
         campaign.story++;
         if (campaign.story === story.length) {
-            show_toast('THE FRONTIER IS YOURS', 'STORY COMPLETE / KEEP EXPLORING AND TAKING CONTRACTS', 6);
+            show_toast('THE GUILD IS FOUNDED', 'EIGHT SIGNATURES / THE FRONTIER IS YOURS: KEEP EXPLORING AND TAKING CONTRACTS', 6);
         }
     }
     campaign.contracts = campaign.contracts.filter(v => v.id !== id);
@@ -132,15 +132,20 @@ function render_station_contracts(parent)
     if ((campaign.story < story.length) && !campaign.contracts.some(v => v.main)) {
         offers.push({...story[campaign.story], main: true, label: `Story ${campaign.story + 1} / ${story.length} · ${story[campaign.story].title}`});
     }
+    // a career line's next chapter, in its world (careers.js)
+    offers.push(...career_offers());
     for (const m of offered_jobs()) {
         offers.push({...m, label: m.title});
     }
     for (const m of offers) {
         const dupe = campaign.contracts.some(v => v.title === m.title);
+        // an act II chapter waits for Established in its world (charter.js)
+        const lock = m.main && charter_chapter_lock(campaign.story);
+        const stages = m.stages ? `${m.stages.length} stage${(m.stages.length === 1) ? '' : 's'}` : m.type;
         offered.append(contract_card(m, {
-            label: m.main ? 'Story' : m.stages ? `${m.stages.length} stage${(m.stages.length === 1) ? '' : 's'}` : m.type,
+            label: lock ? 'Story · needs Established' : m.main ? 'Story' : m.career ? 'Career' : stages,
             title: m.label,
-            action: ui_button({label: dupe ? 'Taken' : full ? 'No free slot' : 'Accept', size: 'sm', disabled: full || dupe, on: () => accept_contract(m, !!m.main)}),
+            action: ui_button({label: lock ? `Reputation ${lock.have} of ${lock.need}` : dupe ? 'Taken' : full ? 'No free slot' : 'Accept', size: 'sm', disabled: full || dupe || !!lock, title: lock ? `${lock.text}: its contracts raise it` : '', on: () => accept_contract(m, !!m.main)}),
         }));
     }
     ui_text_clamp(parent);
@@ -167,7 +172,7 @@ function contract_card(m, {label, title, action, state = ''})
 
 // The kinds of stage, the one that tells a contract apart first: most contracts open with a scan, so the picture is
 // of the stage that names the job (the flagship, the commander, the convoy...), not of the first
-const contract_kind_rank = ['boss', 'lure', 'race', 'elite', 'escort', 'hunt', 'defend', 'mining', 'trade', 'recover', 'courier', 'scan'];
+const contract_kind_rank = ['boss', 'lure', 'race', 'elite', 'smuggle', 'escort', 'patrol', 'hunt', 'defend', 'inspection', 'mining', 'trade', 'recover', 'courier', 'scan'];
 
 // The kind of work a contract is about: its headline stage by contract_kind_rank; an old story chapter's survey is a
 // scan
@@ -278,9 +283,9 @@ function guide_base_render_contracts(parent, board = false)
                 `STORY ${campaign.story + 1} / ${story.length} · ${m.title}`,
                 m.description,
                 `${worlds[m.world].name} · ◆ ${m.reward}`,
-                'ACCEPT STORY CONTRACT',
+                charter_chapter_lock(campaign.story)?.text.toUpperCase() || 'ACCEPT STORY CONTRACT',
                 () => accept_contract(m, true),
-                campaign.contracts.length >= 3
+                (campaign.contracts.length >= 3) || !!charter_chapter_lock(campaign.story)
             );
         }
         for (const m of offered_jobs()) {
@@ -516,7 +521,7 @@ const market_quantity = {ore: 1, cells: 1, relics: 1};
 // Cargo a trade contract still has to deliver to another world: SELL ALL keeps it aboard
 function cargo_reserved()
 {
-    return campaign.contracts.filter(v => !v.ready && (v.type === 'trade') && (v.world !== campaign.world)).map(v => v.commodity);
+    return campaign.contracts.filter(v => !v.ready && ['trade', 'smuggle'].includes(v.type) && (v.world !== campaign.world)).map(v => ((v.type === 'smuggle') ? contraband.key : v.commodity));
 }
 
 // What SELL ALL sells here, and what it pays
@@ -559,11 +564,12 @@ function trade_cargo(key, side, requested)
         return 0;
     }
     const index = commodities.findIndex(v => v.key === key);
-    if ((index < 0) || !['buy', 'sell'].includes(side) || ((side === 'buy') && resource_of(key))) {
+    // a world's resource is mined, never bought; sealed cargo is bought only in a free port (contraband.js)
+    if ((index < 0) || !['buy', 'sell'].includes(side) || ((side === 'buy') && (resource_of(key) || ((key === contraband.key) && !contraband_port())))) {
         return 0;
     }
     const price = market_price(campaign.world, index, side);
-    const maximum = (side === 'buy') ? Math.max(0, Math.min(cargo_capacity() - cargo_count(), Math.floor(salvage/price))) : campaign.cargo[key];
+    const maximum = (side === 'buy') ? Math.max(0, Math.min(cargo_capacity() - cargo_count(), Math.floor(salvage/price))) : (campaign.cargo[key] || 0);
     const wanted = (requested === 'all') ? maximum : Math.floor(Number(requested));
     if (!Number.isFinite(wanted) || (wanted < 1)) {
         return 0;
@@ -572,7 +578,7 @@ function trade_cargo(key, side, requested)
     if (amount <= 0) {
         return 0;
     }
-    campaign.cargo[key] += (side === 'buy') ? amount : -amount;
+    campaign.cargo[key] = (campaign.cargo[key] || 0) + ((side === 'buy') ? amount : -amount);
     const value = (side === 'buy') ? -amount*price : trade_total(campaign.world, key, side, amount);
     salvage += value;
     play_log_trade(key, amount, value);
@@ -593,6 +599,9 @@ function trade_cargo(key, side, requested)
     if (side === 'sell') {
         ensure_markets()[campaign.world].demand[key] = Math.max(0, ensure_markets()[campaign.world].demand[key] - amount);
         mission_event('trade', delivered, {commodity: key});
+        if (key === contraband.key) {
+            contraband_sold(amount);
+        }
     }
     advance_trade_plan(key, side, amount);
     save_checkpoint();
@@ -615,12 +624,15 @@ function render_market_kit(parent)
     for (let i = 0, ii = commodities.length; i < ii; ++i) {
         const commodity = commodities[i];
         const resource = resource_of(commodity.key);
-        if (resource && (resource.world !== campaign.world) && !campaign.cargo[commodity.key]) {
+        // sealed cargo shows in a free port, and wherever you carry some (contraband.js)
+        const sealed = (commodity === contraband) ? contraband_card() : null;
+        if (((resource && (resource.world !== campaign.world)) || (sealed && !contraband_port())) && !campaign.cargo[commodity.key]) {
             continue;
         }
         const price = market_price(campaign.world, i, 'buy');
         const sell = market_price(campaign.world, i, 'sell');
-        const owned = campaign.cargo[commodity.key];
+        const owned = campaign.cargo[commodity.key] || 0;
+        const buyable = !resource && (!sealed || contraband_port());
         const max_buy = Math.max(0, Math.min(cargo_capacity() - cargo_count(), Math.floor(salvage/price)));
         const demand = ensure_markets()[campaign.world].demand[commodity.key];
         const pick = market_quantity[commodity.key] || 1;
@@ -628,16 +640,16 @@ function render_market_kit(parent)
         const sell_n = (pick === 'all') ? owned : Math.min(pick, owned);
         const actions = document.createElement('span');
         actions.className = 'card-actions';
-        if (!resource) {
+        if (buyable) {
             actions.append(ui_button({label: `Buy ${buy_n}`, price: buy_n*price, size: 'sm', disabled: buy_n < 1, on: () => trade_cargo(commodity.key, 'buy', buy_n)}));
         }
         actions.append(ui_button({label: `Sell ${sell_n}`, price: trade_total(campaign.world, commodity.key, 'sell', sell_n), size: 'sm', kind: (sell_n > 0) ? 'primary' : '', disabled: sell_n < 1, on: () => trade_cargo(commodity.key, 'sell', sell_n)}));
         const c = ui_card({
             art: cargo_picture_html(commodity.key),
-            tags: resource ? `${ui_world_badge(resource.world)}${ui_badge('Resource')}` : (demand > 0) ? ui_badge(`Demand ${demand}`, 'gold') : ui_badge('No demand'),
+            tags: sealed ? sealed.badge : resource ? `${ui_world_badge(resource.world)}${ui_badge('Resource')}` : (demand > 0) ? ui_badge(`Demand ${demand}`, 'gold') : ui_badge('No demand'),
             title: commodity.name,
-            text: resource ? `Mined, not sold here. Pays more the farther from ${worlds[resource.world].name}.` : 'Demand pays +6 a unit until it is filled.',
-            stats: [['CARGO', String(owned)], ...(resource ? [] : [['BUY', `◆ ${price}`]]), ['SELL', `◆ ${sell}`]],
+            text: sealed ? sealed.text : resource ? `Mined, not sold here. Pays more the farther from ${worlds[resource.world].name}.` : 'Demand pays +6 a unit until it is filled.',
+            stats: [['CARGO', String(owned)], ...(buyable ? [['BUY', `◆ ${price}`]] : []), ['SELL', `◆ ${sell}`]],
             action: actions,
         });
         const seg = document.createElement('div');
@@ -653,9 +665,12 @@ function render_market_kit(parent)
             seg.append(b);
         }
         // the whole rule in the text's tooltip
-        c.querySelector('p.small').title = resource
+        const rule = resource
             ? `Mined, never sold here: ${worlds[resource.world].name} pays 60% of its worth, each world farther away 30% more.`
             : 'Demand pays +6 a unit until it is filled. TRADE INTEL compares every station.';
+        c.querySelector('p.small').title = sealed
+            ? `Sold in ${contraband.ports.map(v => worlds[v.world].name).join(' and ')}; banned in every other world, whose back room pays ${contraband_black_price} and 12 more a world farther out.`
+            : rule;
         c.querySelector('.foot').before(seg);
         parent.append(c);
     }
@@ -670,7 +685,7 @@ function render_market(parent)
     for (let i = 0, ii = commodities.length; i < ii; ++i) {
         const commodity = commodities[i];
         const resource = resource_of(commodity.key);
-        if (resource && (resource.world !== campaign.world) && !campaign.cargo[commodity.key]) {
+        if (((resource && (resource.world !== campaign.world)) || (commodity === contraband)) && !campaign.cargo[commodity.key]) {
             continue;
         }
         const price = market_price(campaign.world, i, 'buy');

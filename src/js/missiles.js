@@ -310,7 +310,10 @@ function missile_waves_update(dt)
                 }
             }
         }
-        else if (!w.hit.has(player)) {
+        else if (guards.length) {
+            guards_wave_hit(w);
+        }
+        if ((w.side !== 'player') && !w.hit.has(player)) {
             const reach = missile_player_reach();
             const gap = distance(w, player) - reach;
             if (gap <= w.r) {

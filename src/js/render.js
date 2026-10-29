@@ -277,6 +277,7 @@ function render()
     raider_jobs_render();
     boss_duel_render_over();
     race_render_rivals();
+    guards_render();
     render_explosions();
     render_pulse();
     render_pickup_halos();

@@ -343,6 +343,14 @@
 .ui .rep-bars .rep-neutral { color: var(--text-3); } .ui .rep-bars .rep-trusted { color: var(--green); }
 .ui .rep-fines { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
 .ui .rep-fines .btn { max-width: 100%; }
+/* the Charter's signatures (the GOALS tab): a seal per world, filled in its colour once signed */
+.ui .charter-seals { display: flex; flex-wrap: wrap; gap: 8px; margin: 2px 0 6px; }
+.ui .charter-seals .seal { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--world); opacity: 0.45; }
+.ui .charter-seals .seal.is-signed { background: var(--world); opacity: 1; box-shadow: 0 0 8px var(--world); }
+/* the career lines (the GOALS tab): the line, where it stands or its seat, its three chapters */
+.ui .career-line { display: grid; grid-template-columns: 1fr minmax(90px, 30%); gap: 12px; align-items: center; padding: 8px 0; border-top: 1px solid var(--line-1); }
+.ui .career-line .small { margin: 2px 0 0; }
+.ui .career-line.is-seated b { color: var(--gold); }
 
 /* goal steps */
 .ui .steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }

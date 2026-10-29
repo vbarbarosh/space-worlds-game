@@ -43,7 +43,7 @@ function guide_base_track_contract(m)
                 : (m.type === 'boss')
                     ? combat_zone
                     : (m.type === 'escort')
-                        ? escort || {x: station.x + station_size/2 + 350, y: station.y + 250}
+                        ? escort || escort_route(m.stages?.[m.stage_index]).start
                         : (m.type === 'hunt')
                             ? {x: station.x - 1100, y: station.y + 800}
                             : station;
@@ -185,7 +185,7 @@ function interact()
         return;
     }
     if (distance(player, station) < station_reach) {
-        if (reputation_dock_refused()) {
+        if (reputation_dock_refused() || inspection_holds_docking()) {
             return;
         }
         docking_start(dock_station);
@@ -362,8 +362,8 @@ function guide_base_update_frontier(dt)
         const armed = !enemy.unarmed && !enemy.race_leave && ((enemy.weapon !== 'plasma') || !arcade.active || arcade_mode().armed);
         if ((enemy.type !== 'shooter') && (enemy.type !== 'boss') && (enemy.type !== 'shard') && armed) {
             enemy.gun_cd -= dt;
-            // a raider sent for the survey robot shoots at it
-            const target = structure_prey(enemy) || ((enemy.robot_raider && survey_robot) ? survey_robot : player);
+            // a raider sent for the survey robot shoots at it, one fighting the guards at them
+            const target = structure_prey(enemy) || ((enemy.robot_raider && survey_robot) ? survey_robot : (guard_prey(enemy) || player));
             if ((enemy.gun_cd <= 0) && (distance(enemy, target) < 900)) {
                 enemy_fire(enemy, raider_aim(enemy, target));
                 enemy.gun_cd = ((enemy.type === 'tank') ? 2.8 : 3.6)*(arcade.active ? arcade_mode().gun_gap : 1)*raider_reload(enemy);

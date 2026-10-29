@@ -129,6 +129,9 @@ function xp_need_text(rank)
     return `${ui_number(rank_thresholds[rank])} XP · you ${ui_number(campaign.xp)}`;
 }
 
+// The campaigns whose saved fields have been checked: once each, not on every call (ensure_career runs every frame)
+const career_checked = new WeakSet();
+
 function ensure_career()
 {
     if (!campaign.fleet) {
@@ -151,7 +154,13 @@ function ensure_career()
         campaign.xp = career_xp_rescale(campaign.xp);
         campaign.xp_hull = true;
     }
-    campaign.reputation = reputation_sanitize(campaign.reputation);
+    if (!career_checked.has(campaign)) {
+        career_checked.add(campaign);
+        campaign.reputation = reputation_sanitize(campaign.reputation);
+        campaign.signed = charter_sanitize(campaign.signed);
+        campaign.careers = careers_sanitize(campaign.careers);
+        campaign.wanted = wanted_sanitize(campaign.wanted);
+    }
     campaign.expedition = campaign.expedition || 1;
     return f;
 }
@@ -360,6 +369,8 @@ function fire_equipped_weapon(mount = null)
             width: muzzle.bore,
             pierce: (v.id === 'rail') ? upgrades.spread : 0,
             tier,
+            // aimed by your pointer: a guard it meets takes it as fire on the wing (guards.js)
+            aimed: !!player.aim_by_pointer,
         };
         bullets.push(shot);
         if ((v.id === 'rail') || (v.id === 'beam')) {

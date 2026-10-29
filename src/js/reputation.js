@@ -48,6 +48,10 @@ function reputation_change(id, delta, why, floor = reputation_min)
     if (now !== tier) {
         show_toast(`${worlds[id].name.toUpperCase()}: ${now.name.toUpperCase()}`, now.text.toUpperCase(), 4, (after < before) ? 'danger' : 'info');
     }
+    // a world that trusts you signs the Charter (charter.js)
+    if (now.id === 'trusted') {
+        charter_sign(id);
+    }
 }
 
 // The fine that sets a world's reputation back to 0: more the lower it is and the farther out the world; nothing
@@ -84,7 +88,8 @@ function reputation_pay_fine(id)
     salvage -= paid;
     play_log_spend('fine', worlds[id].name, paid);
     reputation_change(id, -reputation_of(id), 'fine');
-    show_toast('FINE PAID', `${worlds[id].name.toUpperCase()} · BACK TO NEUTRAL · ◆ ${paid}`, 4, 'info');
+    // the amount not at the end: a toast ending in ◆ n reads as income (show_toast)
+    show_toast('FINE PAID', `◆ ${paid} · ${worlds[id].name.toUpperCase()} BACK TO NEUTRAL`, 4, 'info');
     save_checkpoint();
     if (state === 'upgrade') {
         render_station();
@@ -114,7 +119,7 @@ function reputation_dock_refused()
 function reputation_price(id, side, price)
 {
     const tier = reputation_tier(id);
-    return Math.max(1, Math.round(price*((side === 'buy') ? tier.buy : tier.sell)));
+    return Math.max(1, Math.round(price*((side === 'buy') ? tier.buy : tier.sell)*career_price_k(id, side)));
 }
 
 // The reputation bars of the GOALS tab: one row per world you know, the bar from its middle (0) to the left in red

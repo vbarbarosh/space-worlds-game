@@ -27,7 +27,7 @@ const map_kinds = {
     cliffs: {keys: ['x', 'y', 'r', 'fall'], where: (world, layout) => (world === 2) && (layout !== 'campaign')},
 };
 // What each stage kind's amount counts, and the worlds by name (src/missions/README.md)
-const mission_kinds = ['scan', 'mining', 'courier', 'hunt', 'defend', 'recover', 'elite', 'boss', 'escort', 'trade', 'lure'];
+const mission_kinds = ['scan', 'mining', 'courier', 'hunt', 'defend', 'recover', 'elite', 'boss', 'escort', 'trade', 'lure', 'patrol', 'inspection', 'smuggle'];
 const src_dir = path.join(__dirname, '..', 'src');
 const variants = ['dev', 'agent'];
 
@@ -146,13 +146,14 @@ function lines_by_slot_from_text(text)
     return out;
 }
 
-// Every mission file of the folder: a story chapter (nn-name.md, number as its place) or a side mission (side-name.md,
-// offered as a contract in its world); title, world, reward, description, story, stages
+// Every mission file of the folder: a story chapter (nn-name.md, number as its place), a side mission (side-name.md,
+// offered as a contract in its world) or a career line's chapter (career-line-n-name.md); title, world, reward,
+// description, story, stages
 function missions_from_dir(dir)
 {
     const worlds = world_names();
     const out = [];
-    for (const name of fs.readdirSync(dir).filter(v => /^(\d+|side)-.+\.md$/.test(v)).sort()) {
+    for (const name of fs.readdirSync(dir).filter(v => /^(\d+|side|career)-.+\.md$/.test(v)).sort()) {
         out.push(mission_from_text(name, fs.readFileSync(path.join(dir, name), 'utf8'), worlds));
     }
     return out;
@@ -172,7 +173,9 @@ function mission_from_text(file, text, worlds)
         }
         return id;
     }
-    const out = {number: /^\d/.test(file) ? Number(file.match(/^\d+/)[0]) : null, file, title: '', world: -1, reward: 0, description: '', story: [], stages: []};
+    // a career line's chapter: career-<line>-<1..3>-<name>.md (src/js/careers.js)
+    const career = file.match(/^career-([a-z]+)-([1-3])-/);
+    const out = {number: /^\d/.test(file) ? Number(file.match(/^\d+/)[0]) : null, career: career ? {line: career[1], step: Number(career[2])} : null, file, title: '', world: -1, reward: 0, description: '', story: [], stages: []};
     let paragraph = [];
     for (let i = 0, end = lines.length; i < end; ++i) {
         const line = lines[i].trim();
@@ -205,14 +208,24 @@ function mission_from_text(file, text, worlds)
             const stage = {title, type: kind, world: world_of(i, world), target: Number(amount)};
             const beacon = where.match(/^beacon\s+([1-3])$/);
             const commodity = where.match(/^commodity\s+(ore|cells|relics)$/);
+            // a convoy's leg: from the station or the gate from a world, to the station or the gate to a world
+            const via = where.match(/^from\s+(.+?)\s+to\s+(.+)$/);
+            // a named ace for an elite stage, the wanted raider it is
+            const ace = where.match(/^ace\s+(.+)$/);
             if (beacon) {
                 stage.beacon = Number(beacon[1]) - 1;
             }
             else if (commodity) {
                 stage.commodity = commodity[1];
             }
+            else if (via && (kind === 'escort')) {
+                stage.via = [via[1], via[2]].map(v => ((v === 'station') ? null : world_of(i, v)));
+            }
+            else if (ace && (kind === 'elite')) {
+                stage.ace = ace[1];
+            }
             else if (where) {
-                fail(i, `"${where}" is not a place: leave it empty, or write "beacon <1-3>" or "commodity <ore|cells|relics>"`);
+                fail(i, `"${where}" is not a place: leave it empty, or write "beacon <1-3>", "commodity <ore|cells|relics>", for an escort "from <world|station> to <world|station>", for an elite "ace <name>"`);
             }
             out.stages.push(stage);
         }

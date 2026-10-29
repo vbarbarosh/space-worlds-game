@@ -35,6 +35,8 @@ window.dev_state = function () {
         // the map file the map was made from (src/maps/, or the map editor's edit: dev/map_editor.js), or null
         map_file: map_file_current() ? `${map_file_name()}.json` : null,
         escort: escort ? {x: escort.x, y: escort.y, hp: escort.hp, active: escort.active} : null, formation: !!formation.leader,
+        // the world's guard wing (guards.js)
+        guards: guards.map(v => ({x: Math.round(v.x), y: Math.round(v.y), r: v.r, hp: Math.round(v.hp), shield: Math.round(v.shield)})), guard_mode: guard_wing.mode,
         races: arcade.active ? [] : race_variants.map((v, i) => race_course_make(campaign.world, i)),
         race: {phase: race.phase, clock: race.clock, place: race.place, prize: race.prize, racers: race.racers.map(v => ({name: v.name, you: v.you, next: v.next, time: v.time, out: v.out, x: Math.round(v.x), y: Math.round(v.y), speed: Math.round(Math.hypot(v.vx || 0, v.vy || 0))}))},
         cargo: {...campaign.cargo}, drones: {owned: drones_owned(), out: drones_out, flying: drones.map(v => ({x: Math.round(v.x), y: Math.round(v.y), state: v.state, hp: v.hp}))}, salvage, kills, xp: campaign.xp, turbo: !!player?.turbo_active, energy: player ? Math.round(player.energy*10)/10 : null, heat: player ? Math.round((player.heat || 0)*10)/10 : null, bullets: bullets.length, canisters: pickups.filter(v => v.type === 'cargo').map(v => ({x: Math.round(v.x), y: Math.round(v.y), key: v.key, amount: v.amount}))};

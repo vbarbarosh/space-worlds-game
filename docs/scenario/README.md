@@ -27,10 +27,11 @@ measures:
 After the founding, frontier expeditions stay open with no end, as they do
 today.
 
-*Exists:* chapter 16 ends with the guild founded at the Last Light Citadel,
-and the career tab already says "earn reputation in all eight worlds".
-*New:* the Charter as the thread through all chapters, and signatures as the
-measure.
+*Exists:* chapter 16 ends with the guild founded at the Last Light Citadel;
+the signatures are the measure: act II's chapter in a world opens at
+Established there and wins its signature, and a world that trusts you
+sooner signs then ([goals.md](../goals.md#story-chapters)). The Charter's
+thread through the chapters' text is in [chapters.md](chapters.md).
 
 ## How the story is built
 
@@ -47,10 +48,10 @@ The story reads like a book:
   Eclipse. It ends with the Charter recovered.
 - **Act II, The Charter**: chapters 9–16, back through the eight worlds to win
   their signatures. It ends with the guild founded.
-- **Career lines** (new): short chains of three chapters, one per way of
+- **Career lines**: short chains of three chapters, one per way of
   playing (trader, escort, hunter, warden, surveyor). They are optional and
   open with rank. Each ends with a **guild seat**, a title with a lasting
-  perk.
+  perk ([goals.md](../goals.md#career-lines)).
 - **Side contracts**: the station board offers them, as it does today: hunt,
   mining, courier, survey, escort, trade, convoy, bounty, expedition.
 
@@ -59,7 +60,9 @@ reputation in its world as well. It pays salvage, experience (rank) and
 reputation, and it may unlock a ship, a weapon or the next chapter.
 
 **Stage types.** These exist: scan, mining, courier, hunt, recover, defend,
-elite, escort, trade, boss, survey. These are new:
+elite, escort, trade, boss, survey, and, from the list below, all four:
+convoy (escort stages chained through the gates), patrol, inspection and
+smuggle ([goals.md](../goals.md#the-shape-of-a-job)). As planned:
 
 | Stage | What the player does |
 |-------|----------------------|
@@ -73,15 +76,15 @@ elite, escort, trade, boss, survey. These are new:
 Every way pays salvage and experience, and raises reputation in the world
 where the work is done. So every way leads to the goal.
 
-| Way | What you do | Exists today | New |
-|-----|-------------|--------------|-----|
-| **Trader** | buy where a good is cheap, sell where it is dear | cargo market, trade intel, trade plans, demand that shifts | trader chapters; contraband goods; the Merchants' seat |
-| **Escort** | protect freighters on their way | escort inside one world | convoys of several freighters across worlds; pay by cargo saved; the Convoy Masters' seat |
-| **Hunter** | hunt raiders and their commanders | hunt, elite, commander bounties from rank 2 | wanted lists of named raider aces per world; the Hunters' seat |
-| **Miner** | extract ore for contracts and the market | mining contracts, ore as cargo | none |
-| **Warden** | fly with a world's guards: patrols, inspections | none | the guard career line; the Guards' seat |
-| **Surveyor** | align beacons, chart the unknown | survey, frontier expeditions from rank 4 | the Cartographers' seat |
-| **Outlaw** | smuggle, raid freighters | none | a path of its own, paid well, and it costs reputation |
+| Way | What you do | In the game | Not built |
+|-----|-------------|-------------|-----------|
+| **Trader** | buy where a good is cheap, sell where it is dear | cargo market, trade intel, trade plans, demand that shifts; sealed cargo, the one contraband; the trader chapters and the Merchants' seat | |
+| **Escort** | protect freighters on their way | escort runs; convoys chained through the gates (a station's convoy to a neighbour, the escort chapters); the Convoy Masters' seat | several freighters in one convoy, paid by the cargo saved |
+| **Hunter** | hunt raiders and their commanders | hunt, elite, commander bounties from rank 2; the wanted lists of named aces; the hunter chapters and the Hunters' seat | |
+| **Miner** | extract ore for contracts and the market | mining contracts, ore as cargo | |
+| **Warden** | fly with a world's guards: patrols, inspections | patrol duty with the world's guards, their inspections; the warden chapters and the Guards' seat | |
+| **Surveyor** | align beacons, chart the unknown | survey, frontier expeditions from rank 4; the surveyor chapters and the Cartographers' seat | |
+| **Outlaw** | smuggle, raid freighters | smuggling runs from the free ports, at the cost of reputation; firing on the guards, until Wanted | raiding freighters: a freighter lets your shots pass, as every friendly hull does |
 
 The outlaw way is not a career line with a seat: it is what happens when the
 player chooses money over trust. Reputation and the guards make it a real
@@ -90,9 +93,8 @@ choice.
 ## Reputation
 
 Each world keeps its own reputation, from −10 to +10. The game keeps it, its
-tiers, their prices and docking, and the fine
-([goals.md](../goals.md#reputation)); what the guards do by tier comes with
-the guards.
+tiers, their prices and docking, the fine, and what the guards do by tier
+([goals.md](../goals.md#reputation)).
 
 | Tier | Range | What the world does |
 |------|-------|---------------------|
@@ -105,7 +107,8 @@ the guards.
 | Raises it | | Lowers it | |
 |-----------|---|-----------|---|
 | a side contract completed | +1 | a contract abandoned | −1 |
-| a chapter completed | +2 | a freighter lost on escort | −1 |
+| an act I chapter completed | +2 | a freighter lost on escort | −1 |
+| an act II chapter completed | to Trusted, and the signature | | |
 | helping guards or freighters in a fight | +1 | contraband found at inspection | −2 |
 | a fine paid | back to 0 | hitting a guard | −2 |
 | | | destroying a guard | −5 |
@@ -129,6 +132,10 @@ are the first ships in the game that are neither the player's nor enemies.
 | Cryosphere | Frost Sentinels | Glacier Watch |
 | Nova Forge | Ember Legion | Foundry Lancers |
 | Eclipse | Void Armada | Citadel Vigil |
+
+*Exists:* the wings, their patrols and fights, how they treat you by tier
+([objects.md](../objects.md#world-guards)), and the inspection, with sealed
+cargo as the contraband ([goals.md](../goals.md#contraband-and-inspections)).
 
 - Guards fly in wings of two to four. They patrol the lanes between the
   station, the gates and the beacons, and they fight any raiders they meet.

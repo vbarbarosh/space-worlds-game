@@ -30,6 +30,10 @@ function commodity_base_price(id, index)
     if (index < worlds[id].prices.length) {
         return worlds[id].prices[index];
     }
+    // sealed cargo: a free port's price, or a back room's (contraband.js)
+    if (commodities[index] === contraband) {
+        return contraband_price(id);
+    }
     const resource = commodities[index];
     return Math.round(resource.value*(0.6 + 0.3*Math.abs(world_tier(id) - world_tier(resource.world))));
 }
