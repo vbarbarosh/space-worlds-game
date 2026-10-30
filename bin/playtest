@@ -72,7 +72,10 @@ const usage = `usage: bin/playtest [--mode=normal] [--kind=free] [--seeds=1,2,3]
 
     --idle flies with no key pressed: no steering, dodge, dash, pulse, EMP, stasis or repair kit, the ship left to its
     guns' fire and, on a Scroll lane, to the screen's back edge carrying it on; the depot and the break go as above.
-    Its results go to data/playtest/<mode>-idle/ unless --label says otherwise.`;
+    Its results go to data/playtest/<mode>-idle/ unless --label says otherwise.
+
+    Under each run's table, its interest: per world, how the fight builds and lets go, how long nothing happens, how long
+    nothing new comes, the choices and close calls, as a score 0 to 100 (docs/interest.md).`;
 
 cli(main);
 
@@ -117,8 +120,12 @@ async function main()
             const run = await page.evaluate(() => window.__bot.report());
             run.wall_seconds = Math.round((Date.now() - time0)/1000);
             run.cut = !run.done;
+            for (const world of run.worlds) {
+                world.interest = interest_of(world);
+            }
             fs.writeFileSync(path.join(out_dir, `${mode}-${(kind === 'free') ? '' : `${kind}-`}${seed}.json`), JSON.stringify(run, null, 1));
             console.log(run_table(run));
+            console.log(interest_table(run));
             runs.push(run);
             await page.close();
         }
@@ -154,6 +161,128 @@ function run_table(run)
         lines.push(`${world.name.padEnd(12)} ${hull.padEnd(22)} ${String(all).padStart(7)}  ${String(world.kills).padStart(5)}  ${String(world.off_screen).padStart(10)}  ${String(world.salvage_at_depot ?? '-').padStart(16)}  ${left.padStart(10)}  ${power.padStart(5)}  ${String(world.deaths).padStart(6)}  ${Math.round(world.time)} s  ${quiet.padStart(5)}  ${crowd.padStart(5)}  ${String(world.pulses ?? 0).padStart(6)}  ${flagship.padStart(8)}  ${world.ship}: ${world.guns.join('+')}  ${sources}`);
     }
     return lines.join('\n');
+}
+
+// How interesting a world was to fly, from its samples and news (docs/interest.md): tension a second, from the raiders
+// close by and the hull and shield lost in the last 3 s, low hull adding to it, smoothed over 5 s; its peaks (up past
+// 0.65 after a fall under 0.35), how much it varies, how high the flagship's part stands over the rest; the share of
+// seconds with no raider within 900 m (dead) and the longest stretch under 0.2 (lull); the longest gap with nothing new
+// (news); the choices offered; close calls (the hull under 30% and back over 50% with no death); the longest gap with
+// no kill and no salvage. Each against its aim, as a score 0 to 100 (interest_aims).
+function interest_of(world)
+{
+    const trace = world.trace || [];
+    if (trace.length < 10) {
+        return null;
+    }
+    const raw = trace.map(function (v, i) {
+        const lost = trace.slice(Math.max(0, i - 2), i + 1).reduce((sum, vv) => sum + vv.lost, 0);
+        return Math.min(1, 0.55*Math.min(1, v.n/8) + 0.45*Math.min(1, lost/0.12) + ((v.hp < 0.35) ? 0.25 : 0));
+    });
+    const tension = raw.map((v, i) => mean(raw.slice(Math.max(0, i - 2), i + 3)));
+    let peaks = 0;
+    let armed = true;
+    for (const v of tension) {
+        if (armed && (v > 0.65)) {
+            peaks++;
+            armed = false;
+        }
+        else if (v < 0.35) {
+            armed = true;
+        }
+    }
+    const flagship = tension.filter((v, i) => trace[i].f);
+    const before = tension.filter((v, i) => !trace[i].f);
+    const minutes = trace.length/60;
+    let lull = 0;
+    let run = 0;
+    for (const v of tension) {
+        run = (v < 0.2) ? run + 1 : 0;
+        lull = Math.max(lull, run);
+    }
+    const times = [0, ...(world.news || []).map(v => v.t), trace.length];
+    const news_gap = Math.max(...times.slice(1).map((v, i) => v - times[i]));
+    let close = 0;
+    let low = false;
+    for (const v of trace) {
+        if (v.hp < 0.3) {
+            low = v.d;
+        }
+        else if ((low !== false) && (v.hp > 0.5)) {
+            close += (low === v.d) ? 1 : 0;
+            low = false;
+        }
+    }
+    let reward_gap = 0;
+    run = 0;
+    for (const v of trace) {
+        run = (v.k || v.e) ? 0 : run + 1;
+        reward_gap = Math.max(reward_gap, run);
+    }
+    const out = {
+        minutes: Number(minutes.toFixed(1)),
+        mean: round2(mean(tension)),
+        spread: round2(Math.sqrt(mean(tension.map(v => (v - mean(tension))**2)))),
+        peaks_per5: Number((peaks*5/minutes).toFixed(1)),
+        climax: before.length && flagship.length ? round2(mean(flagship)/Math.max(0.05, mean(before))) : null,
+        dead: round2(trace.filter(v => v.far).length/trace.length),
+        lull,
+        news: (world.news || []).length,
+        news_gap,
+        choices_per5: Number(((world.choices || 0)*5/minutes).toFixed(1)),
+        close_per5: Number((close*5/minutes).toFixed(1)),
+        reward_gap,
+        curve: tension.filter((v, i) => !(i % 5)).map(round2),
+    };
+    out.score = interest_score(out);
+    return out;
+}
+
+// Each measure's part of the score, 0 to 1 against its aim: peaks 3 to 7 in five minutes (Left 4 Dead's director: a
+// build-up, a peak and a rest about once a minute); tension that varies (0.22 or more); the flagship's part 1.3 times
+// the rest or more (Schell's interest curve: the climax at the end); 5% of the time or less with nothing to fight;
+// something new at least every 45 s; three choices in five minutes; a close call or two; the score their mean
+function interest_score(v)
+{
+    const peaks = (v.peaks_per5 >= 3) && (v.peaks_per5 <= 7) ? 1 : (v.peaks_per5 > 7) ? 0.7 : v.peaks_per5/3;
+    const parts = [
+        peaks,
+        Math.min(1, v.spread/0.22),
+        (v.climax === null) ? 0 : clamp01((v.climax - 0.9)/0.4),
+        clamp01(1 - (v.dead - 0.05)/0.25),
+        clamp01((90 - v.news_gap)/45),
+        Math.min(1, v.choices_per5/3),
+        Math.min(1, v.close_per5/2),
+    ];
+    return Math.round(100*mean(parts));
+}
+
+// A run's interest as a table: a row per world, and the run's mean score
+function interest_table(run)
+{
+    const lines = ['interest     score  tension (mean spread)  peaks/5min  climax  dead  lull  news (most s apart)  choices/5min  close/5min  no reward'];
+    const scored = run.worlds.filter(v => v.interest);
+    for (const world of scored) {
+        const v = world.interest;
+        lines.push(`${world.name.padEnd(12)} ${String(v.score).padStart(5)}  ${`${v.mean} ${v.spread}`.padEnd(21)}  ${String(v.peaks_per5).padStart(10)}  ${String(v.climax ?? '-').padStart(6)}  ${`${Math.round(v.dead*100)}%`.padStart(4)}  ${`${v.lull} s`.padStart(4)}  ${`${v.news} (${v.news_gap} s)`.padStart(19)}  ${String(v.choices_per5).padStart(12)}  ${String(v.close_per5).padStart(10)}  ${`${v.reward_gap} s`.padStart(9)}`);
+    }
+    lines.push(`run's interest: ${scored.length ? Math.round(mean(scored.map(v => v.interest.score))) : '-'}`);
+    return lines.join('\n');
+}
+
+function mean(values)
+{
+    return values.length ? values.reduce((sum, v) => sum + v, 0)/values.length : 0;
+}
+
+function round2(v)
+{
+    return Math.round(v*100)/100;
+}
+
+function clamp01(v)
+{
+    return Math.max(0, Math.min(1, v));
 }
 
 function page_clock()
@@ -203,7 +332,7 @@ function page_bot(options)
         if (current && (current.world === campaign.world)) {
             return current;
         }
-        const out = {world: campaign.world, name: worlds[campaign.world].name, ship: current_ship().id, guns: mounted_weapons().map(v => (v ? v.id : 'empty')), waves: [], sources: {}, flagship: {time: 0, hull: 0, escaped: false}, kills: 0, off_screen: 0, deaths: 0, time: 0, quiet: 0, crowd: 0, wave_time: 0, pulses: 0, salvage_at_depot: null, earned: {}};
+        const out = {world: campaign.world, name: worlds[campaign.world].name, ship: current_ship().id, guns: mounted_weapons().map(v => (v ? v.id : 'empty')), waves: [], sources: {}, flagship: {time: 0, hull: 0, escaped: false}, kills: 0, off_screen: 0, deaths: 0, time: 0, quiet: 0, crowd: 0, wave_time: 0, pulses: 0, salvage_at_depot: null, earned: {}, trace: [], news: [], choices: 0};
         B.worlds.push(out);
         return out;
     }
@@ -234,6 +363,7 @@ function page_bot(options)
             const caller = new Error().stack.split('\n').slice(2, 4).map(v => v.trim().split(' ')[1]).join('<') + cause;
             const sources = world_entry().sources;
             sources[caller] = (sources[caller] || 0) + lost;
+            B.second.lost += lost;
         }
     };
     // the salvage each world brought in, by where it came from (pickups, world bonus)
@@ -243,6 +373,7 @@ function page_bot(options)
         if (arcade.active) {
             const earned = world_entry().earned;
             earned[source] = (earned[source] || 0) + amount;
+            B.second.earned += amount;
         }
     };
     const base_kill = base_damage_enemy;
@@ -254,8 +385,55 @@ function page_bot(options)
             entry.kills++;
             const seen = (enemy.x > camera.x) && (enemy.x < camera.x + W/zoom) && (enemy.y > camera.y) && (enemy.y < camera.y + H/zoom);
             entry.off_screen += seen ? 0 : 1;
+            B.second.kills++;
         }
     };
+    // a wave event: news, and a convoy or an ace a prize to go for or leave (interest_of's choices)
+    const base_event_start = arcade_event_start;
+    arcade_event_start = function () {
+        base_event_start();
+        if (arcade.event) {
+            news(`event ${arcade.event.kind}`);
+            world_entry().choices += ['convoy', 'ace'].includes(arcade.event.kind) ? 1 : 0;
+        }
+    };
+    // a headline (src/js/arcade_news.js): news
+    const base_headline = news_headline;
+    news_headline = function (kind) {
+        base_headline(kind);
+        news(`headline ${kind}`);
+    };
+    // The interest measures (interest_of in this file): what the second now ending brought, and the first time each
+    // new thing shows in a world (news): a raider type close by, an elite apart, an event, the flagship and its second
+    // half
+    B.second = {lost: 0, kills: 0, earned: 0, frames: 0};
+    function news(what) {
+        const entry = world_entry();
+        if (!entry.news.some(v => v.what === what)) {
+            entry.news.push({t: Math.round(entry.time), what});
+        }
+    }
+    // a second of a world's time as a sample: raiders within 700 m (a flagship as 4), whether none is within 900 m, the
+    // hull and shield lost as a share of both full, kills, salvage earned, the hull's share, the wave, a flagship
+    // alive, the deaths in this world so far
+    function interest_sample() {
+        const entry = world_entry();
+        const alive = enemies.filter(v => (v.hp > 0) && !v.anchor);
+        for (const v of alive) {
+            if (distance(v, player) < 900) {
+                news((v.type === 'boss') ? ((v.hp < v.max_hp*0.5) ? 'flagship half' : 'flagship') : `${v.elite ? 'elite ' : ''}${v.job ? v.job.kind : v.type}`);
+            }
+        }
+        B.second.frames++;
+        if (B.second.frames < 60) {
+            return;
+        }
+        const near = alive.reduce((n, v) => n + ((distance(v, player) < 700) ? ((v.type === 'boss') ? 4 : 1) : 0), 0);
+        const far = !alive.some(v => distance(v, player) < 900);
+        const lost = B.second.lost/(hull_max() + shield_max());
+        entry.trace.push({t: Math.round(entry.time), n: near, far: far ? 1 : 0, lost: Number(lost.toFixed(3)), k: B.second.kills, e: B.second.earned, hp: Number((player.hp/hull_max()).toFixed(2)), w: arcade.wave, f: alive.some(v => v.type === 'boss') ? 1 : 0, d: entry.deaths});
+        B.second = {lost: 0, kills: 0, earned: 0, frames: 0};
+    }
     function steer(dx, dy) {
         keys.clear();
         const d = Math.hypot(dx, dy) || 1;
@@ -555,6 +733,7 @@ function page_bot(options)
                 world_entry().kit = {fleet: B.snapshot.fleet, owned: B.snapshot.owned, fitted: B.snapshot.fitted, reactor: B.snapshot.reactor, supplies: B.snapshot.supplies};
             }
             world_entry().time += 1/60;
+            interest_sample();
             // waves 1 and 2 as they are flown: how many raiders are in play, and the seconds with under 3 (quiet)
             if ((arcade.wave >= 1) && (arcade.wave < arcade_wave_count()) && (arcade.pause <= 0)) {
                 const n = enemies.filter(v => (v.hp > 0) && !v.anchor).length;

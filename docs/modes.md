@@ -10,6 +10,30 @@ One run through the eight worlds, about five minutes each: six waves, the
 world's flagship in the last. No stations or contracts: a score, a combo
 and a best score (salvage left at the end scores 10 points each).
 
+### A wave's shape
+
+Each of a Free world's first five waves builds up, peaks and lets go, as
+Left 4 Dead's director paces a fight
+([interest.md](interest.md) says why and how it is measured):
+
+- **the build-up**, 36 s, its clock in the card: a director keeps raiders
+  in play, more as it goes, the next squadron coming as soon as the last
+  falls, so nothing waits;
+- **the crest**: the wave's last squadrons all at once from round you, an
+  elite leading the first, bigger wave by wave; raiders left far off warp in
+  once none has been near for 5 s;
+- **the breather**, 6 s, to pick up the salvage, before the next.
+
+Something new comes in every wave from the third, some seconds in: a
+**lieutenant**, an ace of the newest raider kind whose fall pays salvage; a
+**swarm** of drones that ring you and dart in, which a pulse breaks; two
+**hunters**, elite interceptors that burst at you.
+
+And something to go for: besides the world's own events in waves 2 and 4,
+waves 3 and 5 bring a prize, a fleeing ace and a freighter of salvage, to
+chase or leave. Under 35% hull your guns hit half again as hard (a **last
+stand**), and a kill drops a repair kit, one in 20 s at most.
+
 ### The raiders
 
 Raiders come in squadrons; elites lead some of them, from Haven on (from
@@ -128,6 +152,10 @@ What a lane holds:
   Eclipse's black hole beside it;
 - a wave-2 event with the lane's second half, placed for a lane, in the
   run's last world.
+- the same three headlines as Free's along the lane, at 30%, 55% and 80%
+  of its length (in the run's last world only the first), and a prize ace a
+  quarter of the way along (but in the run's last world); the last stand and
+  its repair kits as in Free.
 
 ## Races
 

@@ -41,6 +41,9 @@ To see it played: [Freelancer, how does it look in 2023](https://www.youtube.com
   reputation and world guards.
 - [agent/](agent/README.md): the instructions for a coding agent that plays
   the campaign as your rival.
+- [interest.md](interest.md): what makes the arcade interesting, from game
+  design, and how `bin/playtest` measures it in every world; the arcade
+  before and after its pace, headlines and stakes.
 - [playtest-2026-10-05.md](playtest-2026-10-05.md): the arcade played by bots, judged, problems ranked.
 - [performance-2026-10-05.md](performance-2026-10-05.md): where a frame's time goes in every world, what was made faster, before and after; the adaptive resolution.
 - [designer/missiles.md](designer/missiles.md): the designer's brief for the

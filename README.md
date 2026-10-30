@@ -30,7 +30,8 @@ like) are in [docs/principles.md](docs/principles.md).
 Three modes ([docs/modes.md](docs/modes.md) has each in detail):
 
 - **Arcade**: one run through the eight worlds, about five minutes each:
-  six waves of raiders, the world's flagship in the last, each flagship a
+  six waves of raiders, each building to a crest and a breather, something
+  new from the third, the world's flagship in the last, each flagship a
   fight of its own. Salvage buys weapons, ships and modules at the depot
   between worlds, as many as the ship's reactor can power. Three lives, a
   score and a best; no stations or contracts. Two kinds: **Free**, the world
@@ -85,8 +86,11 @@ Three modes ([docs/modes.md](docs/modes.md) has each in detail):
                      a build of modules (--build=mixed, guns, tank or
                      evasion), Free or Scroll runs (--kind=scroll),
                      or idle, no key pressed (--idle, in
-                     data/playtest/<mode>-idle/); tables and JSON in
-                     data/playtest/
+                     data/playtest/<mode>-idle/); and each world's
+                     interest, 0 to 100: how the fight builds and lets
+                     go, how long nothing happens or nothing new comes,
+                     the prizes on offer (docs/interest.md); tables and
+                     JSON in data/playtest/
     bin/play-log     a play log saved from the pause panel (Download play log)
                      as a report: time, income and spending per world, the
                      kit as it changed, when the shop ran out, deaths, frame

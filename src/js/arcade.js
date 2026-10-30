@@ -1,22 +1,21 @@
 // Arcade: one run through the eight worlds, six waves each in Free (three on a Scroll lane), the world's flagship in the
 // last; no stations, contracts or saves.
-const arcade = {active: false, world: -1, wave: 0, pause: 0, squad_timer: 0, squads: 0, phase: 0, slowmo: 0, depot_hint: false, marksman_hint: false, missile_hint: false, blasts: [], event: null, between_worlds: null, world_start: null, lives: 0, life_flash: 0, campaign_checkpoint: null, route: [0], seed: 0, cards: [], wind_used: false, flagship_escaped: false, owned: {}, fitted: [], reactor: 0, evade: 0, wave_total: 0, wave_clock: 0, trial: false, retry_depot: false, event_last: null};
+const arcade = {active: false, world: -1, wave: 0, pause: 0, squad_timer: 0, squads: 0, phase: 0, slowmo: 0, depot_hint: false, marksman_hint: false, missile_hint: false, blasts: [], event: null, between_worlds: null, world_start: null, lives: 0, life_flash: 0, campaign_checkpoint: null, route: [0], seed: 0, cards: [], wind_used: false, flagship_escaped: false, owned: {}, fitted: [], reactor: 0, evade: 0, wave_total: 0, wave_clock: 0, trial: false, retry_depot: false, event_last: null, pace: null, stakes_kit_at: null, stakes_said: -1, news_wave: 0, stakes_lane_done: false, stakes_lane_now: false};
 // A Scroll lane's waves: two along it, the flagship's at its end; its length sets its time (arcade_scroll.js)
 const arcade_waves = 3;
 // A Free world's waves: five, then the flagship's, so a world lasts about five minutes (the author, 2026-10-21: "five
-// minutes a level is a good time, one minute a bad one"; it was 1 to 2 with three waves). Each of the five brings
-// twice a wave's raiders (arcade_wave_size), its squadrons spread over this many s and never closer than their gap,
-// and ends when they are down. Six waves as they were took the bot 2.5 to 3.2 min a world, as fast as it killed; a
-// wave refilled for its time, 6.2 min and 6.5 times the kills, and it lost every Standard run
+// minutes a level is a good time, one minute a bad one"; it was 1 to 2 with three waves). Each of the five is a
+// build-up, a crest and a breather (arcade_pace.js); its size (arcade_wave_size, twice a wave's raiders) sets its
+// crest. Six waves as they were took the bot 2.5 to 3.2 min a world, as fast as it killed; a wave refilled for its
+// time, 6.2 min and 6.5 times the kills, and it lost every Standard run: the director keeps fewer in play, each softer
 const arcade_free_waves = 6;
-const arcade_free_wave_time = 48;
 const arcade_free_wave_k = 2;
 const arcade_radiation = 0.35;
 const arcade_wave_names = ['', 'SCOUTS', 'ASSAULT', 'RAID', 'SIEGE', 'ONSLAUGHT'];
 // A kill drops salvage this much less often than combat.js's 0.76, so a world made longer for five minutes pays what
-// the short one did: in Free, six waves for three (51 raiders then, 207 now, Standard, Haven); on a Scroll lane, a
-// third longer
-const arcade_free_drop_k = 0.25;
+// the short one did: in Free, six waves for three (51 raiders then, 207 with waves spread over their time, Standard,
+// Haven), and 0.7 of that since the director's waves (arcade_pace.js) bring more; on a Scroll lane, a third longer
+const arcade_free_drop_k = 0.175;
 // A Free world's rocks and caches, there to take in five minutes as they were not in one and a half: a rock drops this
 // many artifacts (3 elsewhere) and a cache holds this many (5), so a world pays near what it did (as they were, the bot
 // earned 1.8 times as much a world)
@@ -48,11 +47,13 @@ const arcade_squad_mixed = 0.35;
 // hit, the raiders' hull, how much it grows a world past Haven and the share of the world's shop on it
 // (arcade_shop_hull), the share of the world's armour and shield they
 // carry, the blast damage you take (a ship's explosion or a raider missile), raiders that grow with your weapon tier,
-// the flagship's overdrive, and a factor on the share of marksmen.
+// the flagship's overdrive, a factor on the share of marksmen, and in a Free wave the share of its own a crowd's hit is
+// and a factor on the raiders the director wants in play (arcade_pace.js: it brings more raiders, each softer; OVERLOAD's
+// squadrons are bigger, so fewer calls fill it).
 const arcade_modes = {
-    chill: {squad: 0, wave: 0, gap: 1, elite_world: 1, repairs: 1, medkits: 2, armed: false, gun_gap: 1, hits: 1, hull: 1, growth: 0.1, shop: 0.5, defense: 0.8, blast: 0.8, tier_hp: false, overdrive: false, marksmen: 0.5},
-    normal: {squad: 1, wave: 3, gap: 0.8, elite_world: 0, repairs: 0.35, medkits: 1, armed: true, gun_gap: 0.45, hits: 1.3, hull: 1.5, growth: 0.15, shop: 1, defense: 0.8, blast: 0.65, tier_hp: false, overdrive: false, marksmen: 1},
-    overload: {squad: 2, wave: 5, gap: 0.7, elite_world: 0, repairs: 0, medkits: 1, armed: true, gun_gap: 0.4, hits: 1.75, hull: 1.8, growth: 0, shop: 1, defense: 0.5, blast: 1.2, tier_hp: true, overdrive: true, marksmen: 1.3},
+    chill: {squad: 0, wave: 0, gap: 1, elite_world: 1, repairs: 1, medkits: 2, armed: false, gun_gap: 1, hits: 1, hull: 1, growth: 0.1, shop: 0.5, defense: 0.8, blast: 0.8, tier_hp: false, overdrive: false, marksmen: 0.5, crowd: 0.7, press: 1},
+    normal: {squad: 1, wave: 3, gap: 0.8, elite_world: 0, repairs: 0.35, medkits: 1, armed: true, gun_gap: 0.45, hits: 1.3, hull: 1.5, growth: 0.15, shop: 1, defense: 0.8, blast: 0.65, tier_hp: false, overdrive: false, marksmen: 1, crowd: 0.7, press: 1},
+    overload: {squad: 2, wave: 5, gap: 0.7, elite_world: 0, repairs: 0, medkits: 1, armed: true, gun_gap: 0.4, hits: 1.75, hull: 1.8, growth: 0, shop: 1, defense: 0.5, blast: 1.2, tier_hp: true, overdrive: true, marksmen: 1.3, crowd: 0.5, press: 0.6},
 };
 
 document.getElementById('arcade_depot_launch').addEventListener('click', arcade_depot_close);
@@ -352,6 +353,13 @@ function arcade_update(dt)
     }
     arcade_blasts_update(dt);
     arcade_event_update(dt);
+    // a wave's headline, a lane's prize (arcade_news.js, arcade_stakes.js)
+    news_update();
+    stakes_update();
+    // a Free wave's director: its build-up, the raiders in play, the stragglers after its crest (arcade_pace.js)
+    if (arcade_wave_timed()) {
+        pace_update(dt);
+    }
     arcade_squads_update(dt);
     arcade_flagship_update();
     if (!arcade.depot_hint && (salvage > 0)) {
@@ -363,7 +371,7 @@ function arcade_update(dt)
     }
     // the card says the wave is clear, and then the next one: no news for either
     if (arcade.wave < arcade_wave_count()) {
-        arcade.pause = 2.5;
+        arcade.pause = arcade_scroll_on() ? 2.5 : pace_rest_start();
         return;
     }
     arcade_world_clear();
@@ -376,6 +384,7 @@ function arcade_wave_start(n)
     play_log_wave(n);
     arcade.squad_timer = 0.8;
     arcade.squads = 0;
+    pace_wave_start();
     phase_index = n;
     phase_timer = 0;
     // a Scroll lane's wave by the length of its stretch (arcade_scroll.js)
@@ -385,6 +394,8 @@ function arcade_wave_start(n)
     if (n === 1) {
         raider_jobs_reset(false);
         arcade.event_last = null;
+        arcade.news_wave = 0;
+        arcade.stakes_lane_done = false;
     }
     if (n === arcade_wave_count()) {
         arcade_flagship_spawn();
@@ -396,7 +407,8 @@ function arcade_wave_start(n)
     // a wave-2 event, on a Scroll lane as its second half begins (arcade_events.js), but in the run's last world: its
     // second half and flagship are the run's hardest already (with an event there the bot won 7 Standard runs of 18,
     // every loss at Eclipse; without, 15); in Free another at wave 4, of the world's other kind
-    if (((n === 2) || ((n === 4) && !arcade_scroll_on())) && !(arcade_scroll_on() && (arcade_level() >= arcade_worlds - 1))) {
+    // waves 3 and 5 bring a prize event too (arcade_stakes.js)
+    if ((((n === 2) || ((n === 4) && !arcade_scroll_on())) && !(arcade_scroll_on() && (arcade_level() >= arcade_worlds - 1))) || stakes_event_wave(n)) {
         arcade_event_start();
     }
     else {
@@ -426,7 +438,7 @@ function arcade_wave_count()
     return arcade_scroll_on() ? arcade_waves : arcade_free_waves;
 }
 
-// Whether this wave's squadrons spread over its time (arcade_free_wave_time): Free's, but the flagship's
+// Whether a wave is a director's, a build-up and a crest (arcade_pace.js): Free's, but the flagship's
 function arcade_wave_timed()
 {
     return !arcade_scroll_on() && (arcade.wave >= 1) && (arcade.wave < arcade_free_waves);
@@ -444,6 +456,12 @@ function arcade_wave_name(n)
 function arcade_squads_update(dt)
 {
     arcade.squad_timer -= dt;
+    // a Free wave's crest, its last raiders at once, when its build-up is over (arcade_pace.js)
+    const pace = arcade_wave_timed();
+    if (pace && pace_crest_due()) {
+        pace_crest(arcade_squad_full());
+        return;
+    }
     const alive = enemies.filter(v => v.hp > 0).length;
     const short = arcade_scroll_short(alive);
     if (short) {
@@ -454,13 +472,21 @@ function arcade_squads_update(dt)
     }
     // one the floor calls tops the lane up to two past it, no more: a full squadron there piled up 6 to 9 raiders from
     // Obsidian on, and the bot lost every run
-    const full = 3 + Math.min(3, Math.floor(arcade_level()/2)) + Math.min(2, arcade.wave - 1) + arcade_mode().squad;
+    const full = arcade_squad_full();
     const size = short ? Math.min(full, Math.max(3, arcade_scroll_floor() + 2 - alive)) : full;
     arcade_squad_spawn(Math.min(spawn_left, size));
     spawn_left -= Math.min(spawn_left, size);
-    // a timed wave's squadrons spread over its time: as many gaps as squadrons in it
-    const spread = arcade_wave_timed() ? arcade_free_wave_time*full/Math.max(1, arcade.wave_total) : 0;
-    arcade.squad_timer = Math.max(Math.max(2.6, 5.5 - arcade_level()*0.3)*arcade_mode().gap, spread);
+    if (pace) {
+        pace_squad_came();
+    }
+    // a Free wave's director calls its squadrons as raiders fall (arcade_pace.js)
+    arcade.squad_timer = pace ? pace_gap_most : Math.max(2.6, 5.5 - arcade_level()*0.3)*arcade_mode().gap;
+}
+
+// A full squadron by the run's step, the wave and the mode
+function arcade_squad_full()
+{
+    return 3 + Math.min(3, Math.floor(arcade_level()/2)) + Math.min(2, arcade.wave - 1) + arcade_mode().squad;
 }
 
 // A squadron: as it comes (arcade_squad_form), then some of its line raiders swapped for raiders with jobs, and the
@@ -1532,8 +1558,8 @@ function arcade_update_hud()
     hud_text(el.mission_phase, (arcade.pause > 0) ? `WAVE ${arcade.wave} CLEAR` : `WAVE ${Math.max(1, arcade.wave)} / ${arcade_wave_count()}`);
     const total = arcade_wave_size(arcade.wave);
     const left = spawn_left + enemies.filter(v => v.hp > 0).length;
-    // a timed wave fills its share by its clock, another by its raiders down
-    const done = arcade_wave_timed() ? Math.min(1, arcade.wave_clock/arcade_free_wave_time) : 1 - Math.min(1, left/Math.max(1, total));
+    // a Free wave fills its share by its build-up's clock (arcade_pace.js), another by its raiders down
+    const done = arcade_wave_timed() ? Math.min(1, arcade.wave_clock/pace_build) : 1 - Math.min(1, left/Math.max(1, total));
     el.sector_progress.style.width = `${clamp((((arcade.wave - 1) + done)/arcade_wave_count())*100, 0, 100)}%`;
     arcade_lives_hud();
 }

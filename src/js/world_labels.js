@@ -219,6 +219,10 @@ function target_plate_name(target)
     if (target.duel_owner) {
         return 'NEST';
     }
+    // a headline's raider, by its own name (arcade_news.js)
+    if (target.plate) {
+        return target.plate.toUpperCase();
+    }
     return (target_names[target.type] || 'Raider').toUpperCase();
 }
 

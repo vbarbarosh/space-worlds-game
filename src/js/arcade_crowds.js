@@ -38,7 +38,7 @@ function arcade_hit_held(cause, by)
 // The share of a hit that lands: smaller for a crowd's, all of it otherwise (damage_player)
 function arcade_hit_share(cause, by)
 {
-    return arcade_crowd_hit_is(cause, by) ? arcade_crowd_hit : 1;
+    return arcade_crowd_hit_is(cause, by) ? arcade_crowd_hit*pace_hit_k() : 1;
 }
 
 // The safe time a hit leaves for any hit (s); after a crowd's, its raider keeps a longer one of its own

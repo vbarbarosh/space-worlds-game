@@ -388,6 +388,8 @@ function base_damage_enemy(enemy, damage)
         arcade_blast_from_kill(enemy);
         arcade_event_kill(enemy);
         raider_job_kill(enemy);
+        stakes_kill(enemy);
+        news_kill(enemy);
     }
     if (enemy.type === 'boss') {
         boss_defeated = true;

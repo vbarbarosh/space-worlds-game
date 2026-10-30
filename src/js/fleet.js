@@ -341,7 +341,7 @@ function fire_equipped_weapon(mount = null)
     }
     const f = ensure_career();
     const tier = f.weapon_levels[v.id] || 1;
-    const damage = v.damage*(1 + upgrades.damage*hotter_plasma_share)*(1 + (tier - 1)*0.22)*current_ship().damage*arcade_card_k.damage;
+    const damage = v.damage*(1 + upgrades.damage*hotter_plasma_share)*(1 + (tier - 1)*0.22)*current_ship().damage*arcade_card_k.damage*stakes_damage_k();
     const count = gun_shot_count(v);
     player.barrels = player.barrels || [];
     const slot = mount ?? 0;

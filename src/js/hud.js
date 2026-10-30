@@ -257,8 +257,8 @@ function sync_arcade_card()
     hud_html(document.getElementById('mc_where'), `${ui_world_badge(id)}<span class="small">Arcade · world ${step + 1}/${arcade_worlds}</span><span class="threat" title="Threat ${step + 1} of ${arcade_worlds}">${[0, 1, 2, 3, 4].map(v => `<b class="${(v < pips) ? 'on' : ''}"></b>`).join('')}</span>`);
     const wave = Math.max(1, arcade.wave);
     const left = spawn_left + enemies.filter(v => v.hp > 0).length;
-    // a timed wave (arcade_free_wave_time) says the seconds it has to go, then the raiders left
-    const clock = (arcade_wave_timed() && (arcade.wave_clock < arcade_free_wave_time)) ? Math.ceil(arcade_free_wave_time - arcade.wave_clock) : 0;
+    // a Free wave says the seconds its build-up has to go (arcade_pace.js), then the raiders left
+    const clock = (arcade_wave_timed() && (arcade.wave_clock < pace_build)) ? Math.ceil(pace_build - arcade.wave_clock) : 0;
     const threat = hud_threat();
     const flagship = enemies.some(v => (v.hp > 0) && (v.type === 'boss'));
     const at_depot = (distance(player, station) < station_reach) && !depot_shield_up();

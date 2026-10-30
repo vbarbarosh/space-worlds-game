@@ -8,8 +8,9 @@ Two modes share one combat core and differ in tuning:
 
 - **Arcade** (`src/js/arcade.js`): one run through the eight worlds, about
   five minutes each (the author, 2026-10-21: "five minutes a level is a good
-  time"): in Free six waves, the first five 48 s each, the flagship in the
-  last; on a Scroll lane three, along a lane of 16 to 19 km. Its numbers are
+  time"): in Free six waves, the first five each a 36 s build-up, a crest
+  and a 6 s breather ([The arcade's pace](#the-arcades-pace)), the flagship
+  in the last; on a Scroll lane three, along a lane of 16 to 19 km. Its numbers are
   tuned for a dense run; three difficulty rows in `arcade_modes` change them. The worlds
   come in an order of the player's (a route, a card at each break: see
   [The arcade's route and cards](#the-arcades-route-and-cards)), so its
@@ -656,12 +657,16 @@ Salvage (◆) is the one currency.
   `src/js/resources.js`: 15% for most, 30% shooters, 50% tanks, always a
   flagship), and cargo sells at stations.
 
-An arcade world at NORMAL, as a rough sum from these formulas: Haven sends
+An arcade world at NORMAL, as a rough sum from these formulas (before
+[The arcade's pace](#the-arcades-pace), 2026-10-31): Haven sends
 26 + 34 + 42 + 42 + 42 raiders over its five timed waves (twice a wave's,
 `arcade_free_wave_k`, spread over 48 s each), 21 with its flagship and 3 + 4
 escorts, so about 214 kills × 76% × 0.25 × 2, about 81, plus 120 from the
 flagship and the 80 bonus: near 280 salvage before rocks and the Relic
-processor. The bot (`bin/playtest`, seeds 1-3, 2026-10-21): a run's median
+processor. Under the director a world brings about 1.3 times the kills (the
+bot, NORMAL: Haven 264 to 293 against 214), each dropping at 0.175, and the
+salvage at the next depot came out near the same (1 250 to 1 680 against
+1 100 to 1 580). The bot (`bin/playtest`, seeds 1-3, 2026-10-21): a run's median
 world 4.8 to 6.0 min on every difficulty (1.3 to 2.3 with three waves), 1 380 to 1 490 salvage a
 world on NORMAL (1 050 to 1 200 before); NORMAL and CHILL won every run, no
 death; OVERLOAD won 1 of 3, the other two lost three lives in Haven (it drops
@@ -807,6 +812,7 @@ no repairs, and the first ship does not last five minutes of it).
 | raiders grow with your gun tier | no | no | +22% a tier |
 | flagship overdrive | no | no | yes |
 | marksmen (a factor on the world's share) | ×0.5 | ×1 | ×1.3 |
+| a crowd's hit in a Free wave (the director's: [The arcade's pace](#the-arcades-pace)) | ×0.7 | ×0.7 | ×0.5 |
 
 - NORMAL's shots came down from ×1.6 and its blasts from ×0.8 on 2026-10-20 (the author: "at Standard it is like
   hardcore, no fun"; 3 of their 5 deaths that night were to Dustfall's missiles): the bot then won 8 Free runs of 8
@@ -1216,6 +1222,62 @@ both sides, and a pull to fly against.
   hull lost is no higher; the waves take longer (Free waves 1 and 2 about
   20 s more, the shots of both sides drawn into spires), and in one Free run
   of six the flagship's duel ran 115 s against 41.
+
+## The arcade's pace
+
+A Free world's first five waves are each a build-up, a crest and a
+breather (the author, 2026-10-30: "those five minutes must be engaging";
+`src/js/arcade_pace.js`), with a headline from the third
+(`src/js/arcade_news.js`) and a prize or a comeback to play for
+(`src/js/arcade_stakes.js`). Why, and how the bot measures it:
+[interest.md](interest.md).
+
+| What | Value | Where |
+|---|---|---|
+| the build-up | 36 s, its clock in the card | `pace_build` |
+| raiders the director wants in play | 1.5 at the build-up's start to 4 at its end; ×0.6 in a rail world (Obsidian, Eclipse); ×0.6 on OVERLOAD | `pace_press`, `pace_rail_k`, `arcade_modes`' press |
+| between two of its squadrons | 1.6 s at least, 14 s at most | `pace_gap_least`, `pace_gap_most` |
+| the crest | 15%, 17%, 20%, 23%, 26% of the wave's raiders (waves 1 to 5), at most 1.5 full squadrons, ×0.6 in a rail world; an elite leads the first | `pace_crest_shares`, `pace_crest_most` |
+| stragglers after the crest | none within 900 m for 5 s: the rest warp in 650 m round you | `pace_straggle` |
+| the breather | 6 s | `pace_rest` |
+| a crowd's hit in a Free wave | ×0.7 (CHILL, NORMAL), ×0.5 (OVERLOAD) | `arcade_modes`' crowd |
+| a kill's salvage in Free | 0.175 of combat.js's share (0.25 before: the director's waves bring more raiders) | `arcade_free_drop_k` |
+| headlines | wave 3 a lieutenant (an elite of the newest raider kind open, its hull ×2, 6 pieces of 8 + 2 a world past Haven), wave 4 a swarm (8 drones + 1 a world past Haven, on a ring of 520 m), wave 5 two hunters (elite interceptors); 10 s into the wave; on a lane at 30%, 55% and 80% of it, past its half none in the run's last world | `news_waves`, `news_lane` |
+| prize events | wave 3 an ace, wave 5 a freighter, besides the world's own in waves 2 and 4; a lane's ace at 25% of it, none in the run's last world | `stakes_prize_waves`, `stakes_lane_at` |
+| the last stand | under 35% hull your shots hit ×1.5; a kill drops a repair kit, one in 20 s at most | `stakes_low`, `stakes_last_stand`, `stakes_kit_gap` |
+
+What the bot measured, before (2026-10-30) and after, a run's mean
+interest (0 to 100) and the runs won:
+
+| | before | after |
+|---|---|---|
+| NORMAL, Free, 4 runs | 39, 4 won, 3 deaths | 63, 4 won, 1 death |
+| NORMAL, Scroll, 4 runs | 50, 4 won, 3 deaths | 61, 3 won, 4 deaths |
+| CHILL, Free, 2 runs | 33, 2 won, no death | 52, 2 won, no death |
+| OVERLOAD, Free, 6 runs | 51, 3 won, 10 deaths | 66, 5 won, 8 deaths |
+
+In Free the share of seconds with no raider within 900 m fell from 42% to
+23%, tension's peaks rose from 1.3 to 2.5 in five minutes, the longest
+stretch with nothing new from 111 s to 65 s, and the prizes on offer from
+1.3 to 3.2. Every Scroll death but one, before and after, came at full hull
+in Eclipse's flagship duel at the lane's end: the bot's pilot falls into the
+black hole there.
+
+How it got here, the bot's runs on NORMAL:
+
+- waves as they were with a director only for idle stretches (3 s with no
+  raider near, the next squadron at once): 45, but still 40% of seconds
+  empty and worlds of 4 to 5 minutes;
+- a director that keeps raiders within 900 m, 2 to 6 of them, crests of 30%
+  to 45%: 50, every run lost by Obsidian; one that counts every raider
+  alive, crests capped, eased in the rail worlds: 49, every run lost in
+  Eclipse, the bot losing 1.4 to 2.3 times the hull a minute;
+- crowds' hits ×0.6 under the director: 59, every run won; then stragglers
+  warped in (a crest's lancers waiting in far rocks had kept a wave 50 s with
+  nothing to fly at) and hits ×0.7: 62, 8 of 8 won;
+- OVERLOAD, hits ×0.7, then ×0.5: every run of 6 lost both times, most in
+  Haven (its squadrons are two bigger, so each call of the director landed 5
+  to 7 at once); with the director wanting 0.6 as many: 5 of 6 won.
 
 ## The arcade's route and cards
 
