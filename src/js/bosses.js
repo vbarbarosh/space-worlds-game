@@ -14,6 +14,11 @@ const boss_exposed_factor = 1.6;
 const boss_guard_factor = 0.35;
 // the colours of a tell (about to happen) and of the exposed hull
 const boss_tell_color = '#ffd16e';
+// A drifting flagship's lunge shows its way this long before it goes (the author's play log, 2026-11-01: rams by
+// flagships ended 3 of his 9 runs; the lunge came with no sign), and how fast and long it goes
+const boss_lunge_tell = 0.6;
+const boss_lunge_speed = 360;
+const boss_lunge_time = 0.35;
 const boss_open_color = '#ffffff';
 
 // Emitters are points on the hull in units of its radius: [ahead, to the right]. A cycle is the order the attacks run
@@ -246,7 +251,7 @@ function boss_state_new(enemy)
         spin: 0,
         plates: 0,
         face: null,
-        mv: {vx: 0, vy: 0, dir: (Math.random() < 0.5) ? -1 : 1, orbit: Math.atan2(enemy.y - player.y, enemy.x - player.x), t: 0, lunge: 0, lunge_angle: 0},
+        mv: {vx: 0, vy: 0, dir: (Math.random() < 0.5) ? -1 : 1, orbit: Math.atan2(enemy.y - player.y, enemy.x - player.x), t: 0, lunge: 0, lunge_angle: 0, lunge_tell: 0, lunge_set: false},
         counts: {},
         duel: null,
     };
@@ -478,14 +483,22 @@ function boss_move(v, s, dt)
         v.x += Math.cos(k)*step;
         v.y += Math.sin(k)*step;
         mv.lunge -= dt;
-        if (mv.lunge <= -m.lunge) {
-            mv.lunge = 0.35;
+        // its way is set and drawn boss_lunge_tell before it goes (boss_hull_draw), and kept
+        if ((mv.lunge <= -m.lunge + boss_lunge_tell) && !mv.lunge_set) {
+            mv.lunge_set = true;
+            mv.lunge_tell = boss_lunge_tell;
             mv.lunge_angle = a + mv.dir*Math.PI/2;
+        }
+        mv.lunge_tell = Math.max(0, mv.lunge_tell - dt);
+        if (mv.lunge <= -m.lunge) {
+            mv.lunge = boss_lunge_time;
+            mv.lunge_tell = 0;
+            mv.lunge_set = false;
             mv.dir = -mv.dir;
         }
         if (mv.lunge > 0) {
-            v.x += Math.cos(mv.lunge_angle)*360*dt;
-            v.y += Math.sin(mv.lunge_angle)*360*dt;
+            v.x += Math.cos(mv.lunge_angle)*boss_lunge_speed*dt;
+            v.y += Math.sin(mv.lunge_angle)*boss_lunge_speed*dt;
         }
         boss_face(v, a, dt, 2);
     }
@@ -1538,6 +1551,32 @@ function boss_hull_draw(v, s)
     }
     if (s.roar > 0) {
         boss_glow(v.x, v.y, v.r*(1.2 + (1.4 - s.roar)*0.5), v.color || pink, 0.5);
+    }
+    // a lunge about to go: a dashed line the way it will go, as far as its hull's edge will go, and an arrowhead,
+    // brighter as it nears
+    if (s.mv.lunge_tell > 0) {
+        const a = s.mv.lunge_angle;
+        const reach = v.r + boss_lunge_speed*boss_lunge_time;
+        const ex = v.x + Math.cos(a)*reach;
+        const ey = v.y + Math.sin(a)*reach;
+        const head = 26/zoom;
+        ctx.globalAlpha = 0.6 + 0.4*(1 - s.mv.lunge_tell/boss_lunge_tell);
+        ctx.strokeStyle = boss_tell_color;
+        ctx.fillStyle = boss_tell_color;
+        ctx.lineWidth = 7/zoom;
+        ctx.setLineDash(boss_dashes(18, 10));
+        ctx.beginPath();
+        ctx.moveTo(v.x + Math.cos(a)*v.r, v.y + Math.sin(a)*v.r);
+        ctx.lineTo(ex - Math.cos(a)*head, ey - Math.sin(a)*head);
+        ctx.stroke();
+        ctx.setLineDash(boss_no_dash);
+        ctx.beginPath();
+        ctx.moveTo(ex, ey);
+        ctx.lineTo(ex - Math.cos(a - 0.45)*head*1.4, ey - Math.sin(a - 0.45)*head*1.4);
+        ctx.lineTo(ex - Math.cos(a + 0.45)*head*1.4, ey - Math.sin(a + 0.45)*head*1.4);
+        ctx.closePath();
+        ctx.fill();
+        ctx.globalAlpha = 1;
     }
     if (s.exposed > 0) {
         ctx.globalAlpha = 0.5 + Math.sin(clock*12)*0.3;

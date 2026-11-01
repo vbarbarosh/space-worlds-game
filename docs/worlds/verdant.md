@@ -46,8 +46,9 @@ hit them.
 
 A huge beetle with glowing eyes and a back full of spines. It drifts with
 the current like everything here and scatters spores that drift too, so the
-danger keeps moving. Once it is half broken it starts hatching a brood of
-small raiders.
+danger keeps moving. Now and then it lunges sideways; a dashed gold line
+shows the way it will go half a second before. Once it is half broken it
+starts hatching a brood of small raiders.
 
 In the arcade, nests shield the beetle. Break the nests first, then turn
 your guns on the beetle itself.

@@ -368,7 +368,7 @@ Forge, E Eclipse: see What each world opens, below.
 | Supply | Key | Price | Effect | Carry |
 |---|---|---|---|---|
 | Repair kit | Q | 20 | +40 hull | 8 |
-| EMP charge | E | 26 | a ring out to 650 m in 0.6 s: as it arrives, clears shots and deals 160 + 12·wave (the arcade: the step's wave) (flagship 400), the same all the way out; breaks drifting rocks and wrecks (ore rocks in the arcade only), as the pulse does | 8 |
+| EMP charge | E | 26 | a ring out to 650 m in 0.6 s: as it arrives, clears shots and deals 160 + 12·wave (the arcade: the step's wave) (flagship 400), the same all the way out; breaks drifting rocks and wrecks (ore rocks in the arcade only), as the pulse does | 8 (the arcade: 3, `supply_cap`) |
 | Stasis cell | F | 24 | slows raiders and shots to 35% for 8 s, each once its ring (1 s across the view) has passed it | 8 |
 
 - Where: `upgrade_options` and `supply_options` in `src/js/upgrades.js`; the
@@ -704,6 +704,7 @@ no repairs, and the first ship does not last five minutes of it).
 | What | Arcade | Campaign |
 |---|---|---|
 | Repair | Full repair 60 | free on docking |
+| A life back | 1500, and 1000 more for each bought before in the run, while a life is lost (`arcade_life_price`) | none |
 | Ships | half the campaign price, rounded to 10 (`arcade_ship_price`): 180, 430, 530, 1150, 2800; from the world that opens it | the price above, gated by rank and by the world that opens it |
 | Guns | 120 + 45 × rating, no rank; from the world that opens it | the price above, gated by rank and by the world that opens it; each more of a gun the same (the cannon 120) |
 | Gun tier | free, one per world cleared, up to the tier the next world opens: 2 in Dustfall, 3 Ion Reach, 4 Obsidian, 5 Nova Forge (`gun_tier_open`) | (130 + 22% of price) × tier × 1.5 |
@@ -837,6 +838,7 @@ no repairs, and the first ship does not last five minutes of it).
 | share of the world's armour and shield | 80% | 80% | 50% |
 | blast damage to you (a ship's explosion, a raider missile) | ×0.8 | ×0.65 | ×1.2 |
 | raiders grow with your gun tier | no | no | +22% a tier |
+| raiders grow a world past the one your guns first stood at tier 5 (Free; not in the run's last world) | +12%, at most +30% | +12%, at most +30% | +12%, at most +30% |
 | flagship overdrive | no | no | yes |
 | marksmen (a factor on the world's share) | ×0.5 | ×1 | ×1.3 |
 | a crowd's hit in a Free wave (the director's: [The arcade's pace](#the-arcades-pace)) | ×0.7 | ×0.7 | ×0.5 |
@@ -865,7 +867,7 @@ no repairs, and the first ship does not last five minutes of it).
   Eclipse twice).
 - A raider's hull is the first table's (`base_spawn_enemy`, without the
   campaign's ×2) × the mode's hull × (1 + growth × step) × the
-  step's shop, so on NORMAL an Eclipse raider has ×2.05 and ×0.5 on top of the
+  step's shop × (1 + 0.12 a world past a full kit, at most 1.3, but in the last world: `arcade_late_k`), so on NORMAL an Eclipse raider has ×2.05 and ×0.5 on top of the
   mode's ×1.5; the flagship keeps its own scale but for the shop
   (`arcade_hull_scale`). The shop (`arcade_shop_hull`, `arcade_shop_flagship`)
   since the power budget: raiders ×1, 0.7, 0.55, 0.4, 0.3, 0.5, 0.6, 0.5 by

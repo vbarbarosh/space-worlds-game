@@ -97,7 +97,8 @@ cleared, so a run flies a build, not the whole shop (by Eclipse a cruiser
 holds 15 of the 75 levels' 84 power). Hotter plasma, Rapid resonance and
 Prism draw 2 a level, the rest 1. At the depot a level goes in or out for
 free, so each world can fly its own build; a ship with a smaller reactor
-takes out the newest levels and says so. Reactor tuning (600, 1200, 1800
+takes out the newest levels and says so. A life lost can be bought back
+there, dearer each time, and you carry at most 3 EMPs. Reactor tuning (600, 1200, 1800
 salvage, three a run) adds a unit of power to every ship.
 
 The same power drives the generator, 2 energy a second a unit and 5 more a

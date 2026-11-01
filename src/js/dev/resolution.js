@@ -37,8 +37,8 @@ frame = function (timestamp) {
 };
 
 // For a browser driver (bin/resolution-check): the ratio in use and what it was chosen from, and the play log's
-// record of it; slow(ms) changes &slow, world(n) flies to world n as a gate would (a new world forgets the ratios
-// that fell behind)
+// record of it; slow(ms) changes &slow, world(n) flies to world n as a gate would (the ratios that fell behind are
+// kept), run() forgets them as a new run does
 window.dev_resolution = {
     state() {
         const record = play_log_session ? play_log_record_make(true) : null;
@@ -55,5 +55,8 @@ window.dev_resolution = {
     world(n) {
         dev_scenario.world = n;
         dev_scenario_start();
+    },
+    run() {
+        resolution_forget();
     },
 };

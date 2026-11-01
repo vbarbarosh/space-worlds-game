@@ -1,6 +1,6 @@
 // Arcade: one run through the eight worlds, six waves each in Free (three on a Scroll lane), the world's flagship in the
 // last; no stations, contracts or saves.
-const arcade = {active: false, world: -1, wave: 0, pause: 0, squad_timer: 0, squads: 0, phase: 0, slowmo: 0, depot_hint: false, marksman_hint: false, missile_hint: false, push_hint: false, blasts: [], event: null, between_worlds: null, world_start: null, lives: 0, life_flash: 0, campaign_checkpoint: null, route: [0], seed: 0, cards: [], wind_used: false, flagship_escaped: false, owned: {}, fitted: [], reactor: 0, evade: 0, wave_total: 0, wave_clock: 0, trial: false, retry_depot: false, event_last: null, pace: null, stakes_kit_at: null, stakes_said: -1, news_wave: 0, stakes_lane_done: false, stakes_lane_now: false};
+const arcade = {active: false, world: -1, wave: 0, pause: 0, squad_timer: 0, squads: 0, phase: 0, slowmo: 0, depot_hint: false, marksman_hint: false, missile_hint: false, push_hint: false, kit_full_at: -1, lives_bought: 0, blasts: [], event: null, between_worlds: null, world_start: null, lives: 0, life_flash: 0, campaign_checkpoint: null, route: [0], seed: 0, cards: [], wind_used: false, flagship_escaped: false, owned: {}, fitted: [], reactor: 0, evade: 0, wave_total: 0, wave_clock: 0, trial: false, retry_depot: false, event_last: null, pace: null, stakes_kit_at: null, stakes_said: -1, news_wave: 0, stakes_lane_done: false, stakes_lane_now: false};
 // A Scroll lane's waves: two along it, the flagship's at its end; its length sets its time (arcade_scroll.js)
 const arcade_waves = 3;
 // A Free world's waves: five, then the flagship's, so a world lasts about five minutes (the author, 2026-10-21: "five
@@ -134,10 +134,16 @@ function arcade_start(world = 0, from = null)
     }
     // a retry starts from the world's start (arcade_retry): the run's rival notes so far stay (arcade_rank.js)
     const retry = !!from && (from === arcade.world_start?.snapshot);
+    // a new run: the resolution may try every ratio again (resolution.js)
+    if (!from) {
+        resolution_forget();
+    }
     arcade.active = true;
     arcade.trial = false;
     arcade.retry_depot = false;
     arcade.lives = Number.isFinite(from?.lives) ? clamp(Math.round(from.lives), 1, arcade_lives) : arcade_lives;
+    arcade.lives_bought = Number.isFinite(from?.lives_bought) ? from.lives_bought : 0;
+    arcade.kit_full_at = Number.isFinite(from?.kit_full_at) ? from.kit_full_at : -1;
     arcade.life_flash = 0;
     arcade.world = -1;
     arcade.wave = 0;
@@ -171,7 +177,8 @@ function arcade_start(world = 0, from = null)
         artifacts_count: 0,
         run_time: from ? from.run_time : 0,
         upgrades: from ? {...initial_upgrades(), ...from.upgrades} : initial_upgrades(),
-        supplies: from ? {...from.supplies} : {medkit: arcade_mode().medkits, emp: 1, stasis: 1},
+        // the arcade carries 3 EMPs at most (supply_cap): a save from before keeps no more
+        supplies: from ? {...from.supplies, emp: Math.min(3, from.supplies.emp)} : {medkit: arcade_mode().medkits, emp: 1, stasis: 1},
         difficulty,
         hp: from ? from.hp : ship_catalog[0].hull,
         energy: 35,
@@ -217,6 +224,8 @@ function arcade_snapshot()
         seed: arcade.seed,
         cards: arcade.cards.map(v => ({...v})),
         lives: arcade.lives,
+        lives_bought: arcade.lives_bought,
+        kit_full_at: arcade.kit_full_at,
         kind: arcade_scroll.kind,
     };
 }
@@ -260,6 +269,12 @@ function repair_drop_allowed()
 // worlds bites a smaller damage harder, so the hull is cut from Verdant on: measured with bin/playtest (NORMAL, seeds
 // 1–12) until its bot won about half its runs, as before the budget (docs/balance.md, The arcade's power budget).
 const arcade_shop_hull = [1, 0.7, 0.55, 0.4, 0.3, 0.5, 0.6, 0.5];
+// Once your guns reach their top tier the shop has no more to sell them, and from the next world on a Free run's
+// raiders grow by this much a world, at most arcade_late_most, but in the run's last world (the author's play log,
+// 2026-11-01: tier 5 by minute 25 on OVERLOAD, then Nova Forge and Cryosphere never took his hull under 86%; the last
+// world is the hardest already: with it grown too the bot won 8 runs of 16 on NORMAL, against 14)
+const arcade_late_growth = 0.12;
+const arcade_late_most = 0.3;
 const arcade_shop_flagship = [1, 0.7, 1, 0.5, 0.6, 1, 1, 0.45];
 
 function arcade_hull_scale(enemy)
@@ -269,9 +284,27 @@ function arcade_hull_scale(enemy)
     const shop = ((enemy.type === 'boss') ? arcade_shop_flagship : arcade_shop_hull)[level] ?? 1;
     const growth = (enemy.type === 'boss') ? 1 : mode.hull*(1 + mode.growth*level)*arcade_card_k.raider_hull;
     // a Scroll run's raiders follow your kit's damage instead of the run's step (arcade_base.js)
-    const k = arcade_scroll_on() ? mode.hull*arcade_base_hull_k()*arcade_card_k.raider_hull : growth*(1 + (shop - 1)*mode.shop)*(mode.tier_hp ? 1 + (weapon_level() - 1)*0.22 : 1);
+    const k = arcade_scroll_on() ? mode.hull*arcade_base_hull_k()*arcade_card_k.raider_hull : growth*(1 + (shop - 1)*mode.shop)*(mode.tier_hp ? 1 + (weapon_level() - 1)*0.22 : 1)*arcade_late_k(enemy);
     enemy.hp = Math.round(enemy.hp*k);
     enemy.max_hp = Math.round(enemy.max_hp*k);
+}
+
+// The growth past a full kit (arcade_late_growth): the worlds flown since your guns reached their top tier; a raider,
+// not a flagship
+function arcade_late_k(enemy)
+{
+    if ((enemy.type === 'boss') || (arcade.kit_full_at < 0) || (arcade_level() >= arcade_worlds - 1)) {
+        return 1;
+    }
+    return 1 + Math.min(arcade_late_most, arcade_late_growth*Math.max(0, arcade_level() - arcade.kit_full_at));
+}
+
+// The world your guns first stand at their top tier in (arcade_late_k counts from it)
+function arcade_kit_full_note()
+{
+    if ((arcade.kit_full_at < 0) && (weapon_level() >= 5)) {
+        arcade.kit_full_at = arcade_level();
+    }
 }
 
 function arcade_stop()
@@ -329,6 +362,8 @@ function arcade_update(dt)
     }
     if (arcade.world !== campaign.world) {
         arcade.world = campaign.world;
+        // a world begun with a full kit counts the growth past it from here (arcade_late_k)
+        arcade_kit_full_note();
         // the run as this world begins, for the numbers its cleared screen shows and a retry after a death (as a load)
         arcade.world_start = {score, kills, run_time, snapshot: arcade_snapshot()};
         // the world's streak, its marks for a rank and the rival's notes from its start (arcade_streak.js, arcade_rank.js)
@@ -901,6 +936,12 @@ function arcade_guns_grow()
     }
 }
 
+// A life back at the depot: 1500 ◆, and 1000 more for each bought before in the run
+function arcade_life_price()
+{
+    return 1500 + 1000*arcade.lives_bought;
+}
+
 function arcade_clear_bonus()
 {
     return 80 + arcade_level()*40;
@@ -1037,6 +1078,19 @@ function arcade_depot_items()
             player.hp = hull_max();
         },
     });
+    // a life back, while one is lost: salvage left late in a run has something to buy (the author's play log,
+    // 2026-11-01: 7 900 ◆ left over); each costs more than the last
+    const life_price = arcade_life_price();
+    out.push({
+        kind: 'supply', id: 'life', section: 'repairs', title: 'A life back', line: 'One more try if you fall: a death retries the world.', tags: 'life lives extra жизнь',
+        icon: ship_parts_url('pickups/pickup-life'), chips: [['LIVES', `${arcade.lives} / ${arcade_lives}`, (arcade.lives < arcade_lives) ? 'up' : '']],
+        price: life_price, done: (arcade.lives >= arcade_lives) ? 'Full' : '',
+        buy: function () {
+            arcade.lives = Math.min(arcade_lives, arcade.lives + 1);
+            arcade.lives_bought++;
+            arcade.life_flash = 0;
+        },
+    });
     const kept = [
         ['medkit', 'Q', '+40 hull when you press Q.', 'repair heal ремонт аптечка'],
         ['emp', 'E', 'Clears enemy shots and blasts raiders nearby.', 'emp bullets clear'],
@@ -1047,7 +1101,7 @@ function arcade_depot_items()
         out.push({
             kind: 'supply', id: key, section: 'repairs', title: option.title, line, tags,
             icon: ship_parts_url(`pickups/pickup-${(key === 'medkit') ? 'repair' : key}`), keycap, chips: [['HAVE', String(supplies[key])]],
-            price: option.cost, done: (supplies[key] >= option.cap) ? 'Full' : '',
+            price: option.cost, done: (supplies[key] >= supply_cap(key)) ? 'Full' : '',
             buy: function () {
                 supplies[key]++;
             },

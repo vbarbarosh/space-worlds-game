@@ -30,7 +30,9 @@ const resolution_refresh_slack = 1.1;
 // at the lowest ratio still behind, and no faster by a tenth than where the steps began: the pixels are not what is
 // slow (a browser holding the page to 30 fps on battery, a 30 Hz screen), so the ratio goes back up and stays
 const resolution_futile_gain = 0.9;
-// a ratio that fell behind is not tried again for 3 minutes, then 6, 12, up to 24; a new world forgets it all
+// a ratio that fell behind is not tried again for 3 minutes, then 6, 12, up to 24; a new run forgets it all, a new
+// world only waits a second (the author's play log, 2026-11-01: forgotten at each world, 1.7 was tried again in each of
+// 8 worlds and held 42 fps against 56 at 1)
 const resolution_retry_ms = 180000;
 const resolution_retry_max_ms = 1440000;
 const resolution_samples = 2048;
@@ -112,7 +114,8 @@ function resolution_mode_set(mode)
     performance_render_dirty = true;
 }
 
-// What the steps learned about this world and screen goes: a ratio that fell behind may be tried again
+// What the steps learned about this run and screen goes: a ratio that fell behind may be tried again (a new run: a new
+// campaign, reset_run, or a new arcade run, arcade_start)
 function resolution_forget()
 {
     resolution.retry = [];
@@ -139,7 +142,6 @@ function resolution_frame(t0)
     }
     if (campaign.world !== resolution.world) {
         resolution.world = campaign.world;
-        resolution_forget();
         resolution_hold(t0);
         return;
     }

@@ -287,7 +287,7 @@ function collect_pickup(v, quiet = false)
         }
     }
     else if (supplies[v.type] !== undefined) {
-        supplies[v.type] = Math.min(8, supplies[v.type] + 1);
+        supplies[v.type] = Math.min(supply_cap(v.type), supplies[v.type] + 1);
         if (!quiet) {
             label(v.x, v.y, `+${v.type.toUpperCase()}`, blue);
         }
@@ -495,6 +495,13 @@ for (const v of document.querySelectorAll('[data-filter]')) {
         render_shop();
     });
 }
+// How many of a supply you can carry: its cap, and in the arcade 3 EMPs (the author's play log, 2026-11-01: 8 carried
+// and one fired every 10 s; the EMP is a rescue, not a habit)
+function supply_cap(key)
+{
+    return (arcade.active && (key === 'emp')) ? 3 : supply_options.find(v => v.key === key).cap;
+}
+
 function use_supply(key)
 {
     if ((state !== 'playing') || !supplies[key]) {

@@ -1385,6 +1385,10 @@ function render_inventory()
 
 function reset_run(resume = false)
 {
+    // a new campaign: the resolution may try every ratio again (resolution.js)
+    if (!resume) {
+        resolution_forget();
+    }
     portal_leg_cache.clear();
     guide_context_cache = null;
     guide_context_cache_key = '';

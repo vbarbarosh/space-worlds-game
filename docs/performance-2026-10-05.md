@@ -392,8 +392,11 @@ pixels at the cap of ×1.7. The canvas's pixel ratio now follows the frames
   over 18.5 ms. A 60 Hz screen never shows a frame under 16.7 ms, so it is
   tried: if the higher ratio falls behind again it steps back down.
 - **No see-saw.** A ratio that fell behind is not tried again for 3 minutes,
-  then 6, 12, up to 24. A new world forgets it all (Haven costs less than
-  Nova Forge), and so does a new screen ratio.
+  then 6, 12, up to 24. A new run forgets it all, and so does a new screen
+  ratio; a new world only waits a second before measuring (until 2026-11-02
+  a new world forgot it too, as Haven costs less than Nova Forge, and the
+  author's play log showed ×1.7 tried again in each of 8 worlds, at 42 fps
+  against 56 at ×1).
 - **No gain, no steps.** At ×1 and still behind, and not a tenth faster than
   where the steps began, the pixels are not what is slow (a browser holding
   the page to 30 fps on battery, a 30 Hz screen): the ratio goes back to where

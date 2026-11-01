@@ -216,7 +216,7 @@ function arcade_card_take(card)
     }
     if (card.id === 'cache') {
         supplies.medkit = Math.min(8, supplies.medkit + 2);
-        supplies.emp = Math.min(8, supplies.emp + 1);
+        supplies.emp = Math.min(supply_cap('emp'), supplies.emp + 1);
         supplies.stasis = Math.min(8, supplies.stasis + 1);
     }
     if (card.id === 'black_market') {
