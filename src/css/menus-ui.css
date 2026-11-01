@@ -1720,6 +1720,62 @@ body:not(.in-game) .ui.hud .hud-top .toolbar {
     filter: grayscale(1);
 }
 
+/* a world's rank (arcade_rank.js): its letter, its three marks in a line that wraps, and the best rank of the world */
+.ui .finale-rank {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: 16px;
+    row-gap: 2px;
+    padding: 8px 16px;
+    border: 1px solid var(--line-1);
+    border-radius: 12px;
+    background: rgba(8, 17, 31, 0.82);
+    backdrop-filter: blur(10px);
+}
+
+.ui .finale-letter {
+    font: 900 34px/1 var(--font-ui);
+    color: var(--text-2);
+}
+
+.ui .finale-letter[data-rank='S'] {
+    color: var(--gold);
+    text-shadow: 0 0 24px rgba(255, 204, 77, 0.55);
+}
+
+.ui .finale-letter[data-rank='A'] {
+    color: var(--text-1);
+}
+
+.ui .finale-rank ul {
+    display: flex;
+    flex-wrap: wrap;
+    column-gap: 14px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font: 500 13px/1.5 var(--font-ui);
+    color: var(--text-3);
+}
+
+.ui .finale-rank li.is-met {
+    color: var(--text-1);
+}
+
+.ui .finale-rank li.is-met > span {
+    color: var(--green);
+}
+
+.ui .finale-rank small {
+    display: none;
+}
+
+.ui .finale-rank > .small {
+    margin-left: auto;
+    color: var(--gold);
+}
+
 .ui .finale-best {
     display: flex;
     align-items: center;
@@ -2025,5 +2081,22 @@ body:not(.in-game) .ui.hud .hud-top .toolbar {
     .ui .mode-kind small,
     .ui .mode-kind .key {
         display: none;
+    }
+}
+
+/* a short window (a phone on its side): a world's rank keeps to one line, its letter and the best rank, so the
+   buttons stay on screen */
+@container screen (max-height: 640px) {
+    .ui .finale-rank {
+        flex-wrap: nowrap;
+        padding: 4px 14px;
+    }
+
+    .ui .finale-rank ul {
+        display: none;
+    }
+
+    .ui .finale-letter {
+        font-size: 24px;
     }
 }

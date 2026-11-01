@@ -55,7 +55,7 @@ const dev_screen_time = new URLSearchParams(location.search).get('t');
 // depot (arcade-depot) its header at its widest
 const dev_screen_lives = new URLSearchParams(location.search).get('lives');
 const dev_screen_long = new URLSearchParams(location.search).get('long') === '1';
-// &rival=ahead or behind, with &screen=arcade&kind=scroll: the HUD at its fullest on a lane, a seven-digit score, a
+// &rival=ahead or behind, with &screen=arcade: the HUD at its fullest, Free or Scroll, a seven-digit score, a
 // streak of 123 at ×19 held there, and the Best box millions ahead of your best run or behind it (arcade_rank.js)
 const dev_screen_rival = new URLSearchParams(location.search).get('rival');
 // &save=none, &slots=1 and &row=arcade: the menu with no game to continue, with saved slots (its Load row), with a row
@@ -145,12 +145,15 @@ function dev_screen_open()
             arcade.lives = clamp(Math.round(Number(dev_screen_lives)) || 0, 0, arcade_lives);
             arcade.life_flash = (arcade.lives < arcade_lives) ? arcade_life_flash : 0;
         }
+        // after the world's first frame, which starts its streak from nothing (arcade_update)
         if (dev_screen_rival) {
-            rank_rival.best = Array(arcade_worlds*10).fill((dev_screen_rival === 'behind') ? 9999999 : 0);
-            score = 1234567;
-            streak.count = 123;
-            combo = 19;
-            combo_timer = 1e6;
+            setTimeout(function () {
+                rank_rival.best = Array(arcade_worlds*10).fill((dev_screen_rival === 'behind') ? 9999999 : 0);
+                score = 1234567;
+                streak.count = 123;
+                combo = 19;
+                combo_timer = 1e6;
+            }, 200);
         }
         return;
     }
@@ -218,6 +221,7 @@ function dev_screen_open()
         // a Scroll world's rank (arcade_rank.js): a streak, grazes, hull lost and raiders let through; &long=1 at their
         // widest
         Object.assign(streak, dev_screen_long ? {best: 12345, grazes: 99999, hull_lost: hull_max()*99, missed: 9999} : {best: 42, grazes: 23, hull_lost: hull_max()*0.4, missed: 2});
+        rank_rival.flagship_at = run_time - (dev_screen_long ? 9999 : 24);
         finale.frozen = (dev_screen_time === null) ? null : Number(dev_screen_time);
         // a Scroll run's (&kind=scroll) plays on the lane (arcade_lane_clear.js)
         lane_clear.frozen = finale.frozen;

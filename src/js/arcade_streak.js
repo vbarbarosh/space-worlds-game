@@ -1,10 +1,12 @@
-// Scroll's streak and grazes (the author, 2026-11-01: "make the slide mode more addictive"). The combo of a kill made
-// within 4 s of the last stops at ×8 in Free; on a Scroll lane it keeps climbing as a streak: past ×8, one more × every
-// streak_step kills, with no ceiling, so a long streak is something to keep and a hit breaks it. Every streak_marks
-// kills a banner and a bonus; a streak of streak_lost_shown or more lost says so. A raider's shot that just misses you,
-// passing within streak_graze_band m of what it would hit, is a graze: a few points times the combo, and the combo's
-// 4 s held for at least streak_graze_hold, so flying close to the fire keeps a streak alive. The world's longest streak
-// and its grazes go to its cleared screen (arcade_rank.js).
+// The arcade's streak and grazes (the author, 2026-11-01: "make the slide mode more addictive", then "make the arcade
+// mode more addictive"). The combo of a kill made within 4 s of the last stops at ×8 out of the arcade; in an arcade run,
+// Free or Scroll, it keeps climbing as a streak: past ×8, one more × every streak_step kills, with no ceiling, so a long
+// streak is something to keep and a hit breaks it. Its time stands still between two waves (arcade.pause: Free's
+// breather after a crest is longer than the combo's 4 s). Every streak_marks kills a banner and a bonus; a streak of
+// streak_lost_shown or more lost says so. A raider's shot that just misses you, passing within streak_graze_band m of
+// what it would hit, is a graze: a few points times the combo, and the combo's 4 s held for at least streak_graze_hold,
+// so flying close to the fire keeps a streak alive. The world's longest streak and its grazes go to its cleared screen
+// (arcade_rank.js).
 
 // past ×8, one more × every this many kills of the streak
 const streak_step = 10;
@@ -22,21 +24,27 @@ const streak_graze_hold = 2;
 // through: the world's (hull_lost and missed for its rank, arcade_rank.js)
 const streak = {count: 0, best: 0, grazes: 0, hull_lost: 0, missed: 0};
 
-// The combo a kill gives, the streak counted: up to ×8 as anywhere, then on a lane one more every streak_step kills
+// An arcade run is flown, Free or Scroll: the streak counts past ×8, grazes score
+function streak_on()
+{
+    return arcade.active && !!player;
+}
+
+// The combo a kill gives, the streak counted: up to ×8 as anywhere, then in the arcade one more every streak_step kills
 function streak_kill()
 {
     streak.count = (combo_timer > 0) ? streak.count + 1 : 1;
-    if (!arcade_scroll_on()) {
+    if (!streak_on()) {
         return Math.min(8, streak.count);
     }
     streak.best = Math.max(streak.best, streak.count);
     return 8 + Math.max(0, Math.floor((streak.count - 8)/streak_step)) - Math.max(0, 8 - streak.count);
 }
 
-// After a kill on a lane has scored (base_damage_enemy): a mark of the streak, its banner and its bonus
+// After a kill in the arcade has scored (base_damage_enemy): a mark of the streak, its banner and its bonus
 function streak_mark(enemy)
 {
-    if (!arcade_scroll_on() || (streak.count < streak_marks) || (streak.count % streak_marks)) {
+    if (!streak_on() || (streak.count < streak_marks) || (streak.count % streak_marks)) {
         return;
     }
     const bonus = streak.count*streak_mark_bonus;
@@ -45,10 +53,10 @@ function streak_mark(enemy)
     show_banner('goal', 'Streak', `${streak.count} in a row`, `+${ui_number(bonus)} · ×${combo} now · a hit breaks it`, 2);
 }
 
-// The combo is broken (a hit, its time run out, a new run): a long streak lost on a lane says so
+// The combo is broken (a hit, its time run out, a new run): a long streak lost in the arcade says so
 function streak_break()
 {
-    if ((streak.count >= streak_lost_shown) && arcade_scroll_on() && (state === 'playing')) {
+    if ((streak.count >= streak_lost_shown) && streak_on() && (state === 'playing')) {
         show_toast(`STREAK ${streak.count} LOST`, `×${combo} · THE LONGEST HERE ${streak.best}`, 2, 'danger');
     }
     streak.count = 0;
@@ -56,7 +64,7 @@ function streak_break()
     combo_timer = 0;
 }
 
-// A world of a lane begins, or begins again after a death: its streak, longest and grazes from nothing
+// A world of an arcade run begins, or begins again after a death: its streak, longest and grazes from nothing
 function streak_world_start()
 {
     streak.count = 0;
@@ -64,11 +72,17 @@ function streak_world_start()
     streak.grazes = 0;
 }
 
-// Each raider shot that did not hit you this frame, on a lane (update): one that came within streak_graze_band of
+// Whether the combo's time stands still: between two waves of an arcade run
+function streak_held()
+{
+    return streak_on() && (arcade.pause > 0);
+}
+
+// Each raider shot that did not hit you this frame, in the arcade (update): one that came within streak_graze_band of
 // `reach` is near; once it is out of that band again, unhit, it was a graze
 function streak_graze_check(b, reach)
 {
-    if (!arcade_scroll_on() || b.missile || b.grazed) {
+    if (!streak_on() || b.missile || b.grazed) {
         return;
     }
     const band = reach + streak_graze_band;
@@ -85,18 +99,20 @@ function streak_graze_check(b, reach)
     score += points;
     combo_timer = Math.max(combo_timer, streak_graze_hold);
     label(player.x, player.y - 30, `GRAZE +${points}`, '#7dffb0');
+    // the sparks draw on the effects' own random, not the game's (explosions.js): a graze changes nothing that follows
     for (let i = 0; i < 6; ++i) {
-        const angle = Math.atan2(b.y - player.y, b.x - player.x) + rand(-0.6, 0.6);
-        particles.push({x: player.x + Math.cos(angle)*reach, y: player.y + Math.sin(angle)*reach, vx: Math.cos(angle)*rand(60, 160), vy: Math.sin(angle)*rand(60, 160), life: 0.3, total: 0.3, color: '#7dffb0', size: rand(1.5, 3)});
+        const angle = Math.atan2(b.y - player.y, b.x - player.x) + (explosion_random() - 0.5)*1.2;
+        const speed = 60 + explosion_random()*100;
+        particles.push({x: player.x + Math.cos(angle)*reach, y: player.y + Math.sin(angle)*reach, vx: Math.cos(angle)*speed, vy: Math.sin(angle)*speed, life: 0.3, total: 0.3, color: '#7dffb0', size: 1.5 + explosion_random()*1.5});
     }
 }
 
-// The combo's readout on a lane: the streak in its label, its time left as a bar under it; off a lane, Combo
+// The combo's readout in the arcade: the streak in its label, its time left as a bar under it; out of it, Combo
 function streak_hud()
 {
-    const lane = arcade_scroll_on();
+    const on = streak_on();
     const box = document.getElementById('combo_box');
-    box.classList.toggle('is-streak', lane);
-    hud_text(box.querySelector('.eyebrow'), (lane && (streak.count > 1)) ? `Streak ${streak.count}` : 'Combo');
-    box.style.setProperty('--left', lane ? String(clamp(combo_timer/4, 0, 1)) : '0');
+    box.classList.toggle('is-streak', on);
+    hud_text(box.querySelector('.eyebrow'), (on && (streak.count > 1)) ? `Streak ${streak.count}` : 'Combo');
+    box.style.setProperty('--left', on ? String(clamp(combo_timer/4, 0, 1)) : '0');
 }

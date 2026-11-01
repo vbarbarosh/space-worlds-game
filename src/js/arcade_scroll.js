@@ -177,8 +177,6 @@ function arcade_scroll_world_start()
     }
     arcade_scroll.s = 0;
     arcade_scroll.refills = 0;
-    streak_world_start();
-    rank_world_start();
     arcade_scroll.pace = arcade_scroll_pace;
     // nothing on a lane leaves the view at once: no portals, for you or the raiders; no course to the station
     portals = [];

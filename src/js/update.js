@@ -141,7 +141,8 @@ function update(dt, frame_dt = dt)
     recharge_turbo(dt);
     player.shoot_cd -= dt;
     guns_cool(dt);
-    combo_timer -= dt;
+    // between two arcade waves the streak's time stands still (arcade_streak.js)
+    combo_timer -= streak_held() ? 0 : dt;
     if ((combo_timer <= 0) && ((combo > 1) || streak.count)) {
         streak_break();
     }
@@ -646,7 +647,7 @@ function update(dt, frame_dt = dt)
         const shielded = player.shield > 0;
         const reach = (shielded ? ship_halo() + 3 : player.r) + b.r;
         const contact = hostile_shot_contact(b, player, reach);
-        // a shot that just misses you on a lane is a graze (arcade_streak.js)
+        // a shot that just misses you in the arcade is a graze (arcade_streak.js)
         if (contact < 0) {
             streak_graze_check(b, reach);
         }

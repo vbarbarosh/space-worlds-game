@@ -163,6 +163,11 @@ function finale_build()
     }
     set_hidden(document.getElementById('finale_overload'), (world >= 0) || (difficulty === 'overload'));
     set_hidden(document.getElementById('finale_depot'), world < 0);
+    // a world's rank (arcade_rank.js); the whole run's finale has none
+    set_hidden(document.getElementById('finale_rank'), world < 0);
+    if (world >= 0) {
+        rank_render(world, document.getElementById('finale_letter'), document.getElementById('finale_marks'), document.getElementById('finale_rank_best'));
+    }
 }
 
 // The ring's order: the worlds flown, the cleared one last of them (here), the ones offered next after it, then the
@@ -582,6 +587,7 @@ function finale_place_words(story, g, h, steps)
         finale_place_row(v, finale_seg(story, steps.results[0] + i*steps.results[1], steps.results[0] + i*steps.results[1] + 0.35));
     }
     finale_place_row(document.getElementById('finale_flags'), finale_seg(story, steps.flags[0] - 0.1, steps.flags[0] + 0.2));
+    finale_place_row(document.getElementById('finale_rank'), finale_seg(story, steps.best[0] - 0.35, steps.best[0] - 0.05));
     finale_place_row(document.querySelector('#finale_res .finale-best'), finale_seg(story, steps.best[0] - 0.15, steps.best[0] + 0.15));
     const count = finale_ease(finale_seg(story, ...steps.count));
     document.getElementById('finale_score').textContent = ui_number(run.score*count);

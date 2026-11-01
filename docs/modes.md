@@ -112,6 +112,28 @@ opening first so you can try another kit; the last ends the run, its score
 against your best. A save keeps the score, salvage, gear and lives, and
 loading it starts its world again from the first wave.
 
+### Streak, rival and rank
+
+Three reasons for one more go, in both kinds (`src/js/arcade_streak.js`,
+`src/js/arcade_rank.js`; the numbers in
+[balance.md](balance.md#the-arcades-streak-rival-and-rank)):
+
+- **a streak**: the combo keeps climbing past ×8, one more every 10 kills in
+  a row, with no ceiling; a hit, or 4 s with no kill, breaks it, and its
+  time stands still between two waves; a mark every 25 kills with a bonus;
+  the HUD's Combo box counts it, a bar under it the time left;
+- **grazes**: a raider's shot that just misses you scores and keeps the
+  streak's time;
+- **your best run as a rival**: the HUD's Best box says how far ahead of
+  your best run of the kind you are at the same point of the run (each wave
+  in Free, each tenth of the lane on Scroll), and a banner says when you
+  pass its score;
+- **a rank** for each world on its cleared screen, S to C, by three marks:
+  a streak of 30, a quarter of the hull lost at most, and on a lane a tenth
+  of the raiders let through at most, in Free the flagship down in 30 s;
+  the best of each world kept for each kind. The run's last world ends in
+  the run's finale, with no rank.
+
 ### Free and Scroll
 
 The arcade comes in two kinds, picked on its menu row (T turns it); each
@@ -156,18 +178,6 @@ What a lane holds:
   of its length (in the run's last world only the first), and a prize ace a
   quarter of the way along (but in the run's last world); the last stand and
   its repair kits as in Free;
-- a streak: the combo keeps climbing past ×8, one more every 10 kills in a
-  row, with no ceiling; a hit, or 4 s with no kill, breaks it; a mark every
-  25 kills with a bonus; the HUD's Combo box counts it, a bar under it the
-  time left;
-- grazes: a raider's shot that just misses you scores and keeps the streak's
-  time;
-- your best Scroll run as a rival: the HUD's Best box says how far ahead of it
-  or behind you are at the same point of the run, and a banner when you pass
-  its score;
-- a rank for each world on its cleared screen, S to C, by three marks (a
-  streak of 30, a quarter of the hull lost at most, a tenth of the raiders
-  let through at most), the best of each world kept;
 - Eclipse's hole smaller on its lane (300 m of pull, 560 in Free), so its
   flagship's duel at the hole's edge fits the view.
 

@@ -1279,25 +1279,30 @@ How it got here, the bot's runs on NORMAL:
   Haven (its squadrons are two bigger, so each call of the director landed 5
   to 7 at once); with the director wanting 0.6 as many: 5 of 6 won.
 
-## Scroll's streak, rival and rank
+## The arcade's streak, rival and rank
 
-Scroll's reasons for one more go (2026-11-01, the author: "make the slide mode
-more addictive"; `src/js/arcade_streak.js`, `src/js/arcade_rank.js`). Measured
-with the bot, NORMAL, seeds 1–8, against the same seeds before:
+The arcade's reasons for one more go, Free and Scroll (2026-11-01, the author:
+"make the slide mode more addictive", then "make the arcade mode more
+addictive"; `src/js/arcade_streak.js`, `src/js/arcade_rank.js`). Measured with
+the bot, NORMAL: Scroll seeds 1–8, Free seeds 1–8 twice and 9–16, against the same
+seeds before:
 
-| On a lane | Value | Why |
+| In an arcade run | Value | Why |
 |---|---|---|
-| The combo past ×8 | one more × every 10 kills of the streak, no ceiling | before, the bot held ×8 only 3% to 30% of a world's seconds and nothing grew past it; its longest streak a world now 22 (median), 67 at most |
+| The combo past ×8 | one more × every 10 kills of the streak, no ceiling; its time stands still between two waves | before, the bot held ×8 only 3% to 30% of a world's seconds on a lane (in Free 1% to 25%, 9% the median) and nothing grew past it; its longest streak a world now 22 on a lane, 21 in Free (medians), 67 at most |
 | A streak's mark | every 25 kills: a banner and 60 points a kill of the streak (25: 1 500) | |
 | A streak lost | said from 10 kills on | the loss is what makes it worth keeping |
-| A graze | a shot passing within 26 m of what it would hit: 10 × the combo, the combo's time held at 2 s at least | the bot grazes about 12 a world (median); worlds whose raiders fire missiles or beams give few |
-| The rank's marks | a streak of 30, at most 25% of the hull lost, at most 10% of the raiders let through | S all three, C none; the best of each world kept |
-| Your best run as a rival | its score at each tenth of each lane, step by step of the run | kept by the run that sets a best; a best from before has no notes until it is beaten |
-| Eclipse's hole on its lane | 300 m of pull, not 560 | the duel is fought 1 to 1.8 times that from its middle, and the held view shows 360 m to each side: at 560 the bot crossed the horizon at full hull 13 times in 8 runs, 3 runs lost; at 300, 8 of 8 won, the duel 44 to 51 s, the world 258 to 264 s (it took up to 733 with the deaths) |
+| A graze | a shot passing within 26 m of what it would hit: 10 × the combo, the combo's time held at 2 s at least; its sparks on the effects' own random | the bot grazes about 12 a world on a lane, 26 in Free (medians); worlds whose raiders fire missiles or beams give few |
+| The rank's marks | a streak of 30, at most 25% of the hull lost, and on a lane at most 10% of the raiders let through, in Free the flagship down in 30 s | S all three, C none; the bot's streak reaches 30 in 17% of its Free worlds; its Free flagships fall in 19 s (the median, 10 to 97) |
+| Your best run as a rival | its score at ten points of each world, step by step of the run: each tenth of a lane, each wave in Free | kept by the run that sets a best of its kind; a best from before has no notes until it is beaten |
+| Eclipse's hole on its lane | 300 m of pull, not 560 | the duel is fought 1 to 1.8 times that from its middle, and the held view shows 360 m to each side: at 560 the bot crossed the horizon at full hull 13 times in 8 runs, 3 runs lost; at 300, 8 of 8 won twice, the duel 44 to 51 s, the world 258 to 264 s (it took up to 733 with the deaths) |
 
-Interest, the bot's mean over the 8 runs: 57.8 before, 59.8 after; Eclipse
-24 to 48 before, 41 to 55 after. The streak, the rival and the rank change
-nothing the bot feels: it counts what they are made of, not the pull.
+Interest, the bot's mean: Scroll 57.8 before, 59.8 after (Eclipse 24 to 48
+before, 41 to 55 after); Free 63.3 before, 62.4 after (24 runs each). The
+streak, the rival and the rank change nothing the bot feels: it counts what
+they are made of, not the pull. Free's runs lost stay where they were, all in
+Eclipse's waves 4 to 6: 4 of 24 before (19 deaths), 3 of 24 after (24 deaths);
+the same build gave 2 and 11 deaths on two sets of 8 seeds, the bot's spread.
 
 ## The arcade's route and cards
 

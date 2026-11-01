@@ -71,16 +71,10 @@ function lane_clear_open(world, run)
     lane_clear_sync();
 }
 
-// The world's rank (arcade_rank.js): its letter, its three marks each met or not with its aim, and the best rank of
-// the world before, a better one said so
+// The world's rank (arcade_rank.js)
 function lane_clear_rank(world)
 {
-    const rank = rank_of_world(world);
-    const letter = document.getElementById('lc_letter');
-    letter.textContent = rank.letter;
-    letter.dataset.rank = rank.letter;
-    document.getElementById('lc_marks').innerHTML = rank.marks.map(v => `<li class="${v.ok ? 'is-met' : ''}"><span>${v.ok ? '✓' : '✗'}</span> ${ui_escape(v.label)} <b>${ui_number(v.value)}${v.unit || ''}</b> <small>${ui_escape(v.aim)}</small></li>`).join('');
-    document.getElementById('lc_best').textContent = arcade.trial ? 'A try-out keeps no rank' : rank.better ? (rank.before ? `Better than your ${rank.before} here` : 'Your first rank here') : `Your best here: ${rank.before}`;
+    rank_render(world, document.getElementById('lc_letter'), document.getElementById('lc_marks'), document.getElementById('lc_best'));
 }
 
 // Each frame while it is up (update): its time, by the screen's clock (the flagship's fall slows the game's), your ship

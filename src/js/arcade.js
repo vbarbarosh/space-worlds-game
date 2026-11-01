@@ -132,6 +132,8 @@ function arcade_start(world = 0, from = null)
         // a save from before the kinds is a Free run
         arcade_kind_pick(from.kind || 'free');
     }
+    // a retry starts from the world's start (arcade_retry): the run's rival notes so far stay (arcade_rank.js)
+    const retry = !!from && (from === arcade.world_start?.snapshot);
     arcade.active = true;
     arcade.trial = false;
     arcade.retry_depot = false;
@@ -146,8 +148,8 @@ function arcade_start(world = 0, from = null)
     arcade.blasts = [];
     arcade.between_worlds = null;
     arcade.world_start = null;
-    // your best Scroll run as this one's rival (arcade_rank.js)
-    rank_run_start();
+    // your best run of the kind as this one's rival (arcade_rank.js)
+    rank_run_start(retry);
     raider_jobs_reset();
     // the route flown and the cards taken (arcade_route.js, arcade_cards.js), before the run's first frame counts on them
     arcade_route_start(world, from);
@@ -323,6 +325,9 @@ function arcade_update(dt)
         arcade.world = campaign.world;
         // the run as this world begins, for the numbers its cleared screen shows and a retry after a death (as a load)
         arcade.world_start = {score, kills, run_time, snapshot: arcade_snapshot()};
+        // the world's streak, its marks for a rank and the rival's notes from its start (arcade_streak.js, arcade_rank.js)
+        streak_world_start();
+        rank_world_start();
         arcade_cards_world_start();
         arcade_gravity_world_start();
         // a Scroll run: the world's lane, the view at its start and you at its back (arcade_scroll.js)

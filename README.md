@@ -151,9 +151,9 @@ outside its field, inside it drawn in, behind it with three shooters held beyond
 `&screen=arcade-lost` shows a death on the world's last wave with two lives left, with Retry for that world
 (`&lives=1` the last one left), `arcade-over` the last life lost, the run over; `&long=1` gives either a very long
 world name and a huge score. With `&screen=arcade`, `&lives=n` sets the HUD's lives (0 to 3), the lost ones blinking;
-with `&kind=scroll` too, `&rival=ahead` or `&rival=behind` fills the HUD as it is at its fullest on a lane (a streak
-of 123 and the Best box against your best run). `&screen=arcade-world-cleared&kind=scroll&long=1` gives a world's rank
-its widest numbers.
+`&rival=ahead` or `&rival=behind` fills the HUD as it is at its fullest (a streak of 123 and the Best box against your
+best run), Free or Scroll. `&screen=arcade-world-cleared&long=1` (Free or Scroll) gives a world's rank its widest
+numbers.
 `&screen=arcade-depot` opens the depot before the next world (`&modules=damage:3,armor:2` owned and installed in that
 order while the reactor's power lasts, `&ship=gunship` the ship flown, `&swap=scout` a ship taken there, its smaller
 reactor taking out the newest levels, `&long=1` its header at its widest).
