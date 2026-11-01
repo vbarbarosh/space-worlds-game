@@ -358,7 +358,7 @@ function arcade_update(dt)
     if (arcade_wave_timed()) {
         arcade.wave_clock += dt;
     }
-    arcade_blasts_update(dt);
+    blasts_update(dt);
     arcade_event_update(dt);
     // a wave's headline, a lane's prize (arcade_news.js, arcade_stakes.js)
     news_update();
@@ -897,43 +897,6 @@ function arcade_guns_grow()
 function arcade_clear_bonus()
 {
     return 80 + arcade_level()*40;
-}
-
-// A ship that dies hurts what is close to it, raiders and you alike, less with distance; a blast that kills sets off
-// the next one, so a crowded squadron can go up in a chain.
-function arcade_blast_from_kill(enemy)
-{
-    const sizes = {shard: 26, tank: 72, splitter: 48, lancer: 48, shooter: 46, boss: 220};
-    const damages = {shard: 6, chaser: 10, shooter: 12, splitter: 14, lancer: 14, tank: 26, boss: 50};
-    // a raider with a job blows up by its kind (raider_kinds)
-    const kind = enemy.job ? raider_kinds[enemy.type].blast : null;
-    const size = kind ? kind[0] : sizes[enemy.type] || 40;
-    const damage = (kind ? kind[1] : damages[enemy.type] || 10)*(enemy.elite ? 1.5 : 1);
-    arcade.blasts.push({x: enemy.x, y: enemy.y, radius: size*1.8, damage, t: (enemy.type === 'boss') ? 1.25 : 0.12, source: enemy});
-}
-
-function arcade_blasts_update(dt)
-{
-    const due = [];
-    for (const blast of arcade.blasts) {
-        blast.t -= dt;
-        if (blast.t <= 0) {
-            due.push(blast);
-        }
-    }
-    arcade.blasts = arcade.blasts.filter(v => v.t > 0);
-    for (const blast of due) {
-        for (const enemy of enemies.slice()) {
-            const d = distance(enemy, blast);
-            if ((enemy !== blast.source) && (enemy.hp > 0) && (d < blast.radius + enemy.r)) {
-                damage_enemy(enemy, blast.damage*(1 - Math.min(1, d/blast.radius)));
-            }
-        }
-        const d = distance(player, blast);
-        if (d < blast.radius + player.r) {
-            damage_player(blast.damage*arcade_mode().blast*(1 - Math.min(1, d/blast.radius)), true, 'ship blast', blast.source);
-        }
-    }
 }
 
 // A new weapon keeps the tier the old one had reached.

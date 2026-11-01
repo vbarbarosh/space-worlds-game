@@ -114,6 +114,8 @@ function docking_update(dt)
     docking_end();
     player.vx = 0;
     player.vy = 0;
+    player.push_vx = 0;
+    player.push_vy = 0;
     if (d.done) {
         d.done();
     }

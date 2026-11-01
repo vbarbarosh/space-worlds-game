@@ -69,6 +69,8 @@ const mine_reach = 60;
 const mine_fuse = 0.35;
 const mine_blast = 85;
 const mine_damage = 18;
+// the shove of a mine's front at its middle (a ship's blast of its size gives 160: blast_push)
+const mine_push = 260;
 const mines_most = 70;
 
 // The mines laid, the bulwarks of this frame (your shots ask them: raider_shield_stop) and the kinds the run has shown
@@ -472,9 +474,10 @@ function raider_mines_update(dt)
         mine.life = 0;
         explode(mine.x, mine.y, 34, mine.color, 0, 'blast');
         ring(mine.x, mine.y, '#ff4d5e', mine_blast, 0.3);
-        if (d < mine_blast + player.r) {
-            damage_player(mine_damage*mine.scale*arcade_mode().blast*(1 - 0.5*Math.min(1, d/mine_blast)), true, 'mine', mine.owner);
-        }
+        // its front hurts and throws you and the raiders alike, harder than a ship's of its size: it is all charge
+        // (blasts.js)
+        const damage = mine_damage*mine.scale;
+        blast_add(mine.x, mine.y, mine_blast, damage, damage*arcade_mode().blast, mine_push, {cause: 'mine', by: mine.owner, edge: 0.5});
     }
     raider_mines = raider_mines.filter(v => v.life > 0);
 }

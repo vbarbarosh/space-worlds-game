@@ -219,6 +219,8 @@ function fatal_gravity(h)
     player.hp = 0;
     player.vx = 0;
     player.vy = 0;
+    player.push_vx = 0;
+    player.push_vy = 0;
     mouse_drive.active = false;
     mouse_drive.following = false;
     burst(player.x, player.y, pink, 65, 250);

@@ -252,6 +252,10 @@ function missile_detonate(b, depth = 0)
     b.exploded = true;
     explode(b.x, b.y, b.splash*0.3, b.color || pink);
     missile_wave_add(b, {reach: b.splash, peak: b.damage, depth});
+    // in the arcade its blast throws the hulls it reaches, yours too; its wave above does the damage (blasts.js)
+    if (arcade.active) {
+        blast_add(b.x, b.y, b.splash, 0, 0, blast_push(b.splash*0.3), {cause: 'missile', by: b.raider || null});
+    }
 }
 
 function missile_wave_add(b, wave)

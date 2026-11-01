@@ -66,6 +66,9 @@ function base_reset_run(resume = false)
         y: H/2,
         vx: 0,
         vy: 0,
+        // a blast's or a crash's shove (blasts.js): it carries the ship on past what the engine does, dying away
+        push_vx: 0,
+        push_vy: 0,
         angle: -Math.PI/2,
         hp,
         energy: (resume && checkpoint) ? checkpoint.energy : 35,
@@ -116,6 +119,8 @@ function begin_wave()
     player.y = station.y;
     player.vx = 0;
     player.vy = 0;
+    player.push_vx = 0;
+    player.push_vy = 0;
     player.portal_cd = 3;
     mouse_drive.active = false;
     mouse_drive.following = false;
@@ -227,7 +232,7 @@ function base_spawn_enemy(type)
         child: type === 'shard',
         // every field a raider gets later, here at the value that reads as not set, so all raiders keep one shape and
         // the loops over them read their numbers without boxing them: the world's (spawn_enemy), an attack run's
-        // (update; Infinity is a count not started), a gate's, the pulse's push, the hit marks, the arcade's (scale,
+        // (update; Infinity is a count not started), a gate's, the pulse's push and the pilot's own way (blasts.js), the hit marks, the arcade's (scale,
         // elite, squadron, pack, job, event), and the campaign's (operations, escorts, the survey robot, structures, the lure)
         color: null,
         armor: 0,
@@ -241,6 +246,9 @@ function base_spawn_enemy(type)
         portal_cd: 0,
         push_vx: 0,
         push_vy: 0,
+        move_vx: 0,
+        move_vy: 0,
+        crash_cd: 0,
         shield_flash: 0,
         wound_timer: 0,
         disrupted: null,

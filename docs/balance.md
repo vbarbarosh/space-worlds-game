@@ -1020,9 +1020,26 @@ no repairs, and the first ship does not last five minutes of it).
   | Heat surge | every 6 s a line of 8 vents, 1400 m long, across your way; each warns for 1.4 s, then bursts for 22 within 80 m | Nova Forge, Eclipse |
   The ion storm (your shield at 0 for the wave, wherever you were) went on
   2026-10-15: there was no answer to it, and it undid Ion Reach's own storms.
-- A ship that explodes hurts everything within 1.8 × its blast size, less
-  with distance: a chaser 10, a tank 26, a flagship 50, an elite ×1.5
-  (`arcade_blast_from_kill`).
+- A ship that explodes sends a front 900 m/s over 1.8 × its blast size; each
+  hull it reaches is hurt, less with distance, and shoved (`src/js/blasts.js`):
+  - the hurt at the middle: a chaser 10, a tank 26, a flagship 50, an elite
+    ×1.5, times the mode's `blast` for you and twice that for a raider, so a
+    crowd goes up in a chain while your hull takes what it took before;
+  - the shove at the middle, for a hull of weight 1 (radius 14): 100 + 4 ×
+    blast size m/s (a raider's 260, a tank's 390, a flagship's 980), divided
+    by the hull's weight (by area; a tank, bulwark and carrier ×1.6, a
+    flagship ×4; your ship by its size, never under 1), at most 1.6 times it
+    and never past 500 m/s (300 for your ship, so a blast by Eclipse's hole
+    cannot throw you deep into its pull), dying to a quarter in a second;
+  - a mine: 85 m, 18 at the middle and half at the rim (as before), a shove of
+    260; a Heat surge vent: its 22 to the raiders over it and a shove; a
+    flagship's mine and a missile's blast: a shove only.
+- A crash hurts by its closing speed past 50 m/s, 0.12 a m/s, by the other
+  hull's share of the two weights (at most 1.5 times, a rock twice): a
+  raider thrown at 200 m/s into one of its weight at rest takes 18 and gives
+  18; you at cruise into a chaser coming at you, about 50 to it. Raiders hurt
+  each other only when one is thrown loose (its shove past 60 m/s). A ram
+  throws your ship back at most 200 m/s, a flagship's too.
 - **Eclipse is the gravity world** (`src/js/arcade_gravity.js`, the arcade
   only; one hole of 560 m, core 56 m, its pull reaching 2260 m: 131 m/s at
   600 m from the centre, 490 at 300). A toast as the world begins says so:

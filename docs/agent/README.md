@@ -190,7 +190,8 @@ Your part:
   energy is full and raiders crowd you, `key KeyE` to wipe enemy fire,
   `key KeyQ` to repair, `key KeyF` to slow everything. The pilot also uses
   them when its survival depends on it.
-- A ship that explodes hurts what is close to it, you included; the pilot
-  keeps its distance.
+- A ship that explodes hurts and shoves what is close to it, you included,
+  and raiders it throws into each other are hurt by the crash; ramming one
+  knocks it off its course. The pilot keeps its distance.
 - `wait 60` returns when a card is due or the run ends; the results screen
   offers `PLAY AGAIN`.

@@ -1351,6 +1351,10 @@ function boss_mine_update(v, s, e, dt)
     }
     if (e.t + dt >= e.life) {
         explode(e.x, e.y, e.reach*0.6, boss_mine_color(e.look));
+        // in the arcade its front throws you and the raiders near it (blasts.js); its hit on you stays the flagship's
+        if (arcade.active) {
+            blast_add(e.x, e.y, e.reach, 0, 0, blast_push(e.reach*0.6), {cause: 'flagship', by: v});
+        }
         if (distance(e, player) < e.reach + player.r) {
             boss_hit(v, e.damage, true);
         }

@@ -33,6 +33,21 @@ glance.
   lines of force running in: inside it ships are drawn in and shots bent
   toward the spire). Its field bends shots as Eclipse's hole does, so a shot
   fired along a line shown first keeps to it (`src/js/obsidian_spires.js`).
+- **In the arcade, blasts shove and crashes bounce** (the author,
+  2026-11-01: "the blast wave damages everything near it, my ship too;
+  different things blow up with different force; if I collide with someone,
+  his speed and course change; raiders that collide push each other and take
+  damage"). A blast's front hurts each hull it reaches, less toward its
+  reach, and shoves it away by its weight (by area; a tank, bulwark and
+  carrier half again, a flagship four times): a drone's pops, a raider's
+  throws its neighbours, a tank's or a mine's throws them far, a flagship's
+  last clears the area. It sets off the mines it reaches. Your ship and a
+  raider that meet bounce apart by speed and weight, the raider's course
+  knocked off and its hull hurt by the closing speed (your hull takes the
+  ram as before). A raider thrown loose (its shove past 60 m/s) that meets
+  another bounces off it and both are hurt; one thrown into a rock or cliff
+  is hurt too. Pilots flying together only brush past each other. The
+  campaign keeps its rules (`src/js/blasts.js`).
 - Where it lives: `src/js/bodies.js` (what is solid, the separation),
   `resolve_solid_ore` in `src/js/flight.js` (your ship against rocks),
   `block_hostile_ore` (enemy shots on rocks), `src/js/evasion.js` (the
@@ -168,8 +183,9 @@ so the eye sees the wave do the work.
   only slows.
 - A missile's blast travels too: its wave hurts each hull as the front
   reaches it, less toward the rim, and sets off the missiles it reaches
-  (`missile_waves_update` in `src/js/missiles.js`). Today the arcade's
-  dying-ship blasts (`arcade_blast_from_kill`) still land at once.
+  (`missile_waves_update` in `src/js/missiles.js`). So does every blast of
+  the arcade: a dying ship's, a mine's, a vent's (`blasts_update` in
+  `src/js/blasts.js`).
 - A cliff's fall (arcade Dustfall) runs down its zone from the cliff's foot at
   2 km/s: each raider, you and each piece of rubble are hit or land as the
   front gets there (`cliff_fall_update` in `src/js/arcade_cliffs.js`).
@@ -194,8 +210,8 @@ difficulty; none of that changes the campaign's rules.
   (`arcade_card_k`) are all 1.
 - Arcade-only effects: a kill shakes the screen by the size of what died
   (`arcade_kill_shake`), a flagship's death plays at 30% speed for a moment
-  (`arcade_time_step`), and a ship that explodes hurts what is close to it
-  (`arcade_blast_from_kill`).
+  (`arcade_time_step`), and a blast hurts and shoves what is close to it,
+  and ships that crash bounce apart (`src/js/blasts.js`, below).
 - A world of the arcade plays its own way, not only by its numbers: Eclipse
   is the gravity world. Its hole bends every shot's way, yours and the
   raiders', but a shot fired along a line shown first (a flagship's lanes, a

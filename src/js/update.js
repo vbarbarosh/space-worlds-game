@@ -234,8 +234,11 @@ function update(dt, frame_dt = dt)
     }
     else {
         fly_in_world(dt, dx, dy);
-        player.x = clamp(player.x + player.vx*dt, 24, world.w - 24);
-        player.y = clamp(player.y + player.vy*dt, 24, world.h - 24);
+        // a blast's or a crash's shove carries the ship on (blasts.js), but not while it is flown in to dock
+        const shove = docking ? 0 : 1;
+        player.x = clamp(player.x + (player.vx + player.push_vx*shove)*dt, 24, world.w - 24);
+        player.y = clamp(player.y + (player.vy + player.push_vy*shove)*dt, 24, world.h - 24);
+        blast_shove_fade(player, dt);
     }
     docking_update(dt);
     race_hold(dt);
@@ -463,10 +466,18 @@ function update(dt, frame_dt = dt)
         }
         v.x += Math.cos(heading)*v.speed*move*enemy_dt;
         v.y += Math.sin(heading)*v.speed*move*enemy_dt;
+        // how fast its pilot takes it, for a crash (blasts.js): a lancer's charge too, slowed as stasis slows it
+        const slow = dt ? enemy_dt/dt : 1;
+        v.move_vx = (Math.cos(heading)*v.speed*move + ((v.charge_time > 0) ? Math.cos(v.charge_angle)*420 : 0))*slow;
+        v.move_vy = (Math.sin(heading)*v.speed*move + ((v.charge_time > 0) ? Math.sin(v.charge_angle)*420 : 0))*slow;
         v.x = clamp(v.x, 24, world.w - 24);
         v.y = clamp(v.y, 24, world.h - 24);
         update_enemy_portal(v, enemy_dt);
         if (d < v.r + player.r) {
+            // in the arcade you both bounce off, its course knocked off and its hull hurt by the crash (blasts.js)
+            if (arcade.active) {
+                crash_ram(v);
+            }
             damage_player((v.type === 'boss') ? 35 : (v.type === 'tank') ? 25 : 16, false, 'ram', v);
             if (player.dash_time > 0) {
                 damage_enemy(v, 35*dt);
@@ -475,6 +486,10 @@ function update(dt, frame_dt = dt)
     }
     // the world's guard wing patrols, escorts or fights (guards.js)
     guards_update(dt);
+    // in the arcade a raider thrown loose crashes into the others and the rocks (blasts.js)
+    if (arcade.active) {
+        crashes_update(dt);
+    }
     // no two hulls overlap: raiders out of asteroids, structures, the freighter, you and each other
     bodies_resolve();
     // a ring race: the rivals fly, bump and pass rings, and yours count (js/race.js)

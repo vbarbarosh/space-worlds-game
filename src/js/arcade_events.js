@@ -242,6 +242,8 @@ function arcade_vents_update(e, dt)
         }
         if ((before < arcade_vent_warn) && (v.time >= arcade_vent_warn)) {
             explode(v.x, v.y, arcade_vent_reach*0.7, '#ff8a3d');
+            // its burst hurts the raiders over it and throws them and you (blasts.js); your hit is below, while it burns
+            blast_add(v.x, v.y, arcade_vent_reach, arcade_vent_damage, 0, blast_push(arcade_vent_reach*0.7), {cause: 'vent'});
         }
         if (!v.hit && (v.time >= arcade_vent_warn) && (v.time < arcade_vent_warn + arcade_vent_burst) && (distance(v, player) < arcade_vent_reach + player.r)) {
             v.hit = true;

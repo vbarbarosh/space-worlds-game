@@ -40,7 +40,10 @@ Raiders come in squadrons; elites lead some of them, from Haven on (from
 the second world on Chill). In the middle worlds a squadron fans out round
 you, and marksmen aim where you will be, a dashed line showing their aim; a
 share of the squadrons fly mixed, and each world's elites have a trick of
-their own. A ship that explodes hurts what is close to it.
+their own. A ship that explodes hurts and shoves what is close to it, you
+too, and a raider thrown into another or into a rock is hurt by the crash,
+so a crowd can go up in a chain; ram a raider and it bounces off, its
+course knocked off.
 
 ### The flagships
 

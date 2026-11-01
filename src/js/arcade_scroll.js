@@ -187,6 +187,8 @@ function arcade_scroll_world_start()
     player.y = arcade_scroll.from.y - way.y*back.h*0.3;
     player.vx = 0;
     player.vy = 0;
+    player.push_vx = 0;
+    player.push_vy = 0;
     player.angle = Math.atan2(way.y, way.x);
     player.turret_angle = player.angle;
     mouse_drive.active = false;
