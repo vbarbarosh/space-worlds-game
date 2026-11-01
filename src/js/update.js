@@ -47,6 +47,17 @@ function base_update_hud()
         hud_text(b.querySelector('b'), supplies[key]);
         b.disabled = (state !== 'playing') || !supplies[key] || ((key === 'medkit') && (player.hp >= hull_max())) || ((key === 'stasis') && (stasis_time > 0));
     }
+    // the push wave, the arcade's: its charges, and the sweep of the next one coming back
+    const push_button = document.getElementById('quick_push');
+    set_hidden(push_button, !arcade.active);
+    hud_text(push_button.querySelector('b'), push_ring.charges);
+    push_button.disabled = (state !== 'playing') || (push_ring.charges < 1);
+    push_button.classList.toggle('is-cooling', push_ring.charges < push_ring_charges);
+    const sweep = `${Math.round(100*push_ring.recharge/push_ring_recharge)}%`;
+    if (push_button.dataset.cd !== sweep) {
+        push_button.dataset.cd = sweep;
+        push_button.style.setProperty('--cd', sweep);
+    }
     set_hidden(document.getElementById('quick_build'), arcade.active);
     set_hidden(document.getElementById('quick_route'), arcade.active);
     const convoy = document.getElementById('quick_convoy');

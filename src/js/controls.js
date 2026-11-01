@@ -207,6 +207,9 @@ addEventListener('keydown', function (event) {
     if (event.code === 'KeyH') {
         drones_toggle();
     }
+    if (event.code === 'KeyV') {
+        push_ring_fire();
+    }
     if ((event.code === 'KeyP') || (event.code === 'Escape')) {
         if (state === 'navigation') {
             toggle_navigation();

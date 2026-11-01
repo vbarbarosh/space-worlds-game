@@ -144,7 +144,7 @@ can come without it. A reader skips fields it does not know.
 | `taken_by` | by cause: `shot`, `ram`, `flagship` (its attacks that are not shots), `missile` (a blast), `ship blast` (arcade), `vent` (arcade event), `flare`, `lightning` (Ion Reach's arc pylons), `rock` (an ore rock or an Obsidian spire), `debris`, `radiation`, `black hole` |
 | `raider_shots` | shots raiders fired (at you, and at what you protect) |
 | `hits_on_you` | shots that hit you |
-| `dashes`, `pulses`, `supplies` | turbo ignitions, pulses released, supplies used by key (`medkit`, `emp`, `stasis`) |
+| `dashes`, `pulses`, `supplies` | turbo ignitions, pulses released, supplies used by key (`medkit`, `emp`, `stasis`; `push`, the arcade's push wave) |
 | `deaths`, `hull_low` | deaths in it; the lowest hull |
 | `fps`, `frame_ms`, `work_ms` | in flight only; frames over 33, 50 and 100 ms are counted; `work_ms` is the game's own script in `frame()`: update, the canvas calls that record the drawing, the HUD |
 | `paint_ms` | in flight only: from the end of `frame()` until the main thread is free again (a message posted then arrives): the browser's style, layout and paint, and on a software canvas the canvas's raster, which `work_ms` does not see. Whatever is left of `frame_ms` is waiting: for the screen's refresh, or for the graphics card. Missing in logs from before version 0.2.6 |

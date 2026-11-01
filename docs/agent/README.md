@@ -105,7 +105,8 @@ screen you read, or press by label.
   - The autopilot docks and jumps for you. By hand: near the station
     `key KeyR` docks, near a world gate `key KeyR` jumps.
   - `key Space` fires the pulse when energy is full. `key KeyQ` uses a
-    repair kit, `key KeyE` an EMP, `key KeyF` a stasis cell.
+    repair kit, `key KeyE` an EMP, `key KeyF` a stasis cell; in the arcade
+    `key KeyV` the push wave, which throws the raiders into each other.
   - Your cannons do not mine. `key KeyH` near a mining field sends your
     mining drones to cut the rocks and bring the ore aboard; raiders hunt
     them. The autopilot launches them when it reaches a mining objective.
@@ -188,8 +189,9 @@ Your part:
   nothing, and the pilot waits in the view's back half when the sky is clear.
 - **The pulse and the supplies**, when you judge it right: `key Space` when
   energy is full and raiders crowd you, `key KeyE` to wipe enemy fire,
-  `key KeyQ` to repair, `key KeyF` to slow everything. The pilot also uses
-  them when its survival depends on it.
+  `key KeyQ` to repair, `key KeyF` to slow everything, `key KeyV` to throw a
+  crowd into itself. The pilot also uses them when its survival depends on
+  it.
 - A ship that explodes hurts and shoves what is close to it, you included,
   and raiders it throws into each other are hurt by the crash; ramming one
   knocks it off its course. The pilot keeps its distance.

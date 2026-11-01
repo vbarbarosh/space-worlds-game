@@ -175,12 +175,13 @@ An explosion never changes what the game decides.
 A wave you release touches each thing when its front arrives, never before,
 so the eye sees the wave do the work.
 
-- The pulse (Space), the EMP (E) and stasis (F) are rings that run out from
-  the ship to their reach. A raider, rock or shot is hit, cleared or slowed as
+- The pulse (Space), the EMP (E), stasis (F) and the arcade's push wave (V)
+  are rings that run out from the ship to their reach. A raider, rock or shot is hit, cleared or slowed as
   the front reaches it, and a raider it kills blows up a moment after.
 - Each keeps its own numbers and colour: the pulse is weaker with range and
   chains through its kills, the EMP deals the same all the way out, stasis
-  only slows.
+  only slows, the push wave only throws (slower than what it throws, so the
+  raiders it throws crash into the ones it has not reached yet).
 - A missile's blast travels too: its wave hurts each hull as the front
   reaches it, less toward the rim, and sets off the missiles it reaches
   (`missile_waves_update` in `src/js/missiles.js`). So does every blast of

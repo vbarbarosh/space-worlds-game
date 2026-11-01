@@ -1,5 +1,6 @@
 // Area effects you release travel: a ring leaves the ship and acts on each raider, rock and shot as its front reaches
-// it, never before (docs/principles.md). Space sends the pulse, which chains through what it kills; E the EMP; F stasis.
+// it, never before (docs/principles.md). Space sends the pulse, which chains through what it kills; E the EMP; F stasis;
+// V the push wave (the arcade's), which deals nothing and throws the raiders into each other (blasts.js).
 let pulse_waves = [];
 let pulse_fuses = [];
 let pulse_sparks = [];
@@ -7,8 +8,17 @@ const pulse_glow = {time: 0, color: '#6cf8ec'};
 let pulse_chain_box = null;
 // the kill being dealt right now: its chain depth, read by the score (pulse_score_scale); -1 outside the pulse
 let pulse_strike_depth = -1;
-// kills of the last pulse for the HUD counter, and how long it stays up after the last one
+// the kill being dealt right now is a chain's: a pulse's that chains, a blast's or a crash's (chain_kill)
+let chain_striking = false;
+// it is a blast's or a crash's: it scores by its place in the chain (pulse_score_scale)
+let blast_striking = false;
+// the HUD's chain counter: the kills in a row, each a chain's (or of a raider still thrown loose) and within chain_gap
+// of the one before, and how long it stays up after the last one; another kill starts a count its blast can go on with
 const pulse_chain = {count: 0, timer: 0, shown: ''};
+const chain_gap = 1.2;
+// a blast's or a crash's kill scores ×(1 + 0.25 × its place in the chain past the first), ×3 at most: the ninth ×3
+const chain_step_score = 0.25;
+const chain_score_most = 3;
 const pulse_bent = {x: 0, y: 0};
 const pulse_speed = 760;
 const pulse_push = 220;
@@ -27,9 +37,20 @@ const emp_reach = 650;
 const emp_speed = 1100;
 // stasis slows raiders and their shots to 35%; its front crosses the view in 1 s, then the field holds everywhere
 const stasis_scale_slow = 0.35;
+// The push wave (V, the arcade's): 560 m out at 380 m/s, a shove of 480 m/s at the ship falling to 265 at its reach
+// (times a light hull's lightness), no damage. The front runs slower than what it throws: a raider thrown from the
+// inner side of a crowd overtakes it and slams into the next raider before the front gets there. Two charges, one back
+// every 7 s
+const push_ring_reach = 560;
+const push_ring_speed = 380;
+const push_ring_push = 480;
+const push_ring_charges = 2;
+const push_ring_recharge = 7;
+const push_ring = {charges: push_ring_charges, recharge: 0};
 // How each ring looks: colours, band width, sparks riding the front, how far it bends the stars, a halo ahead
 const pulse_looks = {
     pulse: {color: '#6cf8ec', edge: '#e8fdff', alt: '#ff5baf', width: 70, sparks: 90, bend: 22, halo: true},
+    push: {color: '#ffd27a', edge: '#fffbe8', alt: '#ff9d4d', width: 80, sparks: 70, bend: 28, halo: true},
     chain: {color: '#ffb35c', edge: '#fff2d6', alt: '#ff5d6c', width: 18, sparks: 18, bend: 8, halo: false},
     emp: {color: '#8d9cff', edge: '#e6e9ff', alt: '#6cf8ec', width: 50, sparks: 70, bend: 16, halo: true},
     stasis: {color: '#8d9cff', edge: '#d9ddff', alt: '#b48cff', width: 34, sparks: 50, bend: 10, halo: false},
@@ -43,6 +64,8 @@ function pulse_clear()
     pulse_glow.time = 0;
     pulse_chain.count = 0;
     pulse_chain.timer = 0;
+    push_ring.charges = push_ring_charges;
+    push_ring.recharge = 0;
 }
 
 // The pulse from the ship: 480 m, 140 damage on average (320 on a flagship), each amplifier level +80 m, +60 (+120)
@@ -64,6 +87,56 @@ function pulse_fire(x, y)
     pulse_glow_start(pulse_looks.pulse.color);
     pulse_chain.count = 0;
     pulse_chain.timer = 0;
+}
+
+// The push wave from the ship: nothing hit, every raider and drifting rock thrown away from you by its weight, so they
+// crash into each other and the rocks, and what they wreck blows up and throws the next (blasts.js)
+function push_ring_fire()
+{
+    if (!arcade.active || (state !== 'playing') || (push_ring.charges < 1)) {
+        return;
+    }
+    push_ring.charges--;
+    // found by yourself: the run's hint is not needed (arcade_update)
+    arcade.push_hint = true;
+    if (push_ring.recharge <= 0) {
+        push_ring.recharge = push_ring_recharge;
+    }
+    pulse_waves.push(pulse_wave_create('push', player.x, player.y, {reach: push_ring_reach, speed: push_ring_speed, push: push_ring_push, falloff: true, rocks: true}));
+    pulse_glow_start(pulse_looks.push.color);
+    shake = Math.max(shake, 8);
+    play_log_supply('push');
+    sfx('pulse', 0.7);
+    update_hud();
+}
+
+// Its charges come back one at a time
+function push_ring_update(dt)
+{
+    if (push_ring.charges >= push_ring_charges) {
+        push_ring.recharge = 0;
+        return;
+    }
+    push_ring.recharge -= dt;
+    if (push_ring.recharge <= 0) {
+        push_ring.charges++;
+        push_ring.recharge = (push_ring.charges < push_ring_charges) ? push_ring_recharge : 0;
+    }
+}
+
+// A raider killed: the HUD's chain goes on with a chain's kill (chain_striking) within chain_gap of the last one, and
+// a kill of another kind starts a count of one when none runs, which its blast can go on with
+function chain_kill(chained)
+{
+    if (!chained) {
+        if (pulse_chain.timer <= 0) {
+            pulse_chain.count = 1;
+            pulse_chain.timer = chain_gap;
+        }
+        return;
+    }
+    pulse_chain.count = ((pulse_chain.timer > 0) ? pulse_chain.count : 0) + 1;
+    pulse_chain.timer = chain_gap;
 }
 
 // The EMP: 160 + 12 × threat level to each raider within 650 m (400 to a flagship), the same all the way out; it wipes
@@ -153,6 +226,7 @@ function pulse_update(dt)
     }
     pulse_sparks_update(dt);
     pulse_chain_update(dt);
+    push_ring_update(dt);
 }
 
 // How fast a raider or a shot runs under stasis: slowed once the field's front has passed it, everywhere once the
@@ -204,7 +278,8 @@ function pulse_hit(wave, target, kind)
     const ny = (target.y - wave.y)/(d || 1);
     const push = wave.push*fall;
     if (kind === 'raider') {
-        const heft = (target.type === 'boss') ? 0.1 : (target.type === 'tank') ? 0.5 : 1;
+        // the push wave throws a hull by its weight, as a blast does (crash_weight)
+        const heft = (wave.kind === 'push') ? Math.min(1.6, 1/crash_weight(target)) : (target.type === 'boss') ? 0.1 : (target.type === 'tank') ? 0.5 : 1;
         target.push_vx = (target.push_vx || 0) + nx*push*heft;
         target.push_vy = (target.push_vy || 0) + ny*push*heft;
         target.flash = 0.12;
@@ -261,7 +336,9 @@ function pulse_strike(strike)
     }
     if (strike.kind === 'raider') {
         pulse_strike_depth = strike.depth;
+        chain_striking = strike.chains;
         damage_enemy(target, strike.damage);
+        chain_striking = false;
         pulse_strike_depth = -1;
     }
     if (strike.kind === 'debris') {
@@ -274,8 +351,10 @@ function pulse_strike(strike)
     if (!dead || !strike.chains) {
         return;
     }
-    pulse_chain.count++;
-    pulse_chain.timer = 1.2;
+    // a raider's kill counted itself (base_damage_enemy); a rock's or a wreck's counts here
+    if (strike.kind !== 'raider') {
+        chain_kill(true);
+    }
     const depth = strike.depth + 1;
     if (depth > pulse_chain_depth) {
         return;
@@ -297,10 +376,19 @@ function pulse_strike(strike)
     }));
 }
 
-// Arcade only: a kill down a chain scores ×(1 + 0.5 × its depth); the ring from the ship itself scores as before
-function pulse_score_scale()
+// Arcade only: a kill down a pulse's chain scores ×(1 + 0.5 × its depth), the ring from the ship itself as before; a
+// blast's or a crash's, or any of a raider still thrown loose (tumbling), by its place in the HUD's chain
+function pulse_score_scale(tumbling = false)
 {
-    return (arcade.active && (pulse_strike_depth > 0)) ? 1 + 0.5*pulse_strike_depth : 1;
+    if (!arcade.active) {
+        return 1;
+    }
+    // a blast's or a crash's kill, or one of a raider thrown loose, by its place in the chain (chain_kill counted it
+    // first)
+    if (blast_striking || tumbling) {
+        return Math.min(chain_score_most, 1 + chain_step_score*Math.max(0, pulse_chain.count - 1));
+    }
+    return (pulse_strike_depth > 0) ? 1 + 0.5*pulse_strike_depth : 1;
 }
 
 function pulse_sparks_add(x, y, nx, ny, color, count)

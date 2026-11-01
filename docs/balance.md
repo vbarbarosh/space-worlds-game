@@ -380,6 +380,21 @@ Forge, E Eclipse: see What each world opens, below.
   amplifier; a kill blows up 0.05–0.14 s later and sends a chain ring: 110 m,
   28 damage, ×0.82 a step, 3 steps, ×1.35 from a tank, elite or flagship
   (`src/js/pulse.js`). The generator charges it; kills and salvage do not.
+- The push wave (V, the arcade only) deals nothing: a ring runs out at 380
+  m/s to 560 m and throws each raider and drifting rock it reaches away from
+  you, 480 m/s beside you down to 265 at the edge, times a hull's lightness
+  as a blast's shove (`crash_weight`, at most ×1.6). The front runs slower than
+  what it throws, so a raider thrown from a crowd's near side overtakes it and
+  slams into the next one before the front arrives (the crashes, below). Two
+  charges, one back every 7 s; no shop (`push_ring_fire` in
+  `src/js/pulse.js`).
+- The chain (the gold ×N over the HUD): kills in a row, each within 1.2 s of
+  the last and each a pulse's, a blast's, a crash's, or any kill of a raider
+  still thrown loose (its shove past 60 m/s), your guns' too; another kill
+  starts a count of one its blast can go on with. A blast's, a crash's or a
+  thrown raider's kill scores ×(1 + 0.25 × its place past the first), ×3 at
+  most from the ninth; a pulse's by its depth, as above (`chain_kill`,
+  `pulse_score_scale`).
 
 ## The generator
 

@@ -156,8 +156,18 @@ function blast_hit_raider(blast, v)
     v.push_vx += away.x*dv;
     v.push_vy += away.y*dv;
     if (blast.damage > 0) {
-        damage_enemy(v, blast.damage*fall);
+        blast_strike(v, blast.damage*fall);
     }
+}
+
+// The game's own damage, as a chain's: a kill goes on with the HUD's chain and scores by its place in it (chain_kill)
+function blast_strike(v, damage)
+{
+    chain_striking = true;
+    blast_striking = true;
+    damage_enemy(v, damage);
+    chain_striking = false;
+    blast_striking = false;
 }
 
 function blast_hit_player(blast)
@@ -249,7 +259,7 @@ function crash_hurt_raider(v, damage)
         return;
     }
     v.crash_cd = crash_grace;
-    damage_enemy(v, damage);
+    blast_strike(v, damage);
 }
 
 // After the raiders have moved, before their hulls are pulled apart (bodies_resolve): one thrown loose that meets

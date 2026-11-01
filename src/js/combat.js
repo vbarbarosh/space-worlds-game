@@ -363,7 +363,11 @@ function base_damage_enemy(enemy, damage)
     // on a Scroll lane past ×8 as a streak (arcade_streak.js)
     combo = streak_kill();
     combo_timer = 4;
-    const chain = pulse_score_scale();
+    // the HUD's chain: a pulse's, a blast's or a crash's kill goes on with it, and so does any kill of a raider still
+    // thrown loose by a shove (chain_kill)
+    const tumbling = arcade.active && crash_is_loose(enemy);
+    chain_kill(chain_striking || tumbling);
+    const chain = pulse_score_scale(tumbling);
     // an arcade raider with a job scores by its kind (raider_kind_points)
     const points = Math.round((raider_kind_points(enemy) ?? ((enemy.type === 'boss') ? 5000 : (enemy.type === 'tank') ? 140 : (enemy.type === 'shooter') ? 100 : (enemy.type === 'splitter') ? 110 : 80))*combo*chain);
     score += points;

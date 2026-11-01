@@ -43,7 +43,10 @@ share of the squadrons fly mixed, and each world's elites have a trick of
 their own. A ship that explodes hurts and shoves what is close to it, you
 too, and a raider thrown into another or into a rock is hurt by the crash,
 so a crowd can go up in a chain; ram a raider and it bounces off, its
-course knocked off.
+course knocked off. The push wave (V, two charges that come back) deals
+nothing and throws them all away from you into each other and the rocks;
+the kills that follow in a row are the chain over the HUD, and each scores
+more than the one before.
 
 ### The flagships
 

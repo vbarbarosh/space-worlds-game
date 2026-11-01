@@ -39,9 +39,9 @@ const usage = `usage: bin/playtest [--mode=normal] [--kind=free] [--seeds=1,2,3]
     at the edge (on a Scroll lane, off the view's edges, and the salvage it picks up is in the view), out of black
     holes' pulls and Ion Reach's arc pylons' rings (it does not seek the charge fields), off Obsidian's magnetic
     spires (it does not seek their cover); a flagship's
-    duel it flies as its pilot says (boss_duel_pilot). The pulse at three raiders within 380 m, a dash past a missile within
-    220 m, the EMP at six within 550 m or below a third of its hull, stasis at eight, a repair kit below half. At the
-    depot: a repair below 75% hull, two repair kits, then the build its reactor's power holds (src/js/arcade_power.js:
+    duel it flies as its pilot says (boss_duel_pilot). The pulse at three raiders within 380 m, the push wave at four
+    within 400 m, a dash past a missile within 220 m, the EMP at six within 550 m or below a third of its hull, stasis at
+    eight, a repair kit below half. At the depot: a repair below 75% hull, two repair kits, then the build its reactor's power holds (src/js/arcade_power.js:
     Hotter plasma, Phase armor, the shield, Prism, Rapid resonance, then drones, nanites, the pulse, reactor, cooling,
     evasion), each level in its order that fits the power left; once that is bought, a sturdier ship on sale with no
     fewer mounts (more power) and one more of its gun for each empty mount, then the levels the next two worlds' power
@@ -332,7 +332,7 @@ function page_bot(options)
         if (current && (current.world === campaign.world)) {
             return current;
         }
-        const out = {world: campaign.world, name: worlds[campaign.world].name, ship: current_ship().id, guns: mounted_weapons().map(v => (v ? v.id : 'empty')), waves: [], sources: {}, flagship: {time: 0, hull: 0, escaped: false}, kills: 0, off_screen: 0, deaths: 0, time: 0, quiet: 0, crowd: 0, wave_time: 0, pulses: 0, salvage_at_depot: null, earned: {}, trace: [], news: [], choices: 0};
+        const out = {world: campaign.world, name: worlds[campaign.world].name, ship: current_ship().id, guns: mounted_weapons().map(v => (v ? v.id : 'empty')), waves: [], sources: {}, flagship: {time: 0, hull: 0, escaped: false}, kills: 0, off_screen: 0, deaths: 0, time: 0, quiet: 0, crowd: 0, wave_time: 0, pulses: 0, pushes: 0, salvage_at_depot: null, earned: {}, trace: [], news: [], choices: 0};
         B.worlds.push(out);
         return out;
     }
@@ -585,6 +585,13 @@ function page_bot(options)
         steer(dx, dy);
         if ((player.energy >= 100) && (near(380) >= 3)) {
             pulse();
+        }
+        if ((push_ring.charges > 0) && (near(400) >= 4)) {
+            const charges = push_ring.charges;
+            push_ring_fire();
+            if (push_ring.charges < charges) {
+                world_entry().pushes++;
+            }
         }
         if (supplies.emp && ((near(550) >= 6) || ((player.hp < hull_max()/3) && near(550)))) {
             use_supply('emp');

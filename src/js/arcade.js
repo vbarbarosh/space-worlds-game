@@ -1,6 +1,6 @@
 // Arcade: one run through the eight worlds, six waves each in Free (three on a Scroll lane), the world's flagship in the
 // last; no stations, contracts or saves.
-const arcade = {active: false, world: -1, wave: 0, pause: 0, squad_timer: 0, squads: 0, phase: 0, slowmo: 0, depot_hint: false, marksman_hint: false, missile_hint: false, blasts: [], event: null, between_worlds: null, world_start: null, lives: 0, life_flash: 0, campaign_checkpoint: null, route: [0], seed: 0, cards: [], wind_used: false, flagship_escaped: false, owned: {}, fitted: [], reactor: 0, evade: 0, wave_total: 0, wave_clock: 0, trial: false, retry_depot: false, event_last: null, pace: null, stakes_kit_at: null, stakes_said: -1, news_wave: 0, stakes_lane_done: false, stakes_lane_now: false};
+const arcade = {active: false, world: -1, wave: 0, pause: 0, squad_timer: 0, squads: 0, phase: 0, slowmo: 0, depot_hint: false, marksman_hint: false, missile_hint: false, push_hint: false, blasts: [], event: null, between_worlds: null, world_start: null, lives: 0, life_flash: 0, campaign_checkpoint: null, route: [0], seed: 0, cards: [], wind_used: false, flagship_escaped: false, owned: {}, fitted: [], reactor: 0, evade: 0, wave_total: 0, wave_clock: 0, trial: false, retry_depot: false, event_last: null, pace: null, stakes_kit_at: null, stakes_said: -1, news_wave: 0, stakes_lane_done: false, stakes_lane_now: false};
 // A Scroll lane's waves: two along it, the flagship's at its end; its length sets its time (arcade_scroll.js)
 const arcade_waves = 3;
 // A Free world's waves: five, then the flagship's, so a world lasts about five minutes (the author, 2026-10-21: "five
@@ -145,6 +145,7 @@ function arcade_start(world = 0, from = null)
     arcade.depot_hint = false;
     arcade.marksman_hint = false;
     arcade.missile_hint = false;
+    arcade.push_hint = false;
     arcade.blasts = [];
     arcade.between_worlds = null;
     arcade.world_start = null;
@@ -320,6 +321,11 @@ function arcade_update(dt)
     if (!arcade.missile_hint && hostile.some(v => v.missile && (distance(v, player) < 600))) {
         arcade.missile_hint = true;
         show_toast('MISSILES', 'A DASH IS NO SHIELD FROM THE BLAST · OUTTURN THEM', 3.5, 'danger');
+    }
+    // the run's first crowd of four close by says what the push wave is for (pulse.js)
+    if (!arcade.push_hint && (push_ring.charges > 0) && (enemies.filter(v => (v.hp > 0) && (distance(v, player) < 420)).length >= 4)) {
+        arcade.push_hint = true;
+        show_toast('PUSH WAVE · V', 'THROW THEM INTO EACH OTHER · EVERY CRASH AND BLAST GOES ON THE CHAIN', 4);
     }
     if (arcade.world !== campaign.world) {
         arcade.world = campaign.world;
