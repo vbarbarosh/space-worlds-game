@@ -344,6 +344,16 @@ function page_bot(options)
         }
         return entry.waves[n - 1];
     }
+    // each death in a world: when, what hit you last, and the nearest black hole's distance (a crossed horizon ends a
+    // ship at any hull: map.js)
+    const base_finish = finish;
+    finish = function (won, ...rest) {
+        if (!won && arcade.active && player && (state === 'playing')) {
+            const hole = black_holes.reduce((a, v) => (!a || (distance(v, player) < distance(a, player))) ? v : a, null);
+            world_entry().death_log = (world_entry().death_log || []).concat([{t: Math.round(world_entry().time), wave: arcade.wave, hp: Math.round(player.hp), hole: hole ? Math.round(distance(hole, player)) : null, core: hole ? Math.round(hole.core) : null, last: B.last_hit || null}]);
+        }
+        return base_finish(won, ...rest);
+    };
     const base_damage_player = damage_player;
     damage_player = function (...args) {
         const hp0 = player.hp;
@@ -363,6 +373,7 @@ function page_bot(options)
             const caller = new Error().stack.split('\n').slice(2, 4).map(v => v.trim().split(' ')[1]).join('<') + cause;
             const sources = world_entry().sources;
             sources[caller] = (sources[caller] || 0) + lost;
+            B.last_hit = caller;
             B.second.lost += lost;
         }
     };
@@ -431,7 +442,7 @@ function page_bot(options)
         const near = alive.reduce((n, v) => n + ((distance(v, player) < 700) ? ((v.type === 'boss') ? 4 : 1) : 0), 0);
         const far = !alive.some(v => distance(v, player) < 900);
         const lost = B.second.lost/(hull_max() + shield_max());
-        entry.trace.push({t: Math.round(entry.time), n: near, far: far ? 1 : 0, lost: Number(lost.toFixed(3)), k: B.second.kills, e: B.second.earned, hp: Number((player.hp/hull_max()).toFixed(2)), w: arcade.wave, f: alive.some(v => v.type === 'boss') ? 1 : 0, d: entry.deaths});
+        entry.trace.push({t: Math.round(entry.time), n: near, far: far ? 1 : 0, lost: Number(lost.toFixed(3)), k: B.second.kills, e: B.second.earned, hp: Number((player.hp/hull_max()).toFixed(2)), w: arcade.wave, f: alive.some(v => v.type === 'boss') ? 1 : 0, d: entry.deaths, c: combo, s: (typeof streak === 'object') ? streak.count : 0, g: (typeof streak === 'object') ? streak.grazes : 0});
         B.second = {lost: 0, kills: 0, earned: 0, frames: 0};
     }
     function steer(dx, dy) {

@@ -34,6 +34,7 @@ function base_reset_run(resume = false)
     wave = 1;
     combo = 1;
     combo_timer = 0;
+    streak.count = 0;
     salvage = 0;
     artifacts_count = 0;
     run_time = 0;
@@ -351,7 +352,8 @@ function base_damage_enemy(enemy, damage)
     }
     kills++;
     play_log_kill(enemy);
-    combo = (combo_timer > 0) ? Math.min(8, combo + 1) : 1;
+    // on a Scroll lane past ×8 as a streak (arcade_streak.js)
+    combo = streak_kill();
     combo_timer = 4;
     const chain = pulse_score_scale();
     // an arcade raider with a job scores by its kind (raider_kind_points)
@@ -389,6 +391,7 @@ function base_damage_enemy(enemy, damage)
         arcade_event_kill(enemy);
         raider_job_kill(enemy);
         stakes_kill(enemy);
+        streak_mark(enemy);
         news_kill(enemy);
     }
     if (enemy.type === 'boss') {
@@ -455,6 +458,8 @@ function damage_player(amount, blast = false, cause = 'other', by = null)
     player.hp = Math.max(0, player.hp - damage);
     play_log_hurt(cause, absorbed, damage, by);
     race_crash_note(cause, absorbed + hull_before - player.hp);
+    // a lane world's rank counts the hull lost in it (arcade_rank.js)
+    streak.hull_lost += hull_before - player.hp;
     player.invincible = arcade_hit_safe(cause, by);
     shake = 16*share;
     // a hit on the hull reddens the screen's edge; one the shield took tints it as before
@@ -464,8 +469,7 @@ function damage_player(amount, blast = false, cause = 'other', by = null)
     else {
         flash = 0.32;
     }
-    combo = 1;
-    combo_timer = 0;
+    streak_break();
     burst(player.x, player.y, absorbed ? blue : cyan, 26, 210);
     sfx('hit');
     // an arcade card's second wind turns one such hit a world into 30% hull (arcade_cards.js)

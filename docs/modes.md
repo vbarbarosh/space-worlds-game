@@ -155,7 +155,21 @@ What a lane holds:
 - the same three headlines as Free's along the lane, at 30%, 55% and 80%
   of its length (in the run's last world only the first), and a prize ace a
   quarter of the way along (but in the run's last world); the last stand and
-  its repair kits as in Free.
+  its repair kits as in Free;
+- a streak: the combo keeps climbing past ×8, one more every 10 kills in a
+  row, with no ceiling; a hit, or 4 s with no kill, breaks it; a mark every
+  25 kills with a bonus; the HUD's Combo box counts it, a bar under it the
+  time left;
+- grazes: a raider's shot that just misses you scores and keeps the streak's
+  time;
+- your best Scroll run as a rival: the HUD's Best box says how far ahead of it
+  or behind you are at the same point of the run, and a banner when you pass
+  its score;
+- a rank for each world on its cleared screen, S to C, by three marks (a
+  streak of 30, a quarter of the hull lost at most, a tenth of the raiders
+  let through at most), the best of each world kept;
+- Eclipse's hole smaller on its lane (300 m of pull, 560 in Free), so its
+  flagship's duel at the hole's edge fits the view.
 
 ## Races
 

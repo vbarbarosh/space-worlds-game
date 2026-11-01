@@ -115,7 +115,7 @@ function arcade_gravity_wells()
     const at = arcade_shape().hole;
     const beside = arcade_lane_kind() && arcade_scroll_lanes[campaign.world]?.hole;
     const spot = beside ? arcade_lane_point(arcade_shape().scroll*beside[0], beside[1], world.w, world.h) : at ? {x: world.w*at[0], y: world.h*at[1]} : station;
-    place_gravity_wells([station], [{x: spot.x, y: spot.y, radius: 560, core: 56, strength: 920 + wave*12, phase: 0}]);
+    place_gravity_wells([station], [{x: spot.x, y: spot.y, radius: beside ? arcade_scroll_hole : 560, core: 56, strength: 920 + wave*12, phase: 0}]);
 }
 
 function nearest_gravity()

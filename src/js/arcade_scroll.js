@@ -32,6 +32,11 @@ const arcade_scroll_lanes = [
     {way: 'right', across: 0.5},
     {way: 'left', across: 0.5, hole: [1, 0]},
 ];
+// Eclipse's hole on its lane is this many m across its pull, not Free's 560: the flagship's duel is fought at its edge,
+// 1 to 1.8 times that from its middle (boss_duels.js), and the screen standing at the lane's end shows 360 m to either
+// side of it; at 560 nearly all the view lay inside the pull, and the bot crossed the horizon at full hull in 5 Standard
+// runs of 8, 13 times, each a few seconds into the duel (2026-11-01)
+const arcade_scroll_hole = 300;
 // The share of the lane each wave's stretch ends at: the first half, the second, and the flagship where it ends
 const arcade_scroll_stretches = [0.5, 1, 1];
 // The screen's one pace, in m a second: a lane of 16 km in 3.7 min, of 19 km in 4.4 (at 54 m/s, 6 min a world; the
@@ -172,6 +177,8 @@ function arcade_scroll_world_start()
     }
     arcade_scroll.s = 0;
     arcade_scroll.refills = 0;
+    streak_world_start();
+    rank_world_start();
     arcade_scroll.pace = arcade_scroll_pace;
     // nothing on a lane leaves the view at once: no portals, for you or the raiders; no course to the station
     portals = [];
@@ -441,6 +448,7 @@ function arcade_scroll_raiders()
             v.path.entered = v.path.entered || inside;
             if (v.path.entered && !inside) {
                 v.hp = 0;
+                streak.missed++;
             }
             continue;
         }
@@ -449,6 +457,8 @@ function arcade_scroll_raiders()
             const boss = v.type === 'boss';
             if (!boss && arcade_scroll_behind(v, v.r + arcade_scroll_gone)) {
                 v.hp = 0;
+                // let through: a lane world's rank counts it (arcade_rank.js)
+                streak.missed++;
                 continue;
             }
             // once the screen stands at the lane's end, the flagship is kept inside the view: one that stands still (Obsidian's

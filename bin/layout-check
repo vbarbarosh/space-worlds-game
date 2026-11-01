@@ -15,6 +15,8 @@ const screens = [
     // a Scroll run's lane (src/js/arcade_scroll.js): Haven's, forward; Eclipse's, its flagship come
     {value: 'arcade', label: 'hud-arcade-scroll', query: '&kind=scroll', phone: true},
     {value: 'arcade', label: 'hud-arcade-scroll-edge', world: 'eclipse', query: '&kind=scroll&wave=flagship', phone: true},
+    {value: 'arcade', label: 'hud-arcade-scroll-rival', query: '&kind=scroll&rival=behind', phone: true},
+    {value: 'arcade', label: 'hud-arcade-scroll-rival-ahead', world: 'cryosphere', query: '&kind=scroll&rival=ahead', phone: true},
     // the flagships' duels' cards and markers (src/js/boss_duels.js), each at its flagship's wave
     {value: 'arcade', label: 'hud-arcade-chase', world: 'haven', query: '&wave=flagship', phone: true},
     {value: 'arcade', label: 'hud-arcade-nests', world: 'verdant', query: '&wave=flagship', phone: true},
@@ -38,6 +40,7 @@ const screens = [
     {value: 'arcade-world-cleared', label: 'arcade-world-cleared', query: '&t=7', phone: true},
     // a Scroll run's: its button opens the depot (src/js/arcade_base.js)
     {value: 'arcade-world-cleared', label: 'arcade-world-cleared-scroll', query: '&t=7&kind=scroll', phone: true},
+    {value: 'arcade-world-cleared', label: 'arcade-world-cleared-scroll-long', query: '&t=7&kind=scroll&long=1', phone: true},
     {value: 'arcade-cleared', label: 'arcade-cleared'},
     // the depot before the next world (src/js/arcade_power.js): nothing installed, the reactor's power empty; a gunship's
     // power full with levels owned left spare (No power), and those levels after a Wisp Scout is taken, its smaller
@@ -182,6 +185,8 @@ const usage = `usage: bin/layout-check [screen...]
     box, the page never scrolls sideways; on the depot, nothing moves as the pointer runs over its items. Screenshots and report.json go to data/layout-check/.
     Exits 1 on any failure.
 
+    A screen is named as below, or by one of its states as the report names it (hud-arcade-scroll-rival).
+
     screens: ${[...new Set(screens.map(v => v.value))].join(', ')}`;
 
 cli(main);
@@ -189,11 +194,11 @@ cli(main);
 async function main()
 {
     const names = process.argv.slice(2);
-    if (names.some(v => !screens.some(vv => vv.value === v))) {
+    if (names.some(v => !screens.some(vv => (vv.value === v) || (vv.label === v)))) {
         console.log(usage);
         process.exit(2);
     }
-    const chosen = names.length ? screens.filter(v => names.includes(v.value)) : screens;
+    const chosen = names.length ? screens.filter(v => names.includes(v.value) || names.includes(v.label)) : screens;
     fs.mkdirSync(out_dir, {recursive: true});
     const browser = await chromium.launch();
     const results = [];

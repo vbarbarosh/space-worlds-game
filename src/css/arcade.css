@@ -56,3 +56,46 @@ body:not(.arcade) #lives_box {
         stroke: var(--red);
     }
 }
+
+/* On a Scroll lane the combo is a streak (arcade_streak.js): its label counts the kills, and a bar under the readout
+   shows the time left before it breaks; the box keeps one width as the label grows. */
+.ui .readouts #combo_box.is-streak {
+    position: relative;
+    min-width: 6.4em;
+}
+
+.ui .readouts #combo_box.is-streak::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -7px;
+    height: 3px;
+    border-radius: 2px;
+    background: var(--gold);
+    transform: scaleX(var(--left, 0));
+    transform-origin: left;
+}
+
+/* your best Scroll run as a rival (arcade_rank.js): how far ahead of it (green) or behind (red) at this point of the
+   lane; one width, so the row does not jump as the number grows */
+.ui .readouts .rival-box {
+    min-width: 5.6em;
+}
+
+.ui .readouts .rival-box .readout {
+    color: var(--red);
+}
+
+.ui .readouts .rival-box.is-ahead .readout {
+    color: var(--green);
+}
+
+/* a phone held upright shows no labels over the readouts: the streak's and the rival's boxes keep no width of their
+   own there, so the row fits a 320 px window */
+@container screen (max-width: 560px) {
+    .ui .readouts #combo_box.is-streak,
+    .ui .readouts .rival-box {
+        min-width: 0;
+    }
+}

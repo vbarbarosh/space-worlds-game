@@ -4,6 +4,8 @@ function base_update_hud()
     hud_html(el.sector, `${String(wave).padStart(2, '0')} <small>/ 15</small>`);
     hud_text(el.combo, `×${combo}`);
     el.combo.style.color = (combo > 3) ? gold : '#eef4ff';
+    streak_hud();
+    rank_hud();
     hud_text(el.salvage, salvage);
     if (!player) {
         return;
@@ -140,8 +142,8 @@ function update(dt, frame_dt = dt)
     player.shoot_cd -= dt;
     guns_cool(dt);
     combo_timer -= dt;
-    if (combo_timer <= 0) {
-        combo = 1;
+    if ((combo_timer <= 0) && ((combo > 1) || streak.count)) {
+        streak_break();
     }
     // Turbo burns while its input is held and fuel lasts; let go and it stops and recharges at once.
     const mouse_turbo = mouse_drive.following && (mouse_drive.turbo_since >= 0) && (clock - mouse_drive.turbo_since > 0.15);
@@ -644,6 +646,10 @@ function update(dt, frame_dt = dt)
         const shielded = player.shield > 0;
         const reach = (shielded ? ship_halo() + 3 : player.r) + b.r;
         const contact = hostile_shot_contact(b, player, reach);
+        // a shot that just misses you on a lane is a graze (arcade_streak.js)
+        if (contact < 0) {
+            streak_graze_check(b, reach);
+        }
         if (contact >= 0) {
             // the shot stops where its step met you, not past your middle where the frame left it
             b.x = b.px + (b.x - b.px)*contact;

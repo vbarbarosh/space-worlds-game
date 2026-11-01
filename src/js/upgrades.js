@@ -435,6 +435,7 @@ function choose_upgrade(restored = false)
     hazards = [];
     combo_timer = 0;
     combo = 1;
+    streak.count = 0;
     set_hidden(el.bossbar, true);
     toasts_clear();
     if (!restored) {

@@ -6,8 +6,9 @@
 // setting off the end comes at once. The run's last world ends in the arcade's finale instead (arcade_finale.js).
 const lane_clear = {open: false, t: 0, frozen: null, rows: []};
 // Its steps, in seconds from the flagship's fall: the ship turns to the way; it boosts (start, end) to this speed, m a
-// second; the title; the rows (the first, one after another, each counting this long); the next world; the button
-const lane_clear_steps = {turn: 0.6, boost: [1.4, 2.6], title: 1.1, rows: [2.2, 0.35, 0.5], next: 4.2, go: 4.5};
+// second; the title; the rows (the first, one after another, each counting this long); the rank; the next world; the
+// button
+const lane_clear_steps = {turn: 0.6, boost: [1.4, 2.6], title: 1.1, rows: [2.2, 0.3, 0.5], rank: 4.0, next: 4.4, go: 4.7};
 const lane_clear_speed = 1800;
 
 document.getElementById('lc_go').addEventListener('click', lane_clear_leave);
@@ -61,11 +62,25 @@ function lane_clear_open(world, run)
         {label: 'Time here', value: run.time, text: v => format_time(v)},
         {label: 'World bonus', value: run.bonus, text: v => `+${ui_number(v)}`},
         {label: 'Salvage', value: run.salvage, text: v => ui_number(v)},
+        {label: 'Grazes', value: streak.grazes, text: v => ui_number(v)},
     ];
+    lane_clear_rank(world);
     document.getElementById('lc_tally').innerHTML = lane_clear.rows.map(v => `<div class="lc-row${v.gold ? ' is-gold' : ''}"><span class="eyebrow eyebrow--muted">${ui_escape(v.label)}</span><span class="readout">0</span></div>`).join('');
     document.body.classList.add('lane-clearing');
     set_hidden(document.getElementById('lane_clear'), false);
     lane_clear_sync();
+}
+
+// The world's rank (arcade_rank.js): its letter, its three marks each met or not with its aim, and the best rank of
+// the world before, a better one said so
+function lane_clear_rank(world)
+{
+    const rank = rank_of_world(world);
+    const letter = document.getElementById('lc_letter');
+    letter.textContent = rank.letter;
+    letter.dataset.rank = rank.letter;
+    document.getElementById('lc_marks').innerHTML = rank.marks.map(v => `<li class="${v.ok ? 'is-met' : ''}"><span>${v.ok ? '✓' : '✗'}</span> ${ui_escape(v.label)} <b>${ui_number(v.value)}${v.unit || ''}</b> <small>${ui_escape(v.aim)}</small></li>`).join('');
+    document.getElementById('lc_best').textContent = arcade.trial ? 'A try-out keeps no rank' : rank.better ? (rank.before ? `Better than your ${rank.before} here` : 'Your first rank here') : `Your best here: ${rank.before}`;
 }
 
 // Each frame while it is up (update): its time, by the screen's clock (the flagship's fall slows the game's), your ship
@@ -99,6 +114,7 @@ function lane_clear_sync()
     const stage = document.getElementById('lc_stage');
     stage.classList.toggle('is-title', t >= steps.title);
     stage.classList.toggle('is-next', t >= steps.next);
+    stage.classList.toggle('is-rank', t >= steps.rank);
     const go = t >= steps.go;
     if (go && !stage.classList.contains('is-go')) {
         document.getElementById('lc_go').focus();

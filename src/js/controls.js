@@ -12,6 +12,10 @@ function save_best()
     catch {
     }
     menu_best_sync();
+    // a Scroll run's notes, its next run's rival (arcade_rank.js)
+    if (arcade.active && (score > previous)) {
+        rank_best_saved();
+    }
     return score > previous;
 }
 

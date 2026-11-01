@@ -1279,6 +1279,26 @@ How it got here, the bot's runs on NORMAL:
   Haven (its squadrons are two bigger, so each call of the director landed 5
   to 7 at once); with the director wanting 0.6 as many: 5 of 6 won.
 
+## Scroll's streak, rival and rank
+
+Scroll's reasons for one more go (2026-11-01, the author: "make the slide mode
+more addictive"; `src/js/arcade_streak.js`, `src/js/arcade_rank.js`). Measured
+with the bot, NORMAL, seeds 1–8, against the same seeds before:
+
+| On a lane | Value | Why |
+|---|---|---|
+| The combo past ×8 | one more × every 10 kills of the streak, no ceiling | before, the bot held ×8 only 3% to 30% of a world's seconds and nothing grew past it; its longest streak a world now 22 (median), 67 at most |
+| A streak's mark | every 25 kills: a banner and 60 points a kill of the streak (25: 1 500) | |
+| A streak lost | said from 10 kills on | the loss is what makes it worth keeping |
+| A graze | a shot passing within 26 m of what it would hit: 10 × the combo, the combo's time held at 2 s at least | the bot grazes about 12 a world (median); worlds whose raiders fire missiles or beams give few |
+| The rank's marks | a streak of 30, at most 25% of the hull lost, at most 10% of the raiders let through | S all three, C none; the best of each world kept |
+| Your best run as a rival | its score at each tenth of each lane, step by step of the run | kept by the run that sets a best; a best from before has no notes until it is beaten |
+| Eclipse's hole on its lane | 300 m of pull, not 560 | the duel is fought 1 to 1.8 times that from its middle, and the held view shows 360 m to each side: at 560 the bot crossed the horizon at full hull 13 times in 8 runs, 3 runs lost; at 300, 8 of 8 won, the duel 44 to 51 s, the world 258 to 264 s (it took up to 733 with the deaths) |
+
+Interest, the bot's mean over the 8 runs: 57.8 before, 59.8 after; Eclipse
+24 to 48 before, 41 to 55 after. The streak, the rival and the rank change
+nothing the bot feels: it counts what they are made of, not the pull.
+
 ## The arcade's route and cards
 
 At each break between two worlds (after the cleared screen, before the

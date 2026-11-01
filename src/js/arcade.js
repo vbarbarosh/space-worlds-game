@@ -146,6 +146,8 @@ function arcade_start(world = 0, from = null)
     arcade.blasts = [];
     arcade.between_worlds = null;
     arcade.world_start = null;
+    // your best Scroll run as this one's rival (arcade_rank.js)
+    rank_run_start();
     raider_jobs_reset();
     // the route flown and the cards taken (arcade_route.js, arcade_cards.js), before the run's first frame counts on them
     arcade_route_start(world, from);
@@ -356,6 +358,8 @@ function arcade_update(dt)
     // a wave's headline, a lane's prize (arcade_news.js, arcade_stakes.js)
     news_update();
     stakes_update();
+    // on a lane, your best run as a rival (arcade_rank.js)
+    rank_update();
     // a Free wave's director: its build-up, the raiders in play, the stragglers after its crest (arcade_pace.js)
     if (arcade_wave_timed()) {
         pace_update(dt);
