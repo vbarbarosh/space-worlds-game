@@ -141,7 +141,7 @@ can come without it. A reader skips fields it does not know.
 | `elite_kills` | of those, elites |
 | `dealt` | damage your side dealt to raiders' shields and hulls: guns, pulse, EMP, missiles, drones, platforms, arcade chain blasts |
 | `taken` | the damage you took, on the shield and on the hull |
-| `taken_by` | by cause: `shot`, `ram`, `flagship` (its attacks that are not shots), `missile` (a blast), `ship blast` (arcade), `vent` (arcade event), `flare`, `lightning` (Ion Reach's arc pylons), `rock` (an ore rock or an Obsidian spire), `debris`, `radiation`, `black hole` |
+| `taken_by` | by cause: `shot`, `ram`, `flagship` (its attacks that are not shots), `missile` (a blast), `ship blast` (arcade), `rock blast` (arcade: an ore rock broken close by), `mine` (arcade), `vent` (arcade event), `flare`, `lightning` (Ion Reach's arc pylons), `rock` (an ore rock or an Obsidian spire), `debris`, `radiation`, `black hole` |
 | `raider_shots` | shots raiders fired (at you, and at what you protect) |
 | `hits_on_you` | shots that hit you |
 | `dashes`, `pulses`, `supplies` | turbo ignitions, pulses released, supplies used by key (`medkit`, `emp`, `stasis`; `push`, the arcade's push wave) |

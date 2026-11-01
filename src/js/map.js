@@ -164,6 +164,11 @@ function ore_node_new(v)
     return {
         x: v.x,
         y: v.y,
+        // a shove's drift, the arcade's (rocks.js)
+        vx: 0,
+        vy: 0,
+        crash_at: -Infinity,
+        loose_at: -Infinity,
         r: v.r,
         hp: v.hp,
         max_hp: v.max_hp,

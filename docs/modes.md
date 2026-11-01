@@ -46,7 +46,8 @@ so a crowd can go up in a chain; ram a raider and it bounces off, its
 course knocked off. The push wave (V, two charges that come back) deals
 nothing and throws them all away from you into each other and the rocks;
 the kills that follow in a row are the chain over the HUD, and each scores
-more than the one before.
+more than the one before. It moves the ore rocks too: herd a field with it
+and one shot sets the whole herd off, each rock on the chain.
 
 ### The flagships
 

@@ -284,6 +284,10 @@ function pulse_hit(wave, target, kind)
         target.push_vy = (target.push_vy || 0) + ny*push*heft;
         target.flash = 0.12;
     }
+    // the push wave moves the arcade's ore rocks, by their weight (rocks.js)
+    if ((kind === 'ore') && (wave.kind === 'push') && push) {
+        rock_push(target, nx, ny, push);
+    }
     if ((kind === 'debris') && push) {
         target.vx += nx*push*0.3;
         target.vy += ny*push*0.3;

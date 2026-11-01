@@ -388,6 +388,18 @@ Forge, E Eclipse: see What each world opens, below.
   slams into the next one before the front arrives (the crashes, below). Two
   charges, one back every 7 s; no shop (`push_ring_fire` in
   `src/js/pulse.js`).
+- Ore rocks in the arcade (`src/js/rocks.js`): a rock weighs (r/14)² × 2 (a
+  cliff does not move); a shove moves it by that, its drift halving every
+  second. Rocks that meet bounce (0.3) and crack by the crash's speed as
+  hulls do. A ship's blast hurts the rocks it reaches as much as a raider; a
+  rock broken blows up: 3 × its radius, 60 to rocks at its middle (falling
+  from the rock's surface, not its middle), 16 to a raider, 8 to you times
+  the mode's blast, the shove of a ship's blast of 1.5 × its radius. The
+  fields' rocks touch or overlap and hold 60 to 110, so a field at rest loses
+  one rock to a shot; a rock your push wave moved is loose for 4 s and takes
+  twice a blast's damage, so a herd goes up together: one push into a field
+  of 9, one shot, 7 broken in a chain. A rock broken down a chain scores 60
+  times its place in the chain, besides its salvage.
 - The chain (the gold ×N over the HUD): kills in a row, each within 1.2 s of
   the last and each a pulse's, a blast's, a crash's, or any kill of a raider
   still thrown loose (its shove past 60 m/s), your guns' too; another kill

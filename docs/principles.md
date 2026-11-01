@@ -48,6 +48,14 @@ glance.
   another bounces off it and both are hurt; one thrown into a rock or cliff
   is hurt too. Pilots flying together only brush past each other. The
   campaign keeps its rules (`src/js/blasts.js`).
+- **In the arcade, ore rocks move when shoved** (the author, 2026-11-01:
+  "push them carefully together, then bang, and it all blows up beautifully
+  for a good bonus"). A push wave or a blast sets a rock drifting by its
+  weight (twice a ship's of its size); rocks that meet bounce, a hard hit
+  cracks them, and a rock broken blows up, hurting and shoving what is
+  round it. A field at rest does not go up from one rock; rocks your push
+  wave moved are loose for 4 s and break at twice the damage, so a herd goes
+  up in a chain. A cliff never moves (`src/js/rocks.js`).
 - Where it lives: `src/js/bodies.js` (what is solid, the separation),
   `resolve_solid_ore` in `src/js/flight.js` (your ship against rocks),
   `block_hostile_ore` (enemy shots on rocks), `src/js/evasion.js` (the

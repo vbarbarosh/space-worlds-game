@@ -45,10 +45,11 @@ const blast_raider_k = 2;
 // A front from x, y: it runs out to `reach` and, on each hull it reaches, deals `damage` to a raider and
 // `player_damage` to you at its middle, falling to `edge` of that at its reach, and shoves by `push` (m/s at the
 // middle for a weight of 1). Options: delay (s), source (the hull it came from, not hit), cause and by (for your
-// play log and the arcade's crowds, damage_player's).
-function blast_add(x, y, reach, damage, player_damage, push, {delay = 0, source = null, cause = 'ship blast', by = null, edge = 0} = {})
+// play log and the arcade's crowds, damage_player's), rock_damage (to an ore rock: a raider's damage unless said;
+// rocks.js).
+function blast_add(x, y, reach, damage, player_damage, push, {delay = 0, source = null, cause = 'ship blast', by = null, edge = 0, rock_damage = damage} = {})
 {
-    arcade.blasts.push({x, y, reach, damage, player_damage, push, edge, t: -delay, r: 0, source, cause, by, hit: new Set(), player_hit: false});
+    arcade.blasts.push({x, y, reach, damage, player_damage, push, edge, rock_damage, t: -delay, r: 0, source, cause, by, hit: new Set(), player_hit: false});
     if (arcade.blasts.length > blast_front_limit) {
         arcade.blasts.splice(0, arcade.blasts.length - blast_front_limit);
     }
@@ -113,6 +114,14 @@ function blasts_update(dt)
             if (!blast.hit.has(piece) && (distance(piece, blast) - piece.r <= blast.r)) {
                 blast.hit.add(piece);
                 blast_hit_debris(blast, piece);
+            }
+        }
+        // the ore rocks it reaches are shoved and hurt (rocks.js); a cliff stands
+        for (let j = 0, end = ore_nodes.length; j < end; ++j) {
+            const rock = ore_nodes[j];
+            if ((rock.hp > 0) && (rock.type !== 'cliff') && (rock !== blast.source) && !blast.hit.has(rock) && (distance(rock, blast) - rock.r <= blast.r)) {
+                blast.hit.add(rock);
+                blast_hit_rock(blast, rock);
             }
         }
         // an armed mine the front reaches goes off a moment after (raider_mines_update)

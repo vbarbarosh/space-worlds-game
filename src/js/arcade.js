@@ -365,6 +365,7 @@ function arcade_update(dt)
         arcade.wave_clock += dt;
     }
     blasts_update(dt);
+    rocks_update(dt);
     arcade_event_update(dt);
     // a wave's headline, a lane's prize (arcade_news.js, arcade_stakes.js)
     news_update();
