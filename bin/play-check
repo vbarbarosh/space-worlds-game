@@ -85,6 +85,37 @@ const cases = [
             return out;
         },
     },
+    {
+        name: 'goal-bonus-once',
+        about: 'a goal pays its bonus once, and a goal reached is not offered again',
+        page: 'dev',
+        query: 'world=0&screen=station-career',
+        run: async function ({page, t}) {
+            const out = [];
+            // every world visited: the Explorer goal's steps are all done the moment it is followed
+            await t('campaign.visited = [0, 1, 2, 3, 4, 5, 6, 7]; campaign.goal = null; campaign.goals_done = []; render_station()');
+            const before = await t('salvage');
+            const reward = await t('goal_kinds.explorer.reward');
+            await t('goal_choose(\'explorer\')');
+            const first = await t('salvage');
+            if (first !== before + reward) {
+                out.push(`the first Follow paid ${first - before}, the bonus is ${reward}`);
+            }
+            await t('goal_choose(\'explorer\'); goal_choose(\'explorer\')');
+            const again = await t('salvage');
+            if (again !== first) {
+                out.push(`two more Follows paid ${again - first} more`);
+            }
+            const offered = await page.evaluate(function () {
+                const row = [...document.querySelectorAll('.goal-row')].find(v => v.textContent.includes('Explorer'));
+                return row ? !!row.querySelector('button') : null;
+            });
+            if (offered !== false) {
+                out.push(`the reached goal's row ${(offered === null) ? 'is not on the GOALS tab' : 'still has its Follow button'}`);
+            }
+            return out;
+        },
+    },
 ];
 const usage = `usage: bin/play-check [case...]
 

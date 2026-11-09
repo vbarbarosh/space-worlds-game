@@ -164,13 +164,19 @@ function goal_follow(step, fly)
 
 function goal_reached(kind)
 {
-    salvage += kind.reward;
-    play_log_earn('goal', kind.reward);
-    campaign.goals_done = [...(campaign.goals_done || []), campaign.goal.id];
+    // a goal pays its bonus once (goals_done): followed again with every step done, it only ends
+    const first = !(campaign.goals_done || []).includes(campaign.goal.id);
+    if (first) {
+        salvage += kind.reward;
+        play_log_earn('goal', kind.reward);
+        campaign.goals_done = [...(campaign.goals_done || []), campaign.goal.id];
+    }
     campaign.goal = null;
     sync_goal_strip(null);
-    sfx('win');
-    show_toast(`GOAL REACHED · ${kind.title.toUpperCase()}`, `◆ ${kind.reward} BONUS · PICK THE NEXT ONE ON THE STATION'S GOALS TAB`, 6);
+    if (first) {
+        sfx('win');
+        show_toast(`GOAL REACHED · ${kind.title.toUpperCase()}`, `◆ ${kind.reward} BONUS · PICK THE NEXT ONE ON THE STATION'S GOALS TAB`, 6);
+    }
     save_checkpoint((state === 'upgrade') ? 'dock' : undefined);
 }
 
@@ -328,8 +334,11 @@ function render_station_goals(parent)
         const row = document.createElement('div');
         row.className = 'goal-row';
         const done = (campaign.goals_done || []).includes(id);
-        row.innerHTML = `${map_icon_html((id === 'explorer') ? 'world-gate' : 'outpost', 30)}<div><b>${kind.title}</b><p class="small">${kind.pitch.split('.')[0]} · bonus ${ui_number(kind.reward)}${done ? ' · reached before' : ''}</p></div>`;
-        row.append(ui_button({label: 'Follow', size: 'sm', on: () => goal_choose(id)}));
+        row.innerHTML = `${map_icon_html((id === 'explorer') ? 'world-gate' : 'outpost', 30)}<div><b>${kind.title}</b><p class="small">${kind.pitch.split('.')[0]} · ${done ? `reached, its bonus of ${ui_number(kind.reward)} paid` : `bonus ${ui_number(kind.reward)}`}</p></div>`;
+        // a goal reached has paid its bonus: it is not offered again
+        if (!done) {
+            row.append(ui_button({label: 'Follow', size: 'sm', on: () => goal_choose(id)}));
+        }
         others.append(row);
     }
     right.append(others);
