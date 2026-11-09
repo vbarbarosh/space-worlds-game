@@ -79,7 +79,15 @@ function play_log_list_unlisted()
 {
     const listed = new Set(play_log_index.sessions.map(v => v.id));
     let found = false;
-    for (const key of Object.keys(localStorage)) {
+    let keys = [];
+    // a browser set to block site data throws on any use of storage: the log then keeps nothing, and the page goes on
+    try {
+        keys = Object.keys(localStorage);
+    }
+    catch {
+        return;
+    }
+    for (const key of keys) {
         const id = key.startsWith(`${play_log_key}:`) ? key.slice(play_log_key.length + 1) : null;
         if (!id || listed.has(id)) {
             continue;

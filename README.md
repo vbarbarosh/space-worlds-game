@@ -116,6 +116,10 @@ Three modes ([docs/modes.md](docs/modes.md) has each in detail):
                      them, race courses clear of all of it, Ion Reach's
                      pylons and charge fields and Obsidian's spires out of
                      every range; exit 1 on a failure
+    bin/play-check   the game's rules played through its own functions, in
+                     build/index.html and build/dev.html: what a run keeps
+                     and what it must not, the save, the keys; a page error
+                     fails a case; exit 1 on a failure
     bin/resolution-check
                      the adaptive resolution in real time (about three
                      minutes): the canvas's pixel ratio holds when frames

@@ -11,7 +11,8 @@ game, not for one that changes it.
 - After `git pull`, run `bin/configure`.
 - After a change, run `bin/build`. After a change to the HUD or a screen, run
   `bin/layout-check`; after a change to a world's map, `bin/map-check`; after
-  a change to drawing or the game loop, `bin/perf`. Each exits 1 on a failure.
+  a change to drawing or the game loop, `bin/perf`; after a change to a rule
+  of the game or to what is saved, `bin/play-check`. Each exits 1 on a failure.
 - `build/dev.html` opens any world, ship, weapon or screen from its URL, for
   trying a change; the list is in the README.
 

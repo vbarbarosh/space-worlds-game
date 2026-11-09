@@ -1,0 +1,126 @@
+#!/usr/bin/env node
+
+const cli = require('@vbarbarosh/node-helpers/src/cli');
+const fs = require('node:fs');
+const path = require('node:path');
+const {chromium} = require('playwright');
+
+const build_dir = path.join(__dirname, '..', 'build');
+const data_dir = path.join(__dirname, '..', 'data', 'play-check');
+// A case opens a page (the game's or the dev page, a copy with a hook into the game's scope, as bin/playtest's), plays
+// through the game's own functions and returns what is wrong, a line each; an empty list passes. `storage` is put into
+// localStorage before the page's script runs; `refused` makes every use of localStorage throw, as a browser set to
+// block site data does. A page error fails a case unless the case says it expects them (errors: true).
+const cases = [
+    {
+        name: 'storage-refused',
+        about: 'with site data blocked the page still starts and the menu answers',
+        page: 'index',
+        refused: true,
+        run: async function ({page, t}) {
+            const out = [];
+            if (await t('typeof menu_start') !== 'function') {
+                out.push('the page\'s script did not run to its end');
+                return out;
+            }
+            await t('menu_start(\'arcade\')');
+            await page.waitForTimeout(600);
+            if (await t('state') !== 'playing') {
+                out.push(`an arcade run did not start: state ${await t('state')}`);
+            }
+            return out;
+        },
+    },
+];
+const usage = `usage: bin/play-check [case...]
+
+    Plays the game's rules through its own functions, in build/index.html and build/dev.html (copies with a hook into
+    the game's scope, in data/play-check/), and checks what bin/layout-check and bin/map-check do not look at: what a
+    run keeps and what it must not, the save, the keys. A page error fails a case. Exits 1 on any failure.
+
+    cases:
+${cases.map(v => `        ${v.name.padEnd(24)} ${v.about}`).join('\n')}`;
+
+cli(main);
+
+async function main()
+{
+    const names = process.argv.slice(2);
+    if (names.some(v => !cases.some(vv => vv.name === v))) {
+        console.log(usage);
+        process.exit(2);
+    }
+    fs.mkdirSync(data_dir, {recursive: true});
+    const hooked = {};
+    for (const name of ['index', 'dev']) {
+        const html = fs.readFileSync(path.join(build_dir, `${name}.html`), 'utf8');
+        const at = html.lastIndexOf('})();');
+        hooked[name] = path.join(data_dir, `${name}-hooked-${process.pid}.html`);
+        fs.writeFileSync(hooked[name], `${html.slice(0, at)}window.__t = function (code) { return eval(code); };\n${html.slice(at)}`);
+    }
+    const browser = await chromium.launch({args: ['--mute-audio']});
+    const failures = [];
+    try {
+        for (const v of cases.filter(vv => !names.length || names.includes(vv.name))) {
+            const found = await case_run(browser, hooked, v);
+            console.log(`${found.length ? 'FAIL' : 'ok  '} ${v.name.padEnd(24)} ${v.about}${found.length ? `\n     ${found.join('\n     ')}` : ''}`);
+            failures.push(...found.map(vv => `${v.name}: ${vv}`));
+        }
+    }
+    finally {
+        await browser.close();
+        for (const file of Object.values(hooked)) {
+            fs.rmSync(file, {force: true});
+        }
+    }
+    console.log(failures.length ? `${failures.length} failures` : 'all cases pass');
+    if (failures.length) {
+        process.exit(1);
+    }
+}
+
+async function case_run(browser, hooked, v)
+{
+    const context = await browser.newContext({viewport: {width: 1366, height: 768}});
+    const out = [];
+    try {
+        const page = await context.newPage();
+        const errors = [];
+        page.on('pageerror', vv => errors.push(vv.message));
+        if (v.refused) {
+            await page.addInitScript(function () {
+                Object.defineProperty(window, 'localStorage', {get: function () {
+                    throw new DOMException('The operation is insecure.', 'SecurityError');
+                }});
+            });
+        }
+        if (v.storage) {
+            await page.addInitScript(function (values) {
+                if (sessionStorage.getItem('play_check_seeded')) {
+                    return;
+                }
+                sessionStorage.setItem('play_check_seeded', '1');
+                for (const [key, value] of Object.entries(values)) {
+                    localStorage.setItem(key, value);
+                }
+            }, v.storage);
+        }
+        await page.goto(`file://${hooked[v.page]}${v.query ? `?${v.query}` : ''}`, {waitUntil: 'load', timeout: 60000});
+        await page.waitForTimeout(500);
+        // the game's scope, when the page's script reached its end; null when it did not
+        function t(code) {
+            return page.evaluate(vv => (window.__t ? window.__t(vv) : null), code);
+        }
+        out.push(...await v.run({page, t, errors}));
+        if (!v.errors && errors.length) {
+            out.push(`${errors.length} page errors, the first: ${errors[0]}`);
+        }
+    }
+    catch (error) {
+        out.push(`the case itself failed: ${error.message.split('\n')[0]}`);
+    }
+    finally {
+        await context.close();
+    }
+    return out;
+}
