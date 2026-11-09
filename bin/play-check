@@ -58,6 +58,33 @@ const cases = [
             return out;
         },
     },
+    {
+        name: 'marker-through-gate',
+        about: 'a marker set by hand does not follow the ship through a world gate, and a saved one is read as this world\'s',
+        page: 'dev',
+        query: 'world=verdant&screen=flight',
+        run: async function ({page, t}) {
+            const out = [];
+            // Verdant has more local portals than Haven: a marker on its last one, then the gate to Haven
+            await t('track_local_point({x: portals[portals.length - 1].x, y: portals[portals.length - 1].y, portal: portals.length - 1}, \'PORTAL\')');
+            await t('start_jump({world: 0, color: \'#fff\', label: \'JUMP\'})');
+            await page.waitForFunction(() => window.__t('(state === \'playing\') && !jump'), null, {timeout: 30000});
+            await page.waitForTimeout(500);
+            if (await t('campaign.world') !== 0) {
+                out.push('the jump did not reach Haven');
+            }
+            if (await t('guide_manual') !== null) {
+                out.push(`the marker came through the gate: ${await t('JSON.stringify(guide_manual)')}`);
+            }
+            // a save whose marker names a portal this world has not: read without it, no error
+            await t('checkpoint.guide = {x: 100, y: 100, label: \'OLD\', portal: 99}; reset_run(true)');
+            await page.waitForTimeout(500);
+            if (await t('!!guide_manual && (guide_manual.portal !== undefined)')) {
+                out.push('a saved marker kept a portal this world has not');
+            }
+            return out;
+        },
+    },
 ];
 const usage = `usage: bin/play-check [case...]
 

@@ -25,7 +25,7 @@ function refresh_guidance()
         x: next.x,
         y: next.y,
         label:
-            (next.portal !== undefined)
+            ((next.portal !== undefined) && portals[next.portal])
                 ? `LOCAL PORTAL ${portals[next.portal].label} → ${portals[portals[next.portal].destination].label}`
                 : (guide_path.length > 1)
                     ? 'SAFE ROUTE / NEXT MARKER'
@@ -231,11 +231,31 @@ function expedition_base_update_frontier(dt)
 
 function update_jump(dt)
 {
+    const world = campaign.world;
     guide_base_update_jump(dt);
+    // a marker set by hand is a place of the world it was set in, its portal one of that world's: through a world gate
+    // it would point outside the new world, or at a portal the new world has not
+    if (campaign.world !== world) {
+        guide_manual = null;
+        guide_flying = false;
+    }
     if (state === 'playing') {
         guide_path_key = '';
         refresh_guidance();
     }
+}
+
+// A marker read from a save, as a place of the world just made: its numbers finite, its portal one this world has
+function guide_marker_from_save(v)
+{
+    if (!v || !Number.isFinite(v.x) || !Number.isFinite(v.y)) {
+        return null;
+    }
+    const out = {x: v.x, y: v.y, label: String(v.label ?? '')};
+    if (Number.isInteger(v.portal) && portals[v.portal]) {
+        out.portal = v.portal;
+    }
+    return out;
 }
 
 // Close enough for R to act: a gate within its reach, or the station within its docking reach (from its centre, as R measures)

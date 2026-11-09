@@ -49,7 +49,7 @@ function expedition_base_reset_run(resume = false)
         player.turbo_active = false;
         player.turbo_heading = Number.isFinite(saved.turbo_heading) ? saved.turbo_heading : player.angle;
         // the guide's marker and your route, before the save below writes the checkpoint again
-        guide_manual = guide;
+        guide_manual = guide_marker_from_save(guide);
         waypoints = route.points;
         waypoints_loop = !!route.loop;
         save_checkpoint();
