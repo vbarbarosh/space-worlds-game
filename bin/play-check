@@ -31,6 +31,33 @@ const cases = [
             return out;
         },
     },
+    {
+        name: 'campaign-best-apart',
+        about: 'a campaign\'s end leaves the arcade\'s bests as they were, and keeps a best of its own',
+        page: 'index',
+        storage: {pulse_drift_best: '100', pulse_drift_best_scroll: '200'},
+        run: async function ({page, t}) {
+            const out = [];
+            // twice: with Free picked on the menu's Arcade row, then with Scroll
+            for (const kind of ['free', 'scroll']) {
+                await t(`arcade_kind_pick('${kind}'); menu_start('campaign')`);
+                await page.waitForTimeout(600);
+                await t('score = 5000; finish(false)');
+                await page.waitForTimeout(300);
+                const kept = await page.evaluate(() => [localStorage.getItem('pulse_drift_best'), localStorage.getItem('pulse_drift_best_scroll'), localStorage.getItem('pulse_drift_best_campaign')]);
+                if (kept.join(' ') !== '100 200 5000') {
+                    out.push(`${kind} picked: the bests read Free ${kept[0]}, Scroll ${kept[1]}, campaign ${kept[2]}; expected 100, 200, 5000`);
+                }
+                const line = await page.evaluate(() => document.getElementById('result_best').textContent);
+                if (!line.includes('5,000') && !line.includes('5 000')) {
+                    out.push(`${kind} picked: the result's line does not show the campaign's best: ${line.slice(0, 60)}`);
+                }
+                await t('menu_open()');
+                await page.waitForTimeout(300);
+            }
+            return out;
+        },
+    },
 ];
 const usage = `usage: bin/play-check [case...]
 

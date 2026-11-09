@@ -1,3 +1,4 @@
+// An arcade run's best, under its kind's key (arcade_best_key); a campaign keeps its own (campaign_best_save)
 function save_best()
 {
     // a try-out of a world from the menu (arcade_trial.js) is not a run: it keeps no best
@@ -19,10 +20,29 @@ function save_best()
     return score > previous;
 }
 
+// The campaign's best score, kept apart from the arcade's: a campaign's score is of another scale, and once stood as
+// the arcade's best and as its rival's mark (save_best wrote it under the arcade kind picked on the menu)
+function campaign_best_save()
+{
+    let kept = 0;
+    try {
+        kept = Math.max(0, Number(localStorage.getItem('pulse_drift_best_campaign')) || 0);
+    }
+    catch {
+    }
+    const out = {best: Math.max(kept, score), record: score > kept};
+    try {
+        localStorage.setItem('pulse_drift_best_campaign', String(out.best));
+    }
+    catch {
+    }
+    return out;
+}
+
 function base_finish(won)
 {
     state = won ? 'won' : 'dead';
-    const record = save_best();
+    const kept = campaign_best_save();
     if (won) {
         clear_checkpoint();
     }
@@ -46,7 +66,7 @@ function base_finish(won)
     el.result_score.textContent = score.toLocaleString();
     el.result_sector.textContent = String(wave).padStart(2, '0');
     el.result_best.textContent =
-        `${record ? 'NEW PERSONAL BEST · ' : 'PERSONAL BEST · '}${best.toLocaleString()}  /  ${kills} ELIMINATIONS · ${artifacts_count} ARTIFACTS · ${format_time(run_time)}`;
+        `${kept.record ? 'NEW PERSONAL BEST · ' : 'PERSONAL BEST · '}${kept.best.toLocaleString()}  /  ${kills} ELIMINATIONS · ${artifacts_count} ARTIFACTS · ${format_time(run_time)}`;
     // the first button takes Enter: the tow home when there is one, so a key pressed after a death never starts over
     const retry = document.getElementById('retry_sector');
     (retry.classList.contains('hidden') ? document.getElementById('restart_button') : retry).focus();

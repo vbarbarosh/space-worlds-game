@@ -1869,8 +1869,11 @@ weaker pilot is still open.
 - Arcade: salvage left at the end scores 10 each.
 - Campaign: a claimed contract scores 10 × its reward
   (`expedition_base_guide_base_claim_contract` in `src/js/station.js`).
-- One best score is kept for both modes (`save_best` in
-  `src/js/controls.js`, stored as `pulse_drift_best`).
+- A best score is kept for each kind of game: the arcade's Free runs
+  (`pulse_drift_best`), its Scroll runs (`pulse_drift_best_scroll`,
+  `arcade_best_key` in `src/js/arcade_scroll.js`) and the campaign
+  (`pulse_drift_best_campaign`, `campaign_best_save` in
+  `src/js/controls.js`); a campaign's score never stands as the arcade's.
 
 ## Leftovers
 
