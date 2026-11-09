@@ -116,6 +116,43 @@ const cases = [
             return out;
         },
     },
+    {
+        name: 'press-let-go-over-hud',
+        about: 'a mouse press on the sky let go over a HUD block, or lost with the window\'s focus, is let go',
+        page: 'dev',
+        query: 'world=0&screen=flight',
+        run: async function ({page, t}) {
+            const out = [];
+            const hud = await page.evaluate(function () {
+                const r = document.getElementById('bottom_hud').getBoundingClientRect();
+                return {x: r.x + r.width/2, y: r.y + r.height/2};
+            });
+            await page.mouse.move(1000, 250);
+            await page.mouse.down();
+            await page.waitForTimeout(400);
+            await page.mouse.move(hud.x, hud.y, {steps: 6});
+            await page.mouse.up();
+            await page.waitForTimeout(300);
+            if (await t('mouse_drive.held')) {
+                out.push('the press is still held after the button was let go over the ship panel');
+            }
+            await page.waitForTimeout(2500);
+            const speed = await t('Math.hypot(player.vx, player.vy)');
+            if (speed > 5) {
+                out.push(`the ship still flies ${Math.round(speed)} m/s, 2.8 s after the button was let go`);
+            }
+            // held again, then the window loses the focus
+            await page.mouse.move(1000, 250);
+            await page.mouse.down();
+            await page.waitForTimeout(300);
+            await page.evaluate(() => window.dispatchEvent(new Event('blur')));
+            if (await t('mouse_drive.held')) {
+                out.push('the press is still held after the window lost the focus');
+            }
+            await page.mouse.up();
+            return out;
+        },
+    },
 ];
 const usage = `usage: bin/play-check [case...]
 

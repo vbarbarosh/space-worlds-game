@@ -263,6 +263,10 @@ addEventListener('keyup', function (event) {
 addEventListener('blur', function () {
     stop_turbo();
     touch_boost_hold = false;
+    // a mouse button held on the sky is let go too: its release may never be heard here
+    mouse_drive.held = false;
+    mouse_drive.turbo_since = -1;
+    race_rail.held = false;
     keys.clear();
 });
 document.addEventListener('visibilitychange', function () {

@@ -127,6 +127,8 @@ canvas.addEventListener('pointerdown', function (event) {
             formation_stop();
             set_mouse_destination(p);
             canvas.focus();
+            // the release comes back to the canvas wherever the button is let go: over a HUD block, or off the window
+            canvas.setPointerCapture(event.pointerId);
             mouse_drive.turbo_since = mouse_drive.following ? clock : -1;
             mouse_drive.held = !mouse_drive.following;
         }
