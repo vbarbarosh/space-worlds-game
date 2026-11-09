@@ -153,6 +153,29 @@ const cases = [
             return out;
         },
     },
+    {
+        name: 'page-put-away',
+        about: 'after the browser\'s Back and Forward the play log has a session again, and an event without one throws nothing',
+        page: 'dev',
+        query: 'world=0&screen=arcade',
+        run: async function ({page, t}) {
+            const out = [];
+            // the page put away and shown again, as the back and forward cache does it
+            await page.evaluate(function () {
+                window.dispatchEvent(new PageTransitionEvent('pagehide', {persisted: true}));
+                window.dispatchEvent(new PageTransitionEvent('pageshow', {persisted: true}));
+            });
+            if (await t('play_log_session && play_log_session.mode') !== 'arcade') {
+                out.push(`no arcade session after the page was shown again: ${await t('play_log_session && play_log_session.mode')}`);
+            }
+            if (await t('play_log_session && play_log_session.start.how') !== 'page shown again') {
+                out.push('the new session does not say how it began');
+            }
+            // an event with no session at all: nothing written, nothing thrown
+            await t('play_log_session_end(\'probe\'); play_log_event(\'card\', {card: \'probe\'})');
+            return out;
+        },
+    },
 ];
 const usage = `usage: bin/play-check [case...]
 

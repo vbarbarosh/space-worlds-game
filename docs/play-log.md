@@ -111,7 +111,7 @@ can come without it. A reader skips fields it does not know.
 | `game` | `version` (package.json) and `built` (bin/build's time) |
 | `started`, `ended`, `end_reason` | `back to the main menu`, `page closed`, `another game started`, `an hour of play: goes on in the next session`, or `not closed: the page went away without notice` (a crash); `ended` is null while it is being played |
 | `played_s` | seconds of play |
-| `start` | `how` (`new`, `continue`, `load`, `after death`, `next race` (the Races mode), `continued` (the hourly roll), `after the log was cleared`), `world`, `salvage`, `xp`, `rank`, `ship` |
+| `start` | `how` (`new`, `continue`, `load`, `after death`, `next race` (the Races mode), `continued` (the hourly roll), `after the log was cleared`, `page shown again` (back from the browser's Back and Forward)), `world`, `salvage`, `xp`, `rank`, `ship` |
 | `screen`, `browser` | the window's size (`w`, `h`), the screen's pixel ratio (`dpr`) and Settings → Resolution (`resolution`: `auto`, `sharp`, or `forced 1.3` on the dev page's `&dpr=`; missing in logs of version 0.10.3 and before); the user agent |
 | `records[]`, `events[]` | below |
 | `dropped` | records and events dropped to keep the size (events: past 5000 a session) |
@@ -161,7 +161,7 @@ Every event has `t` and `type`.
 
 | type | Fields |
 | --- | --- |
-| `world` | `world`, `how` (`new`, `continue`, `load`, `after death`, `continued`, `gate`, `next world`), `first_visit`, `salvage` |
+| `world` | `world`, `how` (`new`, `continue`, `load`, `after death`, `continued`, `page shown again`, `gate`, `next world`), `first_visit`, `salvage` |
 | `run` | a load or the tow inside a session: `how`, `world`, `salvage`, `xp` |
 | `buy` | `kind` (as `spent`), `item`, `price`, `salvage_left`, `priciest_yet` (the game's dearest purchase so far), and for a gun tier `tier`, for trade `amount` |
 | `sell` | `item`, `amount`, `value`, `salvage_left` |

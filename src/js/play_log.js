@@ -48,8 +48,19 @@ document.getElementById('play_log_clear').addEventListener('click', function () 
     }
     refresh_play_log_panel();
 });
+// A page put away by the browser's Back comes back with Forward as it was (the back and forward cache): the session
+// that pagehide closed is begun again, so the game goes on being logged
+let play_log_put_away = null;
 addEventListener('pagehide', function () {
+    play_log_put_away = play_log_session ? play_log_session.mode : null;
     play_log_session_end('page closed');
+});
+addEventListener('pageshow', function (event) {
+    if (event.persisted && play_log_put_away && !play_log_session) {
+        play_log_session_start(play_log_put_away, 'page shown again');
+        play_log_world_enter('page shown again');
+    }
+    play_log_put_away = null;
 });
 document.addEventListener('visibilitychange', function () {
     if (document.visibilityState === 'hidden') {
@@ -402,6 +413,10 @@ function play_log_t()
 
 function play_log_event(type, details)
 {
+    // with no session there is nothing to write into, and the game goes on
+    if (!play_log_session) {
+        return;
+    }
     const events = play_log_session.events;
     if (events.length >= play_log_events_cap) {
         play_log_session.dropped.events += 1;
