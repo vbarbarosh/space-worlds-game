@@ -19,9 +19,9 @@ const template_name = 'page.template.html';
 cli(main);
 
 // Every page of docs/ as HTML in build/docs: README.md becomes index.html, links between pages point at their HTML,
-// links to the rest of the repository go to GitHub, other files of docs/ are copied as they are (not tools/, the
-// designer's icon script), the game's Scout goes in assets/ship.svg, and the game built by bin/build goes in play/, its
-// dev page beside it (dev.html)
+// links to the rest of the repository go to GitHub, other files of docs/ are copied as they are (a stylesheet with
+// its icons put in: asset_read), the game's Scout goes in assets/ship.svg, and the game built by bin/build goes in
+// play/, its dev page beside it (dev.html)
 function main()
 {
     const template = fs.readFileSync(path.join(docs_dir, template_name), 'utf8');
@@ -32,9 +32,9 @@ function main()
         fs.mkdirSync(path.dirname(file), {recursive: true});
         fs.writeFileSync(file, html_from_page(template, page, pages));
     }
-    for (const file of files_from_dir(docs_dir).filter(v => !v.endsWith('.md') && (v !== template_name) && !v.startsWith('tools/'))) {
+    for (const file of files_from_dir(docs_dir).filter(v => !v.endsWith('.md') && (v !== template_name))) {
         fs.mkdirSync(path.dirname(path.join(out_dir, file)), {recursive: true});
-        fs.copyFileSync(path.join(docs_dir, file), path.join(out_dir, file));
+        fs.writeFileSync(path.join(out_dir, file), asset_read(file));
     }
     // the game's drawing without its anchors layer: the red and blue marks of flames and turrets the game reads
     fs.writeFileSync(path.join(out_dir, 'assets', 'ship.svg'), fs.readFileSync(ship_file, 'utf8').replace(/<g id="anchors">[\s\S]*?<\/g>\n?/, ''));
@@ -167,8 +167,22 @@ function html_from_page(template, page, pages)
 function assets_stamp(html)
 {
     return html.replace(/(assets\/[\w-]+\.(?:css|js))"/g, function (match, file) {
-        const hash = crypto.createHash('sha1').update(fs.readFileSync(path.join(docs_dir, file))).digest('hex').slice(0, 8);
+        const hash = crypto.createHash('sha1').update(asset_read(file)).digest('hex').slice(0, 8);
         return `${file}?v=${hash}"`;
+    });
+}
+
+// A file of docs/ as the site serves it. A stylesheet names its icons as files, `url(icons/name.svg)` beside it, and
+// is served with each put in as a data URI: a CSS mask does not load an SVG file from a page opened from the disk
+function asset_read(file)
+{
+    const buffer = fs.readFileSync(path.join(docs_dir, file));
+    if (!file.endsWith('.css')) {
+        return buffer;
+    }
+    return buffer.toString('utf8').replace(/url\((icons\/[a-z0-9-]+\.svg)\)/g, function (match, icon) {
+        const svg = fs.readFileSync(path.join(docs_dir, path.dirname(file), icon), 'utf8').trim().replace(/"/g, '\'');
+        return `url("data:image/svg+xml,${encodeURIComponent(svg).replace(/%20/g, ' ').replace(/%3D/g, '=').replace(/%3A/g, ':').replace(/%2F/g, '/').replace(/%2C/g, ',')}")`;
     });
 }
 
