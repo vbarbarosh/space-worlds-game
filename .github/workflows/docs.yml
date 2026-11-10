@@ -12,9 +12,11 @@ permissions:
   pages: write
   id-token: write
 
+# One deploy at a time. A deploy in flight is left to finish and the newest waiting one follows it: a deploy cancelled
+# half way can leave the next one waiting until it times out
 concurrency:
   group: pages
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   build:
