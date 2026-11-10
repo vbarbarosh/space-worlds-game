@@ -215,6 +215,37 @@ const cases = [
             return out;
         },
     },
+    {
+        name: 'race-keeps-off-saves',
+        about: 'in a Races mode race F5 and F9 do nothing; a load from elsewhere leaves the Races mode, its campaign put back',
+        page: 'index',
+        run: async function ({page, t}) {
+            const out = [];
+            // a campaign saved to slot 1, then a race on the menu's Races row
+            await t('menu_start(\'campaign\')');
+            await page.waitForTimeout(600);
+            await t('salvage = 4242; save_to_slot(0); menu_open(); race_mode_start(\'normal\', 0)');
+            await page.waitForTimeout(800);
+            for (const key of ['F9', 'F5']) {
+                await page.keyboard.press(key);
+                await page.waitForTimeout(400);
+                const after = await t('({race: race_mode.active, course: !!race.course, state, saves: !document.getElementById(\'saves_overlay\').classList.contains(\'hidden\')})');
+                if (!after.race || !after.course || after.saves || (after.state !== 'playing')) {
+                    out.push(`${key} in a race: the Races mode ${after.race ? 'on' : 'off'}, its course ${after.course ? 'kept' : 'gone'}, the saves panel ${after.saves ? 'open' : 'shut'}, state ${after.state}`);
+                }
+            }
+            // whatever loads a slot (a button the race hides, a tool) leaves the race: the campaign is the slot's, no
+            // race HUD over it, and its saves work again
+            // the salvage read in the same step as the load, before a frame of flight adds to it
+            const salvage = await t('load_from_slot(0); salvage');
+            await page.waitForTimeout(800);
+            const loaded = {...await t('({race: race_mode.active, mode: document.body.classList.contains(\'race-mode\'), course: !!race.course})'), salvage};
+            if (loaded.race || loaded.mode || loaded.course || (loaded.salvage !== 4242)) {
+                out.push(`a load in a race: the Races mode ${loaded.race ? 'on' : 'off'}, its class ${loaded.mode ? 'kept' : 'gone'}, a course ${loaded.course ? 'left' : 'gone'}, salvage ${loaded.salvage} (the slot's 4242)`);
+            }
+            return out;
+        },
+    },
 ];
 const usage = `usage: bin/play-check [case...]
 

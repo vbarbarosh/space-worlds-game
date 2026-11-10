@@ -112,9 +112,14 @@ function load_last_save()
     }
 }
 
-// F9 loads the last save; F5 opens the save slots (pausing first), in place of the browser's reload
+// F9 loads the last save; F5 opens the save slots (pausing first), in place of the browser's reload. The Races mode has
+// no saves to use (race-mode.css hides their buttons): there both keys do nothing, and F5 reloads no page mid-race
 function on_saves_key(event)
 {
+    if (((event.code === 'F5') || (event.code === 'F9')) && race_mode.active) {
+        event.preventDefault();
+        return;
+    }
     if ((event.code === 'F5') && !event.repeat && ['playing', 'paused'].includes(state)) {
         event.preventDefault();
         if (state === 'playing') {
@@ -173,6 +178,10 @@ function save_time(ms)
 // The campaign as the autosave would keep it, into slot i
 function save_to_slot(i)
 {
+    // the Races mode keeps no saves: its campaign is a stand-in for the race (race_mode_start)
+    if (race_mode.active) {
+        return;
+    }
     const slots = saves_read();
     if (arcade.active) {
         // an arcade run: its snapshot, loaded at the start of the world it was saved in
@@ -206,6 +215,8 @@ function load_from_slot(i)
     if (!v || !save_slot_valid(v)) {
         return;
     }
+    // a load leaves the Races mode first: it puts its own campaign back (race_mode_stop), and the slot's then takes over
+    race_mode_stop();
     if (v.arcade) {
         set_hidden(document.getElementById('saves_overlay'), true);
         set_hidden(el.pause_overlay, true);
