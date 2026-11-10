@@ -243,7 +243,7 @@ function race_mode_results_open(next_state = 'race_results')
     document.getElementById('race_result_rows').innerHTML = order.map(function (v, i) {
         const right = v.you ? ((r.end === 'wrecked') ? 'Wrecked' : (r.end === 'forfeit') ? 'Forfeit' : race_time_text(v.time)) : v.out ? 'Out' : (v.time !== null) ? race_time_text(v.time) : `ring ${v.next}/${n}`;
         const name = v.you ? 'You' : v.name;
-        return `<li class="${v.you ? 'is-you' : ''}" title="${ui_escape(name)}"><b>${i + 1}</b><i style="--c:${v.color}"></i><span class="nm">${ui_escape(name)}</span><span class="rg">${right}</span></li>`;
+        return `<li class="${v.you ? 'is-you' : ''}" title="${ui_escape(name)}"><b>${i + 1}</b><i style="--c:${ui_escape(v.color)}"></i><span class="nm">${ui_escape(name)}</span><span class="rg">${right}</span></li>`;
     }).join('');
     document.getElementById('race_next_name').textContent = worlds[(race_mode.world + 1) % worlds.length].name;
     set_hidden(document.getElementById('race_result'), false);

@@ -1018,7 +1018,8 @@ function arcade_depot_fill()
     document.getElementById('arcade_depot_eyebrow').textContent = `Arcade · depot · world ${step + 1} of ${arcade_worlds}`;
     document.getElementById('cleared_title').textContent = cleared ? `${worlds[here].name} cleared` : worlds[here].station;
     const stats = [['Raiders', String(kills)], ['Time', format_time(run_time)], ...(cleared ? [['Bonus', `+${cleared.bonus}`]] : []), ['Score', ui_number(score)]];
-    document.getElementById('cleared_stats').innerHTML = stats.map(v => `<div><dt>${v[0]}</dt><dd${(v[0] === 'Bonus') ? ' class="t-gold"' : ''}>${v[1]}</dd></div>`).join('');
+    // the numbers of a saved slot are written as text
+    document.getElementById('cleared_stats').innerHTML = stats.map(v => `<div><dt>${v[0]}</dt><dd${(v[0] === 'Bonus') ? ' class="t-gold"' : ''}>${ui_escape(v[1])}</dd></div>`).join('');
     document.getElementById('arcade_depot_ship_name').textContent = current_ship().name;
     document.getElementById('cleared_hull_text').innerHTML = `${Math.ceil(player.hp)}<small> / ${hull_max()}</small>`;
     document.getElementById('cleared_hull_fill').style.width = `${(player.hp/hull_max())*100}%`;

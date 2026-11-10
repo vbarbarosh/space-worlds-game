@@ -158,8 +158,9 @@ function contract_card(m, {label, title, action, state = ''})
     const c = ui_card({
         banner: contract_banner_html(m),
         tags: `${ui_world_badge(m.world)}<span class="eyebrow eyebrow--muted" style="margin-left:auto">${label}</span>`,
-        title,
-        text: m.description,
+        // a contract's title and description come from the save or a mission file: written as text
+        title: ui_escape(title),
+        text: ui_escape(m.description),
         note: `<span class="money">${ui_number(m.reward)}</span>`,
         action,
         state,

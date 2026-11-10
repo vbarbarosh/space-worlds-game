@@ -413,7 +413,7 @@ function sync_mission_tracks(m, g, threat)
         for (let i = 0; i < count; ++i) {
             bars.push((m.ready || (i < now)) ? '<b class="done"></b>' : (i === now) ? `<b class="now" style="--p:${Math.round(Math.min(1, m.progress/m.target)*100)}%"></b>` : '<b></b>');
         }
-        rows.push(`<div class="track-row${threat ? ' is-danger' : ''}"><div class="head">${ui_badge('Contract', threat ? 'red' : 'gold')}<b>${m.title}</b><span class="eyebrow ${threat ? 'eyebrow--red' : 'eyebrow--gold'}">${format_progress(m.progress)} / ${m.target}</span></div><div class="prog"><div class="track">${bars.join('')}</div></div></div>`);
+        rows.push(`<div class="track-row${threat ? ' is-danger' : ''}"><div class="head">${ui_badge('Contract', threat ? 'red' : 'gold')}<b>${ui_escape(m.title)}</b><span class="eyebrow ${threat ? 'eyebrow--red' : 'eyebrow--gold'}">${format_progress(m.progress)} / ${m.target}</span></div><div class="prog"><div class="track">${bars.join('')}</div></div></div>`);
     }
     if (g && (g.index >= 0)) {
         const step = g.steps[g.index];

@@ -514,7 +514,8 @@ function race_rival_make(def, slot, angle, level)
         you: false,
         rival: true,
         name: def.name,
-        color: def.color,
+        // a stored course's colour goes into the standings' markup and the canvas: only a plain #rrggbb is taken
+        color: /^#[0-9a-f]{6}$/i.test(def.color) ? def.color : race_colors[slot % race_colors.length],
         hull: def.hull,
         skill: k,
         length,
@@ -2073,7 +2074,7 @@ function race_board_sync()
     const rows = list.map(function (v, i) {
         const right = v.out ? 'Out' : (v.time !== null) ? race_time_text(v.time) : (race.phase === 'results') ? '—' : `${v.next}/${n}`;
         const name = v.you ? 'You' : v.name;
-        return `<li class="${v.you ? 'is-you' : ''}${v.out ? ' is-out' : ''}" title="${ui_escape(name)}"><b>${started ? i + 1 : '·'}</b><i style="--c:${v.color}"></i><span class="nm">${ui_escape(name)}</span><span class="rg">${right}</span></li>`;
+        return `<li class="${v.you ? 'is-you' : ''}${v.out ? ' is-out' : ''}" title="${ui_escape(name)}"><b>${started ? i + 1 : '·'}</b><i style="--c:${ui_escape(v.color)}"></i><span class="nm">${ui_escape(name)}</span><span class="rg">${right}</span></li>`;
     });
     hud_text(document.getElementById('race_board_title'), over ? 'Results' : started ? 'Race' : 'Lined up');
     hud_text(document.getElementById('race_board_clock'), over ? `${race_ordinal(race.place)} of ${race.racers.length}` : started ? race_time_text(race.clock) : `${n} rings`);

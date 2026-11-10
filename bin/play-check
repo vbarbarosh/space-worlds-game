@@ -176,6 +176,45 @@ const cases = [
             return out;
         },
     },
+    {
+        name: 'stored-texts-as-text',
+        about: 'markup in a save\'s texts (a contract, a marker, a rival\'s colour, a slot\'s numbers) stays text on every screen',
+        page: 'dev',
+        query: 'world=0&screen=station-jobs&contracts=full',
+        run: async function ({page, t, open}) {
+            const out = [];
+            const markup = '<img src=x onerror="window.play_check_ran = 1">';
+            // a place is clean when no img was made in it and nothing ran
+            async function clean(where, selector) {
+                await page.waitForTimeout(300);
+                const made = await page.evaluate(v => document.querySelectorAll(`${v} img[src="x"]`).length, selector);
+                if (made || await page.evaluate(() => window.play_check_ran)) {
+                    out.push(`${where}: the markup came alive (${made} elements made)`);
+                }
+            }
+            // docked: the taken contracts' cards and the NEXT strip
+            await t(`campaign.contracts[0].title = ${JSON.stringify(markup)}; campaign.contracts[0].description = ${JSON.stringify(markup)}; campaign.tracked_id = campaign.contracts[0].id; guide_manual = {x: station.x + 400, y: station.y, label: ${JSON.stringify(markup)}}; render_station()`);
+            await clean('the station', 'body');
+            // in flight: the HUD's card
+            await t('guide_manual = null; undock(); update_hud()');
+            await page.waitForTimeout(800);
+            await t('update_hud()');
+            await clean('the flight HUD', 'body');
+            // a race: a rival's colour from a stored course
+            await open('dev', 'world=0&screen=race');
+            await t(`race.racers.filter(v => v.rival)[0].color = ${JSON.stringify(`#fff"></i>${markup}<i x="`)}`);
+            await page.waitForTimeout(700);
+            await clean('the race\'s standings', 'body');
+            if (!/^#[0-9a-f]{6}$/i.test(await t(`race_rival_make({name: 'A', hull: 'ship-scout', skill: 0.5, color: ${JSON.stringify(markup)}}, 1, 0, 1).color`))) {
+                out.push('a rival made from a stored course keeps a colour that is not a colour');
+            }
+            // the depot: a slot's kills
+            await open('dev', 'world=dustfall&screen=arcade-depot');
+            await t(`kills = ${JSON.stringify(markup)}; arcade_depot_fill()`);
+            await clean('the depot\'s header', 'body');
+            return out;
+        },
+    },
 ];
 const usage = `usage: bin/play-check [case...]
 
@@ -256,7 +295,12 @@ async function case_run(browser, hooked, v)
         function t(code) {
             return page.evaluate(vv => (window.__t ? window.__t(vv) : null), code);
         }
-        out.push(...await v.run({page, t, errors}));
+        // another screen of the same case
+        async function open(name, query) {
+            await page.goto(`file://${hooked[name]}${query ? `?${query}` : ''}`, {waitUntil: 'load', timeout: 60000});
+            await page.waitForTimeout(500);
+        }
+        out.push(...await v.run({page, t, errors, open}));
         if (!v.errors && errors.length) {
             out.push(`${errors.length} page errors, the first: ${errors[0]}`);
         }

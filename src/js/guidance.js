@@ -432,7 +432,8 @@ function render_next_strip(parent, c)
     const step = (g && (g.index >= 0)) ? g.steps[g.index] : null;
     const lead = step ? `${g.kind.title} ${g.index + 1}/${g.steps.length}` : c.title;
     const text = step ? step.title : c.instruction;
-    parent.innerHTML = `<span class="eyebrow eyebrow--gold">Next</span><p class="next-text clamp"><b>${lead}</b> · ${text}</p>`;
+    // a marker's label and a contract's title come from the save: they are written as text
+    parent.innerHTML = `<span class="eyebrow eyebrow--gold">Next</span><p class="next-text clamp"><b>${ui_escape(lead)}</b> · ${ui_escape(text)}</p>`;
     if (c.goal || step) {
         const label = guide_action_label(c).toLowerCase().replace(/^\w/, v => v.toUpperCase());
         parent.append(ui_button({label, key: 'T', size: 'sm', on: guide_action}));
