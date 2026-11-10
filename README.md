@@ -263,4 +263,7 @@ Code: [vbarbarosh/rules](https://github.com/vbarbarosh/rules).
 
 ## License
 
-[MIT](LICENSE)
+[MIT](LICENSE). The two fonts the game and the website carry, Inter and
+JetBrains Mono, are under the SIL Open Font License 1.1:
+[Inter](docs/assets/fonts/OFL-Inter.txt),
+[JetBrains Mono](docs/assets/fonts/OFL-JetBrainsMono.txt).
