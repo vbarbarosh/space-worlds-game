@@ -46,6 +46,44 @@ function main()
         fs.copyFileSync(dev_file, path.join(out_dir, 'play', 'dev.html'));
     }
     console.log(`${pages.length} pages · ${out_dir}`);
+    // the site's own check: every link and picture of its pages leads somewhere
+    const broken = links_broken();
+    for (const line of broken) {
+        console.log(`FAIL ${line}`);
+    }
+    if (broken.length) {
+        console.log(`${broken.length} links lead nowhere`);
+        process.exit(1);
+    }
+}
+
+// The links, pictures, scripts and styles of the built pages (not the game in play/) whose file is missing, or whose
+// #anchor is no id of the page it points into
+function links_broken()
+{
+    const found = [];
+    const files = files_from_dir(out_dir).filter(v => v.endsWith('.html') && !v.startsWith('play/'));
+    const html_by_file = Object.fromEntries(files.map(v => [v, fs.readFileSync(path.join(out_dir, v), 'utf8')]));
+    for (const file of files) {
+        for (const match of html_by_file[file].matchAll(/\b(?:href|src)="([^"]+)"/g)) {
+            const url = match[1].replace(/&amp;/g, '&');
+            if (/^(?:[a-z]+:|\/\/)/.test(url)) {
+                continue;
+            }
+            const [target, anchor] = url.split('#');
+            let to = target ? path.posix.normalize(path.posix.join(path.posix.dirname(file), decodeURIComponent(target.split('?')[0]))) : file;
+            if (fs.existsSync(path.join(out_dir, to)) && fs.statSync(path.join(out_dir, to)).isDirectory()) {
+                to = path.posix.join(to, 'index.html');
+            }
+            if (!fs.existsSync(path.join(out_dir, to))) {
+                found.push(`${file}: ${url} has no file`);
+            }
+            else if (anchor && (to in html_by_file) && !html_by_file[to].includes(` id="${anchor}"`)) {
+                found.push(`${file}: ${url} has no such heading`);
+            }
+        }
+    }
+    return [...new Set(found)];
 }
 
 // Paths under dir, relative and with forward slashes
@@ -185,9 +223,11 @@ function add_doc_classes(html)
         .replace(/<h3( id="[^"]*")?>(\d+\.\s[^<]*·[^<]*)<\/h3>\s*<p>/g, '<h3 class="chapter"$1>$2</h3>\n<p class="stages">');
 }
 
+// A heading's id, as GitHub makes it from the same heading, so a link written for one works on the other: an
+// apostrophe is dropped, not turned into a hyphen ("The arcade's pace" is #the-arcades-pace)
 function slug_from_text(text)
 {
-    return text.toLowerCase().replace(/[`*_]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    return text.toLowerCase().replace(/&#39;|['’`*_]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 }
 
 function html_escape(text)
