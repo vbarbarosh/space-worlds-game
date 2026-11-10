@@ -185,6 +185,7 @@ const usage = `usage: bin/layout-check [screen...]
     interface holds together: HUD blocks do not overlap, panels stay in the window, every button of the screen
     on top is whole on screen and clear of the others, no control cuts its own text, no text sticks out of its
     box, the page never scrolls sideways; on the depot, nothing moves as the pointer runs over its items. Screenshots and report.json go to data/layout-check/.
+    A page error fails the screen it happens on, and a screen that does not open fails alone and the run goes on.
     Exits 1 on any failure.
 
     A screen is named as below, or by one of its states as the report names it (hud-arcade-scroll-rival).
@@ -208,38 +209,54 @@ async function main()
         for (const [w, h] of [...sizes, ...phone_sizes]) {
             const phone = phone_sizes.some(v => (v[0] === w) && (v[1] === h));
             const page = await browser.newPage({viewport: {width: w, height: h}});
+            // a page error fails the screen it happens on: a screen whose opener threw is not the screen asked for, and
+            // the audit of whatever stands under it says nothing of it
+            const errors = [];
+            page.on('pageerror', v => errors.push(v.message));
             for (const screen of chosen.filter(v => !phone || v.phone)) {
-                await page.goto(`file://${page_file}?world=${screen.world || 0}&screen=${screen.value}${screen.query || ''}`);
-                // the screen is open once the dev panel has folded (its DEV tab shows); a page's first load can take
-                // longer than the wait after it
-                await page.waitForSelector('#dev_open:not(.hidden)', {state: 'attached', timeout: 15000});
-                await page.waitForTimeout(1200);
+                errors.length = 0;
                 const shot = path.join(out_dir, screen.label, `${w}x${h}.png`);
-                fs.mkdirSync(path.dirname(shot), {recursive: true});
-                await page.screenshot({path: shot});
-                const audit = await page.evaluate(layout_audit, selectors);
-                const under = screen.ship ? await page.evaluate(ship_audit) : [];
-                const jumps = screen.hover ? await page.evaluate(hover_audit) : [];
-                const failures = [
-                    ...under.map(v => `ship under ${v}`),
-                    ...jumps.map(v => `jump ${v}`),
-                    ...audit.overlap.map(v => `overlap ${v}`),
-                    ...audit.offscreen.map(v => `off ${v}`),
-                    ...audit.cut.map(v => `cut ${v}`),
-                    ...audit.clipped.map(v => `clip ${v}`),
-                    ...audit.spill.map(v => `spill ${v}`),
-                    ...(audit.hscroll ? ['hscroll'] : []),
-                ];
-                results.push({screen: screen.label, size: `${w}x${h}`, ok: !failures.length, failures, min_font: audit.min_font, shot});
-                console.log(`${failures.length ? 'FAIL' : 'ok  '} ${screen.label.padEnd(18)} ${`${w}x${h}`.padEnd(10)} min ${audit.min_font}px${failures.length ? `  ${failures.join(' | ')}` : ''}`);
+                const failures = [];
+                let min_font = null;
+                // a screen that does not open fails alone, by its name and size, and the run goes on to the next
+                try {
+                    await page.goto(`file://${page_file}?world=${screen.world || 0}&screen=${screen.value}${screen.query || ''}`);
+                    // the screen is open once the dev panel has folded (its DEV tab shows); a page's first load can
+                    // take longer than the wait after it
+                    await page.waitForSelector('#dev_open:not(.hidden)', {state: 'attached', timeout: 15000});
+                    await page.waitForTimeout(1200);
+                    fs.mkdirSync(path.dirname(shot), {recursive: true});
+                    await page.screenshot({path: shot});
+                    const audit = await page.evaluate(layout_audit, selectors);
+                    const under = screen.ship ? await page.evaluate(ship_audit) : [];
+                    const jumps = screen.hover ? await page.evaluate(hover_audit) : [];
+                    min_font = audit.min_font;
+                    failures.push(
+                        ...under.map(v => `ship under ${v}`),
+                        ...jumps.map(v => `jump ${v}`),
+                        ...audit.overlap.map(v => `overlap ${v}`),
+                        ...audit.offscreen.map(v => `off ${v}`),
+                        ...audit.cut.map(v => `cut ${v}`),
+                        ...audit.clipped.map(v => `clip ${v}`),
+                        ...audit.spill.map(v => `spill ${v}`),
+                        ...(audit.hscroll ? ['hscroll'] : [])
+                    );
+                }
+                catch (error) {
+                    failures.push(`did not open: ${error.message.split('\n')[0]}`);
+                }
+                failures.push(...[...new Set(errors)].map(v => `page error: ${v}`));
+                results.push({screen: screen.label, size: `${w}x${h}`, ok: !failures.length, failures, min_font, shot});
+                console.log(`${failures.length ? 'FAIL' : 'ok  '} ${screen.label.padEnd(18)} ${`${w}x${h}`.padEnd(10)} min ${min_font}px${failures.length ? `  ${failures.join(' | ')}` : ''}`);
             }
             await page.close();
         }
     }
     finally {
         await browser.close();
+        // what was checked is always written, so a report on the disk is this run's
+        fs.writeFileSync(path.join(out_dir, 'report.json'), JSON.stringify(results, null, 1));
     }
-    fs.writeFileSync(path.join(out_dir, 'report.json'), JSON.stringify(results, null, 1));
     const failed = results.filter(v => !v.ok).length;
     console.log(`${results.length - failed} of ${results.length} pass · ${out_dir}`);
     if (failed) {

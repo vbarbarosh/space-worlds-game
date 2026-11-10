@@ -62,8 +62,10 @@ Three modes ([docs/modes.md](docs/modes.md) has each in detail):
                      screens at three phone sizes too (two upright, one on
                      its side): no HUD
                      block over another, no button off the window or over
-                     another, no text cut; shots and report.json in
-                     data/layout-check/, exit 1 on a failure
+                     another, no text cut, no page error; a screen that
+                     does not open fails alone and the run goes on; shots
+                     and report.json in data/layout-check/, exit 1 on a
+                     failure
     bin/build-docs   docs/ as a website in build/docs, with the game from
                      bin/build in play/; published to GitHub Pages on every
                      push to main (.github/workflows/docs.yml)
