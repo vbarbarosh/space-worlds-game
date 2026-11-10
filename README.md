@@ -48,7 +48,14 @@ Three modes ([docs/modes.md](docs/modes.md) has each in detail):
 
     bin/configure    install dependencies and build
     bin/run          build and open build/index.html in the browser
-    bin/build        write build/index.html, build/dev.html and build/agent.html
+    bin/build        write build/index.html, build/dev.html and build/agent.html,
+                     then run bin/self-check; exit 1 when it fails
+    bin/self-check   the build's own check, a probe a line: every file of
+                     src/css, src/html and src/js named by an include and by
+                     no page twice, each built page with nothing of its
+                     template left unread and scripts that compile and,
+                     where Playwright's Chromium is installed, opened with no
+                     page error; exit 1 on a failure
     bin/captain      the agent's game window and its commands (see below)
     bin/layout-check every screen at twelve window sizes, the menu, the
                      station, the flight HUD and the arcade's cleared

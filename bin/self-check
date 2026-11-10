@@ -1,0 +1,157 @@
+#!/usr/bin/env node
+
+const cli = require('@vbarbarosh/node-helpers/src/cli');
+const fs = require('node:fs');
+const path = require('node:path');
+const vm = require('node:vm');
+
+const build_dir = path.join(__dirname, '..', 'build');
+const src_dir = path.join(__dirname, '..', 'src');
+const pages = ['index', 'dev', 'agent'];
+const usage = `usage: bin/self-check
+
+    The build's own check that what it made is fit to work; bin/build runs it as its last step. One probe a line:
+    every file of src/css, src/html and src/js is named by an include, and by no page twice; each built page is
+    there, holds no include or slot line left unread, and its scripts compile; and, when Playwright's Chromium is at
+    hand, each page opens with no page error and the game's page shows its menu. Exits 1 when a probe fails.`;
+
+cli(main);
+
+async function main()
+{
+    if (process.argv.length > 2) {
+        console.log(usage);
+        process.exit(2);
+    }
+    const failures = [];
+    for (const probe of [probe_includes, probe_pages, probe_open]) {
+        for (const line of await probe()) {
+            console.log(`${line.ok ? 'ok  ' : 'FAIL'} [${line.name}] ${line.text}`);
+            if (!line.ok) {
+                failures.push(line);
+            }
+        }
+    }
+    console.log(failures.length ? `${failures.length} failures` : 'the build is fit to work');
+    if (failures.length) {
+        process.exit(1);
+    }
+}
+
+// The include lines of a page's template, in order: the shell's own, and the ones a variant puts into its slots
+function includes_read(file)
+{
+    const text = fs.readFileSync(path.join(src_dir, file), 'utf8');
+    return [...text.matchAll(/^<!-- include (.+) -->$/gm)].map(v => v[1]);
+}
+
+function files_under(dir)
+{
+    const out = [];
+    for (const entry of fs.readdirSync(path.join(src_dir, dir), {withFileTypes: true})) {
+        const name = `${dir}/${entry.name}`;
+        if (entry.isDirectory()) {
+            out.push(...files_under(name));
+        }
+        else {
+            out.push(name);
+        }
+    }
+    return out;
+}
+
+function slots_read(file)
+{
+    const text = fs.readFileSync(path.join(src_dir, file), 'utf8');
+    return [...text.matchAll(/^<!-- slot (.+) -->$/gm)].map(v => v[1]);
+}
+
+// Every file of the three folders is in some page, no page has one twice, and a variant fills only slots the shell has
+function probe_includes()
+{
+    const out = [];
+    const shell = includes_read('index.html');
+    const slots = slots_read('index.html');
+    const named = new Set(shell);
+    for (const page of pages) {
+        const list = (page === 'index') ? shell : [...shell, ...includes_read(`${page}.html`)];
+        const twice = list.filter((v, i) => list.indexOf(v) !== i);
+        const lost = (page === 'index') ? [] : slots_read(`${page}.html`).filter(v => !slots.includes(v));
+        for (const file of list) {
+            named.add(file);
+        }
+        const error = twice.length ? `named twice: ${[...new Set(twice)].join(', ')}` : lost.length ? `fills a slot the shell has not: ${lost.join(', ')}` : null;
+        out.push({name: `includes of ${page}.html`, ok: !error, text: error || `${list.length} files, each once`});
+    }
+    const files = ['css', 'html', 'js'].flatMap(files_under);
+    const orphans = files.filter(v => !named.has(v));
+    out.push({name: 'files of src', ok: !orphans.length, text: orphans.length ? `named by no include: ${orphans.join(', ')}` : `${files.length} files of css, html and js, each named by an include`});
+    return out;
+}
+
+// Each page is there, with nothing of the template left unread and scripts that compile
+function probe_pages()
+{
+    const out = [];
+    for (const page of pages) {
+        const name = `build/${page}.html`;
+        const file = path.join(build_dir, `${page}.html`);
+        if (!fs.existsSync(file)) {
+            out.push({name, ok: false, text: 'missing'});
+            continue;
+        }
+        const html = fs.readFileSync(file, 'utf8');
+        const left = [...html.matchAll(/^[ \t]*<!-- (?:include|slot|svgs|maps|missions|build) .*$/gm)].map(v => v[0].trim());
+        if (left.length) {
+            out.push({name, ok: false, text: `${left.length} template lines left unread, the first: ${left[0].slice(0, 80)}`});
+            continue;
+        }
+        const scripts = [...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)].map(v => v[1]);
+        let fault = scripts.length ? null : 'no script in the page';
+        for (const code of scripts) {
+            try {
+                new vm.Script(code, {filename: name});
+            }
+            catch (error) {
+                fault = `a script does not compile: ${error.message}`;
+                break;
+            }
+        }
+        out.push({name, ok: !fault, text: fault || `${Math.round(html.length/1024)} KB, ${scripts.length} script${(scripts.length === 1) ? '' : 's'} compile`});
+    }
+    return out;
+}
+
+// Each page opened in Chromium: no page error, and the game's own page shows its menu
+async function probe_open()
+{
+    const out = [];
+    let browser = null;
+    try {
+        browser = await require('playwright').chromium.launch({args: ['--mute-audio']});
+    }
+    catch (error) {
+        return [{name: 'pages opened', ok: true, text: `skipped: no Chromium for Playwright here (${error.message.split('\n')[0].slice(0, 60)})`}];
+    }
+    try {
+        for (const page_name of pages) {
+            const file = path.join(build_dir, `${page_name}.html`);
+            if (!fs.existsSync(file)) {
+                continue;
+            }
+            const page = await browser.newPage({viewport: {width: 1280, height: 720}});
+            const errors = [];
+            page.on('pageerror', v => errors.push(v.message));
+            await page.goto(`file://${file}`, {waitUntil: 'load', timeout: 60000});
+            await page.waitForTimeout(800);
+            const menu = await page.evaluate(() => !!document.querySelector('#intro:not(.hidden)'));
+            await page.close();
+            const error = errors.length ? `${errors.length} page errors, the first: ${errors[0]}` : ((page_name === 'index') && !menu) ? 'the menu is not shown' : null;
+            out.push({name: `build/${page_name}.html opened`, ok: !error, text: error || `no page error${(page_name === 'index') ? ', the menu shown' : ''}`});
+        }
+    }
+    finally {
+        await browser.close();
+    }
+    return out;
+}

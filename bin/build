@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+const child_process = require('node:child_process');
 const cli = require('@vbarbarosh/node-helpers/src/cli');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -40,6 +41,8 @@ function main()
     for (const variant of variants) {
         build_variant_html(variant);
     }
+    // the build ends with its self-check: a build that fails it exits 1 here
+    child_process.execFileSync(path.join(__dirname, 'self-check'), {stdio: 'inherit'});
 }
 
 function build_index_html()
