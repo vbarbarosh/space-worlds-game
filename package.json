@@ -5,11 +5,14 @@
   "description": "World Explorer: a space flight, trade and exploration game",
   "homepage": "https://vbarbarosh.github.io/space-worlds-game/",
   "license": "MIT",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "build": "bin/build",
     "lint": "bin/lint"
   },
-  "dependencies": {
+  "devDependencies": {
     "@vbarbarosh/node-helpers": "^3.78.1",
     "marked": "^18.0.14",
     "playwright": "^1.63.0"

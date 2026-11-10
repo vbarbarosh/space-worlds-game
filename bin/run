@@ -19,6 +19,13 @@ trap 'rm -rf $tempdir; echo -e "$EXIT_MESSAGE"' EXIT
 cd $scriptdir/..
 
 bin/build
-xdg-open build/index.html
+# the page opened with whatever this system opens a file with; where there is no such program, its place is said
+if command -v xdg-open > /dev/null; then
+    xdg-open build/index.html
+elif command -v open > /dev/null; then
+    open build/index.html
+else
+    echo "Open $PWD/build/index.html in a browser"
+fi
 
 EXIT_MESSAGE="${GREEN}bin/run succeeded${RESET}"
