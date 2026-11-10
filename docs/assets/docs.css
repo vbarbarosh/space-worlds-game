@@ -540,8 +540,8 @@ body:has(.content > h1#world-explorer-documentation) .hero {
     .content p.stages, .content h3 + p:not(:has(code, a, strong)):has(> em:last-child) { padding: 2px 14px 12px; }
     .foot-in { padding: 18px 16px 22px; }
 }
+/* the narrowest phones: the Pages label goes; Play stays, the only way to the game from a page */
 @media (max-width: 380px) {
-    .bar-link.play { display: none; }
     .picker-label { display: none; }
 }
 /* short windows (1536 × 348, 1280 × 400): the header scrolls away, the page list keeps its own scroll */

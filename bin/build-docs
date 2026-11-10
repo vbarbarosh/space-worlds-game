@@ -24,6 +24,11 @@ cli(main);
 // play/, its dev page beside it (dev.html)
 function main()
 {
+    // every page links the game in play/: a site without it would publish 25 dead Play links
+    if (!fs.existsSync(game_file)) {
+        console.log(`FAIL no ${path.relative(process.cwd(), game_file)}: run bin/build first, the site carries the game in play/`);
+        process.exit(1);
+    }
     const template = fs.readFileSync(path.join(docs_dir, template_name), 'utf8');
     const pages = pages_order(files_from_dir(docs_dir).filter(v => v.endsWith('.md')).map(page_from_file));
     fs.rmSync(out_dir, {recursive: true, force: true});
@@ -38,10 +43,8 @@ function main()
     }
     // the game's drawing without its anchors layer: the red and blue marks of flames and turrets the game reads
     fs.writeFileSync(path.join(out_dir, 'assets', 'ship.svg'), fs.readFileSync(ship_file, 'utf8').replace(/<g id="anchors">[\s\S]*?<\/g>\n?/, ''));
-    if (fs.existsSync(game_file)) {
-        fs.mkdirSync(path.join(out_dir, 'play'), {recursive: true});
-        fs.copyFileSync(game_file, path.join(out_dir, 'play', 'index.html'));
-    }
+    fs.mkdirSync(path.join(out_dir, 'play'), {recursive: true});
+    fs.copyFileSync(game_file, path.join(out_dir, 'play', 'index.html'));
     if (fs.existsSync(dev_file)) {
         fs.copyFileSync(dev_file, path.join(out_dir, 'play', 'dev.html'));
     }
