@@ -202,6 +202,11 @@ the salvage did after, combat per world, deaths, contracts, flagships, races
 crashes and hull left, a summary per difficulty, and your place at each ring),
 the arcade's worlds, the frame rate with the canvas's pixel ratio, and notes on what stands out.
 
+A log may come from anybody, so the tool takes its words as text: a file or
+an unpacked `.gz` past 16 MB is refused (the game keeps a log under 1.5 MB),
+a control character in a name is printed as `�`, and the charts are drawn
+with the log's words escaped, in a page that runs no script.
+
 In Python:
 
     import json, pandas as pd

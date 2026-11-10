@@ -15,9 +15,14 @@ const usage = `usage: bin/play-log <file.json|file.json.gz> [--charts=dir] [--mo
     frame rate; then notes on what stands out.
 
     --charts=dir also draws the economy, combat and frame rate as PNGs in dir (Chromium, through playwright).
-    --mode keeps one mode's sessions.`;
+    --mode keeps one mode's sessions.
+
+    A log is somebody's file: past 16 MB (packed or unpacked) it is refused, and its words are printed and drawn as
+    text, a control character as \ufffd.`;
 // a balance this many times the priciest thing the game ever bought is salvage with nowhere to go
 const idle_salvage_factor = 3;
+// the game keeps its log under 1.5 MB (play_log_cap); a file or an unpacked text past ten times that is not one
+const log_bytes_max = 16*1024*1024;
 // the charts' light theme: the surface, ink, secondary ink, hairlines; series hues in a fixed order (checked for colour
 // blindness against this surface)
 const chart_theme = {surface: '#E8E6E0', text: '#191A17', muted: '#595B57', line: '#CAC6B8', series: ['#2a78d6', '#eb6834', '#1baf7a', '#eda100']};
@@ -55,25 +60,42 @@ async function main()
         ...report_performance(sessions),
         ...report_notes(runs, sessions),
     ];
-    console.log(lines.join('\n'));
+    console.log(lines.map(plain).join('\n'));
     if (options.charts) {
         await charts_write(options.charts, runs, sessions);
     }
 }
 
-// The log as the game saved it, plain or gzipped; an error that says what is wrong with it
+// The log as the game saved it, plain or gzipped; an error that says what is wrong with it. A log is a file somebody
+// sent: its size is bounded before it is read and unpacked, and its strings are never printed as they are (plain)
 function log_from_file(file)
 {
+    const size = fs.statSync(file).size;
+    if (size > log_bytes_max) {
+        throw new Error(`${file}: ${format_megabytes(size)}, and a play log is under ${format_megabytes(log_bytes_max)}`);
+    }
     let buffer = fs.readFileSync(file);
     if ((buffer[0] === 0x1f) && (buffer[1] === 0x8b)) {
-        buffer = zlib.gunzipSync(buffer);
+        try {
+            buffer = zlib.gunzipSync(buffer, {maxOutputLength: log_bytes_max});
+        }
+        catch (error) {
+            const reason = (error.code === 'ERR_BUFFER_TOO_LARGE') ? `unpacks to more than ${format_megabytes(log_bytes_max)}` : `does not unpack: ${plain(error.message)}`;
+            throw new Error(`${file}: ${reason}`);
+        }
     }
-    const log = JSON.parse(buffer.toString('utf8'));
-    if ((log.format !== 'world-explorer-play-log') || !Array.isArray(log.sessions)) {
-        throw new Error(`${file}: not a World Explorer play log (format "${log.format}")`);
+    let log = null;
+    try {
+        log = JSON.parse(buffer.toString('utf8'));
+    }
+    catch (error) {
+        throw new Error(`${file}: not JSON: ${plain(error.message)}`);
+    }
+    if (!log || (log.format !== 'world-explorer-play-log') || !Array.isArray(log.sessions)) {
+        throw new Error(`${file}: not a World Explorer play log (format "${plain(log?.format)}")`);
     }
     if (log.format_version > 1) {
-        console.log(`warning: format_version ${log.format_version}, this tool knows 1; fields it does not know are skipped`);
+        console.log(`warning: format_version ${plain(log.format_version)}, this tool knows 1; fields it does not know are skipped`);
     }
     return log;
 }
@@ -487,7 +509,8 @@ async function charts_write(dir, runs, sessions)
     ];
     const browser = await chromium.launch();
     try {
-        const page = await browser.newPage({viewport: {width: 960, height: 480}, deviceScaleFactor: 2});
+        // the charts hold a log's own words: they are escaped (escape_xml), and the page runs no script whatever they say
+        const page = await browser.newPage({viewport: {width: 960, height: 480}, deviceScaleFactor: 2, javaScriptEnabled: false});
         for (const [name, svg] of charts) {
             await page.setContent(`<!doctype html><meta charset="utf-8"><body style="margin:0;background:${chart_theme.surface}">${svg}</body>`);
             await page.locator('svg').screenshot({path: path.join(dir, name)});
@@ -526,7 +549,10 @@ function render_legend(items, box)
 {
     let at = box.left;
     const marks = [];
-    for (const [label, color] of items) {
+    // each label within its share of the row, at the 7 px a letter the row is spaced by
+    const letters_max = Math.max(1, Math.floor(((box.right - box.left)/items.length - 34)/7));
+    for (const [text, color] of items) {
+        const label = label_fit(text, letters_max*6, 12);
         marks.push(`<rect x="${at}" y="${box.top - 16}" width="12" height="12" rx="3" fill="${color}"/><text x="${at + 18}" y="${box.top - 6}" fill="${chart_theme.muted}" font-size="12">${escape_xml(label)}</text>`);
         at += 34 + label.length*7;
     }
@@ -574,7 +600,7 @@ function render_income_svg(runs)
     const up = Math.max(1, ...records.map(v => total(v.earned)));
     const down = Math.max(1, ...records.map(v => total(v.spent)));
     const x_max = Math.max(1, (run?.played_s || 60)/60);
-    const subtitle = run ? `${run.mode} ${run.difficulty}, ${run.id}: salvage earned (up) and spent (down) in each record of about a minute` : 'no records';
+    const subtitle = run ? `${label_fit(`${run.mode} ${run.difficulty}, ${run.id}`, 300, 13)}: salvage earned (up) and spent (down) in each record of about a minute` : 'no records';
     return render_frame('Income and spending, minute by minute', subtitle, x_max, -down, up, 'minutes of play', function (x, y, box) {
         const marks = [];
         const width = Math.max(2, Math.min(24, ((box.right - box.left)/Math.max(1, records.length)) - 2));
@@ -616,8 +642,8 @@ function render_combat_svg(sessions)
             const cx = box.left + band*(i + 0.5);
             marks.push(`<rect x="${cx - width/2}" y="${y(v.kills)}" width="${width}" height="${Math.max(1, y(0) - y(v.kills))}" rx="4" fill="${chart_theme.series[0]}"/>`);
             marks.push(`<text x="${cx}" y="${y(v.kills) - 8}" text-anchor="middle" fill="${chart_theme.text}" font-size="12">${v.kills.toFixed(1)}</text>`);
-            marks.push(`<text x="${cx}" y="${box.bottom + 20}" text-anchor="middle" fill="${chart_theme.text}" font-size="11">${escape_xml(v.world)}</text>`);
-            marks.push(`<text x="${cx}" y="${box.bottom + 36}" text-anchor="middle" fill="${chart_theme.muted}" font-size="11">${v.mode} · ${Math.round(v.taken)} dmg</text>`);
+            marks.push(`<text x="${cx}" y="${box.bottom + 20}" text-anchor="middle" fill="${chart_theme.text}" font-size="11">${escape_xml(label_fit(v.world, band - 6, 11))}</text>`);
+            marks.push(`<text x="${cx}" y="${box.bottom + 36}" text-anchor="middle" fill="${chart_theme.muted}" font-size="11">${escape_xml(label_fit(`${v.mode} · ${Math.round(v.taken)} dmg`, band - 6, 11))}</text>`);
         }
         return marks.join('');
     });
@@ -765,7 +791,26 @@ function run_t_end(record)
 
 function escape_xml(text)
 {
-    return String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+// A log's own words as a chart's label, cut to what `width` px hold at `size` px (a letter takes about half of it)
+function label_fit(text, width, size)
+{
+    const max = Math.max(1, Math.floor(width/(size*0.5)));
+    const label = String(text);
+    return (label.length > max) ? `${label.slice(0, max - 1)}…` : label;
+}
+
+// A line fit for a terminal: a control character in it (an escape sequence, a line break) is shown as \ufffd, not obeyed
+function plain(text)
+{
+    return String(text).replace(/[\u0000-\u001f\u007f-\u009f]/g, '\ufffd');
+}
+
+function format_megabytes(bytes)
+{
+    return `${(bytes/1024/1024).toFixed(1)} MB`;
 }
 
 function format_number(v)
