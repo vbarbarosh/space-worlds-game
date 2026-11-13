@@ -147,7 +147,7 @@ function hangar_preview_draw(canvas, preview, dt)
             const m = muzzles[preview.volley % muzzles.length];
             preview.shots.push({x: cx + (mounts[i].x + m.x*c - m.y*s)*k, y: cy + (mounts[i].y + m.x*s + m.y*c)*k, vx: c*520, vy: s*520, life: 0.9, width: Math.max(1.4, m.r)*k, color: loadout[i].color});
         }
-        sfx((weapon.id === 'plasma') ? 'shot' : `enemy_${weapon.id}`);
+        sfx((weapon.id === 'plasma') ? 'shot' : `gun_${weapon.id}`);
     }
     for (const shot of preview.shots) {
         shot.x += shot.vx*dt;

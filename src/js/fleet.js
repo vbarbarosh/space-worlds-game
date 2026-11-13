@@ -392,7 +392,7 @@ function fire_equipped_weapon(mount = null)
         player.gun_fired = player.gun_fired || [];
         player.gun_fired[mount] = clock;
     }
-    sfx((v.id === 'plasma') ? 'shot' : v.missile ? 'missile' : `enemy_${v.id}`);
+    sfx((v.id === 'plasma') ? 'shot' : v.missile ? 'missile' : `gun_${v.id}`);
 }
 
 // A gun's muzzle flash against the cannon's: the slug's the largest, a lance's the smallest, fired ten times a second

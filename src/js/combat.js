@@ -483,7 +483,7 @@ function damage_player(amount, blast = false, cause = 'other', by = null)
     }
     streak_break();
     burst(player.x, player.y, absorbed ? blue : cyan, 26, 210);
-    sfx('hit');
+    sfx((damage > 0) ? 'hit' : 'shield_hit');
     // an arcade card's second wind turns one such hit a world into 30% hull (arcade_cards.js)
     if ((player.hp <= 0) && !arcade_cards_second_wind()) {
         finish(false);

@@ -84,6 +84,7 @@ function schedule_music()
     }
     const now = sound.ctx.currentTime;
     update_audio_scene();
+    sound_moments_watch();
     select_world_music();
     sound.retired_buses = sound.retired_buses.filter(function (v) {
         if (now < v.until) {
@@ -291,15 +292,59 @@ const sfx_new_by_kind = {
     blast_big: sfx_new_blast_big,
     blast_huge: sfx_new_blast_huge,
     impact: sfx_new_impact,
+    // sounds the new set tells apart: your own guns from the raiders', a hit the shield took from one on the hull
+    gun_scatter: sfx_new_gun_scatter,
+    gun_ion: sfx_new_gun_ion,
+    gun_rail: sfx_new_gun_rail,
+    gun_beam: sfx_new_gun_beam,
+    shield_hit: sfx_new_shield_hit,
+    // the moments that had no sound before this set (sound_moments.js)
+    ui_click: sfx_new_ui_click,
+    pause: sfx_new_pause,
+    dock: sfx_new_dock,
+    undock: sfx_new_undock,
+    card_open: sfx_new_card_open,
+    shield_down: sfx_new_shield_down,
+    shield_up: sfx_new_shield_up,
+    hull_low: sfx_new_hull_low,
+    life_lost: sfx_new_life_lost,
+    wave_start: sfx_new_wave_start,
+    overheat: sfx_new_overheat,
+    guns_ready: sfx_new_guns_ready,
+    combo: sfx_new_combo,
+    event_convoy: sfx_new_event_convoy,
+    event_ace: sfx_new_event_ace,
+    event_jammer: sfx_new_event_jammer,
+    event_danger: sfx_new_event_danger,
+    geiger: sfx_new_geiger,
+    pulse_ready: sfx_new_pulse_ready,
+    launch: sfx_new_launch,
+    victory: sfx_new_victory,
 };
-function sfx(kind, volume = 1, position = null, when)
+// The sound that plays for `kind` in the set that is on: one the new set split off another (your own guns from the
+// raiders', `classic` in its file) is that other one in the classic set
+function sfx_kind(kind)
 {
     if (kind === 'enemy_rail') {
-        kind = 'enemy_railgun';
+        return 'enemy_railgun';
     }
+    const take = sfx_new_by_kind[kind];
+    if ((sound_set === 'new') && take) {
+        return kind;
+    }
+    if (take && take.classic) {
+        return take.classic;
+    }
+    // a gun with no sound of its own yet fires with the raiders'
+    return kind.startsWith('gun_') ? sfx_kind(`enemy_${kind.slice(4)}`) : kind;
+}
+
+function sfx(kind, volume = 1, position = null, when)
+{
     if (!sound.ctx || muted || document.hidden) {
         return;
     }
+    kind = sfx_kind(kind);
     let t = (when === undefined) ? sound.ctx.currentTime : when;
     // the new set's take of the sound, when that set plays (sound_voices.js) and has one; a sound only the new set
     // has is silent in the classic one
