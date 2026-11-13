@@ -79,6 +79,7 @@ function create_audio_graph(context)
     sound.room.connect(wet);
     wet.connect(sound.music_trim);
     sound_voices_graph(c);
+    sound_ambience_graph(c);
     sound.cues = {};
     sound.kits = {};
     sound.music_world = -1;

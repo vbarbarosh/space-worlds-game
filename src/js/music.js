@@ -85,6 +85,7 @@ function schedule_music()
     const now = sound.ctx.currentTime;
     update_audio_scene();
     sound_moments_watch();
+    sound_ambience_watch();
     select_world_music();
     sound.retired_buses = sound.retired_buses.filter(function (v) {
         if (now < v.until) {
