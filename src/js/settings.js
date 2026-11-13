@@ -1,5 +1,5 @@
-// Settings, one panel for the menu, pause, the station and the HUD: music, sound, effects, resolution and fullscreen as
-// switches, the volumes under them. Every switch does what its old toolbar button did.
+// Settings, one panel for the menu, pause, the station and the HUD: music, sound, the sound set, effects, resolution
+// and fullscreen as switches, the volumes under them. Every switch does what its old toolbar button did.
 let settings_music_volume = 0.65;
 
 for (const v of document.querySelectorAll('[data-setting] [data-value]')) {
@@ -30,6 +30,9 @@ function settings_set(name, value)
     else if (name === 'resolution') {
         resolution_mode_set(value);
     }
+    else if (name === 'sound_set') {
+        sound_set_choose(value);
+    }
     sync_settings();
     sync_settings_rows();
 }
@@ -42,6 +45,7 @@ function sync_settings_rows()
         sound: muted ? 'off' : 'on',
         effects: full_fx ? 'on' : 'off',
         resolution: resolution.mode,
+        sound_set,
     };
     for (const v of document.querySelectorAll('[data-setting] [data-value]')) {
         const on = now[v.parentElement.dataset.setting] === v.dataset.value;

@@ -347,6 +347,8 @@ function dev_maker_sounds_apply()
         const edit = dev_maker_edit_get(kind);
         if (edit) {
             sfx_by_kind[kind] = dev_maker_effect(edit);
+            // a made sound is heard whichever set plays: the new set's take of it steps aside
+            delete sfx_new_by_kind[kind];
             out.push(kind);
         }
     }

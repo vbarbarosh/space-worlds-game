@@ -261,6 +261,37 @@ const sfx_by_kind = {
     blast_huge: sfx_blast_huge,
     impact: sfx_impact,
 };
+// The new set's take of each sound (src/js/sfx_new/, sound_voices.js); a sound with none here plays the classic one
+const sfx_new_by_kind = {
+    shot: sfx_new_shot,
+    enemy_plasma: sfx_new_enemy_plasma,
+    enemy_scatter: sfx_new_enemy_scatter,
+    enemy_missile: sfx_new_enemy_missile,
+    missile: sfx_new_missile,
+    enemy_ion: sfx_new_enemy_ion,
+    enemy_railgun: sfx_new_enemy_railgun,
+    enemy_beam: sfx_new_enemy_beam,
+    kill: sfx_new_kill,
+    hit: sfx_new_hit,
+    dash: sfx_new_dash,
+    boost: sfx_new_boost,
+    pulse: sfx_new_pulse,
+    portal: sfx_new_portal,
+    mine: sfx_new_mine,
+    pickup: sfx_new_pickup,
+    gravity: sfx_new_gravity,
+    storm: sfx_new_storm,
+    flare: sfx_new_flare,
+    upgrade: sfx_new_upgrade,
+    win: sfx_new_win,
+    countdown: sfx_new_countdown,
+    go: sfx_new_go,
+    ring: sfx_new_ring,
+    blast: sfx_new_blast,
+    blast_big: sfx_new_blast_big,
+    blast_huge: sfx_new_blast_huge,
+    impact: sfx_new_impact,
+};
 function sfx(kind, volume = 1, position = null, when)
 {
     if (kind === 'enemy_rail') {
@@ -269,10 +300,19 @@ function sfx(kind, volume = 1, position = null, when)
     if (!sound.ctx || muted || document.hidden) {
         return;
     }
-    const t = (when === undefined) ? sound.ctx.currentTime : when;
-    const effect = sfx_by_kind[kind];
-    if (t < (sound.cues[kind] || 0)) {
-        return;
+    let t = (when === undefined) ? sound.ctx.currentTime : when;
+    // the new set's take of the sound, when that set plays (sound_voices.js) and has one; a sound only the new set
+    // has is silent in the classic one
+    const fresh = (sound_set === 'new') ? sfx_new_by_kind[kind] : null;
+    const effect = fresh || sfx_by_kind[kind];
+    const free = sound.cues[kind] || 0;
+    if (t < free) {
+        // within its cooldown a sound is dropped; a blast of the new set waits its turn instead (`queue` of them at
+        // most), so a chain is heard blast by blast
+        if (!fresh || !fresh.queue || (free - t > fresh.queue*fresh.limit)) {
+            return;
+        }
+        t = free;
     }
     sound.cues[kind] = t + (effect ? effect.limit : 0.08);
     let pan = 0;
@@ -284,6 +324,10 @@ function sfx(kind, volume = 1, position = null, when)
     const shape = {pan};
     const v = clamp(volume, 0, 1.5);
     const bus = sound.fx_bus;
+    if (fresh) {
+        fresh.voices(sfx_new_kit(kind, fresh, t, v, pan));
+        return;
+    }
     function note(f, d, a, end = null, type = 'sine', delay = 0, cutoff = 2200) {
         return tone(f, d, type, a*v, t + delay, end, cutoff, bus, shape);
     }
@@ -294,6 +338,36 @@ function sfx(kind, volume = 1, position = null, when)
     if (effect) {
         effect.play(note, air, t);
     }
+}
+
+// What a sound of the new set plays with: tone() and noise() take a layer (voice_tone, voice_noise) with `at` its
+// delay and `spread` its place left or right of the sound's own; r() a number between two; turn(n) 0 to n - 1 in
+// turn, call by call; streak how many of this sound came one after another inside its `streak` seconds. Each sound
+// has its own way into the mix, with its share of the room (`room`: a blast rings in it, a stream of shots barely)
+function sfx_new_kit(kind, effect, t, volume, pan)
+{
+    const c = sound.ctx;
+    let state = sound.kits[kind];
+    if (!state) {
+        state = sound.kits[kind] = {turn: 0, streak: 0, until: 0, input: c.createGain(), send: c.createGain()};
+        state.send.gain.value = effect.room ?? 0.5;
+        state.input.connect(sound.fx_bus);
+        state.input.connect(state.send);
+        state.send.connect(sound.fx_room);
+    }
+    state.streak = (effect.streak && (t < state.until)) ? state.streak + 1 : 0;
+    state.until = t + (effect.streak || 0);
+    const gain = volume*(effect.gain || 1);
+    function layer(o) {
+        return {...o, t: t + (o.at || 0), a: o.a*gain, pan: clamp(pan + (o.spread || 0), -1, 1), bus: state.input};
+    }
+    return {
+        streak: state.streak,
+        tone: v => voice_tone(layer(v)),
+        noise: v => voice_noise(layer(v)),
+        r: (a, b) => a + Math.random()*(b - a),
+        turn: v => state.turn++ % v,
+    };
 }
 
 function expedition_base_update_hud()

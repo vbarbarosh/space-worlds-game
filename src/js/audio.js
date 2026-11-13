@@ -16,6 +16,8 @@ const sound = {
     voices: 0,
     peak_voices: 0,
     cues: {},
+    // each sound of the new set: whose turn it is, and its run of calls (sfx_new_kit)
+    kits: {},
     duck_until: 0,
     combat: 0,
     // the driving music now: 0 none, 1 the arcade's, 2 a boss fight's (music_drive_level)
@@ -76,7 +78,9 @@ function create_audio_graph(context)
     wet.gain.value = 0.3;
     sound.room.connect(wet);
     wet.connect(sound.music_trim);
+    sound_voices_graph(c);
     sound.cues = {};
+    sound.kits = {};
     sound.music_world = -1;
     sound.retired_buses = [];
     sound.voices = 0;
