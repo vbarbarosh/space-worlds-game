@@ -11,9 +11,10 @@ const pages = ['index', 'dev', 'agent'];
 const usage = `usage: bin/self-check
 
     The build's own check that what it made is fit to work; bin/build runs it as its last step. One probe a line:
-    every file of src/css, src/html and src/js is named by an include, and by no page twice; each built page is
-    there, holds no include or slot line left unread, and its scripts compile; and, when Playwright's Chromium is at
-    hand, each page opens with no page error and the game's page shows its menu. Exits 1 when a probe fails.`;
+    every file of src/css, src/html and src/js is named by an include, and by no page twice; no function is declared
+    at the top of two scripts; each built page is there, holds no include or slot line left unread, and its scripts
+    compile; and, when Playwright's Chromium is at hand, each page opens with no page error and the game's page
+    shows its menu. Exits 1 when a probe fails.`;
 
 cli(main);
 
@@ -24,7 +25,7 @@ async function main()
         process.exit(2);
     }
     const failures = [];
-    for (const probe of [probe_includes, probe_pages, probe_open]) {
+    for (const probe of [probe_includes, probe_names, probe_pages, probe_open]) {
         for (const line of await probe()) {
             console.log(`${line.ok ? 'ok  ' : 'FAIL'} [${line.name}] ${line.text}`);
             if (!line.ok) {
@@ -87,6 +88,24 @@ function probe_includes()
     const orphans = files.filter(v => !named.has(v));
     out.push({name: 'files of src', ok: !orphans.length, text: orphans.length ? `named by no include: ${orphans.join(', ')}` : `${files.length} files of css, html and js, each named by an include`});
     return out;
+}
+
+// No function is declared at the top of two scripts: the scripts share one scope, where the later declaration takes
+// the earlier one's place without a word, and every call of the first then runs the second
+function probe_names()
+{
+    const seen = new Map();
+    const twice = [];
+    for (const file of files_under('js')) {
+        const text = fs.readFileSync(path.join(src_dir, file), 'utf8');
+        for (const v of text.matchAll(/^(?:async )?function\*? ?([A-Za-z_$][\w$]*) ?\(/gm)) {
+            if (seen.has(v[1])) {
+                twice.push(`${v[1]} (${seen.get(v[1])} and ${file})`);
+            }
+            seen.set(v[1], file);
+        }
+    }
+    return [{name: 'functions of src/js', ok: !twice.length, text: twice.length ? `declared in two scripts: ${twice.join(', ')}` : `${seen.size} functions, none declared in two scripts`}];
 }
 
 // Each page is there, with nothing of the template left unread and scripts that compile
