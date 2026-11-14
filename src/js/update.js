@@ -63,11 +63,6 @@ function base_update_hud()
     set_hidden(convoy, !formation_candidates().some(v => distance(v, player) < 1500));
     hud_text(convoy.querySelector('b'), formation.leader ? 'Break off' : 'Formation');
     convoy.classList.toggle('on', !!formation.leader);
-    const drone_button = document.getElementById('quick_drones');
-    set_hidden(drone_button, arcade.active);
-    hud_text(drone_button.querySelector('b'), drones_out ? `${drones.length}/${drones_owned()}` : drones_owned());
-    drone_button.classList.toggle('on', drones_out);
-    drone_button.disabled = (state !== 'playing') || (!drones_out && !drones_owned());
     hud_text(document.getElementById('quick_magnet').querySelector('b'), `Magnet ${upgrades.magnet}/7`);
     document.getElementById('quick_magnet').title = `Magnet level ${upgrades.magnet} of 7: ${format_reading(magnetic_radius())} px reach. Always on; upgrade it at a station.`;
     hud_text(el.map_coordinates, `X ${Math.round(player.x)} / Y ${Math.round(player.y)} · ${world.w} × ${world.h}`);
@@ -407,7 +402,7 @@ function update(dt, frame_dt = dt)
         v.flash = Math.max(0, v.flash - dt);
         const prey = (v.escort_raider && escort) ? escort : (v.robot_raider && survey_robot) ? survey_robot : (race_prey(v) || guard_prey(v));
         // a race on: the raiders turn away from its course and leave (race_keep_off)
-        const waypoint = (race.course && race_keep_off(v, prey)) || prey || (drones.length && drone_prey(v)) || enemy_waypoint(v);
+        const waypoint = (race.course && race_keep_off(v, prey)) || prey || enemy_waypoint(v);
         const a = Math.atan2(waypoint.y - v.y, waypoint.x - v.x);
         const d = distance(v, player);
         let heading = a;
