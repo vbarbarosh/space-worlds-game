@@ -452,7 +452,7 @@ function render_explosions()
     }
     render_wrecks();
     render_shock_waves();
-    render_hull_breaks();
+    render_hull_breaks(false);
     for (let i = 0; i < explosions.length; ++i) {
         const explosion = explosions[i];
         if ((explosion.t >= 0) && in_view(explosion, explosion.size*3)) {

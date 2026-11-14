@@ -423,6 +423,11 @@ function drifting_debris_hit(piece, damage)
         return;
     }
     explode(piece.x, piece.y, piece.r*1.5, (piece.kind === 'wreck') ? '#9fb6c8' : '#c9924e');
+    // its drawing in pieces, the one render_drifting_debris drew it from
+    const art = world_art(`${(piece.kind === 'asteroid') ? 'debris-rock' : 'debris-wreck'}-${(drifting_debris.indexOf(piece) % 2) + 1}`);
+    if (art) {
+        rock_break(art, null, piece.r*2.6, piece);
+    }
     sfx('mine', 1, piece);
     drop_pickup(piece.x, piece.y, 'artifact', 2);
     drifting_debris = drifting_debris.filter(v => v !== piece);

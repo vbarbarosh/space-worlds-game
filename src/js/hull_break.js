@@ -2,8 +2,12 @@
 // your ship. Each piece is the ship's drawing cut along jagged lines through its middle, burnt dark, its cut edges
 // glowing and cooling as it tumbles away and fades. Only with full effects, as the wrecks; the newest 24 are kept.
 // Their randomness is the explosions' own (explosion_random).
+// A rock that breaks does the same with its own drawing (rock_break), cold: darkened a little, no edge glowing. Its
+// pieces are counted apart, eight in flight at most, so a field that goes up in a chain takes no hull's pieces away
+// and adds little to the heaviest frames.
 let hull_pieces = [];
 const hull_piece_limit = 24;
+const rock_piece_limit = 8;
 
 // A raster with `color` laid over its drawn pixels, `amount` of the way (a burnt hull, a dark far rock, a hull lit by
 // a blast): made once per raster, colour and amount, and dropped with the rest past 96
@@ -57,10 +61,29 @@ function hull_break_player()
     hull_break_add(art.name, null, art.length, player.x, player.y, player.angle, {x: player.vx*0.3, y: player.vy*0.3}, 3, 0.3);
 }
 
+// A rock broken (base_damage_ore) or a drifting rock or wreck shot apart (drifting_debris_hit): three or four pieces
+// of the drawing `name` it was drawn from, `size` across, where `rock` was and going its way. With no room left for
+// four (a chain of rocks), it breaks without: the pieces in flight are not cut short for it.
+function rock_break(name, color, size, rock)
+{
+    if (!full_fx) {
+        return;
+    }
+    let flying = 0;
+    for (const v of hull_pieces) {
+        flying += v.cold ? 1 : 0;
+    }
+    if (flying + 4 > rock_piece_limit) {
+        return;
+    }
+    const count = 3 + Math.floor(explosion_random()*2);
+    hull_break_add(name, color, (size*sprite_span)/256, rock.x, rock.y, rock.angle, {x: (rock.vx || 0)*0.5, y: (rock.vy || 0)*0.5}, count, 0, true);
+}
+
 // `count` pieces of the drawing `name` (its accent `color`) drawn `length` long at x, y turned to angle, flying apart
 // from `delay` seconds on, drifting with `drift` (units a second). Each piece is its outline and its cut edges; a frame
-// draws it from the ship's raster under a clip (hull_piece_cut).
-function hull_break_add(name, color, length, x, y, angle, drift, count, delay)
+// draws it from the ship's raster under a clip (hull_piece_cut). cold: a rock's pieces, with no glow.
+function hull_break_add(name, color, length, x, y, angle, drift, count, delay, cold = false)
 {
     const s = sprite(name);
     if (!full_fx || !s) {
@@ -103,7 +126,7 @@ function hull_break_add(name, color, length, x, y, angle, drift, count, delay)
         for (let k = two.line.length - 1; k > 0; --k) {
             points.push(two.line[k]);
         }
-        const piece = hull_piece_cut(raster, size, points, [one.line, two.line]);
+        const piece = hull_piece_cut(raster, size, points, [one.line, two.line], cold);
         // away from the middle along the piece's own bisector, in the world's frame
         const heading = angle + (a1 + a2)/2;
         const speed = length*(big ? 0.18 + explosion_random()*0.15 : 0.9 + explosion_random()*0.9);
@@ -117,18 +140,25 @@ function hull_break_add(name, color, length, x, y, angle, drift, count, delay)
             spin: (explosion_random() - 0.5)*(big ? 0.5 : 4),
             t: -delay,
             duration: big ? 3.2 : 1.3 + explosion_random()*0.5,
+            cold,
         });
     }
-    if (hull_pieces.length > hull_piece_limit) {
-        hull_pieces.splice(0, hull_pieces.length - hull_piece_limit);
+    // the oldest hull pieces go past their limit; the rocks' are held to theirs before they are made (rock_break)
+    let over = -hull_piece_limit;
+    for (const v of hull_pieces) {
+        over += v.cold ? 0 : 1;
+    }
+    if (over > 0) {
+        hull_pieces = hull_pieces.filter(v => v.cold || (over-- <= 0));
     }
 }
 
 // The piece of the drawing inside `points` and its cut `edges`, drawn each frame from two tints of the ship's raster
 // made once per kind (burnt dark, and glowing hot) under clips: no canvas of its own. A canvas a piece, made at each
 // kill and drawn once or twice, made every frame with pieces in view several times slower to draw on a software canvas
-// (bin/perf fight-w3-z100: frame p95 12 to 150 ms; on the GPU path a texture per canvas)
-function hull_piece_cut(raster, size, points, edges)
+// (bin/perf fight-w3-z100: frame p95 12 to 150 ms; on the GPU path a texture per canvas). A cold piece (a rock's) is
+// darkened less and has no hot tint.
+function hull_piece_cut(raster, size, points, edges, cold)
 {
     const half = size/2;
     let left = half;
@@ -158,8 +188,8 @@ function hull_piece_cut(raster, size, points, edges)
         return [...there, ...back];
     });
     return {
-        burnt: sprite_tint(hull_piece_raster(raster), '#140e10', 0.45),
-        hot: sprite_tint(hull_piece_raster(raster), '#ffc070', 1),
+        burnt: sprite_tint(hull_piece_raster(raster), '#140e10', cold ? 0.25 : 0.45),
+        hot: cold ? null : sprite_tint(hull_piece_raster(raster), '#ffc070', 1),
         size,
         points,
         bands,
@@ -210,15 +240,17 @@ function update_hull_breaks(dt)
     hull_pieces = hull_pieces.filter(v => v.t < v.duration);
 }
 
-// Drawn in world units, under the blasts (render_explosions), so the fireball of the kill burns over its pieces
-function render_hull_breaks()
+// Drawn in world units, under the blasts (render_explosions), so the fireball of the kill burns over its pieces. The
+// rocks' pieces (cold) are drawn apart, with the rocks (base_render_navigation_objects): under every hull, shot and
+// pickup, so they hide nothing of the fight.
+function render_hull_breaks(cold)
 {
     if (!hull_pieces.length) {
         return;
     }
     for (let i = 0; i < hull_pieces.length; ++i) {
         const v = hull_pieces[i];
-        if (v.t < 0) {
+        if ((v.t < 0) || (v.cold !== cold)) {
             continue;
         }
         // drag: the pieces slow as they go, a second and a half to come almost to rest
@@ -238,7 +270,7 @@ function render_hull_breaks()
         hull_piece_path(v.points);
         ctx.clip();
         ctx.drawImage(v.burnt, -v.size/2, -v.size/2, v.size, v.size);
-        if (heat > 0) {
+        if (v.hot && (heat > 0)) {
             // the cut edges glow hot on the hull's own pixels and cool out
             ctx.beginPath();
             for (const band of v.bands) {

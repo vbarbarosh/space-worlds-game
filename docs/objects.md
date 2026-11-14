@@ -82,6 +82,12 @@ ships. "Modes" is arcade, campaign or both.
 - Solid. In the arcade your shots damage them; in the campaign your shots stop
   on them without damage (see the open question in
   [principles.md](principles.md)). A bar shows once a rock is below full hp.
+- Broken, a rock flies apart in three or four pieces of its own drawing, which
+  tumble away and fade in under two seconds (Effects on; eight pieces in
+  flight at most, so in a chain the first rocks' pieces fly and the rest
+  break without). The pieces are not solid, and they are drawn with the
+  rocks, under every hull, shot and pickup. Where: `rock_break` in
+  `src/js/hull_break.js`.
 - Both modes, every world. Where: `base_generate_map` in `src/js/map.js`;
   `src/js/deposits.js` (the reserve), `src/js/mining.js`, `src/js/drones.js`;
   `resolve_solid_ore` in `src/js/flight.js`.
@@ -105,6 +111,8 @@ ships. "Modes" is arcade, campaign or both.
   the turret shoots one drifting at you when no raider is near. A broken one
   leaves a little salvage (2).
 - Solid for you, not for raiders or their shots. Damageable, no bar.
+- Shot apart, one flies apart in pieces of its own drawing, as an ore rock
+  does.
 - Both modes, every world; 64 placed per world round the station, gates,
   beacons and fields. Where: `generate_drifting_debris`,
   `drifting_debris_hit` in `src/js/expedition.js`.

@@ -496,6 +496,23 @@ function render_map()
     ctx.restore();
 }
 
+// The drawing a rock is drawn from, one of the world's asteroids by the rock's turn; null where the world has none
+function ore_art(v)
+{
+    const variant = Math.abs(Math.floor(v.angle*11)) % 7;
+    return world_art(v.resource ? `asteroid-rich-${(variant % 3) + 1}` : `asteroid-${(variant % 4) + 1}`);
+}
+
+// A rock broken (base_damage_ore): its drawing in pieces (rock_break). A cliff falls and a brood nest bursts their own
+// way.
+function ore_break(v)
+{
+    const art = ((v.type === 'cliff') || (v.type === 'brood_nest')) ? null : ore_art(v);
+    if (art) {
+        rock_break(art, v.resource ? ore_color(v) : null, v.r*2.5, v);
+    }
+}
+
 function render_world_ore(v)
 {
     // a cliff has its own drawing (render_cliffs), and so has a brood nest (brood_nests_render)
@@ -504,7 +521,7 @@ function render_world_ore(v)
     }
     const variant = Math.abs(Math.floor(v.angle*11)) % 7;
     // The designer's asteroids: a rich one shows veins of the world's resource in its colour, and flashes when hit
-    const art = world_art(v.resource ? `asteroid-rich-${(variant % 3) + 1}` : `asteroid-${(variant % 4) + 1}`);
+    const art = ore_art(v);
     if (art && sprite_draw_still(art, v.resource ? ore_color(v) : null, v.r*2.5, v.x, v.y, v.angle)) {
         if (v.flash > 0) {
             ctx.save();

@@ -11,6 +11,7 @@ function base_damage_ore(v, amount)
     burst(v.x, v.y, gold, 25, 150);
     ring(v.x, v.y, gold, v.r*2, 0.4);
     explode(v.x, v.y, v.r*1.5, '#c9924e');
+    ore_break(v);
     // in the arcade it blows up: its blast breaks the rocks packed close round it (rocks.js)
     rock_blow(v);
     sfx('mine', 1, v);
@@ -46,6 +47,7 @@ function base_render_navigation_objects()
     for (const ore_node of ore_nodes) {
         render_world_ore(ore_node);
     }
+    render_hull_breaks(true);
     render_cliffs();
     brood_nests_render();
     render_ore_scanner();
