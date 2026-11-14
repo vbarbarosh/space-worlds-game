@@ -112,7 +112,8 @@ Three modes ([docs/modes.md](docs/modes.md) has each in detail):
                      files with their peak and mean levels (ffmpeg), in
                      data/sound/<label>/; --page records a build kept from
                      before a change, for before and after; --set=new or
-                     classic plays that sound set
+                     classic plays that sound set, --music-set=new or
+                     classic that music set
     bin/sound-pack   generate the sound brief as WAV, MP3 and Ogg assets:
                      every effect, new explosion takes, full world music
                      loops, flight stems and listening demos; --label=name
