@@ -91,20 +91,32 @@ shows a health bar (its armour or energy, and how much is left as it is hit).
     of the screen instead (`#bossbar`). The Leviathan of the lure mission is
     the one hull guns cannot hurt (`damage_enemy` in `src/js/operations.js`);
     only a black hole's core takes it.
-  - **Ore rocks:** solid in both modes. In the arcade your shots break them
-    (`damage_ore`) and a broken rock drops salvage. In the campaign your shots
-    stop on them and do no damage: rocks are the drones' work, and a drone
-    takes units from a reserve (`ore_chip` in `src/js/deposits.js`), not from
-    the rock's hp. In Dustfall and Obsidian (world rule `solid`) raiders' shots
-    take hp off a rock (`block_hostile_ore` in `src/js/flight.js`). The bar
-    (`ore_hp_bar` in `src/js/surfaces.js`) shows the rock's hp once it is below
-    full, so in the campaign it shows only after raider fire; what a rock still
-    holds shows as the field's label (`field_reserves_text`).
+  - **Ore rocks:** solid in both modes, and your guns mine them in both: your
+    shots, your missiles and the pulse all land on a rock through one door
+    (`damage_ore`). In the arcade a hit takes the rock's hp, and a broken rock
+    drops salvage. In the campaign a hit cuts it (`ore_cut` in
+    `src/js/deposits.js`): a rock holds a reserve of units, every 250 of
+    damage frees one, and each unit goes into the hold at once and counts
+    toward a mining stage; with the hold full the rock is still cut and
+    nothing is loaded. A rock has one bar (`ore_hp_bar` in
+    `src/js/surfaces.js`), shown once it is below full: what is left of the
+    rock. In the campaign that is the share of its reserve left, and the rock
+    breaks when the reserve is out. In Dustfall and Obsidian (world rule
+    `solid`) raiders' shots take the same bar down (`block_hostile_ore` in
+    `src/js/flight.js`), and the ore goes with it. What a field still holds
+    shows as its label (`field_reserves_text`).
+  - **When the guns take a rock:** their own aim turns to a rock only with no
+    raider within 600 m, so a fight is never spent on rocks. In the arcade
+    that is any rock within 650 m. In the campaign it needs a reason besides:
+    the contract you follow is at a mining stage in this world, or the
+    guide's marker stands on a mining field (a click on one in the map), or
+    you point at the rock, which stays the guns' while the pointer rests on
+    it (`mining_aim` and `ore_pointed` in `src/js/mining.js`). In the Races
+    mode the rocks stay whole.
   - **Obsidian's magnetic spires:** solid, and nothing damages them: every
-    shot stops on one and does it no harm, as your shots on the campaign's
-    rocks do none, so a spire has no bar. It is the world's rock, the cover
-    the world gives both sides; a spire shot down would leave the world
-    without its trick (`src/js/obsidian_spires.js`).
+    shot stops on one and does it no harm, so a spire has no bar. It is the
+    world's rock, the cover the world gives both sides; a spire shot down
+    would leave the world without its trick (`src/js/obsidian_spires.js`).
   - **Dustfall's cliffs** (arcade): solid; your shots, the pulse and your
     missiles wear one down to its crack (a quarter left: primed), and the
     crack gives only to the guns aimed at it, so a cliff falls when you mean
@@ -139,11 +151,9 @@ shows a health bar (its armour or energy, and how much is left as it is hit).
     them, as over every friendly hull; a shot you aim with the pointer, or
     any shot once the wing fights you, hits them: they are the world's, not
     yours, and the outlaw's way goes through them (`src/js/guards.js`).
-- Open question: should ore rocks be shot apart in the campaign as they are
-  in the arcade, and if a rock both holds ore and can break, does it show two
-  bars (hull and reserve) or one? Not decided yet.
 - Where it lives: `src/js/update.js` (your shots against raiders, rocks and
-  drifting debris), `src/js/surfaces.js` (raiders' and rocks' bars),
+  drifting debris), `src/js/deposits.js` (a campaign rock's reserve and its
+  cutting), `src/js/surfaces.js` (raiders' and rocks' bars),
   `src/js/structures.js`, `src/js/transports.js`, `src/js/survey.js` (their
   bars and damage), `update_escort` in `src/js/operations.js`.
 
