@@ -328,7 +328,7 @@ function juggernaut_fly(dt)
             s.t = juggernaut_sign;
             s.lane = to;
             ring(ship.x, ship.y, juggernaut_colors.glow, 70, 0.4);
-            sfx('boost', 1, ship);
+            sfx('juggernaut_charge', 1, ship);
         }
         return;
     }
@@ -379,7 +379,7 @@ function juggernaut_stunned(rock)
     explode((ship.x + rock.x)/2, (ship.y + rock.y)/2, 50, '#e4c98a');
     burst((ship.x + rock.x)/2, (ship.y + rock.y)/2, '#e4c98a', 26, 280);
     label(ship.x, ship.y - ship.r*3.3, 'STUNNED', gold);
-    sfx('impact', 1, ship);
+    sfx('juggernaut_stun', 1, ship);
 }
 
 // Its plating answers the shots it took since the last frame: sparks off its rim on your side, and now and then, in
@@ -403,7 +403,7 @@ function juggernaut_answer()
         s.word_at = time;
         label(ship.x, ship.y - ship.r*3.3, 'PLATING HOLDS', juggernaut_colors.light);
         // the kind a shot's hit on a raider plays (update); 'hit' is your own hull's
-        sfx('impact', 0.5, ship);
+        sfx('juggernaut_plate', 1, ship);
     }
 }
 
@@ -437,7 +437,7 @@ function juggernaut_down()
     burst(ship.x, ship.y, juggernaut_colors.light, 50, 360);
     shake = Math.max(shake, 24);
     hit_stop_start(0.1);
-    sfx('blast_big', 1, ship);
+    sfx('juggernaut_buried', 1, ship);
     for (let i = 0; i < juggernaut_salvage; ++i) {
         drop_pickup(ship.x + rand(-50, 50), ship.y + rand(-50, 50), 'artifact', 4 + arcade_level()*2);
     }

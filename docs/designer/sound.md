@@ -328,6 +328,7 @@ part of the game calls for these. In the classic set they stay silent.
 | `wave_clear` | a wave cleared, its breather begun |
 | `nest_hatch`, `nest_burst` | Verdant's nests in the arcade (`src/js/arcade_nests.js`): a raider hatching from one, and a nest burnt; the nests' hunters come with `event_danger` |
 | `cargo_loose` | Haven's haulers in the arcade (`src/js/arcade_haulers.js`): a container breaking off a hauler's string and bursting open (a recording; in the classic set a missile's blast); the hauler comes in with `event_danger`, leaves through its gate with `portal`, and all fifteen saved ring `upgrade` |
+| `juggernaut_charge`, `juggernaut_stun`, `juggernaut_plate`, `juggernaut_buried` | Dustfall's juggernauts in the arcade (`src/js/arcade_juggernauts.js`): its drive winding up before a charge; the charge ending in a rock; a shot its plating shrugs off; a cliff come down on it (recordings; the classic set plays `boost`, `hit`, `impact` and `blast_big`). It arrives with `event_danger`, and five buried ring `upgrade` |
 | `overheat`, `guns_ready` | your guns locked by heat, and free again |
 | `combo` | the combo one higher, a step up the scale with each |
 | `graze`, `streak_lost` | a raider's shot that just missed you (`src/js/arcade_streak.js`), climbing through a run of them; a streak long enough for the game to call out, broken |
