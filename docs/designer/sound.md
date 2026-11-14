@@ -221,7 +221,9 @@ from `src/sounds/`, played by `voice_sample`, and each has several takes
 (`src/js/sound_takes.js`): six shots, five blasts, six pickups. One take of
 each plays. In flight 7, 8 and 9 step through the takes of the shots, the
 blasts and the pickup; the game says which one plays and plays it, and the
-pick is kept in that browser. The pick a new browser starts with is `pick` in
+pick is kept in that browser. Settings has a button for each of the three
+(Shot sound, Blast sound, Pickup sound) that does what its key does, and
+the pause's list of keys names them. The pick a new browser starts with is `pick` in
 `sound_takes`. A fight's mix is built on them: your own shot short and quiet
 (-50 dB A-weighted, it fires five times a second and more), a hit on a raider
 next to nothing, a raider's end the loud deep thing (-26.5 dB, its peak held

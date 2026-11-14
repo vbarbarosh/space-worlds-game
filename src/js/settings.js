@@ -56,6 +56,7 @@ function sync_settings_rows()
         v.classList.toggle('is-active', on);
         v.setAttribute('aria-pressed', String(on));
     }
+    sound_takes_sync();
     document.querySelector('#settings_fullscreen span').textContent = document.fullscreenElement ? 'Leave' : 'Enter';
 }
 

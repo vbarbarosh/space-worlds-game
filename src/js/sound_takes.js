@@ -1,7 +1,8 @@
 // The sounds picked by ear: the shots, the blasts and the pickup of the new set are recordings (src/sounds/), each in
 // several takes, one of which plays. In flight 7, 8 and 9 step through the takes of the shots, the blasts and the
 // pickup, the game says which one plays and plays it, and the pick is kept in this browser, so the takes are judged
-// in a fight and not on a page. The pick of each family in `sound_takes` is the one a new browser starts with.
+// in a fight and not on a page; Settings has a button for each family that does what its key does. The pick of each
+// family in `sound_takes` is the one a new browser starts with.
 //
 // A fight's mix is built on them: your own shot short and quiet (it fires five times a second and more), a hit on a
 // raider next to nothing, a raider's end the loud deep thing the shots were fired for.
@@ -215,7 +216,46 @@ function sound_take_pickup(k)
     k.sample({name: take.file, a: 0.4*sound_take_level('pickup', 'pickup'), rate: Math.pow(2, steps[Math.min(k.streak, steps.length - 1)]/12)});
 }
 
-// 7, 8, 9 in flight or at a pause: the next take of the shots, the blasts, the pickup; said on the screen and played
+// The next take of `family` plays from now: kept, played once so it is heard, and its button says which
+function sound_take_step(family)
+{
+    const v = sound_takes[family];
+    const letters = Object.keys(v.takes);
+    const next = letters[(letters.indexOf(sound_take(family)) + 1) % letters.length];
+    sound_take_choose(family, next);
+    sound_takes_sync();
+    if (sound.ctx) {
+        delete sound.cues[v.hear];
+        sfx(v.hear);
+    }
+    return next;
+}
+
+// Settings' three buttons (Shot sound, Blast sound, Pickup sound) say the take that plays; they are there while the
+// new sound set plays, the only one with takes
+function sound_takes_sync()
+{
+    for (const row of document.querySelectorAll('[data-take-row]')) {
+        row.classList.toggle('hidden', sound_set !== 'new');
+    }
+    for (const button of document.querySelectorAll('[data-take]')) {
+        const v = sound_takes[button.dataset.take];
+        const letters = Object.keys(v.takes);
+        const letter = sound_take(button.dataset.take);
+        button.firstElementChild.textContent = `${letter.toUpperCase()} of ${letters.length}`;
+        button.title = `${v.label} sound ${letter.toUpperCase()}: ${v.takes[letter].name}. Click for the next one`;
+    }
+}
+
+for (const button of document.querySelectorAll('[data-take]')) {
+    button.addEventListener('click', function () {
+        sound_take_step(button.dataset.take);
+    });
+}
+sound_takes_sync();
+
+// 7, 8, 9 in flight or at a pause: the next take of the shots, the blasts, the pickup, as Settings' buttons give it;
+// said on the screen and played
 addEventListener('keydown', function (event) {
     if (event.repeat || event.ctrlKey || event.metaKey || event.altKey || (event.target instanceof HTMLInputElement) || !['playing', 'paused'].includes(state)) {
         return;
@@ -226,12 +266,7 @@ addEventListener('keydown', function (event) {
             continue;
         }
         const letters = Object.keys(v.takes);
-        const next = letters[(letters.indexOf(sound_take(family)) + 1) % letters.length];
-        sound_take_choose(family, next);
+        const next = sound_take_step(family);
         show_toast(`${v.label} sound ${next.toUpperCase()}`, `${v.takes[next].name} · ${letters.indexOf(next) + 1} of ${letters.length}`, 2.5, 'info');
-        if (sound.ctx) {
-            delete sound.cues[v.hear];
-            sfx(v.hear);
-        }
     }
 });

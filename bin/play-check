@@ -248,7 +248,7 @@ const cases = [
     },
     {
         name: 'sound-sets',
-        about: 'the sound set and the music set: each kept across a load, nonsense read as new, a sound only the new set has silent in the classic',
+        about: 'the sound set, the music set and a take picked in Settings: each kept across a load, nonsense read as new, a sound only the new set has silent in the classic',
         page: 'index',
         storage: {pulse_drift_sound_set: 'classic', pulse_drift_music_set: 'zzz'},
         run: async function ({page, t, open}) {
@@ -278,10 +278,18 @@ const cases = [
             if ((second.sound !== 'new') || (second.music !== 'classic') || (second.gun !== 'gun_ion') || (second.shield !== 'shield_hit')) {
                 out.push(`after Settings: the sound set ${second.sound}, the music set ${second.music}, your ion gun ${second.gun}, a hit on the shield ${second.shield}`);
             }
+            // Settings' button for a family of takes does what its key does: the next take, said on the button, kept
+            const take = await t('(function () { const button = document.querySelector(\'[data-take="blast"]\'); const before = sound_take(\'blast\'); button.click(); return {before, after: sound_take(\'blast\'), text: button.textContent, shown: !button.parentElement.classList.contains(\'hidden\')}; })()');
+            if ((take.before === take.after) || !take.text.startsWith(`${take.after.toUpperCase()} of `) || !take.shown) {
+                out.push(`Settings' Blast sound button: the take ${take.before} then ${take.after}, the button says "${take.text}", shown ${take.shown}`);
+            }
             await open('index');
-            const third = await t(read);
+            const third = await t(`({...${read}, take: sound_take('blast')})`);
             if ((third.sound !== 'new') || (third.music !== 'classic')) {
                 out.push(`after a load of the page: the sound set ${third.sound}, the music set ${third.music} (new and classic)`);
+            }
+            if (third.take !== take.after) {
+                out.push(`after a load of the page: the blast's take ${third.take} (${take.after}, the one picked in Settings)`);
             }
             return out;
         },
