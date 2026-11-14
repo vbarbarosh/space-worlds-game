@@ -51,7 +51,6 @@ function base_render_navigation_objects()
     render_cliffs();
     brood_nests_render();
     render_ore_scanner();
-    render_drones();
     for (const portal of portals) {
         if (!in_view(portal, 120)) {
             continue;
