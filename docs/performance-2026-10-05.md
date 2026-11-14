@@ -388,9 +388,13 @@ pixels at the cap of ×1.7. The canvas's pixel ratio now follows the frames
   stays.
 - **Up a step** when the last 5 s kept up, no sooner than 10 s after a step
   down: the mean frame as above at the screen's refresh (the lowest median of
-  a 2 s window seen, ×1.1) and at most 14 ms on a screen over 72 Hz, never
-  over 18.5 ms. A 60 Hz screen never shows a frame under 16.7 ms, so it is
-  tried: if the higher ratio falls behind again it steps back down.
+  a 2 s window seen lately, ×1.1) and at most 14 ms on a screen over 72 Hz,
+  never over 18.5 ms. A 60 Hz screen never shows a frame under 16.7 ms, so it
+  is tried: if the higher ratio falls behind again it steps back down. The
+  lowest median is let go by 1% a check (2026-11-10), so it follows the
+  window to a slower screen within a minute; kept for the page's life, the
+  6.9 ms of a 144 Hz screen left 14 ms as the line, which no 60 Hz frame
+  meets, and the ratio never came back.
 - **No see-saw.** A ratio that fell behind is not tried again for 3 minutes,
   then 6, 12, up to 24. A new run forgets it all, and so does a new screen
   ratio; a new world only waits a second before measuring (until 2026-11-02

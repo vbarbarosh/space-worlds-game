@@ -22,11 +22,13 @@ const resolution_stall_ms = 250;
 // fps) a run at 46 fps held, its trimmed mean just under the line, the top of the keeping-up band is the line instead
 const resolution_behind_ms = 18.5;
 const resolution_work_share = 0.5;
-// Keeping up: as fast as the screen refreshes (the fastest frames seen, a window's median), and on a screen over 72 Hz
-// under 14 ms
+// Keeping up: as fast as the screen refreshes (the fastest frames seen lately, a window's median), and on a screen over
+// 72 Hz under 14 ms. The fastest seen is let go by 1% a check, so a faster screen the window has left (or a refresh the
+// system halved) is forgotten within a minute, and a frame of the slower one counts as keeping up again
 const resolution_up_ms_min = 14;
 const resolution_up_ms_max = 18.5;
 const resolution_refresh_slack = 1.1;
+const resolution_refresh_fade = 1.01;
 // at the lowest ratio still behind, and no faster by a tenth than where the steps began: the pixels are not what is
 // slow (a browser holding the page to 30 fps on battery, a 30 Hz screen), so the ratio goes back to where the steps
 // began and stays. The steps are judged by the scene they are made in: a ratio that held (the last 5 s not behind)
@@ -67,7 +69,7 @@ const resolution = {
     descent: null,
     futile: false,
     world: -1,
-    // the fastest frames seen (the lowest median of a window): the screen's refresh, as far as it shows
+    // the fastest frames seen lately (the lowest median of a window): the screen's refresh, as far as it shows
     refresh_ms: Infinity,
 };
 try {
@@ -179,7 +181,7 @@ function resolution_check(t0)
     if (!down) {
         return;
     }
-    resolution.refresh_ms = Math.min(resolution.refresh_ms, down.median_ms);
+    resolution.refresh_ms = Math.min(resolution.refresh_ms*resolution_refresh_fade, down.median_ms);
     const level = resolution.level;
     const bottom = resolution.ladder.length - 1;
     if ((down.frame_ms > resolution_behind_ms) && (down.work_ms < down.frame_ms*resolution_work_share)) {
