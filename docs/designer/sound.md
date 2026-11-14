@@ -249,6 +249,12 @@ theirs), rendered offline through the game's whole mix. The sounds only the
 new set has are set against the same ladder. Nobody has yet judged them by
 ear in a fight: a level here is a starting point.
 
+**Each ship's engine.** The engine's two tones follow the ship in the new
+set: the Scout 62 and 220 Hz as in the classic set, the Interceptor 78 and
+277, the Courier 58 and 174, the Miner 46 and 138, the Gunship 52 and 156,
+the Cruiser 41 and 123; the lighter the ship, the higher its hum. Its level
+and the way it follows thrust are the classic set's.
+
 ### Sounds the new set tells apart
 
 | Sound | In the classic set | When |

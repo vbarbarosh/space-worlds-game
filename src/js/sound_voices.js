@@ -7,6 +7,16 @@ let sound_set = 'new';
 const sound_set_key = 'pulse_drift_sound_set';
 // No more voices than this at once: a layer marked `extra` is left out over it
 const sound_voice_limit = 96;
+// The engine's two tones (Hz) by ship in the new set, so a ship is known by its hum: the lighter the ship the higher;
+// the classic set hums as the Scout does for every ship
+const sound_engines = {
+    scout: [62, 220],
+    interceptor: [78, 277],
+    courier: [58, 174],
+    miner: [46, 138],
+    gunship: [52, 156],
+    cruiser: [41, 123],
+};
 
 try {
     if (localStorage.getItem(sound_set_key) === 'classic') {
@@ -28,6 +38,12 @@ function sound_set_choose(value)
         sound.cues = {};
         update_audio_scene();
     }
+}
+
+// The engine's two tones for the ship flown, in the set that plays
+function sound_engine()
+{
+    return ((sound_set === 'new') && sound_engines[current_ship().id]) || sound_engines.scout;
 }
 
 // The new set's part of the graph, made with the graph itself (create_audio_graph)

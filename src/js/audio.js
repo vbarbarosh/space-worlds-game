@@ -298,8 +298,9 @@ function update_audio_scene()
     const turn = flight ? Math.min(1, Math.abs(player.hull_turn || 0)/3) : 0;
     // Thrust changes field intensity; the reactor pitch stays steady.
     f.engine.gain.setTargetAtTime(flight ? 0.012 + power*0.036 + (boost ? 0.022 : 0) : 0, now, 0.28);
-    f.body.frequency.setTargetAtTime(62, now, 0.2);
-    f.overtone.frequency.setTargetAtTime(220, now, 0.2);
+    const engine = sound_engine();
+    f.body.frequency.setTargetAtTime(engine[0], now, 0.2);
+    f.overtone.frequency.setTargetAtTime(engine[1], now, 0.2);
     f.filter.frequency.setTargetAtTime(700 + power*250 + (boost ? 450 : 0), now, 0.35);
     // held, the turbo is a deep roar, not a hiss
     f.air_gain.gain.setTargetAtTime(flight ? power*0.014 + (boost ? 0.04 : 0) + turn*0.006 : 0, now, 0.32);
