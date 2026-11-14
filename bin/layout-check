@@ -26,6 +26,9 @@ const screens = [
     {value: 'arcade', label: 'hud-arcade-glow', world: 'cryosphere', query: '&wave=flagship', phone: true},
     {value: 'arcade', label: 'hud-arcade-fire-ring', world: 'nova-forge', query: '&wave=flagship', phone: true},
     {value: 'arcade', label: 'hud-arcade-edge', world: 'eclipse', query: '&wave=flagship', phone: true},
+    // Verdant's task (src/js/arcade_nests.js): its arrival's title and its card, all five nests left, then one
+    {value: 'arcade', label: 'hud-arcade-brood-nests', world: 'verdant', phone: true},
+    {value: 'arcade', label: 'hud-arcade-brood-nests-last', world: 'verdant', query: '&wave=5', phone: true},
     // the world's title, raiders close and a burst of news at once: the news line, the title and the card apart
     {value: 'crowded', label: 'hud-crowded'},
     // a ring race under way: the standings under the minimap, one rival with a very long name; ship: your ship clear of
