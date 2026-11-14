@@ -1,9 +1,116 @@
 // Sounds tab: every sound effect of both sets (src/js/sfx/, src/js/sfx_new/), played through the game's own sfx() in
 // the set its button names, with a button opening a classic one in the sound maker (dev/sound_maker.js); and under
-// them each world's background (sound_ambience.js): its bed for a while, and each of its calls.
+// them each world's background (sound_ambience.js): its bed for a while, and each of its calls. Every row takes a
+// mark and a word, and Copy the notes gives them all as text.
 
 // How long a world's bed plays from its button (s)
 const dev_sound_bed_time = 12;
+// Marks on what was heard, kept in this browser: {name: {mark: 'no' | 'maybe' | 'yes' | '', word}}; Copy the notes
+// gives them as lines of text for a message
+const dev_sound_marks_key = 'dev_sound_marks';
+const dev_sound_marks = dev_sound_marks_read();
+
+function dev_sound_marks_read()
+{
+    try {
+        const kept = JSON.parse(localStorage.getItem(dev_sound_marks_key));
+        return (kept && (typeof kept === 'object') && !Array.isArray(kept)) ? kept : {};
+    }
+    catch {
+        return {};
+    }
+}
+
+function dev_sound_marks_save()
+{
+    try {
+        localStorage.setItem(dev_sound_marks_key, JSON.stringify(dev_sound_marks));
+    }
+    catch {
+    }
+}
+
+// Under each row of the table in `id`, a row of its own for the mark of the thing `names` names there
+function dev_sound_mark_rows(id, names)
+{
+    const rows = [...document.getElementById(id).querySelectorAll('tr')].slice(1);
+    for (let i = 0, end = rows.length; i < end; ++i) {
+        const tr = document.createElement('tr');
+        const td = document.createElement('td');
+        tr.className = 'dev-marks';
+        td.colSpan = rows[i].children.length;
+        td.append(...dev_sound_mark_cells(names[i]));
+        tr.append(td);
+        rows[i].after(tr);
+    }
+}
+
+// What takes a mark: no, maybe, yes (a second click takes it back) and a word on why
+function dev_sound_mark_cells(name)
+{
+    const kept = dev_sound_marks[name];
+    const now = {mark: ['no', 'maybe', 'yes'].includes(kept?.mark) ? kept.mark : '', word: (typeof kept?.word === 'string') ? kept.word.slice(0, 80) : ''};
+    const marks = document.createElement('span');
+    const buttons = ['no', 'maybe', 'yes'].map(function (mark) {
+        const button = dev_button(mark, function () {
+            now.mark = (now.mark === mark) ? '' : mark;
+            keep();
+        });
+        marks.append(button);
+        return button;
+    });
+    const word = document.createElement('input');
+    word.type = 'text';
+    word.maxLength = 80;
+    word.placeholder = 'a word on it';
+    word.value = now.word;
+    word.setAttribute('aria-label', `A word on ${name}`);
+    word.addEventListener('input', function () {
+        now.word = word.value;
+        keep();
+    });
+    // a key typed here is the word's, not the game's
+    word.addEventListener('keydown', function (event) {
+        event.stopPropagation();
+    });
+    function keep() {
+        if (now.mark || now.word.trim()) {
+            dev_sound_marks[name] = now;
+        }
+        else {
+            delete dev_sound_marks[name];
+        }
+        dev_sound_marks_save();
+        show();
+    }
+    function show() {
+        for (const button of buttons) {
+            button.setAttribute('aria-pressed', String(now.mark === button.textContent));
+        }
+    }
+    show();
+    return [marks, word];
+}
+
+// Copy the notes: every mark and word as a line, `name: mark, word`, on the clipboard
+function dev_sound_notes_copy()
+{
+    const status = document.getElementById('dev_sound_status');
+    const lines = Object.entries(dev_sound_marks).map(v => `${v[0]}: ${[v[1].mark, (v[1].word || '').trim()].filter(Boolean).join(', ')}`);
+    if (!lines.length) {
+        status.textContent = 'No marks yet: no, maybe or yes beside a sound, and a word on why.';
+        return;
+    }
+    function done(ok) {
+        status.textContent = ok ? `Copied ${lines.length} notes: paste them into a message.` : 'The clipboard said no.';
+    }
+    try {
+        navigator.clipboard.writeText(lines.join('\n')).then(() => done(true), () => done(false));
+    }
+    catch {
+        done(false);
+    }
+}
 
 function dev_sounds_fill()
 {
@@ -30,6 +137,8 @@ function dev_sounds_fill()
         rows.push({value: kind, cells: [kind, `${(fresh || classic).limit} s`, play_new, play_classic, make]});
     }
     dev_table_fill(document.getElementById('dev_sounds'), ['Sound', 'Cooldown', 'New set', 'Classic set', ''], rows, null, null);
+    dev_sound_mark_rows('dev_sounds', kinds);
+    document.getElementById('dev_sound_notes').replaceChildren(dev_button('Copy the notes', dev_sound_notes_copy));
     const beds = [];
     for (let i = 0, end = sound_ambience_worlds.length; i < end; ++i) {
         const cells = [worlds[i].name, dev_button('Bed', function () {
@@ -43,6 +152,10 @@ function dev_sounds_fill()
         beds.push({value: i, cells});
     }
     dev_table_fill(document.getElementById('dev_sound_worlds'), ['Background', `${dev_sound_bed_time} s of it`, 'From the distance', '', ''], beds, null, null);
+    dev_sound_mark_rows('dev_sound_worlds', worlds.map(v => `background ${v.name}`));
+    // the music is heard in the game (Scenario picks the world, Settings the music set): its marks only
+    dev_table_fill(document.getElementById('dev_sound_music'), ['Music, heard in the game'], worlds.map((v, i) => ({value: i, cells: [v.name]})), null, null);
+    dev_sound_mark_rows('dev_sound_music', worlds.map(v => `music ${v.name}`));
 }
 
 // The sound maker, that sound open in it

@@ -219,6 +219,33 @@ body.dev-collapsed .dev-panel {
     padding: 1px 6px;
 }
 
+/* A mark's row under a sound (the Sounds tab): no, maybe, yes and a word, the row above it left without its line */
+.dev-panel tr:has(+ tr.dev-marks) td {
+    border-bottom: 0;
+}
+
+.dev-panel tr.dev-marks td {
+    padding-top: 0;
+    text-align: left;
+}
+
+.dev-panel tr.dev-marks span {
+    display: inline-flex;
+    gap: 3px;
+    margin-right: 6px;
+}
+
+.dev-panel tr.dev-marks input {
+    box-sizing: border-box;
+    width: 180px;
+    padding: 1px 6px;
+    border: 1px solid var(--dev-line);
+    border-radius: 4px;
+    background: var(--dev-bg);
+    color: var(--dev-text);
+    font: inherit;
+}
+
 .dev-readout {
     margin: auto 0 0;
     padding: 8px;

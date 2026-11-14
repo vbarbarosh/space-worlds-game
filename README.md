@@ -214,7 +214,8 @@ effect as its layers, tones and noises, a row of sliders each, played through th
 peak; new sounds start from a tone or a copy. Fly with it is an arcade run with this browser's changed sounds
 (`&sounds=made`), Copy gives the sound as its file of src/js/sfx/, WAV downloads it
 ([docs/designer/sound.md](docs/designer/sound.md)). The Sounds tab plays every sound as the new set or the classic one
-has it, and each world's background: its bed and its calls from the distance.
+has it, and each world's background: its bed and its calls from the distance; each takes a mark (no, maybe, yes) and
+a word, and Copy the notes gives them as text.
 `&dpr=1.3` draws the canvas at that pixel ratio, whatever Settings → Resolution
 says; `&slow=20` stands in for a slow graphics card, each frame waiting 20 ms
 for every million pixels of the canvas, so Auto steps down;
