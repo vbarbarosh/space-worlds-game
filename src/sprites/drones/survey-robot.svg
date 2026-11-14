@@ -1,7 +1,46 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
-<defs><linearGradient id="accent-fill" x1="0" y1="0" x2="1" y2="1"><stop id="accent-light" offset="0" stop-color="#a7f1ff"/><stop id="accent-base" offset="0.5" stop-color="#5fe6ff"/><stop id="accent-dark" offset="1" stop-color="#398a99"/></linearGradient><linearGradient id="sheen" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff" stop-opacity="0.22"/><stop offset="0.5" stop-color="#ffffff" stop-opacity="0"/><stop offset="1" stop-color="#03070c" stop-opacity="0.4"/></linearGradient><radialGradient id="ba9b3be4555" cx="0.35" cy="0.32" r="0.8"><stop offset="0" stop-color="#d0d5db"/><stop offset="0.5" stop-color="#a9b3be"/><stop offset="1" stop-color="#4c5155"/></radialGradient><linearGradient id="m5d68744050" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9ea4ac"/><stop offset="0.45" stop-color="#5d6874"/><stop offset="1" stop-color="#2e343a"/></linearGradient><linearGradient id="m5d68743050" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8e959e"/><stop offset="0.45" stop-color="#5d6874"/><stop offset="1" stop-color="#2e343a"/></linearGradient><linearGradient id="dc9d6df" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5a6064"/><stop offset="0.55" stop-color="#c9d6df"/><stop offset="1" stop-color="#dce4ea"/></linearGradient><linearGradient id="md8dde33045" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e4e7eb"/><stop offset="0.45" stop-color="#d8dde3"/><stop offset="1" stop-color="#777a7d"/></linearGradient><radialGradient id="nozzle" cx="0.5" cy="0.25" r="0.9"><stop offset="0" stop-color="#ffd59a"/><stop offset="0.4" stop-color="#e2742f"/><stop offset="1" stop-color="#2a1a14"/></radialGradient></defs>
-<g id="hull" stroke="#141a22" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"><path d="M78 150 L24 120 Z" fill="none" stroke="#141a22" stroke-width="13"/><path d="M78 150 L24 120 Z" fill="none" stroke="#5d6874" stroke-width="7"/><circle cx="22" cy="118" r="11" fill="url(#ba9b3be4555)" stroke-width="3"/><path d="M178 150 L232 120 Z" fill="none" stroke="#141a22" stroke-width="13"/><path d="M178 150 L232 120 Z" fill="none" stroke="#5d6874" stroke-width="7"/><circle cx="234" cy="118" r="11" fill="url(#ba9b3be4555)" stroke-width="3"/><rect x="88" y="204" width="20" height="22" fill="url(#m5d68744050)"/><rect x="148" y="204" width="20" height="22" fill="url(#m5d68744050)"/><circle cx="128" cy="150" r="66" fill="url(#ba9b3be4555)"/><path d="M70 150 A58 58 0 1 1 186 150 A58 58 0 1 1 70 150 Z M78 150 A50 50 0 1 0 178 150 A50 50 0 1 0 78 150 Z" fill="url(#m5d68743050)" fill-rule="evenodd" stroke-width="2.5"/><rect x="112" y="84" width="32" height="34" fill="url(#m5d68744050)"/><circle cx="128" cy="74" r="48" fill="url(#dc9d6df)"/><circle cx="128" cy="74" r="40" fill="none" stroke="#8fa6b4" stroke-width="3"/><path d="M135 61.88 L148 39.36 M142 74 L168 74 M135 86.12 L148 108.64 M121 86.12 L108 108.64 M114 74 L88 74 M121 61.88 L108 39.36" fill="none" stroke="#7d98a8" stroke-width="2.5"/><circle cx="128" cy="150" r="22" fill="url(#md8dde33045)" stroke-width="3"/><ellipse cx="98" cy="222" rx="6.84" ry="3.5" fill="url(#nozzle)" stroke="none"/><ellipse cx="158" cy="222" rx="6.84" ry="3.5" fill="url(#nozzle)" stroke="none"/></g>
-<g id="accent" stroke="#141a22" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"><circle cx="128" cy="74" r="11" fill="url(#accent-fill)" stroke-width="3"/><circle cx="124" cy="70" r="3.5" fill="#ffffff" fill-opacity="0.8" stroke="none"/><circle cx="148.66" cy="100.11" r="4.5" fill="url(#accent-fill)" stroke-width="2"/><circle cx="177.89" cy="129.34" r="4.5" fill="url(#accent-fill)" stroke-width="2"/><circle cx="177.89" cy="170.66" r="4.5" fill="url(#accent-fill)" stroke-width="2"/><circle cx="148.66" cy="199.89" r="4.5" fill="url(#accent-fill)" stroke-width="2"/><circle cx="107.34" cy="199.89" r="4.5" fill="url(#accent-fill)" stroke-width="2"/><circle cx="78.11" cy="170.66" r="4.5" fill="url(#accent-fill)" stroke-width="2"/><circle cx="78.11" cy="129.34" r="4.5" fill="url(#accent-fill)" stroke-width="2"/><circle cx="107.34" cy="100.11" r="4.5" fill="url(#accent-fill)" stroke-width="2"/><circle cx="22" cy="118" r="5" fill="url(#accent-fill)" stroke-width="2"/><circle cx="234" cy="118" r="5" fill="url(#accent-fill)" stroke-width="2"/><circle cx="128" cy="150" r="9" fill="url(#accent-fill)" stroke-width="2.5"/></g>
+<defs>
+<linearGradient id="accent-fill" x1="0" y1="0" x2="1" y2="1"><stop id="accent-light" offset="0" stop-color="#a7f1ff"/><stop id="accent-base" offset="0.5" stop-color="#5fe6ff"/><stop id="accent-dark" offset="1" stop-color="#398a99"/></linearGradient>
+<radialGradient id="plate" cx="0.35" cy="0.32" r="0.8"><stop offset="0" stop-color="#f7fafc"/><stop offset="0.5" stop-color="#b9c2cc"/><stop offset="1" stop-color="#56616e"/></radialGradient>
+<linearGradient id="dish" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5f6b78"/><stop offset="0.55" stop-color="#c5ccd5"/><stop offset="1" stop-color="#f2f5f8"/></linearGradient>
+<linearGradient id="ring" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6f7a87"/><stop offset="0.5" stop-color="#394350"/><stop offset="1" stop-color="#171c23"/></linearGradient>
+<linearGradient id="gun" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#6f7a87"/><stop offset="0.45" stop-color="#394350"/><stop offset="1" stop-color="#171c23"/></linearGradient>
+<linearGradient id="bell" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4b525c"/><stop offset="0.55" stop-color="#6d5646"/><stop offset="1" stop-color="#2a1a14"/></linearGradient>
+<radialGradient id="fire" cx="0.5" cy="0.3" r="0.8"><stop offset="0" stop-color="#fff1cf"/><stop offset="0.4" stop-color="#ffab52"/><stop offset="1" stop-color="#b3431c"/></radialGradient>
+</defs>
+<g id="hull" stroke="#10151c" stroke-width="5.5" stroke-linejoin="round" stroke-linecap="round">
+<!-- two arms, a sensor pod on each -->
+<path d="M78 150 L24 120 M178 150 L232 120" fill="none" stroke-width="15"/>
+<path d="M78 150 L24 120 M178 150 L232 120" fill="none" stroke="#77838f" stroke-width="7"/>
+<path d="M74 145.5 L27 119.5" fill="none" stroke="#ffffff" stroke-opacity="0.5" stroke-width="2.5"/>
+<circle cx="22" cy="118" r="11" fill="url(#plate)" stroke-width="4.5"/><circle cx="234" cy="118" r="11" fill="url(#plate)" stroke-width="4.5"/>
+<!-- two engines: housing, bell, fire -->
+<rect x="88" y="200" width="20" height="16" fill="url(#gun)"/><rect x="148" y="200" width="20" height="16" fill="url(#gun)"/>
+<path d="M89 213 L107 213 L105 225 L91 225 Z M149 213 L167 213 L165 225 L151 225 Z" fill="url(#bell)" stroke-width="4.5"/>
+<ellipse cx="98" cy="222.5" rx="6" ry="2.6" fill="url(#fire)" stroke="none"/><ellipse cx="158" cy="222.5" rx="6" ry="2.6" fill="url(#fire)" stroke="none"/>
+<!-- the body: a plated disc, the machinery ring in it, the light on its rim -->
+<circle cx="128" cy="150" r="66" fill="url(#plate)"/>
+<circle cx="128" cy="150" r="54" fill="none" stroke-width="13"/>
+<circle cx="128" cy="150" r="54" fill="none" stroke="url(#ring)" stroke-width="8"/>
+<path d="M74.74 180.75 A61.5 61.5 0 0 1 72.26 124.01" fill="none" stroke="#ffffff" stroke-opacity="0.7" stroke-width="3"/>
+<!-- the dish's neck, the dish: hollow, its ribs, the light on its far rim -->
+<rect x="112" y="86" width="32" height="32" fill="url(#gun)"/>
+<circle cx="128" cy="74" r="48" fill="url(#dish)"/>
+<circle cx="128" cy="74" r="40.5" fill="none" stroke="#3b4652" stroke-opacity="0.7" stroke-width="2.5"/>
+<path d="M143 74 L167 74 M135.5 86.99 L147.5 107.77 M120.5 86.99 L108.5 107.77 M113 74 L89 74 M120.5 61.01 L108.5 40.23 M135.5 61.01 L147.5 40.23" fill="none" stroke="#6b7684" stroke-width="3"/>
+<path d="M171.63 81.69 A44.3 44.3 0 0 1 135.69 117.63" fill="none" stroke="#ffffff" stroke-opacity="0.75" stroke-width="3"/>
+<!-- the hatch in the middle of the body -->
+<circle cx="128" cy="150" r="22" fill="#c5ccd5" stroke-width="4"/>
+<path d="M110.57 148.47 A17.5 17.5 0 0 1 126.47 132.57" fill="none" stroke="#ffffff" stroke-opacity="0.8" stroke-width="2.5"/>
+</g>
+<g id="accent" stroke="#10151c" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+<!-- the dish's feed, the ring's lamps, the pods' lenses, the hatch's eye -->
+<circle cx="128" cy="74" r="11" fill="url(#accent-fill)" stroke-width="3.5"/>
+<circle cx="124" cy="70" r="3.5" fill="#ffffff" fill-opacity="0.8" stroke="none"/>
+<circle cx="177.89" cy="129.34" r="4.5" fill="url(#accent-fill)" stroke-width="2.5"/><circle cx="177.89" cy="170.66" r="4.5" fill="url(#accent-fill)" stroke-width="2.5"/><circle cx="148.66" cy="199.89" r="4.5" fill="url(#accent-fill)" stroke-width="2.5"/><circle cx="107.34" cy="199.89" r="4.5" fill="url(#accent-fill)" stroke-width="2.5"/><circle cx="78.11" cy="170.66" r="4.5" fill="url(#accent-fill)" stroke-width="2.5"/><circle cx="78.11" cy="129.34" r="4.5" fill="url(#accent-fill)" stroke-width="2.5"/>
+<circle cx="22" cy="118" r="5" fill="url(#accent-fill)" stroke-width="2.5"/><circle cx="234" cy="118" r="5" fill="url(#accent-fill)" stroke-width="2.5"/>
+<circle cx="128" cy="150" r="9" fill="url(#accent-fill)" stroke-width="3"/>
+</g>
 <g id="anchors"><circle id="sensor" cx="128" cy="74" r="6" fill="#0000ff"/><line id="flame-main-1" x1="98" y1="226" x2="98" y2="252" stroke="#ff0000" stroke-width="18"/><line id="flame-main-2" x1="158" y1="226" x2="158" y2="252" stroke="#ff0000" stroke-width="18"/></g>
 </svg>
