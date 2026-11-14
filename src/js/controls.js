@@ -224,9 +224,6 @@ addEventListener('keydown', function (event) {
     if (event.code === 'KeyG') {
         formation_toggle();
     }
-    if (event.code === 'KeyH') {
-        drones_toggle();
-    }
     if (event.code === 'KeyV') {
         push_ring_fire();
     }

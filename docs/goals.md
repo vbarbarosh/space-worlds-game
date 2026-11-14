@@ -15,7 +15,7 @@ more **stages** done in order. A stage has a kind, a world and an amount
 | Kind | Done when |
 |---|---|
 | scan | you guard the survey robot at a beacon for the amount in seconds |
-| mining | your drones drill the amount in units |
+| mining | your guns cut the amount in units from ore rocks |
 | courier | you dock at the stage's world station; carried from another world, a wing of raiders intercepts it once in each world you enter |
 | hunt | you destroy the amount of raiders in that world |
 | defend | you hold within 450 m of the relay for the amount in seconds; leaving loses progress slowly |
@@ -137,8 +137,9 @@ Each world's own two, in its terms (its raiders, its resource, its rules):
   size below plus level − 1, at most 2 more) and to an interception
   (2 + level, at most 4).
 - A stage that waits for raiders brings them in growing waves (`hold_waves_update`
-  in `src/js/navigation.js`): a hunt, or a mining stage while your drones
-  drill, out of the station's shelter. The first wave comes 5 s after you
+  in `src/js/navigation.js`): a hunt, out of the station's shelter. A mining
+  stage has the patrols: with a raider within 600 m your guns leave the
+  rock for it ([balance.md](balance.md#mining)). The first wave comes 5 s after you
   settle, then one every 14 s, from one side and 1100 m out, past your guns'
   reach, so it arrives together: 2 + tier / 3 raiders (rounded down; the
   patrol's count and one more), one more each wave, three more at most
@@ -151,8 +152,6 @@ Each world's own two, in its terms (its raiders, its resource, its rules):
   a lost one sets the scan back a third.
 - Halfway through a recover hold the ambush calls 2 to 4 reinforcements; the
   hold waits until they are cleared.
-- A mining stage whose drones are all lost sends the guide to the station to
-  buy new ones (MODULES).
 
 ## Ring races
 
@@ -227,16 +226,16 @@ course after course from Haven (`src/js/race_mode.js`). Each race is a run of
 its own, as the arcade's: nothing is saved, the campaign's save stays as it
 was. You fly the Wisp Scout with no modules on every difficulty, so the
 difficulty is the rivals and the course. No raider comes, nothing drops, no
-radiation burns; the rocks are as in the campaign (unbreakable, a crash above
-cruise costs hull, and you can die).
+radiation burns; the rocks stay whole (nothing is mined in a race; a crash
+above cruise costs hull, and you can die).
 
 The HUD is the race's: the card (ring, distance, place), the standings, the
 minimap (only a map: no OPEN J), the hull and turbo gauges, settings and
-pause. What a race has no use for is gone: the quick bar (no supplies
-or drones; a route is still set with Ctrl), the pulse gauge (no pulse: Space does nothing, as
+pause. What a race has no use for is gone: the quick bar (no supplies;
+a route is still set with Ctrl), the pulse gauge (no pulse: Space does nothing, as
 it would make you crash-proof for a moment), the inventory (Tab), the
 world's threat, the coordinates and the route line in the card's details;
-H and Tab do nothing. In every ring race, the campaign's too, the view
+Tab does nothing. In every ring race, the campaign's too, the view
 keeps your ship clear of the HUD's blocks (`src/js/race_view.js`): it looks
 toward the lights during the count, ahead to the bend on a Turbo track, and
 where the ship would come under the card, the standings or the bottom panel,

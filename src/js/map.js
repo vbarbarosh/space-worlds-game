@@ -156,9 +156,9 @@ function base_generate_map()
     }
 }
 
-// A rock with every field it may get later, in one order: its resource (ore_resource_assign), its deposit (ore_reserve,
-// ore_chip) and the drill on it (drones, outposts). All rocks keep one shape, so the loops over them read their numbers
-// without boxing them; a field not set yet stays undefined, as it was, and a save keeps the same JSON
+// A rock with every field it may get later, in one order: its resource (ore_resource_assign) and its deposit
+// (ore_reserve, ore_cut). All rocks keep one shape, so the loops over them read their numbers without boxing them; a
+// field not set yet stays undefined, as it was, and a save keeps the same JSON
 function ore_node_new(v)
 {
     return {
@@ -178,14 +178,11 @@ function ore_node_new(v)
         flash: v.flash,
         resource: v.resource,
         amount: v.amount,
-        id: v.id,
-        cutter: v.cutter,
         r0: v.r0,
         reserve0: v.reserve0,
         reserve: v.reserve,
         deposit: v.deposit,
         chip: v.chip,
-        depleted: v.depleted,
     };
 }
 

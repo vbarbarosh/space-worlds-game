@@ -27,7 +27,7 @@ game:
 - **Trader**: buy where a good is cheap, sell where it is dear; few fights.
 - **Hunter**: hunt raiders and their commanders for bounties.
 - **Escort**: protect freighters and convoys.
-- **Prospector**: mine with your drones and sell the ore far from where it
+- **Prospector**: mine with your guns and sell the ore far from where it
   was mined.
 - **Story pilot**: follow the story chapters through the eight worlds.
 
@@ -92,7 +92,6 @@ screen you read, or press by label.
     price differs from world to world, so carry goods to where they are dear.
     It also buys each world's own resource (Haven iron, Spore resin, ...),
     which pays little at home and more the farther you carry it.
-  - MODULES also sells mining drones, when you have lost some.
   - TRADE INTEL compares the stations.
   - MODULES are upgrades, HANGAR sells ships and ARSENAL weapons. Ranks
     unlock ships and weapons.
@@ -107,9 +106,11 @@ screen you read, or press by label.
   - `key Space` fires the pulse when energy is full. `key KeyQ` uses a
     repair kit, `key KeyE` an EMP, `key KeyF` a stasis cell; in the arcade
     `key KeyV` the push wave, which throws the raiders into each other.
-  - Your cannons do not mine. `key KeyH` near a mining field sends your
-    mining drones to cut the rocks and bring the ore aboard; raiders hunt
-    them. The autopilot launches them when it reaches a mining objective.
+  - Your cannons mine. With no raider near they cut the rocks in reach
+    while your tracked contract is at a mining stage, and each unit cut goes
+    into the hold; the autopilot parks beside a rock and moves on to the
+    next. With no mining stage, a click on a mining field in the map marks
+    it, and the cannons cut its rocks when you are there.
   - Raiders you destroy earn experience, as much as their hull (a heavy
     raider, a far world's or a flagship far more), which licenses better
     ships and guns, and some spill cargo canisters: fly over them to load them. A ship, gun or

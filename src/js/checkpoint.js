@@ -34,14 +34,6 @@ function save_checkpoint()
         guide: guide_manual ? {x: guide_manual.x, y: guide_manual.y, label: guide_manual.label, portal: guide_manual.portal} : null,
         route: {points: waypoints.map(v => ({x: v.x, y: v.y, n: v.n})), loop: waypoints_loop},
     };
-    // ore your drones are bringing home counts as aboard: they come back with the save, not without it
-    const cargo = checkpoint.campaign.cargo;
-    for (const drone of drones) {
-        for (const load of drone.loads || []) {
-            const key = load.resource || 'ore';
-            cargo[key] = (cargo[key] || 0) + (load.amount || 1);
-        }
-    }
     try {
         storage_set('pulse_drift_frontier_v4', JSON.stringify(checkpoint));
         checkpoint_notice = `Progress saved · ${worlds[campaign.world].name}`;

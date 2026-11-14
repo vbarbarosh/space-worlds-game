@@ -603,7 +603,7 @@ function world_contracts(id, level)
             },
             {
                 title: 'Haven iron for the Anchorage',
-                description: 'The Anchorage builds its berths from Haven iron. Cut a load with your drones, then see the ore tender through its run.',
+                description: 'The Anchorage builds its berths from Haven iron. Cut a load with your guns, then see the ore tender through its run.',
                 stages: [stage('mining', 0, 8 + 2*n, 'Cut Haven iron'), stage('escort', 0, 1, 'Escort the ore tender')],
             },
         ],
@@ -626,7 +626,7 @@ function world_contracts(id, level)
         [
             {
                 title: 'Refinery quota',
-                description: 'Dustfall Refinery runs on titanium sand from its own rich rocks. Mine a load with your drones and sell the refinery its quota.',
+                description: 'Dustfall Refinery runs on titanium sand from its own rich rocks. Mine a load with your guns and sell the refinery its quota.',
                 stages: [stage('mining', 2, 10 + 2*n, 'Mine titanium sand'), stage('trade', 2, 6 + n, 'Sell the refinery its quota', {commodity: 'titanium'})],
             },
             {

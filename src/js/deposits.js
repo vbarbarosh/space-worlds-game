@@ -1,11 +1,9 @@
 // Deposits: a rock holds a large reserve of units, by its size (about 180 to 370 of ore; a rich rock 55 to 115 of the
-// world's resource), so a field feeds an outpost for hours. In the campaign your shots, missiles and the pulse cut it
-// (ore_cut): the damage frees units, into the hold at once. Drones drill it a chunk at a time and carry the units
-// away. The rock's bar is the share of its reserve left; it wears down a little as it is mined and breaks only when it
-// is empty. A field is mined out when its last rock is.
-const deposit_chunk_cost = 70;
+// world's resource). In the campaign your shots, missiles and the pulse cut it (ore_cut): the damage frees units, into
+// the hold at once. The rock's bar is the share of its reserve left; it wears down a little as it is mined and breaks
+// only when it is empty. A field is mined out when its last rock is.
 // The damage of your guns that frees one unit. Tuned on the start ship: its pulse cannon fills the hold of 40 in about
-// 145 s of fire, as its two drones did (docs/balance.md)
+// 145 s of fire (docs/balance.md)
 const ore_cut_cost = 250;
 
 // The rock's reserve, set the first time it is asked for; a rock of an older save keeps the share it had left
@@ -50,8 +48,6 @@ function ore_cut(rock, amount)
         mark_mining_changed();
         return;
     }
-    rock.depleted = true;
-    rock.cutter = true;
     ore_break(rock);
 }
 
@@ -63,34 +59,6 @@ function ore_break(rock)
         campaign.cargo.ore++;
         save_checkpoint();
     }
-}
-
-// Cutting at `amount` this frame: the units it frees (0 or 1); the last one breaks the rock
-function ore_chip(rock, amount)
-{
-    if ((rock.hp <= 0) || (ore_reserve(rock) <= 0)) {
-        return 0;
-    }
-    rock.flash = 0.06;
-    // one count of what was cut for the drill and the guns, in the guns' damage
-    rock.chip = (rock.chip || 0) + amount*ore_cut_cost/deposit_chunk_cost;
-    if (rock.chip < ore_cut_cost) {
-        return 0;
-    }
-    rock.chip -= ore_cut_cost;
-    rock.reserve--;
-    rock.r = rock.r0*(0.8 + 0.2*Math.sqrt(rock.reserve/rock.reserve0));
-    mission_event('mining', 1);
-    if (rock.reserve <= 0) {
-        rock.depleted = true;
-        rock.cutter = true;
-        ore_break(rock);
-    }
-    else {
-        rock.hp = rock.max_hp*rock.reserve/rock.reserve0;
-        mark_mining_changed();
-    }
-    return 1;
 }
 
 // What a field still holds: plain ore, and its resource if it is rich

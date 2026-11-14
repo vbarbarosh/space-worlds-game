@@ -110,8 +110,6 @@ function guide_base_reset_run(resume = false)
         ? clone(saved.campaign)
         : {world: 0, story: 0, contracts: [], completed: 0, visited: [0], cargo: {ore: 0, cells: 0, relics: 0}, maps: {}, serial: 0, board: 0};
     cargo_normalize(campaign.cargo);
-    drones = [];
-    drones_out = false;
     jump = null;
     escort = null;
     waypoint = null;
@@ -156,7 +154,7 @@ function store_world()
     }
     campaign.maps[campaign.world] = {
         size: {w: world.w, h: world.h},
-        ore: ore_nodes.filter(v => v.hp > 0).map(v => ({...v, cutter: null})),
+        ore: ore_nodes.filter(v => v.hp > 0).map(v => ({...v})),
         pickups: pickups.filter(v => v.cache && (v.life > 0)).map(v => ({...v})),
     };
     // the map file they were made on, if any (map_files.js)
@@ -442,14 +440,8 @@ function physics_base_damage_ore(v, amount)
 {
     const alive = v.hp > 0;
     base_damage_ore(v, amount);
+    // a campaign rock breaks only cut empty, its units loaded and counted as they were cut (ore_cut)
     if (alive && (v.hp <= 0)) {
         mark_mining_changed();
-        if (!v.cutter) {
-            ore_load(v);
-        }
-        // a deposit drilled empty counted its units as they were mined
-        if (!v.depleted) {
-            mission_event('mining', 1);
-        }
     }
 }

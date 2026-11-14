@@ -76,12 +76,12 @@ ships. "Modes" is arcade, campaign or both.
 ### Ore rocks (asteroids in mining fields)
 
 - What ore is mined from. Twelve fields of nine rocks per world; every third
-  field is rich and holds the world's resource. In the campaign your drones
-  (H) drill them and carry the units to your hold; in the arcade your shots
-  break them for salvage.
-- Solid. In the arcade your shots damage them; in the campaign your shots stop
-  on them without damage (see the open question in
-  [principles.md](principles.md)). A bar shows once a rock is below full hp.
+  field is rich and holds the world's resource. Your guns mine them: in the
+  campaign your shots, missiles and the pulse cut units out of a rock's
+  reserve, straight into your hold; in the arcade they break it for salvage.
+- Solid. One bar, shown once a rock is below full: what is left of it (in
+  the campaign the share of its reserve; see
+  [principles.md](principles.md)).
 - Broken, a rock flies apart in three or four pieces of its own drawing, which
   tumble away and fade in under two seconds (Effects on; eight pieces in
   flight at most, so in a chain the first rocks' pieces fly and the rest
@@ -89,7 +89,7 @@ ships. "Modes" is arcade, campaign or both.
   rocks, under every hull, shot and pickup. Where: `rock_break` in
   `src/js/hull_break.js`.
 - Both modes, every world. Where: `base_generate_map` in `src/js/map.js`;
-  `src/js/deposits.js` (the reserve), `src/js/mining.js`, `src/js/drones.js`;
+  `src/js/deposits.js` (the reserve and its cutting), `src/js/mining.js`;
   `resolve_solid_ore` in `src/js/flight.js`.
 
 ### Cliffs (arcade Dustfall)
@@ -294,13 +294,11 @@ ships. "Modes" is arcade, campaign or both.
 
 ### Drones
 
-- Mining drones (H) drill rocks and carry the load home; two in the bay, four
-  on the Mule Prospector. Orbit drones (a module) circle you and shoot. The
-  survey robot scans at a beacon while you guard it (80 hull in Haven, more
-  where raiders hit harder; a bar).
-- Mining drones and the robot: campaign. Orbit drones: both.
-- Where: `src/js/drones.js`, `src/js/survey.js`, `src/js/render.js` (orbit
-  drones).
+- Orbit drones (a module) circle you and shoot. The survey robot scans at a
+  beacon while you guard it (80 hull in Haven, more where raiders hit
+  harder; a bar).
+- The robot: campaign. Orbit drones: both.
+- Where: `src/js/survey.js`, `src/js/render.js` (orbit drones).
 
 ## Background
 

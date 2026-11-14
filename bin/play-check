@@ -464,8 +464,8 @@ const cases = [
             await page.reload({waitUntil: 'load'});
             await page.waitForTimeout(500);
             const again = await t(`(${page_old_save_loaded})()`);
-            if (!again.offered || (again.salvage !== played.salvage)) {
-                out.push(`loaded again: Continue ${again.offered ? 'offered' : 'not offered'}, salvage ${again.salvage} after ${played.salvage}`);
+            if (!again.offered || (again.salvage !== played.salvage) || again.paid_back || again.left.length) {
+                out.push(`loaded again: Continue ${again.offered ? 'offered' : 'not offered'}, salvage ${again.salvage} after ${played.salvage}, told again ${JSON.stringify(again.paid_back)}, fields left ${JSON.stringify(again.left)}`);
             }
             return out;
         },

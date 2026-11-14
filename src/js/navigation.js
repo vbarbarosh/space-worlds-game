@@ -250,7 +250,6 @@ function guide_base_update_jump(dt)
     if (!jump.switched && (jump.t >= jump.duration*0.5)) {
         jump.switched = true;
         if (jump.world !== undefined) {
-            drones_recall_now();
             store_world();
             const reached = world_reached();
             campaign.world = jump.world;
@@ -290,8 +289,8 @@ function guide_base_update_jump(dt)
     }
 }
 
-// Growing waves while you hold a stage that waits for raiders: a hunt, or a mining stage while your drones drill (a
-// defend stage's relay calls its own, sized the same way, in update_operations). The first comes 5 s after you settle,
+// Growing waves while you hold a stage that waits for raiders: a hunt (a defend stage's relay calls its own, sized
+// the same way, in update_operations; a mining stage has the patrols). The first comes 5 s after you settle,
 // then one every 14 s, each a raider bigger than the last, up to three more than the first; they come from one side,
 // from outside your guns' reach, so a wave arrives together. Before, such a stage waited for the patrols, one or two
 // raiders every 11 s in Haven: a hunt for 6 took a minute or more of waiting. The patrols rest while the waves come.
@@ -301,13 +300,13 @@ const hold_wave_gap = 14;
 const hold_wave_distance = 1100;
 let hold_waves = {key: '', n: 0, clock: 0};
 
-// The contract whose stage you hold now, out of the station's shelter: a hunt here, or mining here with drones out
+// The contract whose stage you hold now, out of the station's shelter: a hunt here
 function hold_stage()
 {
     if (arcade.active || race_calm() || (distance(player, station) < station_shelter + 50)) {
         return null;
     }
-    return campaign.contracts.find(v => !v.ready && (v.world === campaign.world) && ((v.type === 'hunt') || ((v.type === 'mining') && drones_out && (drones.length > 0)))) || null;
+    return campaign.contracts.find(v => !v.ready && (v.world === campaign.world) && (v.type === 'hunt')) || null;
 }
 
 // How many raiders the n-th wave of a hold brings: the patrol's count and one more, growing by one a wave, three at most
@@ -420,7 +419,6 @@ function guide_base_update_frontier(dt)
         }
     }
     update_escort(dt);
-    drones_update(dt);
     if (waypoint && (distance(player, waypoint) < 110)) {
         waypoint = null;
     }
