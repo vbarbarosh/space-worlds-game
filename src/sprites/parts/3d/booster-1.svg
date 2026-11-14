@@ -1,6 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-<defs><linearGradient id="accent-fill" x1="0" y1="0" x2="1" y2="1"><stop id="accent-light" offset="0" stop-color="#f2b393"/><stop id="accent-base" offset="0.5" stop-color="#e8743b"/><stop id="accent-dark" offset="1" stop-color="#8b4623"/></linearGradient><linearGradient id="m5d68743550" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#969da5"/><stop offset="0.45" stop-color="#5d6874"/><stop offset="1" stop-color="#2e343a"/></linearGradient><linearGradient id="ma9b3be4055" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#cbd1d8"/><stop offset="0.45" stop-color="#a9b3be"/><stop offset="1" stop-color="#4c5155"/></linearGradient><linearGradient id="sheen" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff" stop-opacity="0.22"/><stop offset="0.5" stop-color="#ffffff" stop-opacity="0"/><stop offset="1" stop-color="#03070c" stop-opacity="0.4"/></linearGradient><radialGradient id="bglow" cx="0.5" cy="0.3" r="0.8"><stop offset="0" stop-color="#ffe7b0"/><stop offset="0.45" stop-color="#ff9a4a"/><stop offset="1" stop-color="#5a2410"/></radialGradient></defs>
-<g id="base" stroke="#0b1722" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"><path d="M21 20 L43 20 L45 34 L19 34 Z" fill="url(#m5d68743550)"/><path d="M23 32 L41 32 L46 50 Q32 54 18 50 Z" fill="url(#ma9b3be4055)"/><path d="M32 32 L41 32 L46 50 Q32 54 32 52 Z" fill="url(#sheen)" stroke="none"/><ellipse cx="32" cy="50" rx="12" ry="3.2" fill="#2c343e" stroke-width="1.6"/><ellipse cx="32" cy="50" rx="10" ry="2.2" fill="url(#bglow)" stroke="none"/></g>
-<g id="accent" stroke="#0b1722" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"><path d="M22 24 L42 24 L43 29 L21 29 Z" fill="url(#accent-fill)" stroke-width="1.4"/></g>
+<defs>
+<linearGradient id="accent-fill" x1="0" y1="0" x2="1" y2="1"><stop id="accent-light" offset="0" stop-color="#ffa36b"/><stop id="accent-base" offset="0.55" stop-color="#e8743b"/><stop id="accent-dark" offset="1" stop-color="#9c4119"/></linearGradient>
+<linearGradient id="house" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#6f7a87"/><stop offset="0.45" stop-color="#394350"/><stop offset="1" stop-color="#171c23"/></linearGradient>
+<linearGradient id="bell" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#eef2f6"/><stop offset="0.3" stop-color="#b3bdc8"/><stop offset="0.7" stop-color="#6b7684"/><stop offset="1" stop-color="#353e49"/></linearGradient>
+<linearGradient id="warm" x1="0" y1="0" x2="0" y2="1"><stop offset="0.3" stop-color="#8a5a3a" stop-opacity="0"/><stop offset="1" stop-color="#7a4a2c" stop-opacity="0.85"/></linearGradient>
+<radialGradient id="fire" cx="0.5" cy="0.3" r="0.8"><stop offset="0" stop-color="#fff1cf"/><stop offset="0.4" stop-color="#ffab52"/><stop offset="1" stop-color="#b3431c"/></radialGradient>
+</defs>
+<g id="base" stroke="#10151c" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round">
+<!-- the housing: its lip, a rib -->
+<path d="M21 20 L43 20 L45 34 L19 34 Z" fill="url(#house)"/>
+<path d="M22.6 21.8 L41.4 21.8" fill="none" stroke="#ffffff" stroke-opacity="0.4" stroke-width="1"/>
+<path d="M20.2 31 L43.8 31" fill="none" stroke="#10151c" stroke-width="1.1"/>
+<!-- the bell: steel that warms to bronze, its hoops, the light down its side -->
+<path d="M23 32 L41 32 L46 50 Q32 54 18 50 Z" fill="url(#bell)"/>
+<path d="M23 32 L41 32 L46 50 Q32 54 18 50 Z" fill="url(#warm)" stroke="none"/>
+<path d="M22.39 38.5 Q32 40.7 41.61 38.5" fill="none" stroke="#2b3440" stroke-width="1.1"/>
+<path d="M25.4 34 L21.6 47.6" fill="none" stroke="#ffffff" stroke-opacity="0.6" stroke-width="1.3"/>
+<!-- the exit and the fire in it -->
+<ellipse cx="32" cy="50" rx="12" ry="3.2" fill="#160e0a" stroke-width="1.6"/>
+<ellipse cx="32" cy="50.1" rx="9.6" ry="2.1" fill="url(#fire)" stroke="none"/>
+</g>
+<g id="accent" stroke="#10151c" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round">
+<path d="M22 24.2 L42 24.2 L43.7 28.8 L20.3 28.8 Z" fill="url(#accent-fill)" stroke-width="1.3"/>
+<path d="M22.4 25.5 L31 25.5" fill="none" stroke="#ffffff" stroke-opacity="0.55" stroke-width="0.8"/>
+</g>
 </svg>
