@@ -21,7 +21,7 @@ const scene = 'world=6&screen=flight';
 const usage = `usage: bin/resolution-check [check...]
 
     Flies Nova Forge on build/dev.html in headless Chromium (an 800 × 450 window at 200%) and checks the adaptive
-    resolution (src/js/resolution.js), in real time, about five minutes:
+    resolution (src/js/resolution.js), in real time, about six minutes:
 
     steady   no stand-in for a slow card: the canvas stays at the top ratio, ×1.7
     slow     &slow=${slow}: it steps down to where the frames keep up and holds there, each step drawn in its own
@@ -30,6 +30,10 @@ const usage = `usage: bin/resolution-check [check...]
     up       stepped down under &slow=${slow}, the cost gone, 3 minutes of keeping up (stood in for): one step up, not
              to the top; the cost again takes it back down, and that ratio is not tried again in the run; a new
              campaign and a new arcade run, each started as the menu starts it, keep the ratio and may try it once more
+    remembered
+             stepped down under &slow=${slow} and held: the page loaded again starts at that ratio from its first
+             frame, and with the cost gone too, where 3 minutes of keeping up bring one step up; loaded once more it
+             is back at the remembered ratio (the one on trial is not remembered yet); nonsense in the storage: ×1.7
     sharp    Settings → Resolution → Sharp puts ×1.7 back at once and keeps it however slow; kept after a reload
     forced   &dpr=1.3: the canvas at ×1.3, however slow, never stepped
     futile   &stall=30 (a page held to 30 fps whatever its size): the steps down bring nothing, so ×1.7 comes back
@@ -43,7 +47,7 @@ const usage = `usage: bin/resolution-check [check...]
              then ×1.7 again, each within a second
 
     Timing on a busy machine can fail steady; run it alone again. Exits 1 on a failure.`;
-const checks = {steady: check_steady, slow: check_slow, up: check_up, sharp: check_sharp, forced: check_forced, futile: check_futile, descent: check_descent, crawl: check_crawl, screen1: check_screen1, moved: check_moved};
+const checks = {steady: check_steady, slow: check_slow, up: check_up, remembered: check_remembered, sharp: check_sharp, forced: check_forced, futile: check_futile, descent: check_descent, crawl: check_crawl, screen1: check_screen1, moved: check_moved};
 
 cli(main);
 
@@ -64,7 +68,7 @@ async function main()
             page.on('pageerror', v => errors.push(`page error: ${v.message}`));
             const trace = {lines: [], dpr: null};
             const found = [...await checks[name](page, trace), ...errors];
-            console.log(`${found.length ? 'FAIL' : 'ok  '} ${name.padEnd(8)} ${trace.lines.join(' ')}${found.length ? `\n     ${found.join('\n     ')}` : ''}`);
+            console.log(`${found.length ? 'FAIL' : 'ok  '} ${name.padEnd(10)} ${trace.lines.join(' ')}${found.length ? `\n     ${found.join('\n     ')}` : ''}`);
             failures.push(...found.map(v => `${name}: ${v}`));
             await context.close();
         }
@@ -161,6 +165,51 @@ async function check_up(page, trace)
         }
     }
     out.push(...await steps_check(page, trace));
+    return out;
+}
+
+async function check_remembered(page, trace)
+{
+    const out = [];
+    await scene_open(page, `&slow=${slow}`);
+    const seen = await ratios_watch(page, 16, trace);
+    const settled = await page.evaluate(() => window.dev_resolution.state());
+    const low = seen[seen.length - 1].dpr;
+    const above = settled.ladder[settled.level - 1];
+    if (!above || !settled.budget) {
+        return [`nothing remembered 16 s in: ×${low}, ${settled.budget} pixels`];
+    }
+    await scene_open(page, `&slow=${slow}`);
+    trace.lines.push('| loaded again:');
+    const again = await ratios_watch(page, 8, trace);
+    const steps = (await page.evaluate(() => window.dev_resolution.state())).steps;
+    if (again.some(v => v.dpr !== low) || steps.length) {
+        out.push(`loaded again under the cost: ${ratios_text(again)}, ${steps.length} steps; want ×${low} from the first frame`);
+    }
+    await scene_open(page, '');
+    trace.lines.push('| loaded with the cost gone:');
+    const gone = await ratios_watch(page, 6, trace);
+    if (gone.some(v => v.dpr !== low)) {
+        out.push(`loaded with the cost gone: ${ratios_text(gone)}; want ×${low} kept`);
+    }
+    trace.lines.push('| 3 minutes kept up:');
+    const up = await kept_up_watch(page, 6, trace);
+    if (up.some(v => v.dpr > above) || (up[up.length - 1].dpr !== above)) {
+        out.push(`3 minutes of keeping up at the remembered ×${low}: ${ratios_text(up)}; want one step, to ×${above}`);
+    }
+    await scene_open(page, '');
+    trace.lines.push('| loaded again:');
+    const trial = await ratios_watch(page, 3, trace);
+    if (trial.some(v => v.dpr !== low)) {
+        out.push(`loaded again after the step up: ${ratios_text(trial)}; want ×${low}, ×${above} was only on trial`);
+    }
+    await page.evaluate(() => localStorage.setItem('pulse_drift_resolution_pixels', 'nonsense'));
+    await scene_open(page, '');
+    trace.lines.push('| nonsense remembered:');
+    const top = await ratios_watch(page, 3, trace);
+    if (top.some(v => v.dpr !== 1.7)) {
+        out.push(`nonsense in the storage: ${ratios_text(top)}; want ×1.7`);
+    }
     return out;
 }
 

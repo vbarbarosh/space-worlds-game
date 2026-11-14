@@ -47,6 +47,7 @@ window.dev_resolution = {
         return {
             dpr, mode: resolution.mode, forced: resolution.forced, top: resolution.top, ladder: resolution.ladder, level: resolution.level,
             futile: resolution.futile, refresh_ms: resolution.refresh_ms, clear_ms: resolution.clear_ms, tried: resolution.tried,
+            budget: resolution.budget,
             canvas: [canvas.width, canvas.height], width, height,
             slow: dev_slow_ms, stall: dev_stall_ms, fps: dev_time.fps, world: campaign.world, state,
             log: record ? {dpr: record.dpr, dpr_min: record.dpr_min} : null, steps: dev_resolution_steps,

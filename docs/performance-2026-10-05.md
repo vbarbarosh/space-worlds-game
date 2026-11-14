@@ -418,6 +418,22 @@ pixels at the cap of ×1.7. The canvas's pixel ratio now follows the frames
   a new world forgot it too, as Haven costs less than Nova Forge, and the
   author's play log showed ×1.7 tried again in each of 8 worlds, at 42 fps
   against 56 at ×1).
+- **Remembered** (2026-11-10). What the machine managed is kept in the
+  browser's storage (`pulse_drift_resolution_pixels`), so a new run, and the
+  page loaded again, starts where the last one settled and not at the top to
+  step down through its first minutes. It is the canvas's pixels, not the
+  ratio, as a ratio costs by the window it fills: 608 400 for ×1.3 in an
+  800 × 450 window. They are written when a ratio has held after a step down
+  (the last 5 s not behind) and when a ratio stepped up to has kept up for
+  its own 3 minutes: down at once, up a step behind. A page starts at the
+  highest ratio whose canvas, at its window's size, is within those pixels
+  and a tenth more: the same window in fullscreen at the same ratio, a larger
+  one lower, a smaller one higher; a window resized is fitted the same way.
+  Nothing is written while no ratio has fallen behind, nor by a descent that
+  brought no gain. Switching Settings → Resolution forgets them: Auto, chosen
+  again, starts from the top. Anything in the storage but 5 to 9 digits
+  counts as nothing, and a browser that refuses the storage remembers for the
+  page's life only. Sharp and `&dpr=` do not look at them.
 - **No gain, no steps.** At ×1 and still behind, and not a tenth faster than
   where the steps began, the pixels are not what is slow (a browser holding
   the page to 30 fps on battery, a 30 Hz screen): the ratio goes back to where
@@ -454,6 +470,7 @@ waits 30 ms whatever the size. `bin/resolution-check` flies Nova Forge in an
 | steady | nothing slow: ×1.7 for 20 s at 60 fps |
 | slow | `&slow=20`: ×1.7 → 1.5 at 3 s → 1.3 at 6 s, then held at 60 fps; the cost taken away, ×1.3 kept (a step up takes 3 minutes of keeping up), and kept in a new world. Each step drew its own frame on the new canvas and kept the stars; the play log's record holds the ratio |
 | up | `&slow=20` down to ×1.3, the cost taken away and 3 minutes of keeping up stood in for (the dev page's `kept_up`): one step, to ×1.5; the cost again, back to ×1.3, and after 3 more minutes ×1.5 is not tried again; a new campaign and a new arcade run, each started as the menu starts it, keep ×1.3 and step to ×1.5 once after their own 3 minutes |
+| remembered | `&slow=20` down to ×1.3 and held, 608 400 pixels in the storage; loaded again under the cost, ×1.3 from the first frame, no step; loaded with the cost gone, ×1.3 still, and ×1.5 after 3 minutes of keeping up (stood in for); loaded once more, ×1.3 (×1.5 was on trial); the storage holding `nonsense`, ×1.7 |
 | sharp | Settings → Resolution → Sharp: ×1.7 at once, kept under `&slow`, and after a reload |
 | forced | `&dpr=1.3`: the canvas 1040 × 585 however slow |
 | futile | `&stall=30`: 1.7 → 1.5 → 1.3 → 1.15 → 1, no faster, back to ×1.7 at 14–15 s and held |

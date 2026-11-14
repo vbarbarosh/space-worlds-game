@@ -43,16 +43,29 @@ const resolution_heavier = 1.25;
 // world only waits a second (the author's play log, 2026-11-01: forgotten at each world, 1.7 was tried again in each
 // of 8 worlds and held 42 fps against 56 at 1)
 const resolution_up_stretch_ms = 180000;
+// What this machine managed is remembered for the next run and the next load of the page, in the browser's storage:
+// the pixels of the canvas at the ratio that held after a step down, or that kept up for the 3 minutes after a step
+// up. A page starts at the highest ratio whose canvas, at its window's size, is within them (a tenth over too: the
+// same window a little larger, as in fullscreen), not at the top to step down again, and a window of a new size is
+// fitted the same way. Pixels, not a ratio: what a ratio costs goes by the window it fills. With nothing remembered
+// (no ratio ever fell behind), nonsense in the storage or the storage refused, the page starts at the top as before;
+// Settings → Resolution, switched, forgets them
+const resolution_budget_key = 'pulse_drift_resolution_pixels';
+const resolution_budget_slack = 1.1;
 const resolution_samples = 2048;
 const resolution = {
     // 'auto' or 'sharp' (Settings → Resolution), kept in the browser's storage
     mode: 'auto',
     // the dev page's &dpr=: this ratio and no other; 0 when not forced
     forced: 0,
-    // the screen's ratio up to the cap, the ratios it steps down to (the screen's first), the one in use
+    // the screen's ratio up to the cap, the ratios it steps down to (the screen's first), the one in use, and the
+    // window's size it was fitted to
     top: 0,
     ladder: [1],
     level: 0,
+    view: '',
+    // the canvas's pixels this machine is known to keep up at; 0 when none is known
+    budget: 0,
     // the frames measured, a ring: the time since the last frame and the game's own work in it (ms), when it began
     frame_ms: new Float64Array(resolution_samples),
     work_ms: new Float64Array(resolution_samples),
@@ -78,25 +91,75 @@ const resolution = {
 };
 try {
     resolution.mode = (localStorage.getItem('pulse_drift_resolution') === 'sharp') ? 'sharp' : 'auto';
+    resolution.budget = resolution_budget_from_text(localStorage.getItem(resolution_budget_key));
 }
 catch {
 }
 
 // The ratio the canvas is made at (resize() in js/helpers.js). A new screen ratio (another screen, the browser's zoom)
-// starts the steps again from its own
+// starts the steps again, from the highest of its ratios within what is remembered; a window of a new size is fitted
+// to what is remembered too, and has its own 3 minutes to keep up for
 function resolution_dpr()
 {
     if (resolution.forced) {
         return resolution.forced;
     }
     const top = Math.min(devicePixelRatio || 1, resolution_cap);
+    const view = `${width}x${height}`;
     if (top !== resolution.top) {
         resolution.top = top;
         resolution.ladder = [top, ...resolution_steps.filter(v => (v >= 1) && (v <= top*resolution_step_gap))];
-        resolution.level = 0;
+        resolution.level = resolution_level_from_budget();
         resolution_forget();
     }
+    else if (view !== resolution.view) {
+        if (resolution.budget) {
+            resolution.level = resolution_level_from_budget();
+        }
+        resolution.clear_ms = 0;
+    }
+    resolution.view = view;
     return (resolution.mode === 'sharp') ? top : resolution.ladder[resolution.level];
+}
+
+// The level a page starts at: the highest ratio whose canvas is within the pixels remembered, the lowest when none
+// is, the screen's own when nothing is remembered
+function resolution_level_from_budget()
+{
+    if (!resolution.budget) {
+        return 0;
+    }
+    const level = resolution.ladder.findIndex(v => resolution_pixels(v) <= resolution.budget*resolution_budget_slack);
+    return (level < 0) ? (resolution.ladder.length - 1) : level;
+}
+
+// A remembered budget as the storage holds it: 5 to 9 digits (a canvas of 100 × 100, one of 30 000 × 30 000); 0 for
+// anything else
+function resolution_budget_from_text(text)
+{
+    return /^\d{5,9}$/.test(text || '') ? Number(text) : 0;
+}
+
+// The canvas's pixels at a ratio, at the window's size (as resize() makes it)
+function resolution_pixels(ratio)
+{
+    return Math.round(width*ratio)*Math.round(height*ratio);
+}
+
+// The pixels this machine keeps up at, for this page and (in the browser's storage) the next; 0 forgets them
+function resolution_budget_set(pixels)
+{
+    resolution.budget = pixels;
+    try {
+        if (pixels) {
+            localStorage.setItem(resolution_budget_key, String(pixels));
+        }
+        else {
+            localStorage.removeItem(resolution_budget_key);
+        }
+    }
+    catch {
+    }
 }
 
 // The screen's ratio up to the cap, never stepped down: for the small canvases beside the flight (js/hangar_preview.js)
@@ -105,7 +168,8 @@ function resolution_screen_dpr()
     return resolution.forced || Math.min(devicePixelRatio || 1, resolution_cap);
 }
 
-// Settings → Resolution: 'auto' or 'sharp'; Sharp puts the screen's ratio back at once
+// Settings → Resolution: 'auto' or 'sharp'; Sharp puts the screen's ratio back at once, and either way what was
+// remembered goes: Auto, chosen again, starts from the top
 function resolution_mode_set(mode)
 {
     const next = (mode === 'sharp') ? 'sharp' : 'auto';
@@ -115,6 +179,7 @@ function resolution_mode_set(mode)
     resolution.mode = next;
     resolution.level = 0;
     resolution_forget();
+    resolution_budget_set(0);
     try {
         localStorage.setItem('pulse_drift_resolution', next);
     }
@@ -216,6 +281,7 @@ function resolution_check(t0)
         const held = resolution_window(t0, resolution_held_window_ms);
         if (held && (held.frame_ms <= resolution_behind_ms)) {
             resolution.descent = null;
+            resolution_budget_set(resolution_pixels(resolution.ladder[level]));
         }
     }
     const keep_up_ms = Math.min(resolution_up_ms_max, Math.max(resolution_up_ms_min, resolution.refresh_ms*resolution_refresh_slack));
@@ -224,7 +290,15 @@ function resolution_check(t0)
         return;
     }
     resolution.clear_ms += resolution_check_ms;
-    if ((resolution.clear_ms < resolution_up_stretch_ms) || (level === 0) || resolution.tried[level - 1]) {
+    if (resolution.clear_ms < resolution_up_stretch_ms) {
+        return;
+    }
+    // a ratio stepped up to has kept up for its own 3 minutes: the next run starts at it
+    const pixels = resolution_pixels(resolution.ladder[level]);
+    if (resolution.budget && (pixels > resolution.budget)) {
+        resolution_budget_set(pixels);
+    }
+    if ((level === 0) || resolution.tried[level - 1]) {
         return;
     }
     resolution.tried[level - 1] = true;

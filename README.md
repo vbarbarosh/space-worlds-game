@@ -134,14 +134,15 @@ Three modes ([docs/modes.md](docs/modes.md) has each in detail):
                      and what it must not, the save, the keys; a page error
                      fails a case; exit 1 on a failure
     bin/resolution-check
-                     the adaptive resolution in real time (about five
+                     the adaptive resolution in real time (about six
                      minutes): the canvas's pixel ratio holds when frames
                      keep up, steps down under a stand-in for a slow
-                     graphics card and holds where they keep up, keeps it
-                     in a new run, steps up once after three minutes of
-                     keeping up; Sharp, a forced ratio, a page held to 30
-                     fps, a fight after a light scene, a page at 3 fps, a
-                     screen of another ratio; exit 1 on a failure
+                     graphics card and holds where they keep up, starts
+                     there in a new run and after a reload, steps up once
+                     after three minutes of keeping up; Sharp, a forced
+                     ratio, a page held to 30 fps, a fight after a light
+                     scene, a page at 3 fps, a screen of another ratio;
+                     exit 1 on a failure
 
 The main menu's top right corner holds a developers' panel, **Try a world** (src/js/arcade_trial.js): a click on a
 planet starts an arcade run straight in that world, of the kind and level the Arcade row has, at its step, with the
