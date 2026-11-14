@@ -157,7 +157,7 @@ function race_rail_track(course, w)
     return out;
 }
 
-// A course fits a track of a difficulty: the track clear of structures, gates, beacons and pulls from the start to past
+// A course fits a track of a difficulty: the track clear of gates, beacons and pulls from the start to past
 // the finish, edge to edge, or with room a share of its width (race_course_make's accept); the rocks on it are cleared
 // when the race begins (race_rail_begin)
 function race_rail_fits(course, level, room = 0.6)

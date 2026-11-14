@@ -208,7 +208,7 @@ ships. "Modes" is arcade, campaign or both.
 
 ### Raiders
 
-- The world's faction: they attack you, your structures and your freighters.
+- The world's faction: they attack you and the freighters you escort.
   Five types (chaser, tank, shooter, splitter, lancer) plus a splitter's
   shards; numbers in [balance.md](balance.md).
 - In the arcade some are marksmen: they aim where you will be, and a dashed
@@ -296,26 +296,11 @@ ships. "Modes" is arcade, campaign or both.
 
 - Mining drones (H) drill rocks and carry the load home; two in the bay, four
   on the Mule Prospector. Orbit drones (a module) circle you and shoot. The
-  builder drone builds what you place with K. The survey robot scans at a
-  beacon while you guard it (80 hull in Haven, more where raiders hit harder;
-  a bar).
-- Mining drones, the builder and the robot: campaign. Orbit drones: both.
-- Where: `src/js/drones.js`, `src/js/structures.js`, `src/js/survey.js`,
-  `src/js/render.js` (orbit drones).
-
-## What you build (campaign)
-
-### Mining outpost
-
-- Stands on a mining field; its two drones mine the rocks into a store of 60
-  that you collect.
-- Solid; raiders damage it (220 hull, a bar). Where: `structure_kinds` in
-  `src/js/structures.js`.
-
-### Defense platform
-
-- A heavy turret that fires at raiders within 480 m.
-- Solid; raiders damage it (280 hull, a bar). Where: `src/js/structures.js`.
+  survey robot scans at a beacon while you guard it (80 hull in Haven, more
+  where raiders hit harder; a bar).
+- Mining drones and the robot: campaign. Orbit drones: both.
+- Where: `src/js/drones.js`, `src/js/survey.js`, `src/js/render.js` (orbit
+  drones).
 
 ## Background
 

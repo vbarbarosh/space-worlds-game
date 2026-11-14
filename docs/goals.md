@@ -232,11 +232,11 @@ cruise costs hull, and you can die).
 
 The HUD is the race's: the card (ring, distance, place), the standings, the
 minimap (only a map: no OPEN J), the hull and turbo gauges, settings and
-pause. What a race has no use for is gone: the quick bar (no supplies,
-drones or builds; a route is still set with Ctrl), the pulse gauge (no pulse: Space does nothing, as
+pause. What a race has no use for is gone: the quick bar (no supplies
+or drones; a route is still set with Ctrl), the pulse gauge (no pulse: Space does nothing, as
 it would make you crash-proof for a moment), the inventory (Tab), the
 world's threat, the coordinates and the route line in the card's details;
-H, K and Tab do nothing. In every ring race, the campaign's too, the view
+H and Tab do nothing. In every ring race, the campaign's too, the view
 keeps your ship clear of the HUD's blocks (`src/js/race_view.js`): it looks
 toward the lights during the count, ahead to the bend on a Turbo track, and
 where the ship would come under the card, the standings or the bottom panel,

@@ -15,7 +15,7 @@ body.race-mode #combo_box {
     display: none;
 }
 
-/* nor anything a race has no use for: no supplies (the start ship has none), drones or builds, so no quick bar (a route
+/* nor anything a race has no use for: no supplies (the start ship has none) or drones, so no quick bar (a route
    is still set with Ctrl); no pulse (a race waives the world's price of a turbo in pulse, and a pulse would make you
    crash-proof for a moment), so no pulse gauge or touch PULSE; no shield gauge (a race's hits are crashes, which go
    past the shield); no inventory (Tab), no map behind the minimap (OPEN J),

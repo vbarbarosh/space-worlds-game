@@ -112,7 +112,7 @@ start line on the five places along it (298 m from its middle).
 - **Rings and the line 150 m clear of each other**, and the course turns at
   least 25° at every ring but the first and the last, so its line needs
   steering. *Checked.*
-- Clear of structures you build too, and 600 m from the combat zone.
+- 600 m from the combat zone.
 
 ## Round them
 
@@ -153,7 +153,5 @@ start line on the five places along it (298 m from its middle).
   flies into a ring or a rock. *Checked*; placed by `brood_nests_generate`,
   `src/js/arcade_nests.js` (one in each fifth of the valley east of the
   depot, either bank in turn, the same every visit).
-- Built structures keep the code's own distances: a defence platform 1.1 km
-  from the station, 700 m from a gate, 300 m from a portal; an outpost on a
-  mining field (`structure_spot_ok`, `src/js/structures.js`). Storm and flare
-  zones keep 200 m beyond their edge from a gate (`src/js/environment.js`).
+- Storm and flare zones keep 200 m beyond their edge from a gate
+  (`src/js/environment.js`).

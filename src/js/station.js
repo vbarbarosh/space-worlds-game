@@ -504,7 +504,6 @@ function guide_base_render_shop()
 {
     base_render_shop();
     render_drone_shop_card();
-    render_builder_shop_card();
     // on the UI kit every shop card becomes a kit item card, its picture first and its text three lines
     if (el.shop_grid.closest('.ui')) {
         for (const old of [...el.shop_grid.querySelectorAll('.shop-item')]) {

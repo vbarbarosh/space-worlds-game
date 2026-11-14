@@ -213,7 +213,7 @@ function hud_threat()
 {
     let best = null;
     for (const v of enemies) {
-        if ((v.hp > 0) && !v.structure_target && !v.robot_raider && (!best || (distance(v, player) < distance(best, player)))) {
+        if ((v.hp > 0) && !v.robot_raider && (!best || (distance(v, player) < distance(best, player)))) {
             best = v;
         }
     }
@@ -377,17 +377,16 @@ function sync_mission_card()
         const a = Math.atan2(target.y - player.y, target.x - player.x);
         document.getElementById('mc_arrow').style.transform = `rotate(${a + Math.PI/4}rad)`;
     }
-    sync_mission_actions(c, step, threat);
+    sync_mission_actions(c, threat);
     sync_mission_tracks(m, g, threat);
 }
 
-// The card's buttons: the guide's next action [T], and the step's own verb (Build at a field); none in a fight, where
-// EMP and Repair are the quick bar's (E, Q). Made again only when they change, so a click is never lost to a redraw.
-function sync_mission_actions(c, step, threat)
+// The card's button: the guide's next action [T]; none in a fight, where EMP and Repair are the quick bar's (E, Q).
+// Made again only when it changes, so a click is never lost to a redraw.
+function sync_mission_actions(c, threat)
 {
-    const build = step?.build && step.target && (distance(player, step.target.point) < 450);
     const label = guide_action_label(c);
-    const key = threat ? 'fight' : `${label}|${build}`;
+    const key = threat ? 'fight' : label;
     if (key === hud_card_key) {
         return;
     }
@@ -401,9 +400,6 @@ function sync_mission_actions(c, step, threat)
     const act_key = /^R \/ /.test(label) ? 'R' : 'T';
     const text = ui_sentence(label.replace(/^[A-Z] \/ /, ''));
     acts.append(ui_button({label: text, key: act_key, kind: 'primary', title: `${text} (${act_key})`, on: (act_key === 'R') ? interact : guide_action}));
-    if (build) {
-        acts.append(ui_button({label: 'Build', key: 'K', title: 'Build (K)', on: build_menu_toggle}));
-    }
 }
 
 // Under the buttons: the contract you follow (red in a fight) and the goal, each with its segmented bar

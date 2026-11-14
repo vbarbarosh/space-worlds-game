@@ -19,7 +19,7 @@ const usage = `usage: bin/map-check
     keep apart from each other and the station, no gravity well or solid lies on any of them; the campaign's race
     courses (js/race.js) keep their rings and start line out of every range, rock and pull, their legs off gravity,
     portals and the station, and turn at each ring; the Races mode's Turbo track of each difficulty (js/race_rail.js)
-    keeps its width clear of structures, gates, beacons and pulls; arcade Dustfall's cliffs and the rubble each leaves
+    keeps its width clear of gates, beacons and pulls; arcade Dustfall's cliffs and the rubble each leaves
     once it falls stand a ship's width clear of the station, gates, portals and beacons, as every solid; Ion Reach's
     arc pylons and charge fields (js/ion_pylons.js) are there, and their reach keeps out of the station's shelter, 150 m
     beyond every range, out of the pulls and the storms, a pylon's 400 m from another's, and no race ring in one;

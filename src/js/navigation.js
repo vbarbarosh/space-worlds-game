@@ -220,7 +220,6 @@ function start_jump(destination)
 {
     waypoints_clear();
     survey_robot = null;
-    structures_leave();
     if ((state !== 'playing') || jump) {
         return;
     }
@@ -363,7 +362,7 @@ function guide_base_update_frontier(dt)
         if ((enemy.type !== 'shooter') && (enemy.type !== 'boss') && (enemy.type !== 'shard') && armed) {
             enemy.gun_cd -= dt;
             // a raider sent for the survey robot shoots at it, one fighting the guards at them
-            const target = structure_prey(enemy) || ((enemy.robot_raider && survey_robot) ? survey_robot : (guard_prey(enemy) || player));
+            const target = (enemy.robot_raider && survey_robot) ? survey_robot : (guard_prey(enemy) || player);
             if ((enemy.gun_cd <= 0) && (distance(enemy, target) < 900)) {
                 enemy_fire(enemy, raider_aim(enemy, target));
                 enemy.gun_cd = ((enemy.type === 'tank') ? 2.8 : 3.6)*(arcade.active ? arcade_mode().gun_gap : 1)*raider_reload(enemy);
@@ -422,7 +421,6 @@ function guide_base_update_frontier(dt)
     }
     update_escort(dt);
     drones_update(dt);
-    structures_update(dt);
     if (waypoint && (distance(player, waypoint) < 110)) {
         waypoint = null;
     }

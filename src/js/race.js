@@ -113,7 +113,7 @@ function race_prize(top, place, count, time, par)
 
 // The course: a start line out of the shelter, then rings one to two kilometres apart, each turned off the line
 // before it to the other side, among the rocks where it can; every ring clear of the station, gates, portals,
-// beacons, gravity, rocks and structures (race_spot_clear), every leg clear of gravity, portals and the station. The
+// beacons, gravity and rocks (race_spot_clear), every leg clear of gravity, portals and the station. The
 // shape (race_shape_campaign) scales the numbers, never the dice: the campaign's courses stay as they were. accept, when
 // given, may turn a course down, and the next try is made (the Turbo kind's track must be clear edge to edge).
 function race_course_make(id, variant, shape = race_shape_campaign, accept = null)
@@ -193,8 +193,8 @@ function race_pace(id, skill, level = 1)
 
 // A point of the course is clear: inside the map, out of the station's shelter, 150 m beyond the reach of every gate,
 // portal, beacon, arc pylon (Ion Reach: a ring is never where one strikes) and magnetic spire (Obsidian: never where
-// one pulls you off the line), out of every gravity pull, and a ship's width clear of rocks, drifting debris and
-// structures (with rocks false, of structures only: the Turbo race clears the rocks off its track)
+// one pulls you off the line), out of every gravity pull, and a ship's width clear of rocks and drifting debris (with
+// rocks false, of neither: the Turbo race clears the rocks off its track)
 function race_spot_clear(p, r, rocks = true)
 {
     const margin = 150;
@@ -229,10 +229,7 @@ function race_spot_clear(p, r, rocks = true)
     if (rocks && ore_nodes.some(v => (v.hp > 0) && (distance(p, v) < v.r + r + ship))) {
         return false;
     }
-    if (rocks && drifting_debris.some(v => distance(p, v) < v.r + r + ship)) {
-        return false;
-    }
-    return !structures_here().some(v => distance(p, v) < structure_kinds[v.kind].size*0.5 + r + ship);
+    return !(rocks && drifting_debris.some(v => distance(p, v) < v.r + r + ship));
 }
 
 // Twice the widest hull's radius: the room a ship needs beside a solid
@@ -1001,7 +998,7 @@ function race_rival_update(v, dt)
 // Sideways from the rock that blocks a rival's way, the points tried to go round it by, nearest first
 const race_detours = [200, -200, 400, -400, 650, -650, 950, -950, 1300, -1300];
 
-// A rival's way to its next ring (v.via): none while the straight line to it is clear of rocks and structures with a
+// A rival's way to its next ring (v.via): none while the straight line to it is clear of rocks with a
 // hull's room; otherwise the nearest point beside the first rock across it from which the ring is clear too, so a
 // field of rocks across the leg is flown round, not into. `wide`: pinned already, the room asked is doubled.
 function race_plan(v, wide = false)
@@ -1114,7 +1111,7 @@ function race_aim(v, speed, out)
     return out;
 }
 
-// A rival's heading bent away from the rocks and structures ahead, farther ahead the faster it flies, but never
+// A rival's heading bent away from the rocks ahead, farther ahead the faster it flies, but never
 // those beyond the point it aims at
 function race_avoid(v, heading, speed, d)
 {
@@ -1176,7 +1173,7 @@ function race_rival_turbo(v, off, brake, dt)
     }
 }
 
-// No two hulls overlap: the rivals out of rocks and structures (they bounce off), out of raiders, and off each other
+// No two hulls overlap: the rivals out of rocks (they bounce off), out of raiders, and off each other
 // and you, a bump trading their speed along the hit
 function race_collide()
 {
@@ -1438,8 +1435,8 @@ function race_guide(c, m)
 
 // The pennants' colours along a course, in turn; the few by the start and the finish are chequered instead
 const race_flag_colors = ['#ffcc4d', ...race_colors, '#f4f1e8'];
-// A course's flags (or a Turbo track's), made once for each and made again when the rocks or the structures here
-// change; the course is the save's own object, so they are kept beside it, never on it
+// A course's flags (or a Turbo track's), made once for each and made again when the rocks here change; the course is
+// the save's own object, so they are kept beside it, never on it
 const race_flags_kept = new WeakMap();
 // The pennant being drawn: its way back along the course, its way out from it, its wave now, and whether it is
 // chequered; set in place for each one (race_flag_path)
@@ -1450,7 +1447,7 @@ const race_flag_frame = {fx: 0, fy: 0, nx: 0, ny: 0, wave: 0, chequer: false};
 // angle (the line's heading there), color (a pennant's colour, or 'chequer' within two and a half gaps of either
 // end; the two sides of a stretch share one), phase (its wave's own start)}. A spot nearer another part of the line
 // than the offset (the inside of a turn, a leg crossing back), within half a gap of a flag already placed (the
-// outside of a turn), or not clear of rocks, structures, gates and the station (race_spot_clear) has no flag.
+// outside of a turn), or not clear of rocks, gates and the station (race_spot_clear) has no flag.
 // The list comes sorted by colour, so a colour is set once for all its flags (race_flags_draw).
 function race_flags_along(points, offset, gap)
 {
@@ -1499,9 +1496,8 @@ function race_flags_along(points, offset, gap)
 function race_course_flags(course)
 {
     const track = race_rail_on() ? race_rail.track : null;
-    const here = structures_here();
     const kept = race_flags_kept.get(track || course);
-    if (kept && (kept.here === here) && (kept.ore === ore_nodes)) {
+    if (kept && (kept.ore === ore_nodes)) {
         return kept.flags;
     }
     const points = track ? race_track_line(track) : [course.start, ...course.rings];
@@ -1512,7 +1508,7 @@ function race_course_flags(course)
         }
         return !course.rings.some(v => distance(flag, v) < course.r + 110);
     });
-    race_flags_kept.set(track || course, {here, ore: ore_nodes, flags});
+    race_flags_kept.set(track || course, {ore: ore_nodes, flags});
     return flags;
 }
 

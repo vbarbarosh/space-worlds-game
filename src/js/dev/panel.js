@@ -46,7 +46,7 @@ window.dev_state = function () {
 };
 
 // The Races mode's Turbo tracks of this world, one a difficulty (bin/map-check): the share of its width the track of
-// the course it takes keeps clear of structures, gates, beacons and pulls, 0.6 asked (race_mode_contract), or null
+// the course it takes keeps clear of gates, beacons and pulls, 0.6 asked (race_mode_contract), or null
 window.dev_turbo_tracks = function () {
     const kind = race_mode.kind;
     race_mode.kind = 'turbo';

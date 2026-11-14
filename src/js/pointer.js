@@ -109,9 +109,6 @@ canvas.addEventListener('pointerdown', function (event) {
     }
     else if (event.pointerType !== 'touch') {
         update_pointer(p);
-        if ((event.button === 0) && build_click({x: pointer.x, y: pointer.y})) {
-            return;
-        }
         if ((event.button === 0) && (event.ctrlKey || waypoints_by_button)) {
             waypoint_draw_start(p);
             canvas.setPointerCapture(event.pointerId);
@@ -184,10 +181,9 @@ canvas.addEventListener('pointerup', release_pointer);
 canvas.addEventListener('pointercancel', release_pointer);
 
 // The right button anywhere on the game: on the open sky or on the HUD over it, pressed alone or with the left held
-// to steer (a press then comes as a move with the right button added, no pointerdown), it fires the pulse, or puts
-// back a structure being placed. The browser's own menu never opens over the game, a text field's aside (the author,
-// 2026-10-20: "very often the context menu appears ... unacceptable"; only the open sky held it back, and a press
-// with the left held fired nothing).
+// to steer (a press then comes as a move with the right button added, no pointerdown), it fires the pulse. The
+// browser's own menu never opens over the game, a text field's aside: it came up far too often in play when only the
+// open sky held it back, and a press with the left held fired nothing.
 let pointer_right_held = false;
 for (const type of ['pointerdown', 'pointermove', 'pointerup']) {
     document.getElementById('screen').addEventListener(type, pointer_right_track, {capture: true});
@@ -198,7 +194,7 @@ document.getElementById('screen').addEventListener('contextmenu', function (even
     }
 });
 
-// The right button goes down: the pulse, or a structure being placed put back
+// The right button goes down: the pulse
 function pointer_right_track(event)
 {
     if (event.pointerType === 'touch') {
@@ -206,12 +202,7 @@ function pointer_right_track(event)
     }
     const held = !!(event.buttons & 2);
     if (held && !pointer_right_held && !pointer_text_field(event.target)) {
-        if (build_placing) {
-            build_placing = null;
-        }
-        else {
-            pulse();
-        }
+        pulse();
     }
     pointer_right_held = held;
 }

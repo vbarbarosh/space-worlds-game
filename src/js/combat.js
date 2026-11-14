@@ -42,7 +42,6 @@ function base_reset_run(resume = false)
     supplies = {medkit: 2, emp: 1, stasis: 1};
     waypoints_clear();
     survey_robot = null;
-    structures_leave();
     race_clear();
     let hp = hull_max();
     if (resume && checkpoint) {
@@ -233,7 +232,7 @@ function base_spawn_enemy(type)
         // every field a raider gets later, here at the value that reads as not set, so all raiders keep one shape and
         // the loops over them read their numbers without boxing them: the world's (spawn_enemy), an attack run's
         // (update; Infinity is a count not started), a gate's, the pulse's push and the pilot's own way (blasts.js), the hit marks, the arcade's (scale,
-        // elite, squadron, pack, job, event), and the campaign's (operations, escorts, the survey robot, structures, the lure)
+        // elite, squadron, pack, job, event), and the campaign's (operations, escorts, the survey robot, the lure)
         color: null,
         armor: 0,
         max_shield: 0,
@@ -271,7 +270,6 @@ function base_spawn_enemy(type)
         operation_stage: null,
         escort_raider: false,
         robot_raider: false,
-        structure_target: null,
         mission_boss: null,
         leviathan: false,
         duel_owner: null,

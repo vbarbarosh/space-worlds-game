@@ -1,11 +1,12 @@
-// Charting: what the maps show. Layers pick the kinds of things: the route, gates, mining, your structures, danger and
-// contract targets. AUTO follows your task (on a mining step, fields and your structures; on a jump, the route, gates
-// and danger), and the local map's switches set them by hand. Fog of war: each world is charted in cells, around the
-// station at first and in a band along your path, and a survey robot's scan charts the area round its beacon; the maps
-// leave out what lies in cells not charted yet. campaign.charts[world] keeps the charted cells, packed.
+// Charting: what the maps show. Layers pick the kinds of things: the route, gates, mining, your side (the station and
+// the guards), danger and contract targets. AUTO follows your task (on a mining step, fields and your side; on a jump,
+// the route, gates and danger), and the local map's switches set them by hand. Fog of war: each world is charted in
+// cells, around the station at first and in a band along your path, and a survey robot's scan charts the area round
+// its beacon; the maps leave out what lies in cells not charted yet. campaign.charts[world] keeps the charted cells,
+// packed.
 const map_layer_names = ['route', 'gates', 'mining', 'yours', 'danger', 'contracts'];
 const map_layer_titles = {route: 'ROUTE', gates: 'GATES', mining: 'MINING', yours: 'YOURS', danger: 'DANGER', contracts: 'CONTRACTS'};
-const map_layer_icons = {route: 'objective', gates: 'world-gate', mining: 'mining-field', yours: 'outpost', danger: 'raiders', contracts: 'beacon'};
+const map_layer_icons = {route: 'objective', gates: 'world-gate', mining: 'mining-field', yours: 'station', danger: 'raiders', contracts: 'beacon'};
 // Cells are 250 m in a small world and larger in a big one, at most 160 across, so a vast world stays cheap
 const chart_cell_min = 250;
 const chart_cols_max = 160;
@@ -282,9 +283,6 @@ function map_things(every_layer = false)
         }
         const rich = ore_nodes.find(v => (v.hp > 0) && (v.field === field.id) && v.resource);
         add('mining', field, rich ? 'mining-field-rich' : 'mining-field', rich ? ore_color(rich) : null, `MINE ${field.id + 1} · ${field_reserves_text(field)}`, {reach: field.r, ring: '#e9b94966', target: {...field, label: `MINING FIELD ${field.id + 1}`}});
-    }
-    for (const v of structures_here()) {
-        add('yours', v, (v.kind === 'outpost') ? 'outpost' : 'platform', null, (v.kind === 'outpost') ? `OUTPOST · ${v.store}/${outpost_store}` : 'DEFENCE PLATFORM');
     }
     // the arcade draws no gates or beacons (physics_base_render_navigation_objects), so its map shows none
     for (const v of arcade.active ? [] : world_gates) {
@@ -684,7 +682,7 @@ function render_map_legend()
         ['route', [['you', 'You'], ['waypoint', 'Route point'], ['objective', 'Objective']]],
         ['gates', [['world-gate', 'World gate'], ['jump-gate', 'Jump gate']]],
         ['mining', [['mining-field', 'Ore field'], ['mining-field-rich', 'Rich field']]],
-        ['yours', [['station', 'Station'], ['guard', 'Guards'], ['outpost', 'Outpost'], ['platform', 'Defense platform']]],
+        ['yours', [['station', 'Station'], ['guard', 'Guards']]],
         ['danger', [['black-hole', 'Black hole'], ['storm', 'Storm / radiation'], ['pylon', 'Arc pylon'], ['charge-field', 'Charge field'], ['spire', 'Magnetic spire'], ['raiders', 'Raiders seen']]],
         ['contracts', [['beacon', 'Scan beacon']]],
     ];

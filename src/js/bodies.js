@@ -1,6 +1,6 @@
 // One rule for what is solid: what a shot can hit, a ship can crash into, and raiders follow it too. Solid are the
-// asteroids, Obsidian's spires, built structures, the convoy's freighter and every hull; no two of them overlap. Raiders steer round the
-// asteroids and structures ahead of them, and are pushed out of anything they still touch.
+// asteroids, Obsidian's spires, the convoy's freighter and every hull; no two of them overlap. Raiders steer round the
+// asteroids ahead of them, and are pushed out of anything they still touch.
 let bodies_static = [];
 // the ore nodes the frame began with: bodies_static starts with every one of them still alive
 let bodies_static_ore = {list: [], count: 0};
@@ -20,8 +20,8 @@ const bodies_numbers = {
     pr: 0,
 };
 
-// Once a frame: the solid things that do not fly (asteroids, Obsidian's spires, structures, the freighter as three
-// circles along its hull)
+// Once a frame: the solid things that do not fly (asteroids, Obsidian's spires, the freighter as three circles along
+// its hull)
 function bodies_frame()
 {
     const bodies = [];
@@ -32,13 +32,6 @@ function bodies_frame()
     }
     bodies_static_ore = {list: ore_nodes, count: bodies.length};
     bodies.push(...spires);
-    if (!arcade.active) {
-        for (const v of structures_here()) {
-            if (v.hp > 0) {
-                bodies.push({x: v.x, y: v.y, r: structure_kinds[v.kind].size*0.42});
-            }
-        }
-    }
     if (escort) {
         const a = Math.atan2((escort.destination?.y ?? escort.y) - escort.y, (escort.destination?.x ?? escort.x + 1) - escort.x);
         const step = sprite_sizes.freighter*0.3;
@@ -49,7 +42,7 @@ function bodies_frame()
     bodies_static = bodies;
 }
 
-// A raider's heading bent away from the asteroids and structures ahead of it
+// A raider's heading bent away from the asteroids ahead of it
 function raider_avoid(v, heading)
 {
     const ux = Math.cos(heading);
@@ -77,8 +70,8 @@ function raider_avoid(v, heading)
     return heading + clamp(push, -1, 1)*1.1;
 }
 
-// After everything has moved: raiders out of solid things, the player and each other; the player out of structures
-// and the freighter (asteroids push the player in resolve_solid_ore, with the impact's damage)
+// After everything has moved: raiders out of solid things, the player and each other; the player out of the freighter
+// (asteroids push the player in resolve_solid_ore, with the impact's damage)
 function bodies_resolve()
 {
     // the world's guards are hulls among them (guards.js)

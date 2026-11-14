@@ -79,7 +79,7 @@ const dev_screen_news = [
     ['ACE DOWN', 'Its salvage is yours · ◆ 120', 'income'],
     ['DRONE LOST', '2 LEFT / REPLACE THEM AT A STATION', 'danger'],
     ['DRONE LOST', '1 LEFT / REPLACE THEM AT A STATION', 'danger'],
-    ['RAID ON YOUR MINING OUTPOST AT THE FAR SIDE OF THE NEBULA', 'A_PATH_WITH_NO_SPACES_AT_ALL_TO_BREAK_IT · 1240 m AWAY · DEFEND IT BEFORE THEY TEAR IT DOWN', 'danger'],
+    ['RAID ON YOUR CONVOY FREIGHTER AT THE FAR SIDE OF THE NEBULA', 'A_PATH_WITH_NO_SPACES_AT_ALL_TO_BREAK_IT · 1240 m AWAY · DEFEND IT BEFORE THEY TEAR IT DOWN', 'danger'],
 ];
 
 // The panel's Screens tab: a button a screen, the map editor and the sound maker first, each opening it with the

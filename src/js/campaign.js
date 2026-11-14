@@ -389,12 +389,12 @@ function raider_reload(enemy)
 }
 
 // Raiders' guns hit harder the farther the world: 8% more a world past Haven, Eclipse's half as much again; in the
-// campaign, 8% more a tier of the story's front past the world (raider_tier). A raider sent for a freighter, the survey
-// robot or a structure keeps its world's own: their hulls do not grow with the story, and a stage that guards one
-// would never end.
+// campaign, 8% more a tier of the story's front past the world (raider_tier). A raider sent for a freighter or the
+// survey robot keeps its world's own: their hulls do not grow with the story, and a stage that guards one would never
+// end.
 function raider_hit_scale(enemy = null)
 {
-    const own = enemy && (enemy.escort_raider || enemy.robot_raider || enemy.structure_target);
+    const own = enemy && (enemy.escort_raider || enemy.robot_raider);
     return (1 + (own ? world_tier(campaign.world) : raider_tier())*0.08)*arcade_base_hit_k(enemy);
 }
 
