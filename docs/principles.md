@@ -15,7 +15,10 @@ glance.
   costs hull.
 - **Background:** scenery rocks, wrecks and satellites drawn dim (8%) behind the
   world. Shots and ships pass through them, and they never look like the solid
-  things.
+  things. The same drawings far off (`src/js/sky_far.js`) are smaller than any
+  rock, fainter than any hull and slide past slower than the world, and none
+  of them is one that, small and faint, passes for salvage, a mine, a shot or
+  a field's ring.
 - **Everyone follows it:** raiders collide with the same things you do, and
   with each other, and steer round what lies ahead. No two hulls overlap.
 - A cliff is a rock of `ore_nodes` (type `cliff`), drawn in full colour with a

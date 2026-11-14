@@ -339,6 +339,18 @@ ships. "Modes" is arcade, campaign or both.
 - Where: `render_map` in `src/js/surfaces.js`;
   `src/sprites/worlds/haven/satellite-*.svg`.
 
+### Far scenery
+
+- The world's scenery drawings again, far behind the plane of flight: small
+  (20 to 51 m across at zoom 100%), faint (0.24 and 0.3) and sparse (about 14
+  to a 1366 × 768 window), in two depths that slide past at 0.2 and 0.45 of
+  the world's speed and grow and shrink with the zoom. They give open space
+  depth and tell one world from another away from its planet.
+- Background, not solid; behind the planet. With Effects on only; nothing of
+  it moves by itself. A drawing that, small and faint, passes for a thing of
+  the game is left out (`sky_far_arts`).
+- Where: `src/js/sky_far.js`; `src/sprites/worlds/<world>/scenery-*.svg`.
+
 ## No purpose yet
 
 What the code draws or places without giving the player anything to do with
@@ -350,6 +362,8 @@ it. Each has a suggestion, only a suggestion.
 - **Scenery rocks and wrecks:** decoration only, kept dim so they never pass
   for solid things. *Suggestion:* none needed beyond depth, or let a scenery
   wreck hold a cache marker so the eye has a reason to look.
+- **Far scenery:** decoration only, for depth and each world's own look.
+  *Suggestion:* none needed.
 - **Planets and moons** outside Obsidian: decoration only. *Suggestion:* a
   planet gives a slow gravity assist (a speed boost along its rim), so the
   sky is a route too.
