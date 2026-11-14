@@ -6,15 +6,16 @@ const fs = require('node:fs');
 const path = require('node:path');
 const {chromium} = require('playwright');
 
-const usage = `usage: bin/sound-render [--label=name] [--page=build/dev.html] [part...]
+const usage = `usage: bin/sound-render [--label=name] [--page=build/dev.html] [--set=new|classic] [part...]
 
     Records the game's own sound as it plays in Chromium (build/dev.html, or --page: a build kept from before a change),
     taken after the compressor and the limiter, into data/sound/<label>/ (default: now) as WebM files, and measures each
-    with ffmpeg: its peak and mean level (dB), and each effect's length. report.json holds the numbers.
+    with ffmpeg: its peak and mean level (dB), and each effect's length. report.json holds the numbers. --set plays the
+    new sound set or the classic one (Settings, Sound set); without it, the page's own.
 
     parts (all by default):
-        effects   every effect of src/js/sfx/ alone, 2 s apart, at full volume, no music or hum: effects.webm;
-                  effects.json gives the time of each
+        effects   every effect the set plays (src/js/sfx/, src/js/sfx_new/) alone, 2 s apart, at full volume, no music
+                  or hum: effects.webm; effects.json gives the time of each
         themes    each world's calm theme in calm flight, 24 s, the engine's hum in it: theme-<world>.webm
         drive     each world's arcade music on its first wave, 32 s, effects off: drive-<world>.webm
         fight     an arcade wave in Ion Reach, 20 s, all of it: fight.webm, with a count of the effects played
@@ -67,7 +68,7 @@ async function main()
     const args = process.argv.slice(2);
     const options = Object.fromEntries(args.filter(v => v.startsWith('--')).map(v => v.replace(/^--/, '').split('=')));
     const names = args.filter(v => !v.startsWith('--'));
-    if (Object.keys(options).some(v => !['label', 'page'].includes(v)) || names.some(v => !parts.includes(v))) {
+    if (Object.keys(options).some(v => !['label', 'page', 'set'].includes(v)) || (options.set && !['new', 'classic'].includes(options.set)) || names.some(v => !parts.includes(v))) {
         console.log(usage);
         process.exit(2);
     }
@@ -84,7 +85,7 @@ async function main()
     const report = {};
     try {
         for (const part of chosen) {
-            await part_record(browser, hooked, out_dir, part, report);
+            await part_record(browser, hooked, out_dir, part, report, options.set || '');
         }
     }
     finally {
@@ -95,13 +96,15 @@ async function main()
     console.log(out_dir);
 }
 
-async function part_record(browser, hooked, out_dir, part, report)
+async function part_record(browser, hooked, out_dir, part, report, set)
 {
     if (part === 'effects') {
-        const page = await page_open(browser, hooked, 'world=0&screen=menu');
-        const kinds = await page_eval(page, 'Object.keys(sfx_by_kind)');
+        const page = await page_open(browser, hooked, set, 'world=0&screen=menu');
+        // the classic set's sounds, and with the new set the ones only it has
+        const kinds_code = "Object.keys(sfx_by_kind).concat(((typeof sfx_new_by_kind !== 'undefined') && (sound_set === 'new')) ? Object.keys(sfx_new_by_kind).filter(v => !sfx_by_kind[v]) : [])";
+        const kinds = await page_eval(page, kinds_code);
         await page_eval(page, 'volume_settings.music = 0; volume_settings.ambience = 0; sound.music_trim.gain.value = 0; sound.ambient_bus.gain.value = 0;');
-        const file = await page_record(page, out_dir, 'effects', 1000 + kinds.length*effect_gap + 1500, `Object.keys(sfx_by_kind).forEach((k, i) => setTimeout(() => sfx(k), 1000 + i*${effect_gap}));`);
+        const file = await page_record(page, out_dir, 'effects', 1000 + kinds.length*effect_gap + 1500, `${kinds_code}.forEach((k, i) => setTimeout(() => sfx(k), 1000 + i*${effect_gap}));`);
         const effects = kinds.map((kind, i) => ({kind, at: 1 + i*effect_gap/1000, ...level_measure(file, 0.95 + i*effect_gap/1000, effect_gap/1000 - 0.05)}));
         fs.writeFileSync(path.join(out_dir, 'effects.json'), JSON.stringify(effects, null, 4));
         report.effects = effects;
@@ -114,7 +117,7 @@ async function part_record(browser, hooked, out_dir, part, report)
     if ((part === 'themes') || (part === 'drive')) {
         for (let i = 0; i < worlds.length; ++i) {
             const query = (part === 'themes') ? `world=${i}&screen=flight&god=1` : `world=${i}&screen=arcade&wave=1&god=1`;
-            const page = await page_open(browser, hooked, query);
+            const page = await page_open(browser, hooked, set, query);
             if (part === 'drive') {
                 await page_eval(page, 'volume_settings.effects = 0; sound.fx_bus.gain.value = 0;');
             }
@@ -128,7 +131,7 @@ async function part_record(browser, hooked, out_dir, part, report)
         return;
     }
     if (part === 'arrival') {
-        const page = await page_open(browser, hooked, 'world=3&screen=arcade&god=1');
+        const page = await page_open(browser, hooked, set, 'world=3&screen=arcade&god=1');
         await page_eval(page, 'volume_settings.effects = 0; sound.fx_bus.gain.value = 0;');
         await page.waitForTimeout(2000);
         const file = await page_record(page, out_dir, part, 16000, `setTimeout(() => window.__t(${JSON.stringify(arrival_code)}), 6000);`);
@@ -137,7 +140,7 @@ async function part_record(browser, hooked, out_dir, part, report)
         await page.close();
         return;
     }
-    const page = await page_open(browser, hooked, (part === 'fight') ? 'world=3&screen=arcade&wave=2&god=1' : 'world=3&screen=arcade&wave=flagship&god=1');
+    const page = await page_open(browser, hooked, set, (part === 'fight') ? 'world=3&screen=arcade&wave=2&god=1' : 'world=3&screen=arcade&wave=flagship&god=1');
     await page_eval(page, 'window.__played = {}; const play = sfx; sfx = function (kind, ...rest) { window.__played[kind] = (window.__played[kind] || 0) + 1; return play(kind, ...rest); };');
     const file = await page_record(page, out_dir, part, 20000);
     report[part] = {
@@ -150,7 +153,7 @@ async function part_record(browser, hooked, out_dir, part, report)
     await page.close();
 }
 
-async function page_open(browser, hooked, query)
+async function page_open(browser, hooked, set, query)
 {
     const page = await browser.newPage();
     page.on('pageerror', v => console.error(`${query}: ${v.message}`));
@@ -158,6 +161,10 @@ async function page_open(browser, hooked, query)
     await page.goto(`file://${hooked}?${query}`);
     await page.waitForTimeout(2500);
     await page_eval(page, 'muted = false; start_audio();');
+    // a page from before the sets has none to choose
+    if (set) {
+        await page_eval(page, `if (typeof sound_set !== 'undefined') { sound_set = ${JSON.stringify(set)}; }`);
+    }
     await page.waitForTimeout(500);
     return page;
 }
