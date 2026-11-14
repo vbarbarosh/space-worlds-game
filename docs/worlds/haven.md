@@ -38,9 +38,10 @@ contracts and get your ship ready before you head out to the harder worlds.
 - ![An interceptor](haven/raider-interceptor.jpg) **Interceptor.** In the arcade: it bursts faster than you cruise. Turbo away, or shoot it down.
 - ![An elite raider](haven/raider-elite.jpg) **Elite.** In the arcade, elites lead some squadrons. Haven's fire short fans of plasma.
 
-## The haulers
+## In the arcade: stop the haulers
 
-In the arcade's Free runs Haven has a job for you from the first wave: the
+In the arcade's Free kind Haven gives you a task of its own from the first
+wave: the
 corsairs are towing the harbour's cargo away. Each wave a hauler comes in
 at one side of the map with three containers on a cable and runs for a
 gate in a far corner. It is slower than you: follow the arrow on the card
