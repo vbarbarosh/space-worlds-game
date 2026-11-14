@@ -32,6 +32,7 @@ function generate_map()
     cliffs_generate();
     brood_nests_generate();
     haulers_reset();
+    juggernauts_reset();
 }
 
 function expedition_base_reset_run(resume = false)

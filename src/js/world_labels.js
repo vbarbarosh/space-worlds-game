@@ -219,6 +219,10 @@ function target_plate_name(target)
     if (target.hauler) {
         return hauler_plate_name(target);
     }
+    // Dustfall's juggernaut (arcade_juggernauts.js)
+    if (target.juggernaut) {
+        return 'JUGGERNAUT';
+    }
     // a flagship's nest (boss_duels.js)
     if (target.duel_owner) {
         return 'NEST';

@@ -271,8 +271,8 @@ function render_enemies()
 {
     for (const enemy of enemies) {
         // a flagship's nest is drawn by its duel (boss_duels.js), a hauler and its containers by their task
-        // (arcade_haulers.js)
-        if (!in_view(enemy, enemy.r + 40) || enemy.duel_owner || enemy.hauler) {
+        // (arcade_haulers.js), and so is a juggernaut (arcade_juggernauts.js)
+        if (!in_view(enemy, enemy.r + 40) || enemy.duel_owner || enemy.hauler || enemy.juggernaut) {
             continue;
         }
         const color = (enemy.flash > 0) ? '#e5faff' : enemy.color || pink;

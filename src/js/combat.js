@@ -268,6 +268,8 @@ function base_spawn_enemy(type)
         event_goal: null,
         // a hauler's part: 'tug' or 'box' (arcade_haulers.js)
         hauler: null,
+        // Dustfall's juggernaut (arcade_juggernauts.js)
+        juggernaut: false,
         operation_id: null,
         operation_stage: null,
         escort_raider: false,

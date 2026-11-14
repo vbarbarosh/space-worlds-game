@@ -58,7 +58,8 @@ const arcade_modes = {
 // A world's task: its own way through a Free world's six waves (a run of eight worlds flew as the same six waves
 // eight times, so each world gets a task of its own, one world at a time). A task is its world's entry here (by the
 // world's number, Haven 0), a set of hooks the waves ask; each may be left out, and a world with no task flies its
-// waves as it always did. A Scroll lane has none. arcade_haulers.js is Haven's, arcade_nests.js Verdant's.
+// waves as it always did. A Scroll lane has none. arcade_haulers.js is Haven's, arcade_nests.js Verdant's,
+// arcade_juggernauts.js Dustfall's.
 //   wave_start(n)   a wave begins (the first one: the world)
 //   update(dt)      each frame of the world after its first, between waves too
 //   source(size)    where the build-up's next squadron comes from and how many of its `size` come now:

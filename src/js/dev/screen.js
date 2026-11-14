@@ -226,6 +226,8 @@ function dev_screen_open()
         // at its longest, one container short of all and the flagship away
         if (arcade_task()?.cleared) {
             hauler_run.saved = dev_screen_long ? haulers_cargo() - 1 : 7;
+            // Dustfall's (arcade_juggernauts.js): some buried; &long=1 one short of all
+            juggernaut_run.buried = dev_screen_long ? juggernaut_count - 1 : 3;
             arcade.flagship_escaped = dev_screen_long;
         }
         finale.frozen = (dev_screen_time === null) ? null : Number(dev_screen_time);

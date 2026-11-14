@@ -205,6 +205,7 @@ function base_render_screen_controls()
     render_arcade_jammer_marker();
     brood_nests_render_marks();
     haulers_render_marks();
+    juggernauts_render_marks();
 }
 
 function render()
@@ -278,10 +279,12 @@ function render()
     boss_render();
     render_raider_trails();
     haulers_render();
+    juggernauts_render();
     render_enemies();
     raider_jobs_render();
     boss_duel_render_over();
     haulers_render_over();
+    juggernauts_render_over();
     race_render_rivals();
     guards_render();
     render_explosions();

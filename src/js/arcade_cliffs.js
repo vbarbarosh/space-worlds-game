@@ -228,6 +228,11 @@ function cliff_fall_update(c, dt)
             continue;
         }
         c.hit.push(enemy);
+        // a juggernaut is buried whole, and its task pays for it (arcade_juggernauts.js)
+        if (enemy.juggernaut) {
+            juggernaut_bury(enemy);
+            continue;
+        }
         const share = (enemy.type === 'boss') ? cliff_crush_flagship : (cliff_heavy.includes(enemy.type) || enemy.elite) ? cliff_crush_heavy : cliff_crush;
         damage_enemy(enemy, share*(enemy.max_hp + (enemy.max_shield || 0)));
         c.crushed += (enemy.hp <= 0) ? 1 : 0;
@@ -286,7 +291,9 @@ function cliff_target()
             continue;
         }
         if (!(pointed && (distance(pointer, v) < v.r))) {
-            if (cliff_zone_has(c, player, player.r + cliff_aim_margin) || (cliff_under(c) < ((v.hp <= v.max_hp*cliff_primed) ? 1 : cliff_aim_least))) {
+            // while Dustfall's task runs, only with its juggernaut where the fall would catch it (arcade_juggernauts.js)
+            const due = juggernauts_on() ? juggernaut_cliff_due(c) : (cliff_under(c) >= ((v.hp <= v.max_hp*cliff_primed) ? 1 : cliff_aim_least));
+            if (cliff_zone_has(c, player, player.r + cliff_aim_margin) || !due) {
                 continue;
             }
         }
@@ -323,10 +330,11 @@ function cliff_squad_spot()
     return out;
 }
 
-// The run's arrival in Dustfall says once what its cliffs are for
+// The run's arrival in Dustfall says once what its cliffs are for; where the world's task runs, its juggernaut's
+// arrival says it (arcade_juggernauts.js)
 function cliffs_hint()
 {
-    if (cliffs.length) {
+    if (cliffs.length && !juggernauts_on()) {
         show_toast('CLIFFS', 'SHOOT A CLIFF\'S CRACK · THE ROCK FALLS ON WHAT IS UNDER IT', 4);
     }
 }
