@@ -32,6 +32,10 @@ const screens = [
     // Haven's task (src/js/arcade_haulers.js): its arrival's title and its card with nothing saved are hud-arcade's;
     // here its fifth hauler, the card's count at its longest
     {value: 'arcade', label: 'hud-arcade-haulers-last', world: 'haven', query: '&wave=5', phone: true},
+    // Dustfall's task (src/js/arcade_juggernauts.js): its arrival's title and its card with the first juggernaut
+    // out, then its fifth, the card's count at its longest
+    {value: 'arcade', label: 'hud-arcade-juggernauts', world: 'dustfall', phone: true},
+    {value: 'arcade', label: 'hud-arcade-juggernauts-last', world: 'dustfall', query: '&wave=5', phone: true},
     // the world's title, raiders close and a burst of news at once: the news line, the title and the card apart
     {value: 'crowded', label: 'hud-crowded'},
     // a ring race under way: the standings under the minimap, one rival with a very long name; ship: your ship clear of

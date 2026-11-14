@@ -865,6 +865,146 @@ const cases = [
             return out;
         },
     },
+    {
+        name: 'dustfall-juggernauts',
+        about: 'Dustfall\'s Free world: a juggernaut under a falling cliff is buried and brings its wave\'s crest, one ground down by the guns brings it too, the fifth the flagship; a load starts the count again',
+        page: 'dev',
+        query: 'world=dustfall&screen=arcade',
+        run: async function ({page, t}) {
+            const out = [];
+            if (await t('typeof juggernaut_run') !== 'object') {
+                out.push('Dustfall\'s Free world has no juggernauts');
+                return out;
+            }
+            // the juggernaut, the world's count, the cliffs, the wave, its crest and the card; your hull kept full
+            function now() {
+                return t(`player.hp = hull_max(); ({
+                    wave: arcade.wave,
+                    crest: !!arcade.pace?.crest,
+                    pause: arcade.pause > 0,
+                    out: !!juggernaut_run.ship,
+                    bodies: enemies.filter(v => v.juggernaut && (v.hp > 0)).length,
+                    fire: juggernaut_run.ship ? juggernaut_run.ship.max_hp/arcade_base_kit_damage() : 0,
+                    buried: juggernaut_run.buried,
+                    ground: juggernaut_run.ground,
+                    end: juggernaut_run.end,
+                    standing: cliffs.filter(v => v.rock.hp > 0).length,
+                    flagship: enemies.some(v => (v.type === 'boss') && (v.hp > 0)),
+                    card: document.getElementById('mc_title').textContent,
+                })`);
+            }
+            function crest() {
+                return page.waitForFunction(() => window.__t('!!arcade.pace?.crest'), null, {timeout: 15000}).catch(() => null);
+            }
+            // the juggernaut put stunned 200 m down a cliff's zone, you clear of it to a side, and the cliff's crack
+            // broken as the guns aimed at it break it (damage_ore); then the rumble, the fall and the crest
+            async function bury(i) {
+                await t(`(function () {
+                    const c = cliffs[${i}];
+                    const s = juggernaut_run;
+                    Object.assign(s.ship, cliff_point(c, c.rock.r + 200, 0));
+                    s.mode = 'stun';
+                    s.t = 30;
+                    Object.assign(player, cliff_point(c, c.rock.r + 200, c.rock.r + cliff_spread + 300));
+                    cliff_aim = c.rock;
+                    damage_ore(c.rock, c.rock.hp + 1);
+                })()`);
+                await crest();
+                await page.waitForTimeout(300);
+                return now();
+            }
+            // the wave's raiders down, the breather seen and cut short, the next wave begun
+            async function next_wave() {
+                for (let i = 0; (i < 10) && await t('enemies.some(v => v.hp > 0)'); ++i) {
+                    await t('for (const v of enemies) { if (v.hp > 0) { damage_enemy(v, 1e9); } }');
+                    await page.waitForTimeout(150);
+                }
+                await page.waitForFunction(() => window.__t('arcade.pause > 0'), null, {timeout: 10000}).catch(() => null);
+                // the HUD writes the card every 0.12 s (boot.js): read it once it has
+                await page.waitForTimeout(300);
+                const rest = await now();
+                const wave = rest.wave;
+                await t('arcade.pause = Math.min(arcade.pause, 0.2)');
+                await page.waitForFunction(v => window.__t('arcade.wave') > v, wave, {timeout: 10000}).catch(() => null);
+                await page.waitForTimeout(200);
+                return rest;
+            }
+            const start = await now();
+            if ((start.wave !== 1) || !start.out || (start.bodies !== 1) || (start.standing !== 6) || (start.fire < 20) || !start.card.startsWith('Lead it under a cliff: buried 0 of 5')) {
+                out.push(`the world's start: wave ${start.wave}, ${start.out ? 'a juggernaut out' : 'no juggernaut'}, its hull ${start.fire.toFixed(1)} s of the kit's fire, ${start.standing} of 6 cliffs standing, card "${start.card}"`);
+            }
+            // escorts alone under a cliff do not turn the guns to its crack; the juggernaut there does
+            const guns = await t(`(function () {
+                const c = cliffs[1];
+                const s = juggernaut_run;
+                const keep = {x: s.ship.x, y: s.ship.y};
+                Object.assign(player, cliff_point(c, c.rock.r + 200, c.rock.r + cliff_spread + 300));
+                for (let i = 0; i < 3; ++i) {
+                    Object.assign(spawn_enemy('chaser'), cliff_point(c, c.rock.r + 150 + i*40, 0));
+                }
+                const escort = cliff_target() === c.rock;
+                Object.assign(s.ship, cliff_point(c, c.rock.r + 200, 0));
+                s.mode = 'stun';
+                s.t = 30;
+                const juggernaut = cliff_target() === c.rock;
+                Object.assign(s.ship, keep);
+                return {escort, juggernaut};
+            })()`);
+            if (guns.escort || !guns.juggernaut) {
+                out.push(`the guns and a cliff's crack: ${guns.escort ? 'turned' : 'not turned'} to it with three escorts under it, ${guns.juggernaut ? 'turned' : 'not turned'} with the juggernaut there`);
+            }
+            const first = await bury(0);
+            if ((first.wave !== 1) || !first.crest || (first.end !== 'buried') || (first.buried !== 1) || (first.standing !== 5) || first.bodies || !first.card.startsWith('Destroy its escort')) {
+                out.push(`a juggernaut under a falling cliff: wave ${first.wave}, ${first.end || 'still out'}, crest ${first.crest ? 'come' : 'not come'}, ${first.buried} buried, ${first.standing} cliffs standing, card "${first.card}"`);
+            }
+            const rest = await next_wave();
+            if (!rest.pause || (rest.card !== 'Juggernauts buried 1 of 5 · next one soon')) {
+                out.push(`its escort down: ${rest.pause ? 'a breather' : 'no breather'}, card "${rest.card}"`);
+            }
+            // the second ground down as the guns grind it, no cliff spent
+            const second = await now();
+            await t('damage_enemy(juggernaut_run.ship, juggernaut_run.ship.hp + 1)');
+            await crest();
+            await page.waitForTimeout(300);
+            const ground = await now();
+            if ((second.wave !== 2) || !second.out || (ground.end !== 'ground') || !ground.crest || (ground.buried !== 1) || (ground.ground !== 1) || (ground.standing !== 5) || ground.bodies) {
+                out.push(`a juggernaut ground down: wave ${second.wave} began with ${second.out ? 'one out' : 'none'}; then ${ground.end || 'still out'}, crest ${ground.crest ? 'come' : 'not come'}, ${ground.buried} buried, ${ground.ground} ground down, ${ground.standing} cliffs standing`);
+            }
+            // saved in the third wave, its juggernaut buried, then the slot loaded: the world again from its first
+            // wave, six cliffs standing, its first juggernaut out, the count from nothing
+            await next_wave();
+            await t('save_to_slot(0)');
+            await bury(1);
+            await t('load_from_slot(0)');
+            await page.waitForTimeout(800);
+            const loaded = await now();
+            if ((loaded.wave !== 1) || loaded.crest || !loaded.out || (loaded.bodies !== 1) || (loaded.buried !== 0) || (loaded.ground !== 0) || (loaded.standing !== 6) || !loaded.card.startsWith('Lead it under a cliff: buried 0 of 5')) {
+                out.push(`after a load: wave ${loaded.wave}, crest ${loaded.crest ? 'on' : 'off'}, ${loaded.out ? 'a juggernaut out' : 'no juggernaut'}, ${loaded.bodies} of them on the map, ${loaded.buried} buried, ${loaded.ground} ground down, ${loaded.standing} of 6 cliffs standing, card "${loaded.card}"`);
+            }
+            // five buried, a cliff to spare; the fifth's escort down, the breather says the flagship comes, and it
+            // does, with no juggernaut
+            let fifth = null;
+            for (let i = 0; i < 5; ++i) {
+                fifth = await bury(i);
+                if (i < 4) {
+                    await next_wave();
+                }
+            }
+            if ((fifth.wave !== 5) || !fifth.crest || (fifth.buried !== 5) || (fifth.standing !== 1)) {
+                out.push(`the fifth juggernaut buried: wave ${fifth.wave}, crest ${fifth.crest ? 'come' : 'not come'}, ${fifth.buried} buried, ${fifth.standing} cliff standing`);
+            }
+            const last_rest = await next_wave();
+            if (!last_rest.pause || (last_rest.card !== 'Juggernauts buried 5 of 5 · now the flagship')) {
+                out.push(`the fifth's escort down: ${last_rest.pause ? 'a breather' : 'no breather'}, card "${last_rest.card}"`);
+            }
+            const last = await now();
+            const pays = await t('arcade_task().cleared()');
+            if ((last.wave !== 6) || !last.flagship || last.out || last.bodies || (pays.points !== 4000) || !pays.line.startsWith('all 5 juggernauts buried')) {
+                out.push(`after the breather: wave ${last.wave}, ${last.flagship ? 'the flagship out' : 'no flagship'}, ${last.out ? 'a juggernaut out' : 'no juggernaut'}; the world's end pays ${pays.points} (4000), its line "${pays.line}"`);
+            }
+            return out;
+        },
+    },
 ];
 // What a case's own failure says when the browser, not the game, lost the page's storage across a load
 const storage_lost = 'the browser gave the page an empty storage after a load';
