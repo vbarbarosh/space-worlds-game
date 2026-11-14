@@ -119,7 +119,9 @@ function mining_objective()
             near = d;
         }
     }
-    return {x: best.x, y: best.y, id: best.field, r: best.r};
+    // the marker's ring round the rock and its name above it, clear of the rock's bar (ore_hp_bar), which the guns
+    // bring down as they cut
+    return {x: best.x, y: best.y, id: best.field, r: best.r, round: best.r + 24};
 }
 
 function replenish_mining_supply(needed)
