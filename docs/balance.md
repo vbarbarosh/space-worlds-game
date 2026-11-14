@@ -1269,6 +1269,48 @@ both sides, and a pull to fly against.
   20 s more, the shots of both sides drawn into spires), and in one Free run
   of six the flagship's duel ran 115 s against 41.
 
+## Verdant's nests
+
+Verdant's task in the arcade's Free kind, the first world with one
+(`src/js/arcade_nests.js`; none on a Scroll lane, none in the campaign):
+burn the Thorn Swarm's five brood nests, each a wave's crest, then the
+flagship. The world's arrival says it: Burn the nests · 5 nests of the
+Thorn Swarm · then its flagship.
+
+| What | Value | Where |
+|---|---|---|
+| nests | 5, one a wave before the flagship's, 62 to 76 m in radius, the same every visit (their own seed) | `brood_nest_count`, `brood_nest_size` |
+| where | one in each fifth of the valley from 30% to 94% of its length, either bank in turn; 2 km from the station, 1.2 km apart, 600 m inside the edge, 500 m past every range, 150 m clear of rocks ([placement.md](placement.md#round-them)) | `brood_nest_out`, `brood_nest_apart`, `brood_nest_edge`, `brood_nest_ring`, `brood_nest_room` |
+| hull | 16 s of the whole kit's fire as the world begins (every mount, every bolt of a volley) × the mode's raider hull (1, 1.5, 1.8) × a card's raider hull; by the kit, not the run's step | `brood_nest_burn`, `brood_nest_hull_now` |
+| a wave's share to hatch | 1.25 × the wave's raiders; the rest stays in the nest if it burns sooner | `brood_nest_share` |
+| hatching | a build-up's squadrons come out of the nest hurt in the last 6 s, else the nearest, one squadron in 4 s at most; a nest over 2.4 km away 2 raiders in 8 s | `brood_nest_hold`, `brood_nest_hatch_gap`, `brood_nest_far`, `brood_nest_trickle` |
+| hunters | no nest hurt for 45 s of a build-up: 2 elite interceptors out of the nearest nest, then a pack every 25 s, one more each time up to 5; they drop nothing | `brood_nest_away`, `brood_nest_away_gap`, `brood_nest_hunters` |
+| the burst | a blast of 110 m (its front to 198 m), 60 to a raider at its middle, 30 × the mode's blast to you; 400 × the combo in score, 4 pieces of a rock's salvage | `brood_nest_blast`, `brood_nest_points`, `brood_nest_salvage` |
+| the brood | the wave's crest (the crest's share as in any wave), 0.45 s after the burst, scattered 60 to 260 m round the nest's rim, an elite leading as in any crest | `brood_nest_brood_delay`, `brood_nest_scatter` |
+| a wave cut short | a nest hurt in the breather or in the last one's crest starts its wave at once; a freighter or an ace still out jumps away | `brood_nests_update`, `arcade_event_cut` |
+
+Measured (`bin/playtest`'s bot, NORMAL, Free, Verdant its second world;
+before the nests and with them in alternating batches of four seeds, the
+bot not being repeatable; Verdant's means):
+
+| | before | hull 12 s | 16 s | 18 s |
+|---|---|---|---|---|
+| runs | 32 | 8 | 16 | 16 |
+| runs won | 29 | 6 | 14 | 14 |
+| minutes in Verdant | 5.1 (4.5 to 6.1) | 3.8 (3.1 to 4.1) | 4.7 (4.2 to 5.3) | 4.8 (4.0 to 5.5) |
+| deaths in Verdant | 0 | 0 | 0 | 0 |
+| hull lost (hull and shield) | 74 (425) | 109 (283) | 145 (343) | 130 (331) |
+| interest | 63 | 66 | 61 | 59 |
+| peaks in 5 minutes | 2.3 | 2.8 | 1.9 | 1.6 |
+| seconds with no raider within 900 m | 26% | 36% | 36% | 40% |
+| longest gap with nothing new | 57 s | 40 s | 55 s | 54 s |
+| choices in 5 minutes | 2.9 | 4.0 | 3.2 | 3.2 |
+
+At 12 s a world was over in under four minutes. 16 s gives back most of
+it; 18 s adds 5 s a world and costs interest, so the hull stays at 16. The
+seconds with nobody near rose by a third; where in the world they fall is
+not measured yet.
+
 ## The arcade's pace
 
 A Free world's first five waves are each a build-up, a crest and a

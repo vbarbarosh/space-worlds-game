@@ -34,6 +34,23 @@ waves 3 and 5 bring a prize, a fleeing ace and a freighter of salvage, to
 chase or leave. Under 35% hull your guns hit half again as hard (a **last
 stand**), and a kill drops a repair kit, one in 20 s at most.
 
+### A world's task
+
+Each world is to get a task of its own for its waves, one world at a time;
+a world with none flies the waves above. Verdant's is the first: **burn
+the nests**. Five brood nests of the Thorn Swarm stand down the valley, the
+same every visit, and the world's raiders hatch from them: through a
+build-up, out of the nest you are burning, else the nearest; a nest far off
+sends only a few. A nest is solid, as a rock is, and only your fire hurts
+it. Its hull gone, it bursts, a blast that hurts and shoves what is round
+it, and its last brood comes out round it: that is the wave's crest. The
+brood down, the breather, then the next wave. The nests go in any order,
+and one hurt in the breather starts its wave at once. The fifth burnt, the
+Thorn Beetle comes. A pilot who keeps away from the nests for 45 s is sent
+hunters. The card says how many nests are left and the way to the nearest,
+the map marks them, and an arrow at the screen's edge points to the nearest
+while none is in view. A Scroll lane has no task.
+
 ### The raiders
 
 Raiders come in squadrons; elites lead some of them, from Haven on (from
@@ -56,7 +73,8 @@ before it lands, its own way of moving, a second half below 50%, and its
 own way to be won:
 
 - the Crescent (Haven) runs for a gate and gets away if it reaches it;
-- nests shield the Thorn Beetle (Verdant);
+- its own nests shield the Thorn Beetle (Verdant), apart from the brood
+  nests of its world's task;
 - the Sawtooth (Dustfall) stuns itself on a rock it charges into;
 - the Storm Wheel (Ion Reach) is hurt through the gaps of its turning shell;
 - the Iron Stair (Obsidian) at one weak point at a time;

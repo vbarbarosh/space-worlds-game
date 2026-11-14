@@ -32,11 +32,12 @@ Three modes ([docs/modes.md](docs/modes.md) has each in detail):
 - **Arcade**: one run through the eight worlds, about five minutes each:
   six waves of raiders, each building to a crest and a breather, something
   new from the third, the world's flagship in the last, each flagship a
-  fight of its own. Salvage buys weapons, ships and modules at the depot
-  between worlds, as many as the ship's reactor can power. Three lives, a
-  score and a best; no stations or contracts. Two kinds: **Free**, the world
-  open around you, and **Scroll**, the same run along a lane that moves on
-  by itself.
+  fight of its own. A world may set a task of its own: in Verdant the
+  raiders hatch from five nests, and each nest burnt is a wave's crest.
+  Salvage buys weapons, ships and modules at the depot between worlds, as
+  many as the ship's reactor can power. Three lives, a score and a best; no
+  stations or contracts. Two kinds: **Free**, the world open around you,
+  and **Scroll**, the same run along a lane that moves on by itself.
 - **Races**: ring races alone, course after course through the eight
   worlds, at Easy, Normal or Hard: Steer, flown by hand, or Turbo, where
   the ship rides the track and you work only the turbo.
@@ -79,12 +80,12 @@ Three modes ([docs/modes.md](docs/modes.md) has each in detail):
                      world's calm theme with an ending, composed with the
                      game's own music and instruments (bin/world-music haven);
                      needs Playwright's Chromium and ffmpeg
-    bin/perf         frame times, garbage and drawing costs over 57 scenes
+    bin/perf         frame times, garbage and drawing costs over 59 scenes
                      (every world calm and in a fight, zoom 100% and 50%,
-                     the arcade from Dustfall on, Scroll lanes in Dustfall,
-                     Obsidian, Nova Forge and Eclipse, campaigns of 10, 50 and
-                     100 structures, a ring race and drifting debris close
-                     by in Haven and Eclipse), at
+                     the arcade from Dustfall on, Verdant's nests, Scroll
+                     lanes in Dustfall, Obsidian, Nova Forge and Eclipse,
+                     campaigns of 10, 50 and 100 structures, a ring race and
+                     drifting debris close by in Haven and Eclipse), at
                      any window size, pixel ratio and difficulty; see
                      docs/performance-2026-10-05.md
     bin/playtest     a bot plays arcade runs on a virtual clock (about a
@@ -124,8 +125,9 @@ Three modes ([docs/modes.md](docs/modes.md) has each in detail):
                      docs/placement.md: no two things R acts on within reach
                      of each other, gates and portals where the rules put
                      them, race courses clear of all of it, Ion Reach's
-                     pylons and charge fields and Obsidian's spires out of
-                     every range; exit 1 on a failure
+                     pylons and charge fields, Obsidian's spires and arcade
+                     Verdant's brood nests out of every range; exit 1 on a
+                     failure
     bin/play-check   the game's rules played through its own functions, in
                      build/index.html and build/dev.html: what a run keeps
                      and what it must not, the save, the keys; a page error
@@ -162,6 +164,8 @@ With Ion Reach (`world=ion-reach`, flight or arcade, Free or Scroll), `&pylon=ca
 by an arc pylon at that moment (`&speed=0.1` to watch it, `&god=0` for the strike to land).
 With Obsidian (`world=obsidian`, the same scenes), `&spire=near|pull|cover|bend` puts your ship by a magnetic spire:
 outside its field, inside it drawn in, behind it with three shooters held beyond it, or firing past it at a tank.
+In Verdant's Free world (`world=verdant&screen=arcade`) a wave past the first finds as many brood nests burnt as the
+waves before it, so `&wave=5` leaves the last nest standing.
 `&screen=arcade-lost` shows a death on the world's last wave with two lives left, with Retry for that world
 (`&lives=1` the last one left), `arcade-over` the last life lost, the run over; `&long=1` gives either a very long
 world name and a huge score. With `&screen=arcade`, `&lives=n` sets the HUD's lives (0 to 3), the lost ones blinking;

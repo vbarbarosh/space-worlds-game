@@ -9,7 +9,7 @@ A thing in space is either solid or background, and you can tell which at a
 glance.
 
 - **Solid:** asteroids and ore rocks, Dustfall's cliffs and their rubble (arcade),
-  Obsidian's magnetic spires, drifting debris and wrecks, built outposts and platforms, the convoy's
+  Verdant's brood nests (arcade), Obsidian's magnetic spires, drifting debris and wrecks, built outposts and platforms, the convoy's
   freighter, every hull (yours and the raiders'). Shots stop on them, and ships
   collide with them: a hit pushes the ship off, and above cruising speed it
   costs hull.
@@ -21,6 +21,10 @@ glance.
 - A cliff is a rock of `ore_nodes` (type `cliff`), drawn in full colour with a
   dark outline and a cast shadow, larger than any rock, so it can never pass for
   the dim scenery; its fall zone is drawn on the ground, not as a body.
+- A brood nest is a rock of `ore_nodes` too (type `brood_nest`), drawn the
+  same way, in full colour with a dark outline and a cast shadow. Burnt, it
+  leaves a husk drawn flat and dim with no outline, as the background is:
+  nothing stops on it (`src/js/arcade_nests.js`).
 - **Fields** are neither: a black hole's pull, Ion Reach's storms, and its arc
   pylons and charge fields act on a ship inside a ring drawn round them, and
   ships and shots pass through them. A pylon is drawn as light (a glowing knot
@@ -55,7 +59,7 @@ glance.
   cracks them, and a rock broken blows up, hurting and shoving what is
   round it. A field at rest does not go up from one rock; rocks your push
   wave moved are loose for 4 s and break at twice the damage, so a herd goes
-  up in a chain. A cliff never moves (`src/js/rocks.js`).
+  up in a chain. A cliff and a brood nest never move (`src/js/rocks.js`).
 - Where it lives: `src/js/bodies.js` (what is solid, the separation),
   `resolve_solid_ore` in `src/js/flight.js` (your ship against rocks),
   `block_hostile_ore` (enemy shots on rocks), `src/js/evasion.js` (the
@@ -105,6 +109,11 @@ shows a health bar (its armour or energy, and how much is left as it is hit).
     Dustfall's ore rocks. A bar over it once hit, orange once primed.
     Broken, it rumbles 0.6 s and falls along its zone; its rubble are ore
     rocks with their own bars (`src/js/arcade_cliffs.js`).
+  - **Verdant's brood nests** (arcade Free): solid; your shots, missiles and
+    pulse and every blast burn one, and raiders' shots stop on it and do it
+    no harm. A bar over it once hit, and its glowing sacs go out one by one
+    as it burns. Burnt, it bursts and leaves a husk
+    (`src/js/arcade_nests.js`).
   - **Drifting asteroids and wrecks:** they hurt your ship when you hit them,
     and your shots break them (`drifting_debris_hit` in
     `src/js/expedition.js`), but they have no bar. Raiders and raiders' shots

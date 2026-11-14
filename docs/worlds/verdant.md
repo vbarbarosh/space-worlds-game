@@ -40,6 +40,16 @@ hit them.
 - ![A raider carrier](verdant/raider-carrier.jpg) **Carrier.** In the arcade: it hangs back and launches drones. Kill the carrier and the drones fall with it.
 - ![An elite raider](verdant/raider-elite.jpg) **Elite.** Verdant's elites sow spore mines around themselves.
 
+## In the arcade: burn the nests
+
+In the arcade's Free kind Verdant gives you a task of its own. Five nests
+of the Thorn Swarm grow down the valley, and the raiders hatch from them,
+most from the nest you are burning. Burn one and it bursts, throwing out
+its last brood: beat them and the next wave begins. Burn all five and the
+Thorn Beetle comes. Keep away from the nests too long and they send hunters
+after you. The card shows how many nests are left and the way to the
+nearest.
+
 ## The flagship: the Thorn Beetle
 
 ![The Thorn Beetle, Verdant's flagship](verdant/flagship.jpg)
@@ -50,8 +60,8 @@ danger keeps moving. Now and then it lunges sideways; a dashed gold line
 shows the way it will go half a second before. Once it is half broken it
 starts hatching a brood of small raiders.
 
-In the arcade, nests shield the beetle. Break the nests first, then turn
-your guns on the beetle itself.
+In the arcade the beetle sows nests of its own round it, and they shield
+it. Break those first, then turn your guns on the beetle itself.
 
 ## Before you go
 

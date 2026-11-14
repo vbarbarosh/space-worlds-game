@@ -146,6 +146,13 @@ start line on the five places along it (298 m from its middle).
   the station 2.4 to 4.4 km out, round the arcade's depot 1.4 to 3 km out, or
   along a Scroll lane from 1.6 km past its start to 1.2 km before its end,
   120 to 260 m either side of its middle).
+- **Verdant's five brood nests (arcade Free) stand 2 km from the station's
+  centre, 600 m inside the map's edge, 500 m beyond every range above, out
+  of every pull and storm, 150 m clear of every rock and 1.2 km apart.** A
+  fight round a nest never reaches the depot, and a ship circling one never
+  flies into a ring or a rock. *Checked*; placed by `brood_nests_generate`,
+  `src/js/arcade_nests.js` (one in each fifth of the valley east of the
+  depot, either bank in turn, the same every visit).
 - Built structures keep the code's own distances: a defence platform 1.1 km
   from the station, 700 m from a gate, 300 m from a portal; an outpost on a
   mining field (`structure_spot_ok`, `src/js/structures.js`). Storm and flare
