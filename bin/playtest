@@ -37,8 +37,10 @@ const usage = `usage: bin/playtest [--mode=normal] [--kind=free] [--seeds=1,2,3]
     How it flies: it holds 320 m from the nearest raider and circles it, steps aside from shots coming at it, picks
     up salvage when fewer than three raiders are close, then goes for the nearest of Verdant's brood nests and circles
     it close enough for its guns to take the nest (src/js/arcade_nests.js), goes for Haven's hauler while one is out
-    and circles it (src/js/arcade_haulers.js; a world's entry keeps the cargo it saved), waits by the station when no
-    raider and no nest is left, keeps off the radiation
+    and circles it (src/js/arcade_haulers.js; a world's entry keeps the cargo it saved), leads Dustfall's juggernaut
+    across the zone of the nearest standing cliff and waits clear of it for the guns to take the crack
+    (src/js/arcade_juggernauts.js; a world's entry keeps the juggernauts buried and ground down), waits by the
+    station when no raider and no nest is left, keeps off the radiation
     at the edge (on a Scroll lane, off the view's edges, and the salvage it picks up is in the view), out of black
     holes' pulls and Ion Reach's arc pylons' rings (it does not seek the charge fields), off Obsidian's magnetic
     spires (it does not seek their cover); a flagship's
@@ -432,8 +434,9 @@ function page_bot(options)
     // alive, the deaths in this world so far
     function interest_sample() {
         const entry = world_entry();
-        // Haven's hauler (src/js/arcade_haulers.js) is anchored, as it flies its own way, and is a raider to fight
-        const alive = enemies.filter(v => (v.hp > 0) && (!v.anchor || (v.hauler === 'tug')));
+        // Haven's hauler (src/js/arcade_haulers.js) and Dustfall's juggernaut (src/js/arcade_juggernauts.js) are
+        // anchored, as each flies its own way, and are raiders to fight
+        const alive = enemies.filter(v => (v.hp > 0) && (!v.anchor || (v.hauler === 'tug') || v.juggernaut));
         for (const v of alive) {
             if (distance(v, player) < 900) {
                 news((v.type === 'boss') ? ((v.hp < v.max_hp*0.5) ? 'flagship half' : 'flagship') : `${v.elite ? 'elite ' : ''}${v.job ? v.job.kind : v.type}`);
@@ -582,6 +585,79 @@ function page_bot(options)
                 if (dodge) {
                     dx += dodge.x*1.5;
                     dy += dodge.y*1.5;
+                }
+            }
+        }
+        // Dustfall's juggernauts (src/js/arcade_juggernauts.js), where the build has them: it leads the one out under
+        // the standing cliff nearest it, as a pilot follows the card's arrow: to a place clear of the cliff's zone, past
+        // the zone's middle from the juggernaut, so the juggernaut comes to it across the zone and the guns take the
+        // crack; there it waits, stepping aside from shots; out of the lane of a charge it steps across; with no cliff
+        // standing it circles the juggernaut 150 to 260 m off, so the guns grind it down; the salvage within 250 m it
+        // picks up first, with fewer than three raiders close. A world's entry keeps the juggernauts buried and ground
+        // down, the cliffs left and the seconds a juggernaut was out
+        const juggernaut = ((typeof juggernaut_run === 'object') && juggernaut_run.ship && (juggernaut_run.ship.hp > 0)) ? juggernaut_run.ship : null;
+        if ((typeof juggernaut_run === 'object') && (campaign.world === juggernaut_world)) {
+            world_entry().buried = juggernaut_run.buried;
+            world_entry().ground = juggernaut_run.ground;
+            // the cliffs standing as the flagship's wave begins: its own fight fells them by its own rule
+            world_entry().cliffs_left = (arcade.wave < arcade_free_waves) ? cliffs.filter(v => v.rock.hp > 0).length : world_entry().cliffs_left;
+        }
+        if (juggernaut) {
+            // the seconds a juggernaut was out, and the longest one's
+            world_entry().juggernaut_time = (world_entry().juggernaut_time || 0) + 1/60;
+            B.juggernaut_out = (B.juggernaut_seen === juggernaut) ? B.juggernaut_out + 1/60 : 1/60;
+            B.juggernaut_seen = juggernaut;
+            world_entry().juggernaut_longest = Math.max(world_entry().juggernaut_longest || 0, B.juggernaut_out);
+            const cliff = juggernaut_cliff_nearest();
+            const charge = ['sign', 'charge'].includes(juggernaut_run.mode) ? juggernaut_run.lane : null;
+            const off = (charge === null) ? Infinity : (player.x - juggernaut.x)*Math.sin(charge) - (player.y - juggernaut.y)*Math.cos(charge);
+            const loot = (near(400) < 3) ? pickups.reduce((best, v) => (!best || (distance(v, player) < distance(best, player))) ? v : best, null) : null;
+            if (Math.abs(off) < 140) {
+                dx = ((off >= 0) ? 1 : -1)*Math.sin(charge);
+                dy = ((off >= 0) ? -1 : 1)*Math.cos(charge);
+            }
+            else if (loot && (distance(loot, player) < 250)) {
+                dx = loot.x - player.x;
+                dy = loot.y - player.y;
+            }
+            else if (cliff) {
+                const end = cliff.rock.r + cliff_reach;
+                const middle = cliff_point(cliff, end*0.55, 0);
+                const far = Math.max(1, distance(juggernaut, middle));
+                const ux = (middle.x - juggernaut.x)/far;
+                const uy = (middle.y - juggernaut.y)/far;
+                let stand = middle;
+                for (let step = 60; step <= 720; step += 30) {
+                    stand = {x: middle.x + ux*step, y: middle.y + uy*step};
+                    if (!cliff_zone_has(cliff, stand, player.r + cliff_aim_margin + 50)) {
+                        break;
+                    }
+                }
+                const d = distance(stand, player);
+                dx = (d > 50) ? (stand.x - player.x)/d : 0;
+                dy = (d > 50) ? (stand.y - player.y)/d : 0;
+                if (dodge) {
+                    dx += dodge.x*1.5;
+                    dy += dodge.y*1.5;
+                }
+            }
+            else {
+                const d = Math.max(1, distance(juggernaut, player));
+                const gap = d - juggernaut.r;
+                const toward = (gap > 260) ? 1 : (gap < 150) ? -1 : 0;
+                dx = ((juggernaut.x - player.x)/d)*toward - ((juggernaut.y - player.y)/d)*0.8;
+                dy = ((juggernaut.y - player.y)/d)*toward + ((juggernaut.x - player.x)/d)*0.8;
+                if (dodge) {
+                    dx += dodge.x*1.5;
+                    dy += dodge.y*1.5;
+                }
+            }
+            // away from a rock whose rim is within 110 m, as on the hauler's chase; a cliff too
+            for (const v of ore_nodes) {
+                const gap = (v.hp > 0) ? distance(v, player) - v.r - player.r : Infinity;
+                if (gap < 110) {
+                    dx += ((player.x - v.x)/distance(v, player))*2*(1 - Math.max(0, gap)/110);
+                    dy += ((player.y - v.y)/distance(v, player))*2*(1 - Math.max(0, gap)/110);
                 }
             }
         }
