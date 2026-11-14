@@ -46,6 +46,21 @@ closing one way through and opening another.
 - ![A raider bulwark](dustfall/raider-bulwark.jpg) **Bulwark.** In the arcade: its front shield stops your shots. Fly round to its back.
 - ![An elite raider](dustfall/raider-elite.jpg) **Elite.** Dustfall's elites charge across your path.
 
+## In the arcade: bury the juggernauts
+
+In the arcade's Free kind Dustfall gives you a task of its own. Each wave a
+juggernaut of the Dune Marauders comes for you: slow, plated all round, and
+your guns barely mark it. Do not try to shoot it down. Follow the arrow on
+the card to the nearest cliff, lead the juggernaut across the strip of ground
+the cliff leans over, and get clear of that strip yourself. Your guns turn to
+the cliff's crack, the cliff comes down, and the juggernaut is buried. When
+it lines you up it stops and shows the line of its charge: step aside. If a
+rock or a cliff is in its way it stuns itself, and a juggernaut stunned at
+the foot of a cliff is yours. There are six cliffs for five juggernauts, so
+one is to spare. With no cliff left, your guns still grind a juggernaut down,
+slowly. The card counts the juggernauts you buried, out of 5, and the world's
+end pays for them.
+
 ## The flagship: the Sawtooth
 
 ![The Sawtooth, Dustfall's flagship](dustfall/flagship.jpg)

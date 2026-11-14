@@ -72,6 +72,24 @@ hunters. The card says how many nests are left and the way to the nearest,
 the map marks them, and an arrow at the screen's edge points to the nearest
 while none is in view.
 
+Dustfall's is **bury the juggernauts**. As each of the five waves begins, a
+Dune Marauder juggernaut comes in, plated all round, and comes for you,
+slower than you cruise. Your guns barely mark it. Lead it under one of the
+world's six cliffs and stand clear of the cliff's fall zone: the guns turn
+to the crack, the cliff falls, and the juggernaut is buried at once. When it
+has you lined up it stops, shows the lane of its charge and runs it; a rock
+or a cliff in the lane stuns it for a few seconds, the lesson the Sawtooth
+then asks for. The wave's squadrons are its escort. Buried, or ground down
+by the guns the slow way, the wave's crest comes, its escort's last
+squadron, then the breather and the next juggernaut; after the fifth, the
+Sawtooth. Nothing fails: six cliffs stand for five juggernauts, and with
+none left the guns grind one down in about a minute. While the task runs the
+guns turn to a crack only for the juggernaut, or where you point, so no
+cliff is spent on its escort by itself. The card counts the juggernauts
+buried, of 5, and points to the nearest cliff still standing, the map marks
+the juggernaut and the cliffs, and the world's cleared screen pays for the
+burials in score.
+
 ### The raiders
 
 Raiders come in squadrons; elites lead some of them, from Haven on (from

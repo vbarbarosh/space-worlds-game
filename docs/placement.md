@@ -160,5 +160,12 @@ start line on the five places along it (298 m from its middle).
   checked by `bin/map-check`: the way is found as each hauler comes in
   (`hauler_path`, `src/js/arcade_haulers.js`), over the rocks as they then
   stand; the five ways measured pass 1.76 km or more from the station.
+- **Dustfall's juggernauts (arcade Free) come in 900 m from you, 200 m inside
+  the map's edge, off the depot (100 m and its own size beyond the shield's
+  ring), 40 m clear of every rock and out of every standing cliff's fall
+  zone.** A juggernaut never arrives inside a rock, on the depot or already
+  under a cliff. Not checked by `bin/map-check`: the place is found as each
+  comes in (`juggernaut_spawn_spot`, `src/js/arcade_juggernauts.js`), the
+  first of sixteen bearings that fits, the last one toward the map's middle.
 - Storm and flare zones keep 200 m beyond their edge from a gate
   (`src/js/environment.js`).

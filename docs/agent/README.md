@@ -148,7 +148,12 @@ dome opens only while you are at the hole's edge. In Haven's Free world each
 of the first five waves brings a corsair hauler towing three containers to
 a gate: shooting it breaks the containers loose, and at its gate it jumps
 away with the rest. It and its containers are raiders on the radar, but
-the autopilot does not go after them: fly to the hauler yourself. In the
+the autopilot does not go after them: fly to the hauler yourself. In
+Dustfall's Free world each of the first five waves brings a juggernaut, a
+plated raider your guns barely mark, which comes for you and charges in a
+straight line: lead it into the fall zone of a cliff and stand clear, and
+your guns bring the cliff down on it. The autopilot does not lead it: fly
+to a cliff yourself. In the
 arcade the
 autopilot flies for you: it keeps the nearest raider at gun range,
 sidesteps, collects pickups when the sky is clear, flies the flagship's

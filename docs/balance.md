@@ -1207,6 +1207,14 @@ shoot what flies over it (`src/js/arcade_cliffs.js`; the campaign has none).
   you are out of it, in one line.
 - The world's arrival says it once: CLIFFS · SHOOT A CLIFF'S CRACK · THE ROCK
   FALLS ON WHAT IS UNDER IT.
+- **While Dustfall's task runs** (Free, the five waves before the flagship's:
+  [Dustfall's juggernauts](#dustfalls-juggernauts)) a cliff's hull is 1.5 s of
+  your kit's fire, the guns aim at a crack only when the fall would catch the
+  wave's juggernaut, or where you point, a juggernaut the fall reaches is
+  buried whole and is not counted in CRUSHED ×n, and the juggernaut's arrival
+  says what the cliffs are for in place of the line above. The flagship's wave
+  keeps the rules above, with the hull the task set; a Scroll lane keeps them
+  all.
 - Measured (`bin/playtest`'s bot, NORMAL, seeds 1 to 4, Dustfall third): no
   deaths in Dustfall before or after; its time 94, 88, 109, 117 s against
   143, 107, 243, 92 before (mean 102 against 146); hull lost there 56, 24,
@@ -1498,6 +1506,96 @@ raiders a hatch) made the world as long but its interest lower. Every
 death of these runs came after Verdant: 12 in 24 runs as landed, all in
 Eclipse; 16 in 22 with the share at 1.75, 15 in Eclipse and 1 in Nova
 Forge; the landed nests' 32 runs of the round before had 0.75 a run.
+
+## Dustfall's juggernauts
+
+Dustfall's task in the arcade's Free kind (`src/js/arcade_juggernauts.js`;
+none on a Scroll lane, none in the campaign): bury the Dune Marauders' five
+juggernauts, each a wave, then the flagship. The world's arrival says it:
+Bury the juggernauts · 5 juggernauts of the Dune Marauders · a cliff buries
+one · then its flagship; the first juggernaut's arrival says what to do:
+GUNS BARELY MARK IT · LEAD IT UNDER A CLIFF AND SHOOT THE CRACK.
+
+| What | Value | Where |
+|---|---|---|
+| juggernauts | 5, one a wave before the flagship's; the world's six cliffs stand for them, one to spare | `juggernaut_count`, `cliff_count` |
+| arrival | 900 m from you, on the map, off the depot, clear of the rocks and of the cliffs' zones ([placement.md](placement.md#round-them)) | `juggernaut_come`, `juggernaut_spawn_spot` |
+| speed | 100, 120 and 135 m/s on CHILL, NORMAL and OVERLOAD (your cruise is 285), turning 1.5 rad/s; left behind, more: up to 2.1 times that from 700 m to 1.1 km from you | `juggernaut_speeds`, `juggernaut_turn`, `juggernaut_far`, `juggernaut_rush` |
+| hull | 16 s of the whole kit's fire as its wave begins × the mode's raider hull (1, 1.5, 1.8) × a card's raider hull: 16, 24 and 29 s; by the kit, as a brood nest's; no armour and no shield | `juggernaut_burn`, `juggernaut_hull_now` |
+| a cliff's hull while the task runs | 1.5 s of the kit's fire on every mode, set as the world's first wave begins (by the run's step it was 351 at NORMAL's third: 2.3 s of two cannons, 4.7 s of the first gun) | `juggernaut_cliff_burn` |
+| the guns and a crack while the task runs | only with the wave's juggernaut in the zone and still there once the crack and the 0.6 s rumble are through, by its speed and heading, or stunned there; never during its charge; or where you point; and you out of the zone, as ever | `juggernaut_cliff_due`, `cliff_target` |
+| the charge | with you 240 to 700 m off and within 0.3 rad of its bow, once in 7, 6 and 5 s: it stops 0.9 s, its lane drawn, turning with you until the last 0.3 s; then 540 m/s down the lane, 160 m past where you stood, 900 m at most; in the open it then stands 0.8 s | `juggernaut_charge_range`, `juggernaut_aim`, `juggernaut_charge_gap`, `juggernaut_sign`, `juggernaut_sign_lock`, `juggernaut_charge_speed`, `juggernaut_charge_over`, `juggernaut_charge_most`, `juggernaut_recover` |
+| a stun | a rock of 16 m or more, a cliff or its rubble in the lane ends the charge there: stunned 4.5, 3.8 and 3.2 s, its next charge after half the gap | `juggernaut_stun`, `juggernaut_stunned` |
+| what moves it | its own flight only: a push wave, a blast and a crash do not shove it, a portal does not take it; stasis slows it and its sign as it slows a raider (120 m/s to 42) | `juggernauts_update`, `juggernaut_fly` |
+| its plating's answer | sparks off its rim on your side at most once in 0.25 s of fire; PLATING HOLDS once in 4 s, not while it is under a standing cliff | `juggernaut_spark_gap`, `juggernaut_word_gap` |
+| its escort | the wave's squadrons, as the director calls them, round you, half of them under a cliff as Dustfall's come; with fewer raiders within 900 m of you than the director wants for 3 s, those farther warp in round you, 650 m off | `juggernaut_regroup_after`, `juggernaut_regroup` |
+| a burial | the fall takes its whole hull: 600 points × the combo, 8 pieces of salvage of 4 ◆ (2 more a step of the run), a repair where the mode lets repairs drop; the kill's own score is a tank's; it is not counted in the cliff's CRUSHED ×n | `juggernaut_points`, `juggernaut_salvage`, `juggernaut_bury`, `juggernaut_down` |
+| the crest | 0.7 s after it is buried or ground down: the wave's crest as in any wave, round you | `juggernaut_crest_delay` |
+| the world's end | 300 points a burial, 2,500 more for all five (4,000), said on the cleared screen's line | `juggernaut_points_end`, `juggernaut_points_all` |
+
+Measured (`bin/playtest`'s bot, Free, Dustfall as the run's second world
+(`--route=high`), cut as its third begins; before the juggernauts and with
+them in alternating batches of four seeds, the bot not being repeatable;
+means of a world). The bot leads the juggernaut out across the zone of the
+standing cliff nearest it: it flies to a place clear of the zone, past the
+zone's middle from the juggernaut, waits there for the guns to take the
+crack, steps across the lane of a charge, and picks up the salvage within
+250 m on the way. The last column is the same bot on a page where it is told
+no cliff stands, so it circles each juggernaut 150 to 260 m off and the guns
+grind it down.
+
+| | before | with the juggernauts | never using a cliff |
+|---|---|---|---|
+| runs | 16 | 16 | 4 |
+| worlds cleared | 16 | 16 | 4 |
+| minutes in Dustfall | 5.4 | 5.0 | 6.4 |
+| deaths | 0 | 0 | 0 |
+| juggernauts buried of 5 |  | 4.9 (4 to 5) | 0.0 (0 to 0) |
+| ground down |  | 0.1 | 5.0 |
+| cliffs left as the flagship comes |  | 1.1 | 6.0 |
+| seconds a juggernaut is out |  | 28 | 51 |
+| the longest one out |  | 84 | 69 |
+| raiders down | 335 | 255 | 338 |
+| salvage earned | 1572 | 1589 | 1082 |
+| interest | 46 | 51 | 49 |
+| seconds with no raider within 900 m | 31% | 26% | 13% |
+| hull and shield lost, in full sets | 2.4 | 2.5 | 4.5 |
+
+| | CHILL before | CHILL | OVERLOAD before | OVERLOAD |
+|---|---|---|---|---|
+| runs | 8 | 8 | 6 | 7 |
+| worlds cleared | 8 | 8 | 6 | 7 |
+| minutes in Dustfall | 5.1 | 4.6 | 5.2 | 4.8 |
+| deaths | 0 | 0 | 0 | 0 |
+| juggernauts buried of 5 |  | 4.9 (4 to 5) |  | 5.0 (5 to 5) |
+| ground down |  | 0.1 |  | 0.0 |
+| cliffs left as the flagship comes |  | 1.1 |  | 1.0 |
+| seconds a juggernaut is out |  | 29 |  | 28 |
+| the longest one out |  | 68 |  | 61 |
+| raiders down | 326 | 242 | 322 | 288 |
+| salvage earned | 1600 | 1496 | 1694 | 1539 |
+| interest | 49 | 46 | 62 | 60 |
+| seconds with no raider within 900 m | 35% | 25% | 35% | 24% |
+| hull and shield lost, in full sets | 1.5 | 1.5 | 3.6 | 4.1 |
+
+No run lost a life in Dustfall, before or with the juggernauts, on any mode;
+on OVERLOAD two runs of eight before and one with them were lost in Haven
+and are not counted. The steps of the tuning (NORMAL, four seeds each, the
+bot as it then was): with a hull of 30 s of the kit's fire (45 on NORMAL)
+and no regroup of the escort, 43% of a world's seconds had no raider within
+900 m (one run); with the regroup and the catch-up speed 34%, a world of 4.4
+minutes with all five buried, but the bot that never used a cliff took 87 to
+140 s a juggernaut's wave and 10.4 minutes a world. A juggernaut is to be
+ground down in about a wave's build-up and a half (54 s) at the most: at 16
+s of fire (24 on NORMAL) one is out 51 s, the longest 69, so the hull is a
+brood nest's, not several times it, and the plating reads by its sparks, its
+word and a bar that barely moves beside a raider's. Led to a cliff, a
+juggernaut is out 28 s, 23 s less than the guns' way takes. Of the 80
+juggernauts of the 16 NORMAL runs the bot buried 79; the other was ground
+down with a cliff unspent (two cliffs left in that run), and the longest
+any was out, in that run, was 84 s. Fewer raiders fall than before, 255
+against 335, in a world 0.4 minutes shorter; the salvage earned stays (1589
+against 1572), a burial dropping 48 ◆ at the run's second step.
 
 ## The arcade's pace
 

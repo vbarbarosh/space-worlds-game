@@ -33,6 +33,12 @@ glance.
   colour with a dark outline. A container has no hull of its own: what hits
   it comes off the hauler's. The hauler flies a way found round the rocks,
   its string on its trail (`src/js/arcade_haulers.js`).
+- A juggernaut (Dustfall's task in the arcade) is a raider too, solid as any
+  raider and hit by all that hits one, drawn in full colour with a dark
+  outline. Its plating is a thick hull, not a closed one: every hit counts,
+  and its sparks and a word say how little. It flies its own way: a shove does
+  not move it, a portal does not take it, and stasis slows it
+  (`src/js/arcade_juggernauts.js`).
 - **Fields** are neither: a black hole's pull, Ion Reach's storms, and its arc
   pylons and charge fields act on a ship inside a ring drawn round them, and
   ships and shots pass through them. A pylon is drawn as light (a glowing knot
@@ -128,7 +134,11 @@ shows a health bar (its armour or energy, and how much is left as it is hit).
     it to. Raiders' shots stop on a cliff and do not wear it, unlike
     Dustfall's ore rocks. A bar over it once hit, orange once primed.
     Broken, it rumbles 0.6 s and falls along its zone; its rubble are ore
-    rocks with their own bars (`src/js/arcade_cliffs.js`).
+    rocks with their own bars (`src/js/arcade_cliffs.js`). While Dustfall's
+    task runs (arcade Free, the five waves before the flagship's), a
+    cliff's hull is by your kit, and the guns aim at a crack only when the
+    fall would catch the wave's juggernaut, or where you point
+    (`src/js/arcade_juggernauts.js`).
   - **Verdant's brood nests** (arcade Free): solid; your shots, missiles and
     pulse and every blast burn one, and raiders' shots stop on it and do it
     no harm. A bar over it once hit, and its glowing sacs go out one by one
