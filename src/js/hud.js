@@ -258,8 +258,9 @@ function sync_arcade_card()
     hud_html(document.getElementById('mc_where'), `${ui_world_badge(id)}<span class="small">Arcade · world ${step + 1}/${arcade_worlds}</span><span class="threat" title="Threat ${step + 1} of ${arcade_worlds}">${[0, 1, 2, 3, 4].map(v => `<b class="${(v < pips) ? 'on' : ''}"></b>`).join('')}</span>`);
     const wave = Math.max(1, arcade.wave);
     const left = spawn_left + enemies.filter(v => v.hp > 0).length;
-    // a Free wave says the seconds its build-up has to go (arcade_pace.js), then the raiders left
-    const clock = (arcade_wave_timed() && (arcade.wave_clock < pace_build)) ? Math.ceil(pace_build - arcade.wave_clock) : 0;
+    // a Free wave says the seconds its build-up has to go (arcade_pace.js), then the raiders left; a world whose task
+    // ends the build-up (Verdant's nests) has no clock to say
+    const clock = (arcade_wave_timed() && !arcade_task()?.crest_due && (arcade.wave_clock < pace_build)) ? Math.ceil(pace_build - arcade.wave_clock) : 0;
     const threat = hud_threat();
     const flagship = enemies.some(v => (v.hp > 0) && (v.type === 'boss'));
     const at_depot = (distance(player, station) < station_reach) && !depot_shield_up();
@@ -279,7 +280,8 @@ function sync_arcade_card()
     const nearest = task?.target || threat || duel?.target || enemies.filter(v => v.hp > 0).sort((a, b) => distance(a, player) - distance(b, player))[0];
     const dist = document.getElementById('mc_dist');
     set_hidden(dist, !nearest);
-    dist.classList.toggle('is-danger', !!threat);
+    // red while the arrow points at the raiders close by, not at what a world's task asks for
+    dist.classList.toggle('is-danger', !!threat && (nearest === threat));
     if (nearest) {
         const [value, unit] = hud_distance(distance(player, nearest));
         hud_html(document.getElementById('mc_distance'), `${value}<small>${unit}</small>`);
