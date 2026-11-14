@@ -134,7 +134,7 @@ Three modes ([docs/modes.md](docs/modes.md) has each in detail):
                      and what it must not, the save, the keys; a page error
                      fails a case; exit 1 on a failure
     bin/resolution-check
-                     the adaptive resolution in real time (about four
+                     the adaptive resolution in real time (about five
                      minutes): the canvas's pixel ratio holds when frames
                      keep up, steps down under a stand-in for a slow
                      graphics card and holds where they keep up, comes back
