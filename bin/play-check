@@ -246,6 +246,90 @@ const cases = [
             return out;
         },
     },
+    {
+        name: 'verdant-nests',
+        about: 'Verdant\'s Free world: a nest burnt brings its wave\'s crest, the fifth the flagship; a load starts the five again',
+        page: 'dev',
+        query: 'world=verdant&screen=arcade',
+        run: async function ({page, t}) {
+            const out = [];
+            if (await t('typeof brood_nests') !== 'object') {
+                out.push('Verdant\'s Free world has no brood nests');
+                return out;
+            }
+            // the nests as they stand, the wave, its crest and the card; your hull kept full, so no death cuts the case
+            function now() {
+                return t(`player.hp = hull_max(); ({
+                    wave: arcade.wave,
+                    crest: !!arcade.pace?.crest,
+                    pause: arcade.pause > 0,
+                    burnt: brood_nests_burnt(),
+                    whole: brood_nests.filter(v => v.rock && (v.rock.hp === v.rock.max_hp) && (v.rock.max_hp > 1)).length,
+                    rocks: ore_nodes.filter(v => (v.type === 'brood_nest') && (v.hp > 0)).length,
+                    at: brood_nests.map(v => \`\${v.x},\${v.y}\`).join(' '),
+                    flagship: enemies.some(v => (v.type === 'boss') && (v.hp > 0)),
+                    card: document.getElementById('mc_title').textContent,
+                })`);
+            }
+            // a nest burnt as a shot burns it (damage_ore), then the burst's front and its brood
+            async function burn(i) {
+                const brood = await t(`(function () {
+                    const nest = brood_nests[${i}];
+                    damage_ore(nest.rock, nest.rock.hp + 1);
+                    return nest;
+                })()`);
+                await page.waitForTimeout(1000);
+                return {...await now(), near: await t(`enemies.filter(v => (v.hp > 0) && (distance(v, ${JSON.stringify({x: brood.x, y: brood.y})}) < ${brood.r + 320})).length`)};
+            }
+            const start = await now();
+            if ((start.wave !== 1) || (start.whole !== 5) || (start.rocks !== 5) || !start.card.startsWith('Burn the nests: 5')) {
+                out.push(`the world's start: wave ${start.wave}, ${start.whole} of 5 nests whole, ${start.rocks} nest rocks on the map, card "${start.card}"`);
+            }
+            const first = await burn(2);
+            if ((first.wave !== 1) || !first.crest || (first.burnt !== 1) || (first.rocks !== 4) || (first.near < 2) || !first.card.startsWith('Destroy its brood')) {
+                out.push(`a nest burnt: wave ${first.wave}, crest ${first.crest ? 'come' : 'not come'}, ${first.burnt} burnt, ${first.rocks} nest rocks left, ${first.near} raiders round it, card "${first.card}"`);
+            }
+            // the next one burnt while the brood is out: its wave at once, and that wave's crest
+            const second = await burn(0);
+            if ((second.wave !== 2) || !second.crest || (second.burnt !== 2) || (second.near < 2)) {
+                out.push(`a second nest burnt in the first's crest: wave ${second.wave}, crest ${second.crest ? 'come' : 'not come'}, ${second.burnt} burnt, ${second.near} raiders round it`);
+            }
+            // saved with two burnt, a third burnt, then the slot loaded: the world again from its first wave, its five
+            // nests standing whole where they stood, none left over from before the load
+            await t('save_to_slot(0)');
+            await burn(4);
+            await t('load_from_slot(0)');
+            await page.waitForTimeout(800);
+            const loaded = await now();
+            if ((loaded.wave !== 1) || loaded.crest || (loaded.whole !== 5) || (loaded.rocks !== 5) || (loaded.at !== start.at) || !loaded.card.startsWith('Burn the nests: 5')) {
+                out.push(`after a load: wave ${loaded.wave}, crest ${loaded.crest ? 'on' : 'off'}, ${loaded.whole} of 5 nests whole, ${loaded.rocks} nest rocks on the map, ${(loaded.at === start.at) ? 'in their places' : `at ${loaded.at}, not ${start.at}`}, card "${loaded.card}"`);
+            }
+            // the five in another order; the fifth's brood down, the breather says the flagship comes, then it does
+            for (const i of [3, 1, 0, 4]) {
+                await burn(i);
+            }
+            const fifth = await burn(2);
+            if ((fifth.wave !== 5) || !fifth.crest || (fifth.burnt !== 5) || (fifth.rocks !== 0)) {
+                out.push(`the fifth nest burnt: wave ${fifth.wave}, crest ${fifth.crest ? 'come' : 'not come'}, ${fifth.burnt} burnt, ${fifth.rocks} nest rocks left`);
+            }
+            for (let i = 0; (i < 10) && await t('enemies.some(v => v.hp > 0)'); ++i) {
+                await t('for (const v of enemies) { if (v.hp > 0) { damage_enemy(v, 1e9); } }');
+                await page.waitForTimeout(150);
+            }
+            await page.waitForTimeout(300);
+            const rest = await now();
+            if (!rest.pause || (rest.card !== 'Every nest burnt: the flagship is coming')) {
+                out.push(`the fifth's brood down: ${rest.pause ? 'a breather' : 'no breather'}, card "${rest.card}"`);
+            }
+            await t('arcade.pause = Math.min(arcade.pause, 0.2)');
+            await page.waitForTimeout(600);
+            const last = await now();
+            if ((last.wave !== 6) || !last.flagship) {
+                out.push(`after the breather: wave ${last.wave}, ${last.flagship ? 'the flagship out' : 'no flagship'}`);
+            }
+            return out;
+        },
+    },
 ];
 const usage = `usage: bin/play-check [case...]
 
