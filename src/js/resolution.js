@@ -28,8 +28,11 @@ const resolution_up_ms_min = 14;
 const resolution_up_ms_max = 18.5;
 const resolution_refresh_slack = 1.1;
 // at the lowest ratio still behind, and no faster by a tenth than where the steps began: the pixels are not what is
-// slow (a browser holding the page to 30 fps on battery, a 30 Hz screen), so the ratio goes back up and stays
+// slow (a browser holding the page to 30 fps on battery, a 30 Hz screen), so the ratio goes back to where the steps
+// began and stays. The steps are judged by the scene they are made in: a ratio that held (the last 5 s not behind)
+// ends its descent, and frames slower by a quarter than those it began with are its measure from there on
 const resolution_futile_gain = 0.9;
+const resolution_heavier = 1.25;
 // a ratio that fell behind is not tried again for 3 minutes, then 6, 12, up to 24; a new run forgets it all, a new
 // world only waits a second (the author's play log, 2026-11-01: forgotten at each world, 1.7 was tried again in each of
 // 8 worlds and held 42 fps against 56 at 1)
@@ -59,7 +62,8 @@ const resolution = {
     down_at: -Infinity,
     // per level: when a ratio that fell behind may be tried again, and the wait it was given
     retry: [],
-    // where the steps down began: its level and frame time (ms)
+    // the steps down being made: the level they began at and the frame time (ms) they are judged by; null once a
+    // ratio has held
     descent: null,
     futile: false,
     world: -1,
@@ -183,7 +187,11 @@ function resolution_check(t0)
             return;
         }
         if (level < bottom) {
-            resolution_step_down(t0, down.frame_ms);
+            // a scene grown heavy at once: the 2 s still hold the lighter frames from before it, the last half second
+            // does not
+            const recent = resolution_window(t0, resolution_check_ms, 1);
+            const heavier = recent.frame_ms > down.frame_ms*resolution_heavier;
+            resolution_step_down(t0, heavier ? recent.frame_ms : down.frame_ms);
             return;
         }
         const from = resolution.descent;
@@ -192,6 +200,13 @@ function resolution_check(t0)
             resolution_step(t0, from.level);
         }
         return;
+    }
+    // the ratio in use held: its descent is over, and the next one is judged by its own frames
+    if (resolution.descent && !resolution.futile) {
+        const held = resolution_window(t0, resolution_up_window_ms);
+        if (held && (held.frame_ms <= resolution_behind_ms)) {
+            resolution.descent = null;
+        }
     }
     if ((level === 0) || (t0 - resolution.down_at < resolution_up_after_ms)) {
         return;
@@ -203,7 +218,6 @@ function resolution_check(t0)
     const up = resolution_window(t0, resolution_up_window_ms);
     const keep_up_ms = Math.min(resolution_up_ms_max, Math.max(resolution_up_ms_min, resolution.refresh_ms*resolution_refresh_slack));
     if (up && (up.frame_ms <= keep_up_ms)) {
-        resolution.descent = null;
         resolution_step(t0, level - 1);
     }
 }
@@ -218,6 +232,9 @@ function resolution_step_down(t0, frame_ms)
     if (!resolution.descent) {
         resolution.descent = {level, frame_ms};
     }
+    else if (frame_ms > resolution.descent.frame_ms*resolution_heavier) {
+        resolution.descent.frame_ms = frame_ms;
+    }
     resolution.down_at = t0;
     resolution_step(t0, level + 1);
 }
@@ -230,9 +247,9 @@ function resolution_step(t0, level)
     resolution_hold(t0);
 }
 
-// The frames of the last `ms` of flight, if they were all measured: their time (the mean of all but the longest
-// tenth), their median, and the game's own work (the median); null if not
-function resolution_window(t0, ms)
+// The frames of the last `ms` of flight, if they were all measured and are `frames_min` or more: their time (the mean
+// of all but the longest tenth), their median, and the game's own work (the median); null if not
+function resolution_window(t0, ms, frames_min = 10)
 {
     if (t0 - resolution.since < ms) {
         return null;
@@ -247,7 +264,7 @@ function resolution_window(t0, ms)
         }
         scratch[n++] = v.work_ms[k];
     }
-    if (n < 10) {
+    if (n < frames_min) {
         return null;
     }
     scratch.subarray(0, n).sort();

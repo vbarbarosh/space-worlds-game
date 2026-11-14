@@ -401,6 +401,13 @@ pixels at the cap of ×1.7. The canvas's pixel ratio now follows the frames
   where the steps began, the pixels are not what is slow (a browser holding
   the page to 30 fps on battery, a 30 Hz screen): the ratio goes back to where
   it began and stays there until a new world.
+  Each descent is judged by the scene it is made in (2026-11-10): a ratio
+  that held, the last 5 s not behind, ends it; a step whose last half second
+  ran slower by a quarter than its 2 s (the scene grew heavy at once, and the
+  2 s still hold lighter frames) counts by the half second; and frames slower
+  by a quarter than those the descent began with are its measure from there
+  on. Before, a light scene's one step left its 20 ms as the measure for a
+  fight minutes later, and ×1.7 came back at 5 fps where ×1 gave 14.
 - **A step** is taken at the start of a frame, before anything is drawn:
   `resize()` makes the canvas at the new size and the same frame draws on it,
   so the screen never shows it cleared. A new ratio alone keeps the camera
@@ -428,6 +435,7 @@ waits 30 ms whatever the size. `bin/resolution-check` flies Nova Forge in an
 | sharp | Settings → Resolution → Sharp: ×1.7 at once, kept under `&slow`, and after a reload |
 | forced | `&dpr=1.3`: the canvas 1040 × 585 however slow |
 | futile | `&stall=30`: 1.7 → 1.5 → 1.3 → 1.15 → 1, no faster, back to ×1.7 at 14–15 s and held |
+| descent | `&slow=20`: down to ×1.3 and held; the cost raised to 150: on to ×1 in 4 s and held there, at 55 ms a frame where ×1.7 takes 150 |
 | screen1 | a screen at 100%: ×1, nothing stepped |
 
 The check runs in real time: on a machine busy with other work the headless
