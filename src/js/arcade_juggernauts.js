@@ -402,7 +402,8 @@ function juggernaut_answer()
     if ((time - s.word_at >= juggernaut_word_gap) && !cliffs.some(v => (v.rock.hp > 0) && cliff_zone_has(v, ship, 0))) {
         s.word_at = time;
         label(ship.x, ship.y - ship.r*3.3, 'PLATING HOLDS', juggernaut_colors.light);
-        sfx('hit', 0.5, ship);
+        // the kind a shot's hit on a raider plays (update); 'hit' is your own hull's
+        sfx('impact', 0.5, ship);
     }
 }
 
