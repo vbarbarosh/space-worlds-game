@@ -395,8 +395,8 @@ function dev_screen_slots_write()
 // followed, one with a very long title and paragraph, one finished), a goal followed, and the longest board offered:
 // rank Ace (its bounty and expedition), a side mission with a very long title and paragraph among them. &cargo=all:
 // every one of the eleven goods in the hold. &station=full: the header and the NEXT strip at their longest: a station
-// name far longer than any world's, the hold full, salvage in the millions, and the guide's longest step (every mining
-// drone lost, sent to the station by its long name) with its button
+// name far longer than any world's, the hold full, salvage in the millions, and the guide's longest step (a ship to
+// prepare for the next world with five purchases, sent to the station by its long name) with its button
 function dev_screen_station_set()
 {
     if (dev_screen_station === 'full') {
@@ -411,7 +411,7 @@ function dev_screen_station_set()
                 goal: {...station, label: name},
                 kind: 'prepare',
                 action: 'Open modules',
-                instruction: `Your mining drones are all lost. Dock at ${name} and buy new ones in MODULES, then come back to the field.`,
+                instruction: `Prepare for Nova Forge: Hotter plasma Lv 3, Rapid resonance Lv 2, Prism cannon Lv 1, Phase armor Lv 3, Shield capacitor Lv 2. Dock at ${name} and use OUTFITTER.`,
             };
         };
     }

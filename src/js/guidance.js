@@ -50,11 +50,9 @@ function refresh_guidance()
                                     ? 100
                                     : 65;
         if ((guide_path.length === 1) && (distance(player, c.goal) < arrival)) {
+            // at a deposit the guide stays on: the guns cut the rock, and it leads on to the next
             if (c.kind !== 'mining') {
                 guide_flying = false;
-            }
-            else if (!drones_out && drones_owned()) {
-                drones_toggle();
             }
             mouse_drive.active = false;
             player.vx = player.vy = 0;
@@ -530,7 +528,7 @@ function physics_base_render_navigation()
             ],
             [
                 'Mining and combat',
-                'Cannons fire automatically at nearby enemies; rocks are for your drones. Near a mining field press H and guard them while they cut. Rich rocks glow in their world\'s color and pay more the farther you carry them. Hunt missions require kills in the named world. Q repairs, E releases an EMP, F slows enemies, Hold Shift for turbo thrust, and Space releases a charged pulse.',
+                'Cannons fire automatically at nearby enemies. With none near they mine: on a mining stage they turn to the rocks in reach by themselves; at any other time point at a rock, or click a mining field on the map (J) to mark it. Each unit cut goes straight into the hold. Rich rocks glow in their world\'s color and pay more the farther you carry them. Hunt missions require kills in the named world. Q repairs, E releases an EMP, F slows enemies, Hold Shift for turbo thrust, and Space releases a charged pulse.',
             ],
             [
                 'Completing operations',

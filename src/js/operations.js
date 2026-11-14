@@ -999,15 +999,6 @@ function build_guide_context()
         out.action = 'Fly to objective';
         out.instruction = stage_description(m.stages?.[m.stage_index] || m, m, m.stage_index);
     }
-    // a mining stage with every drone lost cannot go on: the guide sends you to the station to replace them
-    if ((m.type === 'mining') && (m.world === campaign.world) && !drones_owned() && !drones.length) {
-        out.goal = {...station, label: worlds[campaign.world].station};
-        // docked, the guide's button opens MODULES, where the drones are sold
-        out.kind = (state === 'upgrade') ? 'prepare' : 'station';
-        out.purchases = [];
-        out.action = (state === 'upgrade') ? 'Open modules' : 'Fly to station';
-        out.instruction = `Your mining drones are all lost. Dock at ${worlds[campaign.world].station} and buy new ones in MODULES, then come back to the field.`;
-    }
     if ((m.type === 'escort') && (m.world === campaign.world) && escort) {
         // a convoy's leg runs to a gate or the berth (convoy_route), a cargo run through its stops
         const leg = m.stages?.[m.stage_index]?.via;
@@ -1060,12 +1051,12 @@ function stage_description(v, m, index)
         const good = commodities.find(vv => vv.key === key);
         // a world's own resource is only mined, in its rich rocks; a common good can be bought, but not where it is sold
         const source = resource_of(key)
-            ? `the drones cut it from the rich rocks of ${worlds[resource_of(key).world].name}`
+            ? `your guns cut it from the rich rocks of ${worlds[resource_of(key).world].name} (point at one, or mark its field on the map)`
             : `mine or buy it elsewhere, since what you buy at ${worlds[v.world].station} itself does not count`;
         return `Sell ${Math.ceil(left)} ${good.name.toLowerCase()} at ${worlds[v.world].station}, from your own hold: ${source}.${pursuit}`;
     }
     if (v.type === 'mining') {
-        return `Mine ${Math.ceil(left)} units from the deposits: launch your drones (H) at a mining field, and each chunk they drill counts. FLY TO OBJECTIVE leads to the nearest field. Raiders hunt the drones: replace lost ones in a station's MODULES. A Prospector extracts ore 2.5× faster. You keep the salvage and cargo.`;
+        return `Mine ${Math.ceil(left)} units from the deposits: with no raider near, your guns turn to the rocks of a mining field, and each unit they cut counts and goes into the hold. FLY TO OBJECTIVE leads to the nearest rock. A Prospector's guns cut 2.5× faster. You keep the salvage and cargo.`;
     }
     if (v.type === 'boss') {
         return 'Approach the marked flagship zone and destroy the warship. Prepare your ship and weapon tier before jumping.';

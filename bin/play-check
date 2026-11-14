@@ -370,6 +370,90 @@ const cases = [
             return out;
         },
     },
+    {
+        name: 'guns-mine',
+        about: 'in the campaign your shots cut a rock: ore aboard, the mining stage counted, the rock\'s bar down',
+        page: 'index',
+        run: async function ({t}) {
+            const out = [];
+            const v = await t(`(${page_guns_mine})()`);
+            if (v.idle.shots || (v.idle.reserve !== v.idle.reserve0)) {
+                out.push(`with no mining stage and no pointer the guns took a rock: ${JSON.stringify(v.idle)}`);
+            }
+            if (!v.pointed.cut) {
+                out.push(`the rock pointed at was not cut: ${JSON.stringify(v.pointed)}`);
+            }
+            if (!v.rested.cut) {
+                out.push(`the rock was dropped while the pointer rested on it: ${JSON.stringify(v.rested)}`);
+            }
+            if (!v.marked.cut) {
+                out.push(`with the map's marker on its field the rock was not cut: ${JSON.stringify(v.marked)}`);
+            }
+            if (!(v.stage.progress > 0) || (v.stage.loaded !== v.stage.progress)) {
+                out.push(`a mining stage followed: cut ${v.stage.progress}, loaded ${v.stage.loaded}`);
+            }
+            if (!(v.stage.hp < v.stage.max_hp) || (Math.abs(v.stage.hp/v.stage.max_hp - v.stage.reserve/v.stage.reserve0) > 0.001)) {
+                out.push(`the rock's bar does not show its reserve: ${JSON.stringify(v.stage)}`);
+            }
+            if (v.fight.cut || !v.fight.at_raider) {
+                out.push(`with a raider 300 m off the guns stayed on the rock: ${JSON.stringify(v.fight)}`);
+            }
+            if (!v.pulse.cut) {
+                out.push(`the pulse cut nothing from the rocks in its reach: ${JSON.stringify(v.pulse)}`);
+            }
+            return out;
+        },
+    },
+    {
+        name: 'chapter-1-mining',
+        about: 'the story\'s first mining stage, flown by the guide from the scan\'s beacon, is done by shooting',
+        page: 'index',
+        run: async function ({t}) {
+            const v = await t(`(${page_chapter_mining})()`);
+            return (v.ready && v.shots) ? [] : [`"${v.title}" after ${v.seconds} s and ${v.shots} shots: ${v.progress} of ${v.target}, state ${v.state}`];
+        },
+    },
+    {
+        name: 'hold-full',
+        about: 'a full hold: the shots still cut and count, nothing is loaded, CARGO FULL is said once',
+        page: 'index',
+        run: async function ({t}) {
+            const out = [];
+            const v = await t(`(${page_hold_full})()`);
+            if (v.full.loaded || !(v.full.cut > 1)) {
+                out.push(`with the hold full: ${v.full.cut} units cut, ${v.full.loaded} loaded`);
+            }
+            if (v.full.counted !== v.full.cut) {
+                out.push(`with the hold full the stage counted ${v.full.counted} of ${v.full.cut} units cut`);
+            }
+            if (v.full.told !== 1) {
+                out.push(`CARGO FULL was said ${v.full.told} times over ${v.full.cut} units, not once`);
+            }
+            if (!(v.room.loaded > 0) || (v.again.told !== 1)) {
+                out.push(`after room was made: ${v.room.loaded} loaded, then full again CARGO FULL said ${v.again.told} times`);
+            }
+            return out;
+        },
+    },
+    {
+        name: 'arcade-rocks',
+        about: 'the arcade\'s rocks as they were: shots break one by its hull, it drops salvage, a push wave moves them',
+        page: 'index',
+        run: async function ({t}) {
+            const out = [];
+            const v = await t(`(${page_arcade_rocks})()`);
+            if (!v.broken || (v.hits !== v.hits_by_hull)) {
+                out.push(`a rock of ${v.max_hp} hull under shots of ${v.damage}: ${v.broken ? 'broken' : 'not broken'} after ${v.hits} hits, ${v.hits_by_hull} by its hull`);
+            }
+            if (!(v.salvage_dropped > 0) || v.cargo) {
+                out.push(`the broken rock dropped ${v.salvage_dropped} salvage, and the hold took ${v.cargo} units`);
+            }
+            if (!(v.shoved > 0)) {
+                out.push('the push wave moved no rock');
+            }
+            return out;
+        },
+    },
 ];
 const usage = `usage: bin/play-check [case...]
 
@@ -466,5 +550,196 @@ async function case_run(browser, hooked, v)
     finally {
         await context.close();
     }
+    return out;
+}
+
+// In the page (the game's scope, as the functions below): a new campaign out of the dock, the ship parked 60 m off the
+// nearest rock the guide would lead to, as its FLY TO OBJECTIVE parks it, the story's first chapter at its scan. Then
+// the same rock under the guns: nothing asked; pointed at; the pointer resting on it past its 2 s; the map's marker on
+// its field; the chapter at its mining stage; a raider 300 m off; and the pulse over the field
+function page_guns_mine()
+{
+    menu_start('campaign');
+    accept_contract(story[campaign.story], true);
+    undock();
+    const m = campaign.contracts[0];
+    const rock = mineable_deposits()[0];
+    const spot = {x: rock.x - rock.r - 60, y: rock.y};
+    let shots = 0;
+    function fly(seconds, each = null) {
+        for (let i = 0; i < seconds*60; ++i) {
+            hostile = [];
+            player.x = spot.x;
+            player.y = spot.y;
+            player.vx = player.vy = 0;
+            player.hp = hull_max();
+            if (each) {
+                each();
+            }
+            const before = bullets.length;
+            update(1/60);
+            shots += Math.max(0, bullets.length - before);
+        }
+    }
+    function point() {
+        pointer.active = true;
+        pointer.screen_x = (rock.x - camera.x)*zoom;
+        pointer.screen_y = (rock.y - camera.y)*zoom;
+    }
+    function calm() {
+        enemies = [];
+    }
+    function cut() {
+        return (rock.reserve0 - rock.reserve)*ore_cut_cost + (rock.chip || 0);
+    }
+    update_camera(0, true);
+    fly(4, calm);
+    const idle = {shots, reserve: ore_reserve(rock), reserve0: rock.reserve0};
+    let before = cut();
+    fly(3, function () {
+        calm();
+        point();
+        pointer.last = time;
+    });
+    const pointed = {cut: cut() - before};
+    before = cut();
+    fly(4, function () {
+        calm();
+        point();
+    });
+    const rested = {cut: cut() - before, since_moved: time - pointer.last};
+    pointer.active = false;
+    before = cut();
+    track_local_point(mining_fields.find(v => v.id === rock.field), `MINING FIELD ${rock.field + 1}`);
+    fly(3, calm);
+    const marked = {cut: cut() - before};
+    focus_contract(m);
+    mission_event('scan', m.target);
+    const aboard = cargo_count();
+    fly(12, calm);
+    const stage = {progress: m.progress, loaded: cargo_count() - aboard, hp: rock.hp, max_hp: rock.max_hp, reserve: rock.reserve, reserve0: rock.reserve0};
+    calm();
+    const raider = spawn_enemy('chaser');
+    function hold() {
+        raider.x = spot.x - 300;
+        raider.y = spot.y;
+        raider.hp = raider.max_hp;
+    }
+    // the bolts already on their way to the rock land first
+    fly(1, hold);
+    before = cut();
+    fly(2, hold);
+    const fight = {cut: cut() - before, at_raider: Math.abs(Math.cos(player.turret_angle) + 1) < 0.1};
+    calm();
+    const rocks = ore_nodes.filter(v => distance(v, player) < 400);
+    const reserve = rocks.reduce((n, v) => n + ore_reserve(v)*ore_cut_cost - (v.chip || 0), 0);
+    m.type = 'hunt';
+    pulse_fire(player.x, player.y);
+    fly(2, calm);
+    const pulse = {rocks: rocks.length, cut: reserve - rocks.reduce((n, v) => n + ore_reserve(v)*ore_cut_cost - (v.chip || 0), 0)};
+    return {idle, pointed, rested, marked, stage, fight, pulse};
+}
+
+// The story's first chapter taken, its scan done: from the scan's beacon the guide flies to the rocks (FLY TO
+// OBJECTIVE) and the guns do the rest, no raiders about
+function page_chapter_mining()
+{
+    menu_start('campaign');
+    accept_contract(story[campaign.story], true);
+    undock();
+    const m = campaign.contracts[0];
+    const beacon = beacons[m.stages[0].beacon];
+    player.x = beacon.x;
+    player.y = beacon.y;
+    mission_event('scan', m.target);
+    const title = m.stages[m.stage_index].title;
+    guide_action();
+    let seconds = 0;
+    let shots = 0;
+    while ((seconds < 180) && !m.ready && (state === 'playing')) {
+        enemies = [];
+        hostile = [];
+        const before = bullets.length;
+        update(1/60);
+        shots += Math.max(0, bullets.length - before);
+        refresh_guidance();
+        seconds += 1/60;
+    }
+    return {ready: m.ready, title, seconds: Math.round(seconds), shots, progress: m.progress, target: m.target, state};
+}
+
+// A mining contract of 24 units and a hold filled to its last place with ore: the rock is cut on, then twelve units
+// are sold and it is cut until the hold is full again
+function page_hold_full()
+{
+    menu_start('campaign');
+    accept_contract({...story[campaign.story], stages: [{type: 'mining', world: 0, target: 24, title: 'Mine'}]}, true);
+    undock();
+    const m = campaign.contracts[0];
+    const rock = mineable_deposits()[0];
+    let told = 0;
+    const toast = show_toast;
+    show_toast = function (title, ...rest) {
+        told += (title === 'CARGO FULL') ? 1 : 0;
+        toast(title, ...rest);
+    };
+    function fly(seconds) {
+        const from = {reserve: ore_reserve(rock), aboard: cargo_count(), progress: m.progress, told};
+        for (let i = 0; i < seconds*60; ++i) {
+            enemies = [];
+            hostile = [];
+            player.x = rock.x - rock.r - 60;
+            player.y = rock.y;
+            player.vx = player.vy = 0;
+            update(1/60);
+        }
+        return {cut: from.reserve - rock.reserve, loaded: cargo_count() - from.aboard, counted: m.progress - from.progress, told: told - from.told};
+    }
+    campaign.cargo.ore = cargo_capacity() - cargo_count();
+    const full = fly(20);
+    campaign.cargo.ore -= 12;
+    const room = fly(5);
+    campaign.cargo.ore += cargo_capacity() - cargo_count();
+    const again = fly(8);
+    show_toast = toast;
+    return {full, room, again};
+}
+
+// An arcade run in Haven, no raiders let near: the nearest rock under the guns until it breaks, each hit counted, and
+// a push wave over the rocks round the ship
+function page_arcade_rocks()
+{
+    menu_start('arcade');
+    arcade.pause = 1e9;
+    const rock = ore_nodes.filter(v => (v.type === 'ore') && (v.hp > 0)).reduce((a, b) => ((distance(a, player) < distance(b, player)) ? a : b));
+    const spot = {x: rock.x - rock.r - 120, y: rock.y};
+    const max_hp = rock.max_hp;
+    const salvage_before = pickups.filter(v => v.type === 'artifact').length;
+    let hits = 0;
+    let damage = 0;
+    for (let i = 0; (i < 1200) && (rock.hp > 0); ++i) {
+        enemies = [];
+        hostile = [];
+        player.x = spot.x;
+        player.y = spot.y;
+        player.vx = player.vy = 0;
+        const hp = rock.hp;
+        update(1/60);
+        if (rock.hp < hp) {
+            hits++;
+            damage = Math.max(damage, hp - Math.max(0, rock.hp));
+        }
+    }
+    const out = {broken: rock.hp <= 0, hits, hits_by_hull: Math.ceil(max_hp/damage), max_hp: Math.round(max_hp), damage, salvage_dropped: pickups.filter(v => v.type === 'artifact').length - salvage_before, cargo: cargo_count()};
+    const near = ore_nodes.filter(v => (v.type === 'ore') && (v.hp > 0)).sort((a, b) => distance(a, player) - distance(b, player))[0];
+    player.x = near.x - near.r - 100;
+    player.y = near.y;
+    push_ring_fire();
+    for (let i = 0; i < 60; ++i) {
+        enemies = [];
+        hostile = [];
+        update(1/60);
+    }
+    out.shoved = ore_nodes.filter(v => Math.hypot(v.vx, v.vy) > 0).length;
     return out;
 }

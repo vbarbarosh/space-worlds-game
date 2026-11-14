@@ -42,7 +42,7 @@ A file:
 | Kind | Amount means |
 |---|---|
 | scan | seconds of scanning at the beacon, guarding the survey robot |
-| mining | units your drones drill at a mining field |
+| mining | units your guns cut from the rocks of a mining field |
 | courier | 1: dock at the stage's world station to deliver; from another world, raiders intercept it in each world it enters |
 | hunt | raiders destroyed in that world |
 | defend | seconds holding the relay |
