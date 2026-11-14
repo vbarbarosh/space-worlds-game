@@ -59,11 +59,17 @@ function pace_update(dt)
     }
     spawn_left = Math.max(spawn_left, arcade_squad_full());
     const alive = enemies.filter(v => (v.hp > 0) && !v.anchor && !v.event_kind).length;
-    const rail = (worlds[campaign.world].weapon === 'rail') ? pace_rail_k : 1;
-    const want = rail*arcade_mode().press*(pace_press[0] + (pace_press[1] - pace_press[0])*Math.min(1, pace.t/pace_build));
-    if ((alive < want) && (pace.since >= pace_gap_least)) {
+    if ((alive < pace_want()) && (pace.since >= pace_gap_least)) {
         arcade.squad_timer = Math.min(arcade.squad_timer, 0);
     }
+}
+
+// How many raiders the director wants in play now: more as the build-up goes, by the mode, fewer in a world of rail
+// guns
+function pace_want()
+{
+    const rail = (worlds[campaign.world].weapon === 'rail') ? pace_rail_k : 1;
+    return rail*arcade_mode().press*(pace_press[0] + (pace_press[1] - pace_press[0])*Math.min(1, arcade.pace.t/pace_build));
 }
 
 // After the crest: the raiders out of reach warp in round you once none has been within it for a few seconds; an

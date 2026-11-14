@@ -19,9 +19,10 @@
 // first, for the string to follow), way (its points, the gate's last), leg (the one it flies to), gate, side (where it
 // came in), clock (the s it has run), due (the s its way takes) and moved_at (when it last got on, of its clock),
 // heading, broken (containers off this hauler), end ('' while it runs, 'down' or 'gone') and end_at (when, time),
-// near_said (its gate's warning was said), saved and taken (the world's containers so far), flying (salvage thrown
+// near_said (its gate's warning was said), behind (the s its escort has been left behind: hauler_regroup), saved and
+// taken (the world's containers so far), flying (salvage thrown
 // out: {pickup, vx, vy, left}), started (the world's count has begun)
-const hauler_run = {ship: null, boxes: [], trail: [], way: [], leg: 0, gate: null, side: '', clock: 0, due: 0, moved_at: 0, heading: 0, broken: 0, end: '', end_at: -Infinity, near_said: false, saved: 0, taken: 0, flying: [], started: false};
+const hauler_run = {ship: null, boxes: [], trail: [], way: [], leg: 0, gate: null, side: '', clock: 0, due: 0, moved_at: 0, heading: 0, broken: 0, end: '', end_at: -Infinity, near_said: false, behind: 0, saved: 0, taken: 0, flying: [], started: false};
 // the world that has them (Haven), how many (one a wave before the flagship's) and the containers each tows
 const hauler_world = 0;
 const hauler_count = arcade_free_waves - 1;
@@ -65,6 +66,15 @@ const hauler_box_size = 20;
 const hauler_tow = [72, 62];
 // its escort comes out ahead of it while you are within this of it (m); farther, the squadrons warp in round you
 const hauler_escort_near = 1500;
+// A chase leaves its escort behind: a raider flies at 95 m/s where the hauler runs at 120, and one out of your reach
+// (pace_reach) still counts as in play for the director (arcade_pace.js) and holds its next squadron: 16 s of a
+// hauler's 35 s build-up, and one second in four at the hauler came with no raider within reach (the bot, 64 runs,
+// NORMAL; docs/balance.md). So while you are that near the hauler, with fewer raiders within reach of you or of it
+// than the director wants for this many s, those out of reach of both regroup: they jump ahead of the hauler, as its
+// escort comes out.
+// With it, one second in twenty at the hauler is empty, the bot shoots down a quarter more raiders and saves 12.4
+// containers of 15 where it saved 13.6 (48 runs)
+const hauler_regroup_after = 3;
 // it jumps this far (m) from its gate's ring, and its gate's warning is said this far from the jump
 const hauler_jump_at = 90;
 const hauler_warn_at = 700;
@@ -188,6 +198,7 @@ function hauler_spawn(n)
     s.side = route.side;
     s.clock = 0;
     s.moved_at = 0;
+    s.behind = 0;
     s.broken = 0;
     s.near_said = false;
     s.heading = Math.atan2(s.way[0].y - from.y, s.way[0].x - from.x);
@@ -384,6 +395,7 @@ function haulers_update(dt)
         ship.portal_cd = 1;
         hauler_way_keep(dt);
         hauler_boxes_follow();
+        hauler_regroup(dt);
     }
     const cut = (ship.hp > 0) ? Math.floor((1 - ship.hp/ship.max_hp)*hauler_boxes + 1e-9) : hauler_boxes;
     while ((s.broken < cut) && s.boxes.length) {
@@ -617,6 +629,54 @@ function hauler_escort_show(enemy, i)
 {
     ring(enemy.x, enemy.y, enemy.color || pink, 40, 0.4);
     explode(enemy.x, enemy.y, 26, '#a8e4ff', i*0.05, 'warp');
+}
+
+// The escort a chase left behind regroups (hauler_regroup_after): through the hauler's build-up, while you are near
+// it, the raiders the director counts (not an event's) that are left behind jump ahead of the hauler once fewer than
+// it wants have been within reach for long enough; a lancer lying in wait among the rocks comes too
+function hauler_regroup(dt)
+{
+    const s = hauler_run;
+    const ship = s.ship;
+    if (arcade.pace?.crest || (distance(ship, player) > hauler_escort_near)) {
+        s.behind = 0;
+        return;
+    }
+    let near = 0;
+    let far = 0;
+    for (let i = 0, end = enemies.length; i < end; ++i) {
+        const v = enemies[i];
+        if ((v.hp > 0) && !v.anchor && !v.event_kind) {
+            if (hauler_left_behind(v)) {
+                far++;
+            }
+            else {
+                near++;
+            }
+        }
+    }
+    s.behind = (far && arcade.pace && (near < pace_want())) ? s.behind + dt : 0;
+    if (s.behind < hauler_regroup_after) {
+        return;
+    }
+    s.behind = 0;
+    let n = 0;
+    for (let i = 0, end = enemies.length; i < end; ++i) {
+        const v = enemies[i];
+        if ((v.hp > 0) && !v.anchor && !v.event_kind && hauler_left_behind(v)) {
+            v.lurk = false;
+            hauler_escort_place(ship, v, n);
+            n++;
+        }
+    }
+    ring(ship.x, ship.y, hauler_colors.mark, 170, 0.4);
+}
+
+// Whether a raider is left behind the chase: out of reach (pace_reach) of you and of the hauler both. By the hauler
+// too, so one that has regrouped ahead of it is not called again while you are still on your way to it
+function hauler_left_behind(v)
+{
+    return (distance(v, player) >= pace_reach) && (distance(v, hauler_run.ship) >= pace_reach);
 }
 
 // What ends a wave's build-up (arcade_tasks): its hauler is down or gone

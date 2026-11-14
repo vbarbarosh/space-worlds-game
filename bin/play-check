@@ -620,8 +620,43 @@ const cases = [
             if (!rest.pause || (rest.card !== 'Cargo saved 3 of 15 · next hauler soon')) {
                 out.push(`its escort down: ${rest.pause ? 'a breather' : 'no breather'}, card "${rest.card}"`);
             }
-            // the second let go with all it tows: it leaves, the crest comes all the same, the count says so
+            // the second chased with its escort left behind: the ship kept at the hauler's beam, every raider of the
+            // wave put 2 km off; within 5 s they are in reach again, ahead of the hauler
             const second = await now();
+            const chase = `(function () {
+                const ship = hauler_run.ship;
+                player.x = ship.x + Math.sin(hauler_run.heading)*220;
+                player.y = ship.y - Math.cos(hauler_run.heading)*220;
+                player.vx = 0;
+                player.vy = 0;
+                player.hp = hull_max();
+                return enemies.filter(v => (v.hp > 0) && !v.anchor && !v.event_kind && (distance(v, player) >= pace_reach)).length;
+            })()`;
+            for (let i = 0; (i < 40) && !await t('enemies.some(v => (v.hp > 0) && !v.anchor && !v.event_kind)'); ++i) {
+                await t(chase);
+                await page.waitForTimeout(200);
+            }
+            await t(chase);
+            const left_behind = await t(`(function () {
+                let out = 0;
+                for (const v of enemies) {
+                    if ((v.hp > 0) && !v.anchor && !v.event_kind) {
+                        v.x = clamp(player.x + ((player.x > world.w/2) ? -2000 : 2000), 40, world.w - 40);
+                        v.y = clamp(player.y + ((player.y > world.h/2) ? -2000 : 2000), 40, world.h - 40);
+                        out++;
+                    }
+                }
+                return out;
+            })()`);
+            let behind = left_behind;
+            for (let i = 0; (i < 25) && (behind || (i < 3)); ++i) {
+                await page.waitForTimeout(200);
+                behind = await t(chase);
+            }
+            if (!left_behind || behind) {
+                out.push(`an escort left behind a chase: ${left_behind} raiders put 2 km off, ${behind} still out of reach 5 s later`);
+            }
+            // then let go with all it tows: it leaves, the crest comes all the same, the count says so
             const gone = await let_go();
             if ((second.wave !== 2) || !second.out || (second.boxes !== 3) || (gone.wave !== 2) || (gone.end !== 'gone') || !gone.crest || (gone.saved !== 3) || (gone.taken !== 3) || (gone.parts !== 0) || !gone.card.startsWith('Destroy its escort')) {
                 out.push(`a hauler let go: wave ${second.wave} began with ${second.boxes} containers in tow; then ${gone.end || 'still running'}, crest ${gone.crest ? 'come' : 'not come'}, ${gone.saved} saved, ${gone.taken} taken, ${gone.parts} parts left on the map, card "${gone.card}"`);
