@@ -408,7 +408,7 @@ from silence) on the music's bus.
 | World | Lead (`lead`) | Pad (`pad`) | Bass (`bass`) | Drums (`kit`) |
 |---|---|---|---|---|
 | Haven | `epiano`: an electric piano, a soft body under a tine's ping | `warm`: two sawtooths a little apart, only their first harmonics | `round`: a sine with a soft octave | `soft`: a round kick, brushes |
-| Verdant | `marimba`: the bar, its overtone two octaves up, the mallet's knock | `breath`: a hollow reed that swells in and out twice a chord, with a breath of air | `wood`: a plucked double bass | `wood`: a log drum, a wood block, a shaker on every eighth |
+| Verdant | `marimba`: the bar, its overtone two octaves up, the mallet's knock; it also plays the chord as a figure on the eighths the tune leaves free (`arp`) | `breath`: a hollow reed that swells in and out twice a chord, with a breath of air | `wood`: a plucked double bass | `wood`: a log drum, a wood block, a shaker on every eighth |
 | Dustfall | `pluck`: a plucked string with a twang, a second course an octave up | `drone`: the chord's root and fifth an octave down, buzzing and held | `string`: a low string, picked | `hand`: a hand drum, its "dum" and its "tek" |
 | Ion Reach | `digital`: a glassy digital note that comes back twice, a dotted eighth apart; it also plays the chord as an arpeggio on the eighths the tune leaves free (`arp`) | `thin`: a narrow band of a square wave | `sub`: a held sine | `tight`: an electric kick, a snap, short hats on every eighth |
 | Obsidian | `anvil`: struck metal an octave down under a clang of partials that are not its harmonics | `iron`: a dark driven sawtooth, the root doubled an octave down | `growl`: a driven sawtooth with a rough undertone, opening as it is held | `iron`: a heavy step, an anvil's ring, a link of chain |
@@ -423,10 +423,29 @@ from silence) on the music's bus.
   Reach's hats, Obsidian's steps in three bars of four and its anvil, Nova
   Forge's low drums); a campaign fight's kick, snare and hats are the kit's
   too.
-- **The drive:** the classic kit figure, bass figure, arpeggio, tune (from the
-  second section) and pad, on the world's kit, bass, lead and pad. An
-  arpeggio's note is the lead's body alone, one voice, so the sixteenths
-  stay light; a note of the tune is the whole instrument.
+- **The drive:** each world plays a bar of its own (its `voices.groove`,
+  `music_voices_groove`), so a world is known in the arcade by its rhythm
+  as well as its instruments; the tune (from the second section), the pad
+  and the crash every 64 eighths stay where the classic set has them. A
+  groove is rows of slots, a character each, `grid` slots a bar (16
+  sixteenths, or 12 for a bar in triplets), a row one bar long or two: the
+  drums' `low`, `mid` and `high` and the lead's chord `stab` (`X` a full
+  hit, `x` a lighter one, `o` a ghost), the `bass` (`r` the chord's root,
+  `f` its fifth, `u` the octave up, held for each `-` after it) and the
+  `arp` (`x` the next note of the chord's arpeggio). An arpeggio's or a
+  stab's note is the lead's body alone, one voice; a note of the tune is
+  the whole instrument.
+
+  | World | Its bar in the drive |
+  |---|---|
+  | Haven | a light two-step: the kick on 1, before 3 and after it, brushes on 2 and 4, offbeat hats; the bass leaps to the octave; a bouncing arpeggio |
+  | Verdant | the shaker leads in sixteenths, accents on the beats; the log drum and the bass in a broken 3+3+4+3+3; a wood block answers |
+  | Dustfall | a caravan trot in triplets (12 slots): "dum" on every beat, "tek" between; the bass and the plucked arpeggio long-short, long-short |
+  | Ion Reach | hats in sixteenths, a broken kick, a snap on 2 and 4; a syncopated sub; the arpeggio on every sixteenth |
+  | Obsidian | half time: a heavy step on 1, on 3 and once more after it, the anvil on 3, a link of chain before each half; the bass marches in quarters; the arpeggio in quarters |
+  | Cryosphere | the bells lead, on every sixteenth; a thud at the start of two bars and once more in the second, ice cracking on 3, a splinter on 2 and 4; the bass in half notes |
+  | Nova Forge | big drums on every beat with pickups, a snare on 2 and 4; brass stabs twice a bar; a driving tuba; the arpeggio in eighths |
+  | Eclipse | a heartbeat, two booms at the start of each bar, and a far blow on 3; one long bass note a bar under the choir; three piano notes a bar |
 - **The boss:** the classic piece (its tempo, its kit figure, the bass in
   sixteenths, the riff, the stabs, the hit that starts it) with the riff
   and the stabs on the world's lead over an edge of sawtooth, the bass and
@@ -439,8 +458,8 @@ from silence) on the music's bus.
   in every world, and its peak within 1.6 dB. A struck or plucked instrument
   peaks higher than a held sine at the same mean level, so the new set sits
   at or a little under the classic mean. At most 24 music voices are alive
-  at once in a calm theme (25 in a campaign fight), 35 in a drive or a boss
-  fight.
+  at once in a calm theme (25 in a campaign fight), 36 in a drive, 35 in a
+  boss fight.
 - `bin/sound-render --music-set=classic` (or `new`) records the game with
   that set; `bin/world-music` composes the docs' tracks with the classic
   set, the one they were approved with.
@@ -521,9 +540,9 @@ over the root.
   drifting spore mines (`mine`), a thorn ring; its brood hatches in its second
   phase (`portal`). In the arcade, nests hold a green shield over it that no
   hit gets through, and it sows new ones at half hull.
-- **Music:** D minor (Dorian), breathing. The new set: a marimba over a reed
-  pad that swells in and out, a plucked double bass, a log drum and a
-  shaker.
+- **Music:** D minor (Dorian), breathing. The new set: a marimba, in the
+  tune and in a figure between its notes, over a reed pad that swells in and
+  out, a plucked double bass, a log drum and a shaker.
 - **Its sounds can carry:** something alive: wet, organic, spores and
   currents. The current has no sound now.
 
