@@ -20,7 +20,7 @@ const loudness = -16;
 const usage = `usage: bin/world-music [world...]
 
     Composes each world's five-minute track for its page, docs/worlds/<world>/music.mp3, with the game's own music and
-    instruments (src/js/music.js, audio.js): the world's calm theme as the campaign plays it, from a fade-in to an
+    instruments of the classic music set (src/js/music.js, audio.js): the world's calm theme, from a fade-in to an
     ending on its home chord, through the game's mix and room; and music.json beside it, the waveform the page draws.
     The WAV master stays in data/world-music/. Needs Playwright's Chromium and ffmpeg. Exits 1 on any failure.
 
@@ -93,8 +93,11 @@ function source_from_game()
         'const world_audio = [world_haven, world_verdant, world_dustfall, world_ion_reach, world_obsidian, world_cryosphere, world_nova_forge, world_eclipse].map(v => v.music);',
         ...folder('sfx'),
         ...folder('sfx_new'),
+        read('music_voices.js'),
         prefix(read('music.js'), 'function expedition_base_update_hud()'),
         read('music_drive.js'),
+        // the tracks are the classic set's music, the one they were approved with
+        "music_set = 'classic';",
     ].join('\n');
 }
 
