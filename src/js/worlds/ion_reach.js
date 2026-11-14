@@ -74,6 +74,18 @@ const world_ion_reach = {
         cutoff: 1900,
         air: 0.85,
         rhythm: 3,
+        // the new music set's instruments (music_voices.js), and how loud each plays in the calm theme (`fight` the
+        // drums of a campaign fight), in the drive and in a boss fight, so the new set is as loud as the classic one
+        voices: {
+            lead: 'digital',
+            pad: 'thin',
+            bass: 'sub',
+            kit: 'tight',
+            arp: true,
+            calm: {lead: 2.16, pad: 1.27, bass: 0.89, kit: 1.18, fight: 0.88},
+            drive: {lead: 2.3, pad: 3.44, bass: 0.75, kit: 1.18},
+            boss: {lead: 2.3, bass: 0.75, kit: 1.18},
+        },
         // the arcade's and a flagship fight's (music_drive.js)
         drive: {bpm: 140, lead: 'square', bass: 'eighths', kit: 'break', arp: [0, 2, 3, 1, 2, 0]},
     },

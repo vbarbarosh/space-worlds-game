@@ -73,6 +73,17 @@ const world_cryosphere = {
         cutoff: 2200,
         air: 1.25,
         rhythm: 5,
+        // the new music set's instruments (music_voices.js), and how loud each plays in the calm theme (`fight` the
+        // drums of a campaign fight), in the drive and in a boss fight, so the new set is as loud as the classic one
+        voices: {
+            lead: 'celesta',
+            pad: 'glass',
+            bass: 'soft',
+            kit: 'ice',
+            calm: {lead: 1.75, pad: 1.61, bass: 1.09, kit: 2.79, fight: 1.76},
+            drive: {lead: 2.51, pad: 2.35, bass: 0.88, kit: 1.32},
+            boss: {lead: 2.51, bass: 1.01, kit: 1.28},
+        },
         // the arcade's and a flagship fight's (music_drive.js)
         drive: {bpm: 126, lead: 'triangle', bass: 'offbeat', kit: 'four', arp: [3, 2, 1, 0]},
     },

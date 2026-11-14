@@ -67,6 +67,17 @@ const world_verdant = {
         cutoff: 1250,
         air: 1.1,
         rhythm: 1,
+        // the new music set's instruments (music_voices.js), and how loud each plays in the calm theme (`fight` the
+        // drums of a campaign fight), in the drive and in a boss fight, so the new set is as loud as the classic one
+        voices: {
+            lead: 'marimba',
+            pad: 'breath',
+            bass: 'wood',
+            kit: 'wood',
+            calm: {lead: 1.53, pad: 1.51, bass: 1.09, kit: 1.37, fight: 1.05},
+            drive: {lead: 1.32, pad: 1.93, bass: 0.7, kit: 0.99},
+            boss: {lead: 1.32, bass: 1.26, kit: 0.99},
+        },
         // the arcade's and a flagship fight's (music_drive.js)
         drive: {bpm: 118, lead: 'triangle', bass: 'offbeat', kit: 'break', arp: [0, 2, 1, 3]},
     },

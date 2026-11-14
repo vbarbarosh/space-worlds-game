@@ -74,6 +74,17 @@ const world_eclipse = {
         cutoff: 700,
         air: 0.8,
         rhythm: 7,
+        // the new music set's instruments (music_voices.js), and how loud each plays in the calm theme (`fight` the
+        // drums of a campaign fight), in the drive and in a boss fight, so the new set is as loud as the classic one
+        voices: {
+            lead: 'piano',
+            pad: 'choir',
+            bass: 'deep',
+            kit: 'void',
+            calm: {lead: 1.4, pad: 2.44, bass: 0.73, kit: 1.12, fight: 0.87},
+            drive: {lead: 1.58, pad: 3.44, bass: 0.36, kit: 1.14},
+            boss: {lead: 1.58, bass: 0.29, kit: 1.03},
+        },
         // the arcade's and a flagship fight's (music_drive.js)
         drive: {bpm: 120, lead: 'square', bass: 'eighths', kit: 'half', arp: [0, 3, 1, 2]},
     },

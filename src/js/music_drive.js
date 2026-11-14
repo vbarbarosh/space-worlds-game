@@ -31,6 +31,10 @@ function music_drive_bpm(p, level)
 // The boss fight begins: a low boom, a crash and the chord stabbed, at once
 function music_drive_hit(p, t)
 {
+    if (music_set === 'new') {
+        music_voices_drive_hit(p, t);
+        return;
+    }
     const bus = sound.music_bus;
     const chord = p.chords[0];
     tone(120, 0.9, 'sine', 0.13, t, 32, 400, bus);
@@ -43,6 +47,11 @@ function music_drive_hit(p, t)
 // One eighth of the drive at step `step`, played at t; `eighth` long (s)
 function music_drive_step(p, step, t, eighth, level)
 {
+    // the new set plays the same figures on the world's own instruments (music_voices.js)
+    if (music_set === 'new') {
+        music_voices_drive_step(p, step, t, eighth, level);
+        return;
+    }
     const d = p.drive;
     const s = step % 256;
     const boss = (level === 2);

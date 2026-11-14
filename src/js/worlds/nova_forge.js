@@ -74,6 +74,17 @@ const world_nova_forge = {
         cutoff: 1250,
         air: 0.65,
         rhythm: 6,
+        // the new music set's instruments (music_voices.js), and how loud each plays in the calm theme (`fight` the
+        // drums of a campaign fight), in the drive and in a boss fight, so the new set is as loud as the classic one
+        voices: {
+            lead: 'brass',
+            pad: 'swell',
+            bass: 'tuba',
+            kit: 'big',
+            calm: {lead: 1.88, pad: 1.35, bass: 0.72, kit: 0.83, fight: 0.83},
+            drive: {lead: 2.34, pad: 2.12, bass: 0.7, kit: 0.82},
+            boss: {lead: 2.34, bass: 0.7, kit: 0.94},
+        },
         // the arcade's and a flagship fight's (music_drive.js)
         drive: {bpm: 136, lead: 'sawtooth', bass: 'gallop', kit: 'break', arp: [0, 2, 1, 2, 3, 2]},
     },

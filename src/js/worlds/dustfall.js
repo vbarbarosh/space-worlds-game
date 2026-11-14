@@ -73,6 +73,17 @@ const world_dustfall = {
         cutoff: 850,
         air: 0.5,
         rhythm: 2,
+        // the new music set's instruments (music_voices.js), and how loud each plays in the calm theme (`fight` the
+        // drums of a campaign fight), in the drive and in a boss fight, so the new set is as loud as the classic one
+        voices: {
+            lead: 'pluck',
+            pad: 'drone',
+            bass: 'string',
+            kit: 'hand',
+            calm: {lead: 1.96, pad: 1.51, bass: 0.86, kit: 0.83, fight: 0.83},
+            drive: {lead: 1.65, pad: 2.35, bass: 1.42, kit: 0.64},
+            boss: {lead: 1.7, bass: 1.53, kit: 0.66},
+        },
         // the arcade's and a flagship fight's (music_drive.js)
         drive: {bpm: 132, lead: 'sawtooth', bass: 'gallop', kit: 'four', arp: [0, 1, 2, 3]},
     },

@@ -74,6 +74,17 @@ const world_obsidian = {
         cutoff: 640,
         air: 0.4,
         rhythm: 4,
+        // the new music set's instruments (music_voices.js), and how loud each plays in the calm theme (`fight` the
+        // drums of a campaign fight), in the drive and in a boss fight, so the new set is as loud as the classic one
+        voices: {
+            lead: 'anvil',
+            pad: 'iron',
+            bass: 'growl',
+            kit: 'iron',
+            calm: {lead: 2.76, pad: 0.84, bass: 0.78, kit: 0.53, fight: 0.53},
+            drive: {lead: 1.93, pad: 1.48, bass: 0.53, kit: 0.72},
+            boss: {lead: 1.93, bass: 0.61, kit: 0.72},
+        },
         // the arcade's and a flagship fight's (music_drive.js)
         drive: {bpm: 112, lead: 'sawtooth', bass: 'offbeat', kit: 'half', arp: [0, 0, 2, 1]},
     },

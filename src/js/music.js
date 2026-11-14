@@ -160,6 +160,11 @@ function schedule_music()
 
 function music_step(p, step, t, combat = 0)
 {
+    // the new set plays the same cycle on the world's own instruments (music_voices.js)
+    if (music_set === 'new') {
+        music_voices_step(p, step, t, combat);
+        return;
+    }
     const s = step % 256;
     const beat = 60/p.bpm;
     const chord = p.chords[Math.floor(s/16) % 4];

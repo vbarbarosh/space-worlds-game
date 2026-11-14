@@ -67,6 +67,17 @@ const world_haven = {
         cutoff: 1600,
         air: 0.9,
         rhythm: 0,
+        // the new music set's instruments (music_voices.js), and how loud each plays in the calm theme (`fight` the
+        // drums of a campaign fight), in the drive and in a boss fight, so the new set is as loud as the classic one
+        voices: {
+            lead: 'epiano',
+            pad: 'warm',
+            bass: 'round',
+            kit: 'soft',
+            calm: {lead: 1.61, pad: 1.34, bass: 0.76, kit: 0.92, fight: 0.92},
+            drive: {lead: 2.29, pad: 2.54, bass: 0.62, kit: 1.46},
+            boss: {lead: 2.29, bass: 0.62, kit: 1.17},
+        },
         // the arcade's and a flagship fight's (music_drive.js)
         drive: {bpm: 124, lead: 'square', bass: 'eighths', kit: 'four', arp: [0, 1, 2, 1]},
     },
