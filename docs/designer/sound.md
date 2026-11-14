@@ -5,8 +5,9 @@ Every sound World Explorer plays, as the code stands (2026-10-21, after
 music, and each world's character, so new sounds can be made for it by a
 sound designer, by hand or by a tool, and checked against what it replaces.
 
-All of it is made in code today, with the browser's Web Audio: no sound file
-ships with the game. The code is in `src/js/audio.js` (the mix, `tone()`,
+The classic set is all made in code, with the browser's Web Audio. The new
+set's shots, blasts and pickup are recordings (`src/sounds/`, their sources
+and licences in its README); the rest of it is made in code too. The code is in `src/js/audio.js` (the mix, `tone()`,
 `noise()`, the flight's steady sounds), `src/js/music.js` (`sfx()`, the calm
 themes), `src/js/music_drive.js` (the arcade's and the flagship's music),
 `src/js/music_voices.js` (the new music set: each world's instruments) and
@@ -211,6 +212,22 @@ flagship's `win` as it dies); a life is lost and the world starts again; your sh
 breaks (a hit on the shield sounds as one on the hull).
 
 ## The new set
+
+**The shots, the blasts and the pickup are recordings, in takes.** The code-made
+takes of these three were thrown out on 2026-11-14 (heard in the game, they
+were a slight change of the classic ones, and as bad): each is now a recording
+from `src/sounds/`, played by `voice_sample`, and each has several takes
+(`src/js/sound_takes.js`): six shots, four blasts, six pickups. One take of
+each plays. In flight 7, 8 and 9 step through the takes of the shots, the
+blasts and the pickup; the game says which one plays and plays it, and the
+pick is kept in that browser. The pick a new browser starts with is `pick` in
+`sound_takes`. A fight's mix is built on them: your own shot short and quiet
+(-50 dB A-weighted, it fires five times a second and more), a hit on a raider
+next to nothing, a raider's end the loud deep thing (-26.5 dB, its peak held
+under -6): a crunch over a deep boom with the wreck breaking up under it. A
+raider's plasma shot is your shot's recording slowed and dulled. The other
+guns, the hazards and the moments below are still made in code.
+
 
 The classic effects are a few bare oscillators and a noise that holds next
 to nothing over 1 kHz, so a crack or a hiss in them is its filter ringing,

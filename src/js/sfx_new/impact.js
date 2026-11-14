@@ -1,8 +1,9 @@
-// Your shot landing on a raider: a tick of sparks and a small knock on its hull, each a little off the last
+// Your shot landing on a raider: a tick of sparks and a small knock on its hull, each a little off the last, kept
+// next to nothing (it comes as often as the shot does)
 const sfx_new_impact = {
     limit: 0.05,
     room: 0.15,
-    gain: 1.74,
+    gain: 0.7,
     voices: function (k) {
         const r = k.r(0.85, 1.15);
         k.noise({d: 0.022, a: 0.03, cutoff: 3600*r, filter: 'highpass'});

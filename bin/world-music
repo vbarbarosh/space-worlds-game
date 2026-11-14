@@ -88,7 +88,10 @@ function source_from_game()
         'let muted = false; const volume_settings = {master: 0.85, effects: 0.85, music: 0.65, ambience: 0.7};',
         'function clamp(n, a, b) { return Math.max(a, Math.min(b, n)); }',
         prefix(read('audio.js'), 'function sync_settings()'),
+        // no recording is packed here: the new set's recorded takes play nothing, and neither tool asks for them
+        'const sound_files = {}; let state = \'menu\'; function show_toast() {}',
         read('sound_voices.js'),
+        read('sound_takes.js'),
         read('sound_ambience_worlds.js'),
         read('sound_ambience.js'),
         ...worlds.map(v => read(`worlds/${v.replaceAll('-', '_')}.js`)),

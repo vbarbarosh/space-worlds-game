@@ -399,10 +399,11 @@ function sfx(kind, volume = 1, position = null, when)
     }
 }
 
-// What a sound of the new set plays with: tone() and noise() take a layer (voice_tone, voice_noise) with `at` its
-// delay and `spread` its place left or right of the sound's own; r() a number between two; turn(n) 0 to n - 1 in
-// turn, call by call; streak how many of this sound came one after another inside its `streak` seconds. Each sound
-// has its own way into the mix, with its share of the room (`room`: a blast rings in it, a stream of shots barely)
+// What a sound of the new set plays with: tone(), noise() and sample() take a layer (voice_tone, voice_noise,
+// voice_sample) with `at` its delay and `spread` its place left or right of the sound's own; r() a number between
+// two; turn(n) 0 to n - 1 in turn, call by call; streak how many of this sound came one after another inside its
+// `streak` seconds. Each sound has its own way into the mix, with its share of the room (`room`: a blast rings in
+// it, a stream of shots barely)
 function sfx_new_kit(kind, effect, t, volume, pan)
 {
     const c = sound.ctx;
@@ -424,6 +425,7 @@ function sfx_new_kit(kind, effect, t, volume, pan)
         streak: state.streak,
         tone: v => voice_tone(layer(v)),
         noise: v => voice_noise(layer(v)),
+        sample: v => voice_sample(layer(v)),
         r: (a, b) => a + Math.random()*(b - a),
         turn: v => state.turn++ % v,
     };

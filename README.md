@@ -260,6 +260,9 @@ for the dev page.
                      play it with, src/js/music_drive.js)
     src/js/ships/    one file per ship class: catalog entry and hull profile
     src/js/sfx/      one file per sound effect: its cooldown and its synth calls
+    src/sounds/      the recordings the new sound set plays (its shots, blasts and
+                     pickup, in takes: src/js/sound_takes.js), packed into the page;
+                     their sources and licences in its README
     src/js/sfx_new/  the new sound set's take of each effect, and the sounds only
                      it has; Settings, Sound set, plays it or the classic one
                      (docs/designer/sound.md)

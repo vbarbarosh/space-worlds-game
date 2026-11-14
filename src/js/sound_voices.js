@@ -1,5 +1,6 @@
-// The new sound set's instruments (the first set's are tone() and noise() of audio.js): full-band noise, a room of
-// their own for effects, a tone with a modulator and a drive, and noise in three colours. The first set's noise holds
+// The new sound set's instruments (the first set's are tone() and noise() of audio.js): recordings (src/sounds/,
+// voice_sample), full-band noise, a room of their own for effects, a tone with a modulator and a drive, and noise in
+// three colours. The first set's noise holds
 // next to nothing over 1 kHz, so its cracks and hisses were the filter ringing; these have the air themselves.
 
 // Which set plays: 'new', or 'classic' for the game's sounds as they were before it (Settings, Sounds)
@@ -106,6 +107,71 @@ function sound_voices_graph(c)
         curve[i] = Math.tanh((i/(curve.length - 1)*2 - 1)*2.2);
     }
     sound.drive_curve = curve;
+    sound_samples_decode(c);
+}
+
+// The recordings of src/sounds/ decoded for this graph (sound.samples by name; sound.samples_ready settles when all
+// are in): one not decoded yet, in a page's first moments, plays nothing
+function sound_samples_decode(c)
+{
+    sound.samples = {};
+    const waits = [];
+    for (const name of Object.keys(sound_files)) {
+        const bytes = Uint8Array.from(atob(sound_files[name]), v => v.charCodeAt(0));
+        waits.push(c.decodeAudioData(bytes.buffer).then(function (buffer) {
+            if (sound.ctx === c) {
+                sound.samples[name] = buffer;
+            }
+        }).catch(function () {}));
+    }
+    sound.samples_ready = Promise.all(waits);
+}
+
+// A recording: {name} of src/sounds/, {t, a} when and how loud, rate its speed (and pitch), from `from` s into it,
+// cutoff a lowpass over it, fade its last seconds let go early (a long tail cut short); pan and bus as a tone's
+function voice_sample(o)
+{
+    const buffer = sound.samples[o.name];
+    if (!sound.ctx || muted || !buffer || (o.a <= 0) || (o.extra && (sound.voices > sound_voice_limit))) {
+        return;
+    }
+    const c = sound.ctx;
+    const source = c.createBufferSource();
+    const gain = c.createGain();
+    const nodes = [source, gain];
+    const rate = o.rate || 1;
+    const length = (buffer.duration - (o.from || 0))/rate;
+    source.buffer = buffer;
+    source.playbackRate.value = rate;
+    let output = source;
+    if (o.cutoff) {
+        const filter = c.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.value = o.cutoff;
+        filter.Q.value = 0.5;
+        output.connect(filter);
+        output = filter;
+        nodes.push(filter);
+    }
+    gain.gain.value = 0;
+    gain.gain.setValueAtTime(o.a, o.t);
+    if (o.fade && (o.fade < length)) {
+        gain.gain.setValueAtTime(o.a, o.t + o.fade*0.6);
+        gain.gain.linearRampToValueAtTime(0, o.t + o.fade);
+    }
+    output.connect(gain);
+    output = gain;
+    if (o.pan) {
+        const pan = c.createStereoPanner();
+        pan.pan.value = clamp(o.pan, -1, 1);
+        output.connect(pan);
+        output = pan;
+        nodes.push(pan);
+    }
+    output.connect(o.bus || sound.fx_bus);
+    source.start(o.t, o.from || 0);
+    source.stop(o.t + Math.min(length, o.fade || length) + 0.05);
+    voice_end(source, nodes);
 }
 
 // A voice ends: its nodes let go
