@@ -63,13 +63,17 @@ const usage = `usage: bin/perf [--dpr=2] [--size=1920x1080] [--difficulty=normal
        bin/perf --compare=label,label
 
     Plays scenes of build/index.html (a copy with a measuring hook, in data/perf/) in Chromium at 1920 × 1080 (--size),
-    on a virtual clock of 60 frames a second and a seeded Math.random, so a scene is the same on every run.
+    on a virtual clock of 60 frames a second and a seeded Math.random. A calm scene is the same on every run; a fight
+    or arcade scene is not (one page's fight read 3 to 23 ms a frame over four runs): time those several times, the
+    page before a change and the page after it in turn (--page), never side by side.
     Each scene is fast-forwarded 240 frames and drawn 60 more, then measured. Results go to data/perf/<label>/report.json.
     Exits 1 when a page throws.
 
     modes:
         frames   the main thread's time per frame (update, render, HUD), long frames, GC and allocations
-        split    the same, with the time of each render pass
+        split    the same, with the time of each render pass; on the software canvas a pass that draws many pictures
+                 is also charged the canvas's drawing of the passes before it, so this is not a pass's cost (layers
+                 is) and not a way to compare two pages (raster is)
         raster   each frame with the canvas flushed at its end: the frame's whole time with the canvas's raster
                  (software canvas), which frames mode leaves to the browser after the frame
         layers   each render pass with the canvas flushed around it, so its raster counts (software canvas)
