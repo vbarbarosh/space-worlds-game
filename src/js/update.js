@@ -315,12 +315,14 @@ function update(dt, frame_dt = dt)
             }
         }
     }
-    // Guns mine only in the arcade; in the campaign rocks are the drones' work.
-    if ((near > 600) && arcade.active) {
+    // With no raider close the guns mine: any rock in the arcade; in the campaign the rock you point at, or any while
+    // you follow a mining stage (mining.js)
+    const pointed = arcade.active ? null : ore_pointed();
+    if ((near > 600) && (arcade.active || pointed || mining_aim())) {
         for (let i = 0; i < ore_nodes.length; ++i) {
             const v = ore_nodes[i];
             const d = distance(v, player);
-            if ((v.hp > 0) && (d < 650) && (d < near) && (v.type !== 'brood_nest') && ((v.type !== 'cliff') || cliff_idle_target(v)) && (!lane || in_view(v, 0))) {
+            if ((v.hp > 0) && (d < 650) && (d < near) && (v.type !== 'brood_nest') && (!pointed || (v === pointed)) && ((v.type !== 'cliff') || cliff_idle_target(v)) && (!lane || in_view(v, 0))) {
                 near = d;
                 target = v;
             }
@@ -340,7 +342,7 @@ function update(dt, frame_dt = dt)
         near = distance(target, player);
     }
     update_ship_orientation(dt, target, dx, dy);
-    // The guns fire only at a target in their reach: a raider, debris about to hit, or (arcade) a rock; never into empty space.
+    // The guns fire only at a target in their reach: a raider, debris about to hit, or a rock to mine; never into empty space.
     if (target) {
         guns_fire(near);
     }
@@ -603,11 +605,10 @@ function update(dt, frame_dt = dt)
                     (v.y <= Math.max(py, b.y) + v.r + b.r) &&
                     (segment_distance(v, {x: px, y: py}, b) < v.r + b.r)
                 ) {
-                    if (arcade.active) {
-                        // a miner's drills break rock faster, not a nest
-                        damage_ore(v, b.damage*((v.type === 'brood_nest') ? 1 : (current_ship().mining || 1)));
-                    }
-                    else {
+                    // the arcade's rock takes the hit; the campaign's is cut by it, in sparks (deposits.js); a miner's
+                    // drills break rock faster, not a nest
+                    damage_ore(v, b.damage*((v.type === 'brood_nest') ? 1 : (current_ship().mining || 1)));
+                    if (!arcade.active) {
                         explode(b.x, b.y, 8, ore_color(v), 0, 'spark');
                     }
                     b.life = 0;
