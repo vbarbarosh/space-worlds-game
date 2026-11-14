@@ -536,6 +536,133 @@ const cases = [
             return out;
         },
     },
+    {
+        name: 'haven-haulers',
+        about: 'Haven\'s Free world: a hauler down opens its containers and brings its wave\'s crest, one let go leaves with its cargo, the fifth the flagship; a load starts the count again',
+        page: 'dev',
+        query: 'world=haven&screen=arcade',
+        run: async function ({page, t}) {
+            const out = [];
+            if (await t('typeof hauler_run') !== 'object') {
+                out.push('Haven\'s Free world has no haulers');
+                return out;
+            }
+            // the hauler and its string, the world's count, the wave, its crest and the card; your hull kept full
+            function now() {
+                return t(`player.hp = hull_max(); ({
+                    wave: arcade.wave,
+                    crest: !!arcade.pace?.crest,
+                    pause: arcade.pause > 0,
+                    out: !!hauler_run.ship,
+                    boxes: hauler_run.boxes.length,
+                    parts: enemies.filter(v => v.hauler && (v.hp > 0)).length,
+                    saved: hauler_run.saved,
+                    taken: hauler_run.taken,
+                    end: hauler_run.end,
+                    way: \`\${hauler_run.side} to \${hauler_run.gate?.x},\${hauler_run.gate?.y}\`,
+                    pickups: pickups.length,
+                    flagship: enemies.some(v => (v.type === 'boss') && (v.hp > 0)),
+                    card: document.getElementById('mc_title').textContent,
+                })`);
+            }
+            // the hauler hurt as a shot hurts it, by a share of its whole hull (all that is left: more than 1)
+            async function hurt(share) {
+                await t(`damage_enemy(hauler_run.ship, (${share} > 1) ? hauler_run.ship.hp + 1 : hauler_run.ship.max_hp*${share})`);
+                await page.waitForTimeout(1000);
+                return now();
+            }
+            // the hauler put by its gate on its last leg, and the jump waited for
+            async function let_go() {
+                await t(`(function () {
+                    const s = hauler_run;
+                    s.leg = s.way.length - 1;
+                    s.ship.event_goal = s.gate;
+                    s.ship.x = s.gate.x;
+                    s.ship.y = s.gate.y + ((s.gate.y > world.h/2) ? -1 : 1)*(s.gate.r + s.ship.r + 130);
+                })()`);
+                await page.waitForFunction(() => window.__t('!!hauler_run.end'), null, {timeout: 15000});
+                await page.waitForTimeout(1000);
+                return now();
+            }
+            // the wave's raiders down, the breather cut short, the next wave begun
+            async function next_wave() {
+                for (let i = 0; (i < 20) && await t('enemies.some(v => v.hp > 0)'); ++i) {
+                    await t('for (const v of enemies) { if (v.hp > 0) { damage_enemy(v, 1e9); } }');
+                    await page.waitForTimeout(150);
+                }
+                await page.waitForTimeout(300);
+                const rest = await now();
+                await t('arcade.pause = Math.min(arcade.pause, 0.2)');
+                await page.waitForTimeout(700);
+                return rest;
+            }
+            const start = await now();
+            if ((start.wave !== 1) || !start.out || (start.boxes !== 3) || (start.parts !== 4) || !start.card.startsWith('Stop the hauler: cargo saved 0 of 15')) {
+                out.push(`the world's start: wave ${start.wave}, ${start.out ? 'a hauler out' : 'no hauler'}, ${start.boxes} containers in tow, ${start.parts} of its 4 parts on the map, card "${start.card}"`);
+            }
+            const third = await hurt(0.34);
+            if ((third.boxes !== 2) || (third.saved !== 1) || third.crest || (third.pickups < start.pickups + 3) || !third.card.startsWith('Stop the hauler: cargo saved 1 of 15')) {
+                out.push(`a third of its hull gone: ${third.boxes} containers in tow, ${third.saved} saved, crest ${third.crest ? 'come' : 'not come'}, ${third.pickups - start.pickups} pickups more, card "${third.card}"`);
+            }
+            const down = await hurt(2);
+            if ((down.wave !== 1) || !down.crest || down.out || (down.saved !== 3) || (down.taken !== 0) || (down.parts !== 0) || !down.card.startsWith('Destroy its escort')) {
+                out.push(`a hauler down: wave ${down.wave}, crest ${down.crest ? 'come' : 'not come'}, ${down.saved} saved, ${down.taken} taken, ${down.parts} parts left on the map, card "${down.card}"`);
+            }
+            const rest = await next_wave();
+            if (!rest.pause || (rest.card !== 'Cargo saved 3 of 15 · next hauler soon')) {
+                out.push(`its escort down: ${rest.pause ? 'a breather' : 'no breather'}, card "${rest.card}"`);
+            }
+            // the second let go with all it tows: it leaves, the crest comes all the same, the count says so
+            const second = await now();
+            const gone = await let_go();
+            if ((second.wave !== 2) || !second.out || (second.boxes !== 3) || (gone.wave !== 2) || (gone.end !== 'gone') || !gone.crest || (gone.saved !== 3) || (gone.taken !== 3) || (gone.parts !== 0) || !gone.card.startsWith('Destroy its escort')) {
+                out.push(`a hauler let go: wave ${second.wave} began with ${second.boxes} containers in tow; then ${gone.end || 'still running'}, crest ${gone.crest ? 'come' : 'not come'}, ${gone.saved} saved, ${gone.taken} taken, ${gone.parts} parts left on the map, card "${gone.card}"`);
+            }
+            // saved in the second wave, the third hauler hurt, then the slot loaded: the world again from its first
+            // wave, its first hauler whole on its way, the count from nothing, no part left over from before the load
+            await t('save_to_slot(0)');
+            await next_wave();
+            await hurt(0.7);
+            await t('load_from_slot(0)');
+            await page.waitForTimeout(800);
+            const loaded = await now();
+            if ((loaded.wave !== 1) || loaded.crest || !loaded.out || (loaded.boxes !== 3) || (loaded.parts !== 4) || (loaded.saved !== 0) || (loaded.taken !== 0) || (loaded.way !== start.way) || !loaded.card.startsWith('Stop the hauler: cargo saved 0 of 15')) {
+                out.push(`after a load: wave ${loaded.wave}, crest ${loaded.crest ? 'on' : 'off'}, ${loaded.boxes} containers in tow, ${loaded.parts} parts on the map, ${loaded.saved} saved, ${loaded.taken} taken, ${(loaded.way === start.way) ? 'on its way' : `${loaded.way}, not ${start.way}`}, card "${loaded.card}"`);
+            }
+            // the five: four down, the fourth let go with one container left; then the breather says the flagship
+            // comes, and it does, with no hauler
+            let fifth = null;
+            for (let n = 1; n <= 5; ++n) {
+                if (n === 4) {
+                    await hurt(0.7);
+                    await let_go();
+                }
+                else {
+                    await hurt(2);
+                }
+                fifth = await next_wave();
+            }
+            if (!fifth.pause || (fifth.card !== 'Cargo saved 14 of 15 · now the flagship')) {
+                out.push(`the fifth hauler's escort down: ${fifth.pause ? 'a breather' : 'no breather'}, card "${fifth.card}"`);
+            }
+            const last = await now();
+            if ((last.wave !== 6) || !last.flagship || last.out || (last.parts !== 0) || (last.saved !== 14) || (last.taken !== 1)) {
+                out.push(`after the breather: wave ${last.wave}, ${last.flagship ? 'the flagship out' : 'no flagship'}, ${last.out ? 'a hauler out' : 'no hauler'}, ${last.saved} saved, ${last.taken} taken`);
+            }
+            // the flagship down with its wave's raiders spent: the world's end pays the cargo in score and says it
+            const before = await t('score');
+            const pays = await t('arcade_task().cleared().points');
+            await t('spawn_left = 0');
+            await next_wave();
+            await page.waitForFunction(() => window.__t('state === \'finale\''), null, {timeout: 20000}).catch(() => null);
+            await page.waitForTimeout(300);
+            const end = {state: await t('state'), line: await page.evaluate(() => document.getElementById('finale_line').textContent), paid: await t('score') - before};
+            if ((end.state !== 'finale') || !end.line.includes('cargo saved 14 of 15') || (pays !== 2800) || (end.paid < pays)) {
+                out.push(`the world's end: state ${end.state}, its line "${end.line.slice(0, 80)}", the cargo pays ${pays} (2800), the score rose ${end.paid}`);
+            }
+            return out;
+        },
+    },
 ];
 const usage = `usage: bin/play-check [case...]
 
