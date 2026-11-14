@@ -329,6 +329,7 @@ function brood_nest_hunters_send()
     const count = Math.min(brood_nest_hunters_most, brood_nest_hunters + w.hunters);
     w.hunters++;
     show_toast('HUNTERS', 'THE NESTS SEND THEM AFTER YOU · BURN A NEST', 4, 'danger');
+    sfx('event_danger');
     nest.hatch = 0.6;
     for (let i = 0; i < count; ++i) {
         const enemy = raider_kind_spawn('interceptor', nest.x, nest.y);
@@ -376,6 +377,7 @@ function brood_nest_place(nest, enemy, i)
     enemy.y = clamp(nest.y + Math.sin(a)*d, 40, world.h - 40);
     enemy.angle = a;
     brood_nest_spores(enemy, i);
+    sfx('nest_hatch', 1, nest);
 }
 
 // A raider out of a nest: a ring and a puff in the spores' green, the i-th a moment after the one before
@@ -453,6 +455,7 @@ function brood_nest_burst(nest)
     explode(nest.x, nest.y, brood_nest_blast, brood_nest_colors.spore, 0, 'blast', 14, 0.25);
     burst(nest.x, nest.y, brood_nest_colors.sac, 60, 320);
     ring(nest.x, nest.y, brood_nest_colors.spore, brood_nest_blast*1.8, 0.5);
+    sfx('nest_burst', 1, nest);
     hit_stop_start(0.06);
     const points = brood_nest_points*combo;
     score += points;

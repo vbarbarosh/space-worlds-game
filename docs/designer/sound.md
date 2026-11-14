@@ -281,6 +281,7 @@ part of the game calls for these. In the classic set they stay silent.
 | `wave_start` | the arcade's next wave begun |
 | `crest` | a wave's crest breaking (`src/js/arcade_pace.js`) |
 | `wave_clear` | a wave cleared, its breather begun |
+| `nest_hatch`, `nest_burst` | Verdant's nests in the arcade (`src/js/arcade_nests.js`): a raider hatching from one, and a nest burnt; the nests' hunters come with `event_danger` |
 | `overheat`, `guns_ready` | your guns locked by heat, and free again |
 | `combo` | the combo one higher, a step up the scale with each |
 | `event_convoy`, `event_ace`, `event_jammer`, `event_danger` | an arcade event begun: a convoy, an ace, a jammer, any other (a heat surge) |
@@ -570,7 +571,8 @@ over the root.
 
 ## What has no sound of its own
 
-In either set, beyond the moments above: Verdant's current, Obsidian's spires (the new set hums near one), anything of
+In either set, beyond the moments above: Verdant's current, Obsidian's spires
+(the new set hums near one), anything of
 Cryosphere's cold, the heat surge's vents, Nova Forge's overheated guns,
 radiation (its alerts play `hit`; the new set adds the counter's ticks), the
 arcade's events (the new set has a call for each as it begins, none while it
