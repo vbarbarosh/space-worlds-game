@@ -247,6 +247,46 @@ const cases = [
         },
     },
     {
+        name: 'sound-sets',
+        about: 'the sound set and the music set: each kept across a load, nonsense read as new, a sound only the new set has silent in the classic',
+        page: 'index',
+        storage: {pulse_drift_sound_set: 'classic', pulse_drift_music_set: 'zzz'},
+        run: async function ({page, t, open}) {
+            const out = [];
+            const read = '({sound: sound_set, music: music_set, gun: sfx_kind(\'gun_ion\'), shield: sfx_kind(\'shield_hit\'), rail: sfx_kind(\'enemy_rail\'), dock: sfx_kind(\'dock\')})';
+            const first = await t(read);
+            if ((first.sound !== 'classic') || (first.music !== 'new')) {
+                out.push(`stored classic and nonsense: the sound set ${first.sound}, the music set ${first.music} (classic and new)`);
+            }
+            if ((first.gun !== 'enemy_ion') || (first.shield !== 'hit') || (first.rail !== 'enemy_railgun')) {
+                out.push(`in the classic set your ion gun plays ${first.gun}, a hit on the shield ${first.shield}, a rail gun ${first.rail} (enemy_ion, hit, enemy_railgun)`);
+            }
+            // every sound asked for in a flight of each set, the new set's own among them: none throws, and one only
+            // the new set has makes no voice in the classic one
+            await t('start_audio(); muted = false; menu_start(\'arcade\')');
+            await page.waitForTimeout(500);
+            const voices = await t('(function () { sound.cues = {}; const before = sound.voices; for (const kind of Object.keys(sfx_new_by_kind).filter(v => !sfx_by_kind[v] && !sfx_new_by_kind[v].classic)) { sfx(kind); } return sound.voices - before; })()');
+            if (voices !== 0) {
+                out.push(`the classic set made ${voices} voices for sounds only the new set has`);
+            }
+            await t('settings_set(\'sound_set\', \'new\'); settings_set(\'music_set\', \'classic\')');
+            const made = await t('(function () { sound.cues = {}; const before = sound.voices; for (const kind of Object.keys(sfx_new_by_kind)) { sfx(kind); } return sound.voices - before; })()');
+            if (!(made > 0)) {
+                out.push('the new set made no voice for its own sounds');
+            }
+            const second = await t(read);
+            if ((second.sound !== 'new') || (second.music !== 'classic') || (second.gun !== 'gun_ion') || (second.shield !== 'shield_hit')) {
+                out.push(`after Settings: the sound set ${second.sound}, the music set ${second.music}, your ion gun ${second.gun}, a hit on the shield ${second.shield}`);
+            }
+            await open('index');
+            const third = await t(read);
+            if ((third.sound !== 'new') || (third.music !== 'classic')) {
+                out.push(`after a load of the page: the sound set ${third.sound}, the music set ${third.music} (new and classic)`);
+            }
+            return out;
+        },
+    },
+    {
         name: 'verdant-nests',
         about: 'Verdant\'s Free world: a nest burnt brings its wave\'s crest, the fifth the flagship; a load starts the five again',
         page: 'dev',
