@@ -707,8 +707,8 @@ function hauler_plate_name(enemy)
     return (enemy.hauler === 'tug') ? 'HAULER' : 'CARGO';
 }
 
-// The hauler in view, under the raiders: its gate's ring, its way to it, the cable, the containers, the hauler, its
-// hull's bar in thirds once hit, and how far its gate is
+// The hauler in view, under the raiders: its gate's ring, its way to it, the cable, the containers and the hauler;
+// its hull's bar and its name come over the raiders (haulers_render_over)
 function haulers_render()
 {
     const s = hauler_run;
@@ -754,21 +754,33 @@ function haulers_render()
     }
     hauler_draw(ship, s.heading);
     ctx.restore();
+}
+
+// Over the raiders (render): the hauler's hull as a bar in thirds once hit, and above it its name with how far its
+// gate is. Both stand clear of the bracket the guns' target gets (render_target_brackets: 1.9 times its size), and no
+// raider's hull or bar crosses them: under the raiders, an escort flying over the hauler struck its name through
+function haulers_render_over()
+{
+    const s = hauler_run;
+    const ship = s.ship;
+    if (!ship || (ship.hp <= 0) || !in_view(ship, 320)) {
+        return;
+    }
     ctx.save();
-    const r = ship.r;
+    const top = ship.y - ship.r*1.9 - 12;
     const share = clamp(ship.hp/ship.max_hp, 0, 1);
     if (share < 1) {
-        const w = r*2.4;
+        const w = ship.r*2.4;
         ctx.fillStyle = '#0b1222';
-        ctx.fillRect(ship.x - w/2, ship.y - r*1.5 - 14, w, 5);
+        ctx.fillRect(ship.x - w/2, top, w, 5);
         ctx.fillStyle = gold;
-        ctx.fillRect(ship.x - w/2, ship.y - r*1.5 - 14, w*share, 5);
+        ctx.fillRect(ship.x - w/2, top, w*share, 5);
         ctx.fillStyle = '#0b1222';
         for (let k = 1; k < hauler_boxes; ++k) {
-            ctx.fillRect(ship.x - w/2 + w*k/hauler_boxes - 1/zoom, ship.y - r*1.5 - 14, 2/zoom, 5);
+            ctx.fillRect(ship.x - w/2 + w*k/hauler_boxes - 1/zoom, top, 2/zoom, 5);
         }
     }
-    boss_duel_text(`HAULER · GATE ${radar_distance_text(distance(ship, g)).toUpperCase()}`, ship.x, ship.y - r*1.5 - 22, c.mark, 0.9);
+    boss_duel_text(`HAULER · GATE ${radar_distance_text(distance(ship, s.gate)).toUpperCase()}`, ship.x, top - 8, hauler_colors.mark, 0.9);
     ctx.restore();
 }
 
