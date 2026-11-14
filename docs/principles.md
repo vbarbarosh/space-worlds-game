@@ -224,6 +224,25 @@ so the eye sees the wave do the work.
 - Where it lives: `src/js/pulse.js` (`pulse_fire`, `emp_fire`,
   `stasis_fire`, `stasis_scale`), `use_supply` in `src/js/upgrades.js`.
 
+## A campaign is never lost to a button
+
+Whatever starts a campaign over the one to continue keeps that one first.
+
+- New campaign on the menu, Restart campaign at a pause and New expedition
+  after a death keep the campaign they replace beside the six save slots, as
+  it stands at that moment (`saves_keep_replaced` in `src/js/saves.js`), and
+  the news says so.
+- There is one such place. A campaign with under a minute flown does not
+  take the place of a kept one with more, so New campaign pressed twice keeps
+  the first.
+- The saves panel shows it in a row of its own, "Earlier campaign", with
+  Load. Loading it keeps the game it takes the place of there instead: the
+  two change places (`load_kept`).
+- The arcade and the Races mode replace no campaign: they put it back as it
+  was.
+- Where it lives: `src/js/saves.js`; `menu_campaign_new` in
+  `src/js/menu.js`.
+
 ## The arcade is tuned on its own; the campaign stays as it is
 
 The arcade gets the extra feel (shake, slow motion, chain blasts) and its own

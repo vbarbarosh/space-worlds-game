@@ -109,7 +109,7 @@ function toggle_pause()
 
         document.getElementById('pause_checkpoint').textContent = checkpoint_notice;
         document.getElementById('restart_pause').textContent = race_mode.active ? 'Restart race' : arcade.active ? 'Restart arcade' : 'Restart campaign';
-        document.getElementById('restart_pause_note').textContent = race_mode.active ? 'Back to the start line of this course.' : arcade.active ? 'Start the arcade again from world 1.' : 'Start the campaign again from Haven. Your saved games stay.';
+        document.getElementById('restart_pause_note').textContent = race_mode.active ? 'Back to the start line of this course.' : arcade.active ? 'Start the arcade again from world 1.' : 'Start the campaign again from Haven. This one is kept in Saved games; your slots stay.';
         set_pause_icon(true);
         document.getElementById('resume_button').focus();
     }
@@ -154,7 +154,7 @@ for (const id of ['restart_button', 'restart_pause']) {
             arcade_start();
         }
         else {
-            reset_run();
+            menu_campaign_new();
         }
     });
 }

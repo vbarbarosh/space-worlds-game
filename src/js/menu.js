@@ -209,7 +209,7 @@ function menu_start(mode, world = 0)
     }
     else if (mode === 'campaign') {
         arcade_stop();
-        reset_run();
+        menu_campaign_new();
     }
     else if (mode === 'races') {
         race_mode_launch();
@@ -219,6 +219,17 @@ function menu_start(mode, world = 0)
     }
     else {
         arcade_start();
+    }
+}
+
+// A campaign from its start. The one to continue, if there is one, is kept beside the save slots first
+// (saves_keep_replaced), and the news says where it went
+function menu_campaign_new()
+{
+    const kept = saves_keep_replaced();
+    reset_run();
+    if (kept) {
+        show_toast('EARLIER CAMPAIGN KEPT', 'LOAD IT FROM SAVED GAMES · F5', 3.5, 'info');
     }
 }
 

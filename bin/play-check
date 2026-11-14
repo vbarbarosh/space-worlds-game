@@ -526,6 +526,57 @@ const cases = [
         },
     },
     {
+        name: 'new-campaign-keeps',
+        about: 'New campaign and Restart campaign keep the campaign they replace beside the slots; a fresh one does not push it out; loading it swaps the two',
+        page: 'index',
+        run: async function ({page, t, open}) {
+            const out = [];
+            const kept = '(function () { const v = (typeof saves_kept_read === \'function\') ? saves_kept_read() : null; return v ? {salvage: v.salvage, run_time: v.checkpoint.run_time} : null; })()';
+            // a campaign five minutes in, saved, then the menu and a new campaign
+            await t('menu_start(\'campaign\'); undock(); run_time = 300; salvage = 5000; save_checkpoint(); menu_open()');
+            await t('menu_start(\'campaign\')');
+            const first = await t(kept);
+            if (!first || (first.salvage !== 5000)) {
+                out.push(`after New campaign over a game five minutes in: the kept campaign ${JSON.stringify(first)} (salvage 5000)`);
+                return out;
+            }
+            // the new one, seconds old, replaced at once: the kept one stays
+            await t('undock(); save_checkpoint(); menu_open(); menu_start(\'campaign\')');
+            const second = await t(kept);
+            if (!second || (second.salvage !== 5000)) {
+                out.push(`after New campaign pressed again: the kept campaign ${JSON.stringify(second)} (still salvage 5000)`);
+            }
+            // the saves panel has its row, and Load swaps: the earlier one flies, the seconds-old one is not kept
+            await t('menu_open(); saves_open(\'menu\')');
+            const row = await page.evaluate(function () {
+                const v = [...document.querySelectorAll('#save_slots .slot')].find(vv => vv.textContent.includes('Earlier campaign'));
+                if (!v) {
+                    return null;
+                }
+                const text = v.textContent;
+                v.querySelector('button').click();
+                return text;
+            });
+            const loaded = await t('({salvage, state, kept: !!saves_kept_read()})');
+            if (!row || (loaded.salvage !== 5000) || !['playing', 'upgrade'].includes(loaded.state) || loaded.kept) {
+                out.push(`the saves panel's row "${String(row).slice(0, 60)}", after its Load: salvage ${loaded.salvage} (5000), state ${loaded.state}, a kept campaign ${loaded.kept} (none)`);
+            }
+            // Restart campaign at a pause, the game now further on: kept as it is now, and there after a load of the page
+            await t('if (state === \'upgrade\') { undock(); } run_time = 400; salvage = 6000; toggle_pause()');
+            await page.evaluate(() => document.getElementById('restart_pause').click());
+            const third = await t(kept);
+            if (!third || (third.salvage !== 6000)) {
+                out.push(`after Restart campaign: the kept campaign ${JSON.stringify(third)} (salvage 6000)`);
+            }
+            await open('index');
+            const fourth = await t(kept);
+            if (!fourth || (fourth.salvage !== 6000)) {
+                out.push(`after a load of the page: the kept campaign ${JSON.stringify(fourth)} (salvage 6000)`);
+            }
+            return out;
+        },
+    },
+    {
         name: 'arcade-rocks',
         about: 'the arcade\'s rocks as they were: shots break one by its hull, it drops salvage, a push wave moves them',
         page: 'index',

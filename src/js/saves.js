@@ -3,6 +3,13 @@
 // CONTINUE does, and the loaded game becomes the autosave too.
 const save_slot_count = 6;
 let saves_return = null;
+// The campaign a new one took the place of: one of it, kept beside the six slots. New campaign on the menu, Restart
+// campaign at a pause and New expedition after a death start a campaign over the game to continue; before they do,
+// that game as it stands is kept here (saves_keep_replaced), and the saves panel shows it in a row of its own with
+// Load. A campaign with under a minute flown does not take the place of a kept one with more: New campaign pressed
+// twice keeps the first.
+const saves_kept_key = 'pulse_drift_kept_v1';
+const saves_kept_least = 60;
 
 document.getElementById('saves_close').addEventListener('click', saves_close);
 document.getElementById('pause_saves_button').addEventListener('click', () => saves_open('pause'));
@@ -39,6 +46,92 @@ function saves_slot_without_gone(slot)
     return slot;
 }
 
+// The kept campaign, as a slot is: {saved_at, world, story, ship, salvage, checkpoint}; null with none, or one that
+// cannot be loaded
+function saves_kept_read()
+{
+    try {
+        const v = saves_slot_without_gone(JSON.parse(localStorage.getItem(saves_kept_key)));
+        return (v && valid_checkpoint(v.checkpoint)) ? v : null;
+    }
+    catch {
+        return null;
+    }
+}
+
+// `v` (a checkpoint) as the kept campaign; null takes the kept one away
+function saves_kept_write(v)
+{
+    try {
+        if (!v) {
+            localStorage.removeItem(saves_kept_key);
+            return true;
+        }
+        const ship = ship_catalog.find(vv => vv.id === v.campaign.fleet?.ship_id) || ship_catalog[0];
+        storage_set(saves_kept_key, JSON.stringify({saved_at: Date.now(), world: worlds[v.campaign.world].name, story: `${v.campaign.story}/${story.length}`, ship: ship.name, salvage: v.salvage, checkpoint: v}));
+        return true;
+    }
+    catch {
+        return false;
+    }
+}
+
+// A checkpoint worth keeping over `kept` (a kept campaign or null): any that can be loaded, but one with under a
+// minute flown not over one with more
+function saves_kept_takes(v, kept)
+{
+    return !!v && valid_checkpoint(v) && !((v.run_time < saves_kept_least) && kept && (kept.checkpoint.run_time >= saves_kept_least));
+}
+
+// Before a new campaign takes the place of the one to continue: that one, as it stands now, becomes the kept
+// campaign. True when it was kept. The arcade and the Races mode replace no campaign.
+function saves_keep_replaced()
+{
+    if (arcade.active || race_mode.active) {
+        return false;
+    }
+    // under way, it is kept as it is now, not as its last autosave left it
+    if (['playing', 'paused'].includes(state)) {
+        save_checkpoint();
+    }
+    if (!saves_kept_takes(checkpoint, saves_kept_read())) {
+        return false;
+    }
+    const out = saves_kept_write(JSON.parse(JSON.stringify(checkpoint)));
+    sync_load_button();
+    return out;
+}
+
+// The kept campaign resumed as a slot is; the game it takes the place of becomes the kept one, so the two change
+// places and neither is lost
+function load_kept()
+{
+    const v = saves_kept_read();
+    if (!v) {
+        return;
+    }
+    race_mode_stop();
+    if (!arcade.active && ['playing', 'paused'].includes(state)) {
+        save_checkpoint();
+    }
+    const replaced = (!arcade.active && saves_kept_takes(checkpoint, null) && (checkpoint.run_time >= saves_kept_least)) ? JSON.parse(JSON.stringify(checkpoint)) : null;
+    saves_kept_write(replaced);
+    checkpoint = JSON.parse(JSON.stringify(v.checkpoint));
+    try {
+        localStorage.setItem('pulse_drift_frontier_v4', JSON.stringify(checkpoint));
+    }
+    catch {
+    }
+    set_hidden(document.getElementById('saves_overlay'), true);
+    set_hidden(el.pause_overlay, true);
+    saves_return = null;
+    set_pause_icon(false);
+    arcade_stop();
+    reset_run(true);
+    show_toast('GAME LOADED', `THE EARLIER CAMPAIGN · ${v.world.toUpperCase()}`, 2);
+    sync_load_button();
+}
+
 function saves_write(slots)
 {
     try {
@@ -54,7 +147,7 @@ function saves_write(slots)
 function sync_load_button()
 {
     const slots = saves_read();
-    set_hidden(document.getElementById('load_button'), !slots.some(Boolean));
+    set_hidden(document.getElementById('load_button'), !slots.some(Boolean) && !saves_kept_read());
     const i = last_save_slot(slots);
     const v = (i >= 0) ? slots[i] : null;
     for (const id of ['pause_last_save', 'menu_last_save', 'result_last_save']) {
@@ -162,6 +255,18 @@ function saves_render()
         if (v) {
             acts.append(ui_button({label: 'Load', size: 'sm', kind: 'primary', disabled: !save_slot_valid(v), on: () => load_from_slot(i)}));
         }
+        list.append(row);
+    }
+    // the campaign a new one took the place of, in a row of its own under the slots
+    const kept = saves_kept_read();
+    if (kept) {
+        const row = document.createElement('div');
+        row.className = 'slot';
+        row.innerHTML = '<span class="slot-n">↩</span><div><b></b><small></small></div><span class="slot-acts"></span>';
+        row.title = 'The campaign you could continue before a new one was started. Loading it keeps the game it takes the place of here instead.';
+        row.querySelector('b').textContent = `Earlier campaign · ${kept.world} · story ${kept.story}`;
+        row.querySelector('small').textContent = `${kept.ship} · ◆ ${ui_number(kept.salvage)} · kept when a new campaign began, ${save_time(kept.saved_at)}`;
+        row.querySelector('.slot-acts').append(ui_button({label: 'Load', size: 'sm', kind: 'primary', on: load_kept}));
         list.append(row);
     }
     if (saves_return === 'pause') {
