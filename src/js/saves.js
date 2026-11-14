@@ -22,10 +22,22 @@ function saves_read()
 {
     try {
         const v = JSON.parse(localStorage.getItem('pulse_drift_saves_v1'));
-        return Array.isArray(v) ? v.map(saves_slot_without_gone) : [];
+        return Array.isArray(v) ? v.map(saves_slot_read) : [];
     }
     catch {
         return [];
+    }
+}
+
+// One stored slot, brought to the game as it is now. Each on its own: a slot the reader cannot take stays as it was
+// stored, shown in its row with its Load off (save_slot_valid), and the other five are untouched
+function saves_slot_read(slot)
+{
+    try {
+        return (slot && (typeof slot === 'object')) ? saves_slot_without_gone(slot) : null;
+    }
+    catch {
+        return slot;
     }
 }
 
@@ -193,7 +205,12 @@ function saves_close()
 // A slot that can be loaded: a campaign checkpoint, or an arcade run
 function save_slot_valid(v)
 {
-    return v.arcade ? Number.isInteger(v.arcade.world) && !!worlds[v.arcade.world] : valid_checkpoint(v.checkpoint);
+    try {
+        return v.arcade ? Number.isInteger(v.arcade.world) && !!worlds[v.arcade.world] : valid_checkpoint(v.checkpoint);
+    }
+    catch {
+        return false;
+    }
 }
 
 // F9, or a LOAD LAST SAVE button (pause, main menu, the end-of-flight screen): the slot saved most recently
@@ -256,14 +273,22 @@ function saves_render()
         row.className = `slot${v ? '' : ' empty'}`;
         row.innerHTML = '<span class="slot-n"></span><div><b></b><small></small></div><span class="slot-acts"></span>';
         row.querySelector('.slot-n').textContent = String(i + 1);
-        row.querySelector('b').textContent = v ? (v.arcade ? `Arcade · ${v.world} · score ${ui_number(v.arcade.score)}` : `${v.world} · story ${v.story}`) : 'Empty';
-        row.querySelector('small').textContent = v ? `${v.ship} · ◆ ${ui_number(v.salvage)} · ${save_time(v.saved_at)}` : '';
+        // a slot that cannot be loaded says so, with no line made out of what it may hold
+        const valid = !!v && save_slot_valid(v);
+        if (v && !valid) {
+            row.querySelector('b').textContent = 'A save that cannot be loaded';
+            row.querySelector('small').textContent = 'It stays as it is stored until a game is saved over it.';
+        }
+        else {
+            row.querySelector('b').textContent = v ? (v.arcade ? `Arcade · ${v.world} · score ${ui_number(v.arcade.score)}` : `${v.world} · story ${v.story}`) : 'Empty';
+            row.querySelector('small').textContent = v ? `${v.ship} · ◆ ${ui_number(v.salvage)} · ${save_time(v.saved_at)}` : '';
+        }
         const acts = row.querySelector('.slot-acts');
         if (can_save) {
             acts.append(ui_button({label: v ? 'Overwrite' : 'Save here', size: 'sm', kind: v ? 'ghost' : '', on: () => save_to_slot(i)}));
         }
         if (v) {
-            acts.append(ui_button({label: 'Load', size: 'sm', kind: 'primary', disabled: !save_slot_valid(v), on: () => load_from_slot(i)}));
+            acts.append(ui_button({label: 'Load', size: 'sm', kind: 'primary', disabled: !valid, on: () => load_from_slot(i)}));
         }
         list.append(row);
     }

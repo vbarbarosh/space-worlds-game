@@ -77,11 +77,32 @@ function play_log_index_read()
     catch {
     }
     if (!index || (index.format !== play_log_format) || !Array.isArray(index.sessions)) {
-        return {format: play_log_format, version: play_log_version, played_s: 0, open: null, dropped: 0, sessions: [], runs: {}};
+        return {format: play_log_format, version: play_log_version, played_s: 0, open: null, dropped: 0, sessions: [], runs: play_log_runs_read(null)};
     }
-    index.played_s = index.played_s || 0;
-    index.runs = index.runs || {};
+    // a damaged index does not stop the page: a session's entry that is not one is left out, an open session is named
+    // by a text or by nothing, and the numbers are numbers
+    index.sessions = index.sessions.filter(v => v && (typeof v === 'object') && (typeof v.id === 'string'));
+    index.open = (typeof index.open === 'string') ? index.open : null;
+    index.played_s = Number.isFinite(index.played_s) ? index.played_s : 0;
+    index.dropped = Number.isFinite(index.dropped) ? index.dropped : 0;
+    index.runs = play_log_runs_read(index.runs);
     return index;
+}
+
+// The runs of a stored index by their ids, in an object with nothing of its own: a run is looked up by an id that
+// comes from a save (campaign.log_run), and "constructor" or "__proto__" there must find no run, not an object's own
+// parts. An entry that is not a run's is left out.
+function play_log_runs_read(v)
+{
+    const out = Object.create(null);
+    if (v && (typeof v === 'object') && !Array.isArray(v)) {
+        for (const [id, run] of Object.entries(v)) {
+            if (run && (typeof run === 'object') && Array.isArray(run.worlds) && Array.isArray(run.milestones) && run.deaths && (typeof run.deaths === 'object')) {
+                out[id] = run;
+            }
+        }
+    }
+    return out;
 }
 
 // A session stored but missing from the index goes back into it, in the order the sessions began, so it downloads and
@@ -127,7 +148,7 @@ function play_log_close_unfinished()
     const id = play_log_index.open;
     play_log_index.open = null;
     const session = id ? play_log_session_read(id) : null;
-    if (!session || session.ended) {
+    if (!session || session.ended || !Array.isArray(session.records)) {
         return;
     }
     const last = session.records[session.records.length - 1];
@@ -289,7 +310,8 @@ function play_log_persist()
 function play_log_run_start(resume)
 {
     const mode = arcade.active ? 'arcade' : race_mode.active ? 'race' : 'campaign';
-    const fresh = !campaign.log_run;
+    // a run's id is a text this page made; a save that holds anything else starts a run of its own
+    const fresh = (typeof campaign.log_run !== 'string') || !campaign.log_run;
     if (fresh) {
         campaign.log_run = play_log_id_make();
     }

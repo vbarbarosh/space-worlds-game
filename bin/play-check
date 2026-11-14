@@ -616,6 +616,48 @@ const cases = [
         },
     },
     {
+        name: 'damaged-storage',
+        about: 'one damaged slot leaves the other five; a damaged play log index and a save whose run id is not one leave the page working',
+        page: 'index',
+        run: async function ({page, t, open}) {
+            const out = [];
+            // two good slots made by the game itself, a third whose campaign holds a contract that is nothing
+            await t('menu_start(\'campaign\'); undock(); run_time = 300; salvage = 4000; save_to_slot(0); save_to_slot(1); save_to_slot(2)');
+            await page.evaluate(function () {
+                const slots = JSON.parse(localStorage.getItem('pulse_drift_saves_v1'));
+                slots[2].checkpoint.campaign.contracts = [null];
+                slots[2].checkpoint.campaign.log_run = 'constructor';
+                localStorage.setItem('pulse_drift_saves_v1', JSON.stringify(slots));
+                // the play log's index with a session that is nothing, an open session that is not there and runs
+                // that are a list
+                const index = JSON.parse(localStorage.getItem('play_log_v1')) || {format: 'world-explorer-play-log', sessions: []};
+                index.sessions = [null, ...(index.sessions || [])];
+                index.open = {id: 1};
+                index.runs = [1, 2];
+                localStorage.setItem('play_log_v1', JSON.stringify(index));
+            });
+            await open('index');
+            const menu = await t('({state, slots: saves_read().length, valid: saves_read().map(v => !!v && save_slot_valid(v))})');
+            if (!menu || (menu.state !== 'menu') || (menu.slots !== 3) || (menu.valid.join() !== 'true,true,false')) {
+                out.push(`after a load with slot 3 damaged: ${JSON.stringify(menu)} (the menu, 3 slots, the first two loadable)`);
+                return out;
+            }
+            await t('saves_open(\'menu\')');
+            const rows = await page.evaluate(() => [...document.querySelectorAll('#save_slots .slot')].slice(0, 3).map(v => `${v.querySelector('b').textContent}|${v.querySelector('button')?.disabled}`));
+            if (!rows[2].startsWith('A save that cannot be loaded|true') || rows[0].startsWith('A save')) {
+                out.push(`the saves panel's rows: ${JSON.stringify(rows)} (the third says it cannot be loaded, its Load off)`);
+            }
+            // a good slot still loads and plays, with a run id of its own
+            await t('load_from_slot(0)');
+            await page.waitForTimeout(300);
+            const loaded = await t('({state, salvage, run: typeof campaign.log_run})');
+            if (!['playing', 'upgrade'].includes(loaded.state) || (loaded.salvage !== 4000) || (loaded.run !== 'string')) {
+                out.push(`slot 1 loaded beside the damaged one: ${JSON.stringify(loaded)}`);
+            }
+            return out;
+        },
+    },
+    {
         name: 'arcade-rocks',
         about: 'the arcade\'s rocks as they were: shots break one by its hull, it drops salvage, a push wave moves them',
         page: 'index',
