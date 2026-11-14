@@ -523,7 +523,8 @@ function juggernauts_card()
         const raiders = enemies.filter(v => v.hp > 0).length;
         return {title: `Destroy its escort: ${raiders} raider${(raiders === 1) ? '' : 's'}`};
     }
-    const under = juggernaut_cliffs_live().find(v => cliff_zone_has(v, ship, 0));
+    // under a cliff whose crack your guns reach from here (cliff_aim_reach): farther, the card leads on
+    const under = juggernaut_cliffs_live().find(v => cliff_zone_has(v, ship, 0) && (distance(v.rock, player) - v.rock.r < cliff_aim_reach));
     if (under) {
         // the guns never fell a cliff whose zone you are in (cliff_target): the card says so
         const you = cliff_zone_has(under, player, player.r + cliff_aim_margin);
