@@ -81,6 +81,8 @@ function ore_load(v)
     if (amount > 0) {
         cargo_full_told = false;
         label(v.x, v.y, `+${amount} ${v.resource ? resource_of(key).name.toUpperCase() : 'ORE'}`, ore_color(v));
+        // heard as a pickup is: it came aboard
+        sfx('pickup', 1, v);
     }
     if ((amount < wanted) && !cargo_full_told) {
         cargo_full_told = true;
