@@ -29,6 +29,9 @@ const screens = [
     // Verdant's task (src/js/arcade_nests.js): its arrival's title and its card, all five nests left, then one
     {value: 'arcade', label: 'hud-arcade-brood-nests', world: 'verdant', phone: true},
     {value: 'arcade', label: 'hud-arcade-brood-nests-last', world: 'verdant', query: '&wave=5', phone: true},
+    // Haven's task (src/js/arcade_haulers.js): its arrival's title and its card with nothing saved are hud-arcade's;
+    // here its fifth hauler, the card's count at its longest
+    {value: 'arcade', label: 'hud-arcade-haulers-last', world: 'haven', query: '&wave=5', phone: true},
     // the world's title, raiders close and a burst of news at once: the news line, the title and the card apart
     {value: 'crowded', label: 'hud-crowded'},
     // a ring race under way: the standings under the minimap, one rival with a very long name; ship: your ship clear of

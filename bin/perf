@@ -23,6 +23,12 @@ for (const zoom of [1, 0.5]) {
 for (const zoom of [1, 0.5]) {
     scenes.push({value: `nests-w1-z${zoom*100}`, kind: 'nests', world: 1, zoom});
 }
+// Haven's arcade by its first hauler (src/js/arcade_haulers.js): you circling it 230 m off as it runs, its string in
+// tow and its escort coming out round it, at both zooms; on a page from before the haulers, the same place with its
+// wave's raiders
+for (const zoom of [1, 0.5]) {
+    scenes.push({value: `haulers-w0-z${zoom*100}`, kind: 'haulers', world: 0, zoom});
+}
 // An arcade Scroll run's long lane under way 3 km along (src/js/arcade_scroll.js), its world stretched with more on it:
 // Dustfall (its cliffs along the lane), Obsidian (its spires), Nova Forge (its flares), Eclipse (its hole beside the lane)
 for (const world of [2, 4, 6, 7]) {
@@ -507,7 +513,7 @@ function page_scene(scene)
     ui_timer = 0;
     explosion_seed = 1;
     difficulty = scene.difficulty;
-    if (['arcade', 'scroll', 'nests'].includes(scene.kind)) {
+    if (['arcade', 'scroll', 'nests', 'haulers'].includes(scene.kind)) {
         arcade_kind_pick((scene.kind === 'scroll') ? 'scroll' : 'free');
         arcade_start(scene.world);
     }
@@ -584,7 +590,7 @@ function page_scene(scene)
         player.hp = hull_max();
         player.radiation_dose = 0;
         player.energy = 100;
-        if (!['arcade', 'scroll', 'nests'].includes(scene.kind)) {
+        if (!['arcade', 'scroll', 'nests', 'haulers'].includes(scene.kind)) {
             patrol_timer = 60;
         }
         keys.clear();
@@ -599,6 +605,19 @@ function page_scene(scene)
             player.vy = 0;
             if (nest?.rock) {
                 nest.rock.hp = Math.max(nest.rock.hp, nest.rock.max_hp*0.5);
+            }
+        }
+        // by the first hauler, round it 230 m off as it runs, kept from losing a container; on a page that has none,
+        // round the place it would be on its way in from the west
+        if (scene.kind === 'haulers') {
+            const hauler = (typeof hauler_run === 'object') ? hauler_run.ship : null;
+            const at = hauler || {x: 300 + t*57, y: 2400 - t*88};
+            player.x = at.x + Math.cos(t*0.35)*230;
+            player.y = at.y + Math.sin(t*0.35)*230;
+            player.vx = 0;
+            player.vy = 0;
+            if (hauler) {
+                hauler.hp = Math.max(hauler.hp, hauler.max_hp*0.9);
             }
         }
         if (scene.kind === 'turbo') {
