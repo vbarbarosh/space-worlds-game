@@ -226,12 +226,14 @@ so the eye sees the wave do the work.
 
 ## A campaign is never lost to a button
 
-Whatever starts a campaign over the one to continue keeps that one first.
+Whatever puts another game over the campaign to continue keeps that one
+first.
 
-- New campaign on the menu, Restart campaign at a pause and New expedition
-  after a death keep the campaign they replace beside the six save slots, as
-  it stands at that moment (`saves_keep_replaced` in `src/js/saves.js`), and
-  the news says so.
+- New campaign on the menu, Restart campaign at a pause, New expedition
+  after a death, a slot's Load and F9 keep the campaign they replace beside
+  the six save slots, as it stands at that moment (`saves_keep_replaced` in
+  `src/js/saves.js`), and the news says so.
+- Overwrite on a slot still takes that slot's game at once.
 - There is one such place. A campaign with under a minute flown does not
   take the place of a kept one with more, so New campaign pressed twice keeps
   the first.

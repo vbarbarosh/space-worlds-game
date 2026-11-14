@@ -3,10 +3,10 @@
 // CONTINUE does, and the loaded game becomes the autosave too.
 const save_slot_count = 6;
 let saves_return = null;
-// The campaign a new one took the place of: one of it, kept beside the six slots. New campaign on the menu, Restart
-// campaign at a pause and New expedition after a death start a campaign over the game to continue; before they do,
-// that game as it stands is kept here (saves_keep_replaced), and the saves panel shows it in a row of its own with
-// Load. A campaign with under a minute flown does not take the place of a kept one with more: New campaign pressed
+// The campaign another game took the place of: one of it, kept beside the six slots. New campaign on the menu,
+// Restart campaign at a pause, New expedition after a death, a slot's Load and F9 put a game over the campaign to
+// continue; before they do, that campaign as it stands is kept here (saves_keep_replaced), and the saves panel shows
+// it in a row of its own with Load. A campaign with under a minute flown does not take the place of a kept one with more: New campaign pressed
 // twice keeps the first.
 const saves_kept_key = 'pulse_drift_kept_v1';
 const saves_kept_least = 60;
@@ -83,15 +83,16 @@ function saves_kept_takes(v, kept)
     return !!v && valid_checkpoint(v) && !((v.run_time < saves_kept_least) && kept && (kept.checkpoint.run_time >= saves_kept_least));
 }
 
-// Before a new campaign takes the place of the one to continue: that one, as it stands now, becomes the kept
-// campaign. True when it was kept. The arcade and the Races mode replace no campaign.
-function saves_keep_replaced()
+// Before another game takes the place of the campaign to continue (a new campaign, a slot's Load, F9): that one
+// becomes the kept campaign. True when it was kept. running: it is the game in flight, kept as it is now and not as
+// its last autosave left it; false where the game in flight is not the campaign (an arcade run and a race fly over
+// it, and it waits as it was saved).
+function saves_keep_replaced(running = true)
 {
-    if (arcade.active || race_mode.active) {
+    if (race_mode.active) {
         return false;
     }
-    // under way, it is kept as it is now, not as its last autosave left it
-    if (['playing', 'paused'].includes(state)) {
+    if (running && !arcade.active && ['playing', 'paused'].includes(state)) {
         save_checkpoint();
     }
     if (!saves_kept_takes(checkpoint, saves_kept_read())) {
@@ -110,11 +111,12 @@ function load_kept()
     if (!v) {
         return;
     }
+    const racing = race_mode.active;
     race_mode_stop();
-    if (!arcade.active && ['playing', 'paused'].includes(state)) {
+    if (!racing && !arcade.active && ['playing', 'paused'].includes(state)) {
         save_checkpoint();
     }
-    const replaced = (!arcade.active && saves_kept_takes(checkpoint, null) && (checkpoint.run_time >= saves_kept_least)) ? JSON.parse(JSON.stringify(checkpoint)) : null;
+    const replaced = (saves_kept_takes(checkpoint, null) && (checkpoint.run_time >= saves_kept_least)) ? JSON.parse(JSON.stringify(checkpoint)) : null;
     saves_kept_write(replaced);
     checkpoint = JSON.parse(JSON.stringify(v.checkpoint));
     try {
@@ -263,9 +265,9 @@ function saves_render()
         const row = document.createElement('div');
         row.className = 'slot';
         row.innerHTML = '<span class="slot-n">↩</span><div><b></b><small></small></div><span class="slot-acts"></span>';
-        row.title = 'The campaign you could continue before a new one was started. Loading it keeps the game it takes the place of here instead.';
+        row.title = 'The campaign you could continue before another game took its place: a new campaign, or a save loaded over it. Loading it keeps the game it takes the place of here instead.';
         row.querySelector('b').textContent = `Earlier campaign · ${kept.world} · story ${kept.story}`;
-        row.querySelector('small').textContent = `${kept.ship} · ◆ ${ui_number(kept.salvage)} · kept when a new campaign began, ${save_time(kept.saved_at)}`;
+        row.querySelector('small').textContent = `${kept.ship} · ◆ ${ui_number(kept.salvage)} · kept when another game took its place, ${save_time(kept.saved_at)}`;
         row.querySelector('.slot-acts').append(ui_button({label: 'Load', size: 'sm', kind: 'primary', on: load_kept}));
         list.append(row);
     }
@@ -322,6 +324,7 @@ function load_from_slot(i)
         return;
     }
     // a load leaves the Races mode first: it puts its own campaign back (race_mode_stop), and the slot's then takes over
+    const racing = race_mode.active;
     race_mode_stop();
     if (v.arcade) {
         set_hidden(document.getElementById('saves_overlay'), true);
@@ -333,6 +336,8 @@ function load_from_slot(i)
         show_toast('ARCADE RUN LOADED', `SLOT ${i + 1} · ${v.world.toUpperCase()} · WAVE 1`, 2);
         return;
     }
+    // the campaign the slot's takes the place of is kept, as a new campaign keeps it
+    const kept = saves_keep_replaced(!racing);
     checkpoint = JSON.parse(JSON.stringify(v.checkpoint));
     try {
         localStorage.setItem('pulse_drift_frontier_v4', JSON.stringify(checkpoint));
@@ -345,5 +350,5 @@ function load_from_slot(i)
     set_pause_icon(false);
     arcade_stop();
     reset_run(true);
-    show_toast('GAME LOADED', `SLOT ${i + 1} · ${v.world.toUpperCase()}`, 2);
+    show_toast('GAME LOADED', `SLOT ${i + 1} · ${v.world.toUpperCase()}${kept ? ' · THE GAME BEFORE IS KEPT IN SAVED GAMES' : ''}`, kept ? 3.5 : 2);
 }

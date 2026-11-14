@@ -527,7 +527,7 @@ const cases = [
     },
     {
         name: 'new-campaign-keeps',
-        about: 'New campaign and Restart campaign keep the campaign they replace beside the slots; a fresh one does not push it out; loading it swaps the two',
+        about: 'New campaign, Restart campaign and a slot loaded keep the campaign they replace beside the slots; a fresh one does not push it out; loading it swaps the two',
         page: 'index',
         run: async function ({page, t, open}) {
             const out = [];
@@ -568,10 +568,18 @@ const cases = [
             if (!third || (third.salvage !== 6000)) {
                 out.push(`after Restart campaign: the kept campaign ${JSON.stringify(third)} (salvage 6000)`);
             }
-            await open('index');
+            // a slot loaded over a game further on (F9): the game before the load is the kept one
+            await t('if (state === \'upgrade\') { undock(); } run_time = 500; salvage = 7000; save_to_slot(0); run_time = 600; salvage = 8000');
+            await page.keyboard.press('F9');
+            const loaded_slot = await t('salvage');
             const fourth = await t(kept);
-            if (!fourth || (fourth.salvage !== 6000)) {
-                out.push(`after a load of the page: the kept campaign ${JSON.stringify(fourth)} (salvage 6000)`);
+            if ((loaded_slot !== 7000) || !fourth || (fourth.salvage !== 8000)) {
+                out.push(`after F9 over a game further on: salvage ${loaded_slot} (the slot's 7000), the kept campaign ${JSON.stringify(fourth)} (salvage 8000)`);
+            }
+            await open('index');
+            const fifth = await t(kept);
+            if (!fifth || (fifth.salvage !== 8000)) {
+                out.push(`after a load of the page: the kept campaign ${JSON.stringify(fifth)} (salvage 8000)`);
             }
             return out;
         },
