@@ -8,12 +8,14 @@
 // along the lane to it: arcade_world_extent), 16 to 19 km: about five minutes a world with its flagship (the author,
 // 2026-10-21; 12 to 16 km took 3 to 4 minutes); extent in m; station, its place as shares of the extent; fields,
 // the pattern its rock fields lie in (arcade_field_spot); crossings, its portal pairs as shares (a pair that breaks
-// a rule of docs/placement.md is left out, as everywhere)
+// a rule of docs/placement.md is left out, as everywhere); nests, the stretch of its longer side its task's nests
+// stand along, as shares (arcade_nests.js)
 const arcade_shapes = [
     // the first: small, the station in the middle, the fields strewn round it
     {scroll: 17000, extent: [6000, 4800], station: [0.5, 0.5], fields: 'scatter', crossings: [[[0.1, 0.12], [0.9, 0.88]], [[0.1, 0.88], [0.9, 0.12]]]},
-    // a long river valley: the station at its west end, the fields a band along the middle the current runs down
-    {scroll: 19000, extent: [9600, 4400], station: [0.2, 0.5], fields: 'band', crossings: [[[0.45, 0.1], [0.95, 0.9]], [[0.45, 0.9], [0.95, 0.1]]]},
+    // a long river valley: the station at its west end, the fields a band along the middle the current runs down, the
+    // nests (nests) down the valley east of the depot, either bank in turn
+    {scroll: 19000, extent: [9600, 4400], station: [0.2, 0.5], fields: 'band', nests: [0.3, 0.94], crossings: [[[0.45, 0.1], [0.95, 0.9]], [[0.45, 0.9], [0.95, 0.1]]]},
     // a broad canyon floor: the station on its south rim, the fields in outcrops, the cliffs' ring (cliffs) north of
     // the middle, clear of the depot so all six stand
     {scroll: 18000, extent: [7600, 6600], station: [0.5, 0.8], fields: 'clusters', cliffs: [0.5, 0.4], crossings: [[[0.07, 0.1], [0.93, 0.1]], [[0.08, 0.5], [0.92, 0.5]]]},

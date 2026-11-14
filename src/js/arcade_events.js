@@ -175,6 +175,22 @@ function arcade_event_update(dt)
     }
 }
 
+// The wave is cut short with its event still on (a world's task begins the next wave early: arcade_nests.js): a
+// freighter or an ace still out jumps away, as when its time is up. Left there, a freighter would sit at its way's end
+// with no event to take it off the map, and hold the next wave open until it was found. A jammer stays, a gunner as
+// any other once its event is over
+function arcade_event_cut()
+{
+    const e = arcade.event;
+    const target = e?.target;
+    if (!target || (target.hp <= 0) || !['convoy', 'ace'].includes(e.kind)) {
+        return;
+    }
+    explode(target.x, target.y, 36, '#a8e4ff', 0, 'warp');
+    arcade_event_remove(target);
+    show_toast((e.kind === 'ace') ? 'ACE ESCAPED' : 'CONVOY ESCAPED', 'It jumped away with its salvage', 2.5);
+}
+
 // A raider gone without a kill: no score, no salvage, no blast
 function arcade_event_remove(enemy)
 {

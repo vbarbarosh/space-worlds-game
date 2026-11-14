@@ -297,6 +297,13 @@ function update(dt, frame_dt = dt)
             near = distance(other, player);
         }
     }
+    // Verdant's brood nests (arcade): a nest is a target as a raider is, the nearer of the two by its rim, or the one
+    // you point at (arcade_nests.js)
+    const nest = arcade.active && brood_nest_target(near);
+    if (nest) {
+        target = nest;
+        near = Math.max(0, distance(nest, player) - nest.r);
+    }
     // With no raider close, the turret shoots debris drifting at the ship before it hits.
     if (near > 600) {
         for (const piece of drifting_debris) {
@@ -313,7 +320,7 @@ function update(dt, frame_dt = dt)
         for (let i = 0; i < ore_nodes.length; ++i) {
             const v = ore_nodes[i];
             const d = distance(v, player);
-            if ((v.hp > 0) && (d < 650) && (d < near) && ((v.type !== 'cliff') || cliff_idle_target(v)) && (!lane || in_view(v, 0))) {
+            if ((v.hp > 0) && (d < 650) && (d < near) && (v.type !== 'brood_nest') && ((v.type !== 'cliff') || cliff_idle_target(v)) && (!lane || in_view(v, 0))) {
                 near = d;
                 target = v;
             }
@@ -597,7 +604,8 @@ function update(dt, frame_dt = dt)
                     (segment_distance(v, {x: px, y: py}, b) < v.r + b.r)
                 ) {
                     if (arcade.active) {
-                        damage_ore(v, b.damage*(current_ship().mining || 1));
+                        // a miner's drills break rock faster, not a nest
+                        damage_ore(v, b.damage*((v.type === 'brood_nest') ? 1 : (current_ship().mining || 1)));
                     }
                     else {
                         explode(b.x, b.y, 8, ore_color(v), 0, 'spark');

@@ -116,7 +116,7 @@ function blasts_update(dt)
                 blast_hit_debris(blast, piece);
             }
         }
-        // the ore rocks it reaches are shoved and hurt (rocks.js); a cliff stands
+        // the ore rocks it reaches are shoved and hurt (rocks.js), a brood nest hurt (arcade_nests.js); a cliff stands
         for (let j = 0, end = ore_nodes.length; j < end; ++j) {
             const rock = ore_nodes[j];
             if ((rock.hp > 0) && (rock.type !== 'cliff') && (rock !== blast.source) && !blast.hit.has(rock) && (distance(rock, blast) - rock.r <= blast.r)) {

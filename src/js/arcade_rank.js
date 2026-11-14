@@ -61,7 +61,7 @@ function rank_world_start()
 }
 
 // Where in the world the run is now: its point (step*10 + point) and how far on to the next (0 to 1): on a lane its
-// tenth, in Free its wave, the share of a wave's build-up gone by (arcade_pace.js)
+// tenth, in Free its wave, the share of a wave's way to its crest gone by (arcade_wave_share)
 function rank_point()
 {
     if (arcade_scroll_on()) {
@@ -70,7 +70,7 @@ function rank_point()
         return {at: arcade_level()*10 + tenth, k: clamp(along - tenth, 0, 1)};
     }
     const wave = clamp(arcade.wave - 1, 0, 9);
-    return {at: arcade_level()*10 + wave, k: arcade_wave_timed() ? clamp(arcade.wave_clock/pace_build, 0, 1) : 0};
+    return {at: arcade_level()*10 + wave, k: arcade_wave_timed() ? arcade_wave_share() : 0};
 }
 
 // Each frame of an arcade world (arcade_update): the note of this point, when the flagship came, and the best passed

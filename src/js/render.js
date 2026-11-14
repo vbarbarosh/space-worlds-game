@@ -47,6 +47,7 @@ function base_render_navigation_objects()
         render_world_ore(ore_node);
     }
     render_cliffs();
+    brood_nests_render();
     render_ore_scanner();
     render_drones();
     for (const portal of portals) {
@@ -201,6 +202,7 @@ function base_render_screen_controls()
     render_radar();
     boss_duel_marker();
     render_arcade_jammer_marker();
+    brood_nests_render_marks();
 }
 
 function render()

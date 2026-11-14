@@ -5,6 +5,11 @@ function damage_ore(v, amount)
         cliff_damage(v, amount);
         return;
     }
+    // nor does a brood nest: it bursts (arcade_nests.js)
+    if (v.type === 'brood_nest') {
+        brood_nest_damage(v, amount);
+        return;
+    }
     const alive = v.hp > 0;
     physics_base_damage_ore(v, amount);
     if (alive && (v.hp <= 0) && !arcade.active && (campaign.world === 2) && (cargo_count() < cargo_capacity())) {
@@ -25,6 +30,7 @@ function generate_map()
     refresh_mining_resources(true);
     generate_drifting_debris();
     cliffs_generate();
+    brood_nests_generate();
 }
 
 function expedition_base_reset_run(resume = false)
@@ -57,12 +63,14 @@ function expedition_base_reset_run(resume = false)
     update_hud();
 }
 
-// Arriving in a world: its banner, in its colour, under the news line for 3 s
+// Arriving in a world: its banner, in its colour, under the news line for 3 s; a world with a task of its own names the
+// task there, under the world's name (arcade_tasks)
 function show_world_arrival(title)
 {
     const r = current_world_rules();
+    const task = arcade_task()?.banner?.() || null;
     // the arcade counts the worlds flown, in the order chosen (arcade_route.js)
-    show_banner('world', `World ${arcade_level() + 1} · arrived`, worlds[campaign.world].name, `${r.name} · ${r.summary}`, 3);
+    show_banner('world', `World ${arcade_level() + 1} · ${task ? worlds[campaign.world].name : 'arrived'}`, task ? task.title : worlds[campaign.world].name, task ? task.line : `${r.name} · ${r.summary}`, 3);
 }
 
 function render_celestial_body(body)

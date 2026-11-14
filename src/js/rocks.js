@@ -36,10 +36,17 @@ let rock_striking = false;
 
 function rock_weight(rock)
 {
-    return (rock.type === 'cliff') ? Infinity : (rock.r/14)*(rock.r/14)*rock_weight_k;
+    return rock_rooted(rock) ? Infinity : (rock.r/14)*(rock.r/14)*rock_weight_k;
 }
 
-// Shove a rock by `dv` m/s for a weight of 1, along (nx, ny): a cliff does not move
+// A rock that stands where it is, whatever shoves it, and breaks its own way: a cliff falls (arcade_cliffs.js), a
+// brood nest bursts (arcade_nests.js)
+function rock_rooted(rock)
+{
+    return (rock.type === 'cliff') || (rock.type === 'brood_nest');
+}
+
+// Shove a rock by `dv` m/s for a weight of 1, along (nx, ny): a rooted one does not move
 function rock_shove(rock, nx, ny, dv)
 {
     const weight = rock_weight(rock);
@@ -53,9 +60,12 @@ function rock_shove(rock, nx, ny, dv)
     }
 }
 
-// Your push wave moves a rock (pulse_hit): it drifts, and is loose for a while
+// Your push wave moves a rock (pulse_hit): it drifts, and is loose for a while; a rooted one is neither
 function rock_push(rock, nx, ny, dv)
 {
+    if (rock_rooted(rock)) {
+        return;
+    }
     rock_shove(rock, nx, ny, dv);
     rock.loose_at = time;
 }
@@ -82,7 +92,7 @@ function rock_strike(rock, damage)
     rock_striking = true;
     damage_ore(rock, damage);
     rock_striking = false;
-    if ((rock.hp > 0) || (rock.type === 'cliff')) {
+    if ((rock.hp > 0) || rock_rooted(rock)) {
         return;
     }
     chain_kill(true);
@@ -106,7 +116,7 @@ function rock_crash(rock, damage)
 // A rock broken in the arcade, by anything: it blows up (base_damage_ore)
 function rock_blow(rock)
 {
-    if (!arcade.active || (rock.type === 'cliff')) {
+    if (!arcade.active || rock_rooted(rock)) {
         return;
     }
     // broken by your guns, it starts a count its blast can go on with; a pulse's or a chain's counts its own

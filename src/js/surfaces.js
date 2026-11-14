@@ -496,8 +496,8 @@ function render_map()
 
 function render_world_ore(v)
 {
-    // a cliff has its own drawing (render_cliffs)
-    if ((v.type === 'cliff') || !in_view(v, v.r + 8)) {
+    // a cliff has its own drawing (render_cliffs), and so has a brood nest (brood_nests_render)
+    if ((v.type === 'cliff') || (v.type === 'brood_nest') || !in_view(v, v.r + 8)) {
         return;
     }
     const variant = Math.abs(Math.floor(v.angle*11)) % 7;

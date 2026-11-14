@@ -247,7 +247,8 @@ function sync_hud_kit()
 
 // The arcade's card: the raiders left with the way to the nearest, the wave beside it (and how many are near, in a
 // fight); folded, the world, the wave's name and the depot [R]. No EMP and Repair: the quick bar has them (Q, E); no
-// run bar: the wave is on the card already.
+// run bar: the wave is on the card already. A world's task says its own title, and the way to what it asks for
+// (arcade_tasks).
 function sync_arcade_card()
 {
     const id = campaign.world;
@@ -269,12 +270,13 @@ function sync_arcade_card()
     hud_text(kind_el, lane ? (flagship ? 'Scroll · flagship' : 'Scroll · chasers and passers') : (arcade.pause > 0) ? `Wave ${wave} of ${arcade_wave_count()} · clear` : `Wave ${wave} of ${arcade_wave_count()} · ${ui_sentence(arcade_wave_name(wave))}`);
     kind_el.classList.toggle('eyebrow--red', !!threat);
     kind_el.classList.toggle('eyebrow--gold', !threat);
-    // a flagship's duel says how it is won (boss_duels.js)
+    // a flagship's duel says how it is won (boss_duels.js), a world's task what it asks for
     const duel = flagship ? boss_duel_card() : null;
-    hud_text(document.getElementById('mc_title'), lane ? (flagship ? (duel ? duel.title : `Destroy the flagship of ${worlds[id].name}`) : 'Fly on to the end of the lane') : (arcade.pause > 0)
+    const task = flagship ? null : (arcade_task()?.card?.() || null);
+    hud_text(document.getElementById('mc_title'), lane ? (flagship ? (duel ? duel.title : `Destroy the flagship of ${worlds[id].name}`) : 'Fly on to the end of the lane') : task ? task.title : (arcade.pause > 0)
         ? 'Wave clear: repair at the depot or wait for the next'
         : duel ? duel.title : flagship ? `Destroy the flagship of ${worlds[id].name}` : clock ? `Fight on: ${clock} s of the wave left` : `Destroy ${left} raider${(left === 1) ? '' : 's'}`);
-    const nearest = threat || duel?.target || enemies.filter(v => v.hp > 0).sort((a, b) => distance(a, player) - distance(b, player))[0];
+    const nearest = task?.target || threat || duel?.target || enemies.filter(v => v.hp > 0).sort((a, b) => distance(a, player) - distance(b, player))[0];
     const dist = document.getElementById('mc_dist');
     set_hidden(dist, !nearest);
     dist.classList.toggle('is-danger', !!threat);
@@ -283,7 +285,7 @@ function sync_arcade_card()
         hud_html(document.getElementById('mc_distance'), `${value}<small>${unit}</small>`);
         // folded, the wave is said here (its name, or how many are near in a fight); unfolded, the card's kind says it;
         // on a Scroll lane, how far the screen has yet to go to the lane's end, where the flagship comes (arcade_scroll.js)
-        const eta = lane ? (flagship ? (duel ? duel.eta : 'the lane\'s end') : `${hud_distance(arcade_scroll.length - arcade_scroll.s).join(' ')} to the flagship`) : threat ? `${hud_near_count()} near` : duel ? duel.eta : hud_card_open ? (clock ? `${clock} s left` : `${left} left`) : ui_sentence(arcade_wave_name(wave));
+        const eta = lane ? (flagship ? (duel ? duel.eta : 'the lane\'s end') : `${hud_distance(arcade_scroll.length - arcade_scroll.s).join(' ')} to the flagship`) : task?.target ? task.eta : threat ? `${hud_near_count()} near` : duel ? duel.eta : hud_card_open ? (clock ? `${clock} s left` : `${left} left`) : ui_sentence(arcade_wave_name(wave));
         hud_text(document.getElementById('mc_eta'), (hud_card_open || lane) ? eta : `Wave ${wave}/${arcade_wave_count()} · ${eta}`);
         const a = Math.atan2(nearest.y - player.y, nearest.x - player.x);
         document.getElementById('mc_arrow').style.transform = `rotate(${a + Math.PI/4}rad)`;

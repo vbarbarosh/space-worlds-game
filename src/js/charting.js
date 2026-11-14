@@ -315,6 +315,7 @@ function map_things(every_layer = false)
         add('danger', v, 'raiders', null, '', {small: true});
     }
     arcade_event_marks(add);
+    arcade_task()?.marks?.(add);
     guards_map_things(out, every_layer);
     return out;
 }

@@ -55,6 +55,23 @@ const arcade_modes = {
     normal: {squad: 1, wave: 3, gap: 0.8, elite_world: 0, repairs: 0.35, medkits: 1, armed: true, gun_gap: 0.45, hits: 1.3, hull: 1.5, growth: 0.15, shop: 1, defense: 0.8, blast: 0.65, tier_hp: false, overdrive: false, marksmen: 1, crowd: 0.7, press: 1},
     overload: {squad: 2, wave: 5, gap: 0.7, elite_world: 0, repairs: 0, medkits: 1, armed: true, gun_gap: 0.4, hits: 1.75, hull: 1.8, growth: 0, shop: 1, defense: 0.5, blast: 1.2, tier_hp: true, overdrive: true, marksmen: 1.3, crowd: 0.5, press: 0.6},
 };
+// A world's task: its own way through a Free world's six waves (a run of eight worlds flew as the same six waves
+// eight times, so each world gets a task of its own, one world at a time). A task is its world's entry here (by the
+// world's number, Haven 0), a set of hooks the waves ask; each may be left out, and a world with no task flies its
+// waves as it always did. A Scroll lane has none. arcade_nests.js is Verdant's.
+//   wave_start(n)   a wave begins (the first one: the world)
+//   update(dt)      each frame of the world after its first, between waves too
+//   source(size)    where the build-up's next squadron comes from and how many of its `size` come now:
+//                   {x, y, size, place(enemy, i)}; place puts its i-th raider there, with the task's own show
+//   crest_due()     what ends a wave's build-up, in place of its clock (arcade_pace.js)
+//   crest_source()  where the crest comes from: {x, y, place(enemy, i), toast: [title, line]}
+//   share()         how far the wave has come to its crest, 0 to 1 (the HUD's bar, the rival's note)
+//   card()          what the card says: {title, target, eta}, a part left out being the wave's (hud.js); or null
+//   banner()        what the arrival's banner says: {title, line} (physics.js)
+//   marks(add)      its marks for the map and the minimap (charting.js)
+const arcade_tasks = [];
+// the task's source of the squadron being formed (arcade_squad_spawn), or null: its raiders warp in round you
+let arcade_squad_source = null;
 
 document.getElementById('arcade_depot_launch').addEventListener('click', arcade_depot_close);
 document.getElementById('arcade_depot_tabs').addEventListener('click', function (event) {
@@ -246,6 +263,12 @@ function arcade_mode()
     return arcade_modes[difficulty] || arcade_modes.normal;
 }
 
+// The task of the world being flown, or null: a Free run's, where the world has one (arcade_tasks)
+function arcade_task()
+{
+    return (arcade.active && !arcade_lane_kind() && arcade_tasks[campaign.world]) || null;
+}
+
 // A factor on a raider's reload: slower in the arcade for a missile (arcade_reloads), as it is for others, and slower
 // on a Scroll lane (arcade_scroll_reload)
 function arcade_reload(enemy)
@@ -379,6 +402,8 @@ function arcade_update(dt)
         spires_hint();
         return;
     }
+    // the world's task, between waves too (arcade_tasks)
+    arcade_task()?.update?.(dt);
     // a Scroll world ends with its flagship, where its lane ends (arcade_base.js)
     if (arcade_base_update()) {
         return;
@@ -448,6 +473,7 @@ function arcade_wave_start(n)
         arcade.news_wave = 0;
         arcade.stakes_lane_done = false;
     }
+    arcade_task()?.wave_start?.(n);
     if (n === arcade_wave_count()) {
         arcade_flagship_spawn();
     }
@@ -495,6 +521,13 @@ function arcade_wave_timed()
     return !arcade_scroll_on() && (arcade.wave >= 1) && (arcade.wave < arcade_free_waves);
 }
 
+// How far a director's wave has come to its crest, 0 to 1: by its build-up's clock, or as the world's task says
+function arcade_wave_share()
+{
+    const task = arcade_task();
+    return clamp(task?.share ? task.share() : arcade.wave_clock/pace_build, 0, 1);
+}
+
 // A wave's name on its card: the last one is the flagship's
 function arcade_wave_name(n)
 {
@@ -524,8 +557,16 @@ function arcade_squads_update(dt)
     // one the floor calls tops the lane up to two past it, no more: a full squadron there piled up 6 to 9 raiders from
     // Obsidian on, and the bot lost every run
     const full = arcade_squad_full();
-    const size = short ? Math.min(full, Math.max(3, arcade_scroll_floor() + 2 - alive)) : full;
-    arcade_squad_spawn(Math.min(spawn_left, size));
+    let size = short ? Math.min(full, Math.max(3, arcade_scroll_floor() + 2 - alive)) : full;
+    // a world's task brings a build-up's squadron from a place of its own, fewer of it, or none for now (arcade_tasks)
+    const source = (pace && arcade_task()?.source?.(size)) || null;
+    if (source) {
+        size = source.size;
+        if (size <= 0) {
+            return;
+        }
+    }
+    arcade_squad_spawn(Math.min(spawn_left, size), source);
     spawn_left -= Math.min(spawn_left, size);
     if (pace) {
         pace_squad_came();
@@ -541,11 +582,14 @@ function arcade_squad_full()
 }
 
 // A squadron: as it comes (arcade_squad_form), then some of its line raiders swapped for raiders with jobs, and the
-// rest as a pack (raider_squad_after)
-function arcade_squad_spawn(size)
+// rest as a pack (raider_squad_after); from a task's `source`, each of its raiders is put where the source says
+// (arcade_squad_warp)
+function arcade_squad_spawn(size, source = null)
 {
     const first = enemies.length;
+    arcade_squad_source = source;
     arcade_squad_form(size);
+    arcade_squad_source = null;
     // a Scroll lane's formation keeps its places: no jobs and no pack for it (arcade_scroll.js); its chasers give places
     // to raiders with jobs, as anywhere, but hunt each on its own, not as a pack (arcade_base.js)
     raider_squad_after(enemies.slice(first).filter(v => !v.path), !arcade_scroll_on());
@@ -570,7 +614,8 @@ function arcade_squad_form(size)
     const far = ahead ? ahead.far : 640;
     const elite = (arcade_level() >= arcade_mode().elite_world) && (arcade.wave >= 2) && ((arcade.squads % 2 === 1) || !!arcade_card_k.elites);
     arcade.squads++;
-    if (pattern === 'ambush') {
+    // out of a task's source they come as a line, not from the rocks
+    if ((pattern === 'ambush') && !arcade_squad_source) {
         arcade_squad_ambush(size, elite);
         return;
     }
@@ -710,6 +755,11 @@ function arcade_squad_warp(type, x, y, i)
     const enemy = spawn_enemy(type);
     enemy.x = clamp(x, 40, world.w - 40);
     enemy.y = clamp(y, 40, world.h - 40);
+    // out of a task's source (a nest hatches it): the source puts it there, with its own show
+    if (arcade_squad_source) {
+        arcade_squad_source.place(enemy, i);
+        return enemy;
+    }
     ring(enemy.x, enemy.y, enemy.color || pink, 40, 0.4);
     explode(enemy.x, enemy.y, 26, '#a8e4ff', i*0.05, 'warp');
     return enemy;
@@ -1592,8 +1642,8 @@ function arcade_update_hud()
     hud_text(el.mission_phase, (arcade.pause > 0) ? `WAVE ${arcade.wave} CLEAR` : `WAVE ${Math.max(1, arcade.wave)} / ${arcade_wave_count()}`);
     const total = arcade_wave_size(arcade.wave);
     const left = spawn_left + enemies.filter(v => v.hp > 0).length;
-    // a Free wave fills its share by its build-up's clock (arcade_pace.js), another by its raiders down
-    const done = arcade_wave_timed() ? Math.min(1, arcade.wave_clock/pace_build) : 1 - Math.min(1, left/Math.max(1, total));
+    // a Free wave fills its share by its build-up's clock or its task (arcade_wave_share), another by its raiders down
+    const done = arcade_wave_timed() ? arcade_wave_share() : 1 - Math.min(1, left/Math.max(1, total));
     el.sector_progress.style.width = `${clamp((((arcade.wave - 1) + done)/arcade_wave_count())*100, 0, 100)}%`;
     arcade_lives_hud();
 }

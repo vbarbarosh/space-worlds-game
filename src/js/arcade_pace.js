@@ -93,18 +93,25 @@ function pace_squad_came()
     arcade.pace.since = 0;
 }
 
-// Whether the wave's crest is due: its build-up is over
+// Whether the wave's crest is due: its build-up is over, by its clock or by what the world's task says ends it
+// (arcade_tasks)
 function pace_crest_due()
 {
-    return !arcade.pace.crest && (arcade.pace.t >= pace_build);
+    if (arcade.pace.crest) {
+        return false;
+    }
+    const task = arcade_task();
+    return task?.crest_due ? task.crest_due() : (arcade.pace.t >= pace_build);
 }
 
-// The crest: the wave's last raiders at once, as squadrons from around you, an elite leading the first from the mode's
-// first elite world on; after it the wave ends when they are down
+// The crest: the wave's last raiders at once, as squadrons from around you (or out of the place the world's task
+// gives, with its word for it: arcade_tasks), an elite leading the first from the mode's first elite world on; after
+// it the wave ends when they are down
 function pace_crest(full)
 {
     arcade.pace.crest = true;
-    show_toast('THE WAVE PEAKS', 'ITS LAST SQUADRONS ALL AT ONCE', 3, 'danger');
+    const source = arcade_task()?.crest_source?.() || null;
+    show_toast(...(source ? source.toast : ['THE WAVE PEAKS', 'ITS LAST SQUADRONS ALL AT ONCE']), 3, 'danger');
     const rail = (worlds[campaign.world].weapon === 'rail') ? pace_rail_k : 1;
     let left = Math.round(rail*Math.min(arcade_wave_size(arcade.wave)*pace_crest_shares[Math.min(pace_crest_shares.length, arcade.wave) - 1], full*pace_crest_most));
     const squadrons = Math.max(2, Math.ceil(left/full));
@@ -113,7 +120,9 @@ function pace_crest(full)
         const size = Math.max(1, Math.ceil(left/(squadrons - i)));
         const type = (arcade.wave === 1) ? 'chaser' : enemy_type();
         const first = enemies.length;
+        arcade_squad_source = source;
         arcade_squad_line(type, size, angle + i*Math.PI*2/squadrons, (i === 0) && (arcade_level() >= arcade_mode().elite_world), arcade_squad_mix(type, size), 700);
+        arcade_squad_source = null;
         raider_squad_after(enemies.slice(first), true);
         left -= size;
         arcade.squads++;

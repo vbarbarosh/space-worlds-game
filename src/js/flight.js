@@ -262,7 +262,7 @@ function resolve_solid_ore()
             }
             if (speed > 110) {
                 damage_player(Math.min(24, (speed - 80)*0.055), false, 'rock');
-                label(player.x, player.y - 25, 'ORE IMPACT', gold);
+                label(player.x, player.y - 25, (ore_node.type === 'brood_nest') ? 'NEST IMPACT' : 'ORE IMPACT', gold);
             }
         }
     }
