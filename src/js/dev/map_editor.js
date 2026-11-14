@@ -1159,7 +1159,14 @@ function dev_map_draw()
         circle(v, spire_r, null, red ? dev_map_bad : '#2b1630', null, 2.5);
         circle(v, spire_r, spire_color, null, null, 2.5);
     }
-    // what the game places round the station and does not edit: the beacons, the combat zone, the portals, the gates
+    // what the game places round the station and does not edit: the brood nests (arcade Verdant), the beacons, the
+    // combat zone, the portals, the gates
+    for (const v of state.nests || []) {
+        const red = dev_map_is_bad(bad, v);
+        circle(v, v.r, brood_nest_colors.line, red ? dev_map_bad : brood_nest_colors.body, null, 3);
+        circle(v, v.r*0.3, null, brood_nest_colors.sac, null, 1.5);
+        label(v, 'brood nest', brood_nest_colors.spore, v.r*s + 14);
+    }
     for (const v of state.beacons) {
         circle(v, map_rules.scan, dev_map_is_bad(bad, v) ? dev_map_bad : '#9fe870', null, null, 2.5);
     }

@@ -22,6 +22,11 @@ const map_rules = {
     fields_least: 3,
     spire_apart: 300, // two magnetic spires' fields (Obsidian) at least this far apart: one cover, one pull at a time
     spires_least: 5, // Obsidian has this many magnetic spires at least
+    nest_out: 2000, // a brood nest (arcade Verdant) from the station's centre: past the depot's shield and a fight's reach
+    nest_apart: 1200, // two brood nests
+    nest_edge: 600, // a brood nest from the map's edge
+    nest_ring: 500, // a brood nest's body from a range where a key acts: a ship circling it never flies into a ring
+    nest_room: 150, // a brood nest's body from a rock: room to fly round it
 };
 // The rules by the words docs/placement.md gives them
 const map_rule_names = {
@@ -35,6 +40,7 @@ const map_rule_names = {
     races: 'Race courses',
     pylons: 'Ion Reach\'s arc pylons',
     spires: 'Obsidian\'s magnetic spires',
+    nests: 'Verdant\'s brood nests',
 };
 
 // The problems of a map read from window.dev_state() (the one being flown, by default), as bin/map-check prints them
@@ -107,9 +113,11 @@ function map_rules_check(map)
     out.push(...map_rules_pylons(map, things));
     // a cliff's rubble (arcade Dustfall) is a solid of the map once the cliff falls: it keeps the same room
     const rubble = map.cliffs.flatMap(v => v.rubble.map(vv => ({...vv, kind: 'cliff rubble'})));
-    const solids = [...map.ore.map(v => ({...v, kind: v.cliff ? 'cliff' : 'rock'})), ...rubble, ...map.debris];
+    const solids = [...map.ore.map(v => ({...v, kind: v.cliff ? 'cliff' : v.nest ? 'brood nest' : 'rock'})), ...rubble, ...map.debris];
     // a drifting piece passes by and glances off a spire (spire_deflect): only what stands still is checked round one
     out.push(...map_rules_spires(map, things, solids.filter(v => !map.debris.includes(v))));
+    // and off a brood nest (brood_nests_keep_clear)
+    out.push(...map_rules_nests(map, things, solids.filter(v => !map.debris.includes(v) && !v.nest)));
     if (!map.arcade) {
         out.push(...map_rules_races(map, things, solids));
     }
@@ -280,6 +288,43 @@ function map_rules_spires(map, things, solids)
     for (let i = 0; i < spires.length; ++i) {
         for (let j = i + 1; j < spires.length; ++j) {
             fail('spires', `${spires[i].label} and ${spires[j].label} fields too near`, map_rules_distance(spires[i], spires[j]), spires[i].reach + spires[j].reach + map_rules.spire_apart, spires[i], spires[j]);
+        }
+    }
+    return out;
+}
+
+// Verdant's brood nests (arcade Free, js/arcade_nests.js): all the task asks for are there; each stands out of the
+// depot's reach and inside the map's edge, map_rules.nest_ring beyond every range where a key acts, out of every pull
+// and every storm, with room to fly round it among the rocks, and map_rules.nest_apart from the next. A burnt one is
+// a husk, no body: only the count has it
+function map_rules_nests(map, things, solids)
+{
+    const out = [];
+    const fail = map_rules_fail(out);
+    const all = map.nests || [];
+    if (all.length < (map.nests_asked || 0)) {
+        map_rules_push(out, 'nests', `${all.length} brood nests, need ${map.nests_asked}`, []);
+    }
+    const nests = all.map((v, i) => ({...v, label: `brood nest ${i + 1}`})).filter(v => !v.burnt);
+    for (const v of nests) {
+        fail('nests', `${v.label} too near the station`, map_rules_distance(v, map.station), map_rules.nest_out, v, map.station);
+        fail('nests', `${v.label} too near the map's edge`, Math.min(v.x, v.y, map.world.w - v.x, map.world.h - v.y), map_rules.nest_edge, v);
+        for (const thing of things.slice(1)) {
+            fail('nests', `${v.label} too near the ${thing.label}`, map_rules_distance(v, thing), thing.range + v.r + map_rules.nest_ring, v, thing);
+        }
+        for (const hole of map.holes) {
+            fail('nests', `${v.label} in the pull at ${hole.x},${hole.y}`, map_rules_distance(v, hole), hole.reach + v.r, v, hole);
+        }
+        for (const storm of map.storms) {
+            fail('nests', `${v.label} in the storm at ${storm.x},${storm.y}`, map_rules_distance(v, storm), storm.r + v.r, v, storm);
+        }
+        for (const solid of solids) {
+            fail('nests', `${solid.kind} at ${solid.x},${solid.y} on the ${v.label}`, map_rules_distance(v, solid), v.r + solid.r + map_rules.nest_room, v, solid);
+        }
+    }
+    for (let i = 0; i < nests.length; ++i) {
+        for (let j = i + 1; j < nests.length; ++j) {
+            fail('nests', `${nests[i].label} and ${nests[j].label} too near each other`, map_rules_distance(nests[i], nests[j]), map_rules.nest_apart, nests[i], nests[j]);
         }
     }
     return out;

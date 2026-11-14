@@ -24,7 +24,9 @@ const usage = `usage: bin/map-check
     arc pylons and charge fields (js/ion_pylons.js) are there, and their reach keeps out of the station's shelter, 150 m
     beyond every range, out of the pulls and the storms, a pylon's 400 m from another's, and no race ring in one;
     Obsidian's magnetic spires (js/obsidian_spires.js) are there, their field keeps out of the same, 300 m from
-    another's, their solid body a ship's width clear of every rock, and no race ring or leg crosses a field. A world
+    another's, their solid body a ship's width clear of every rock, and no race ring or leg crosses a field; arcade
+    Verdant's five brood nests (js/arcade_nests.js) are there, 2 km from the station, 600 m inside the map's edge,
+    500 m beyond every range, out of the pulls and the storms, 150 m clear of every rock and 1.2 km apart. A world
     with a map file of src/maps/ is checked on the map the file makes, as the game flies it; the rules themselves
     are src/js/dev/map_rules.js, which the map editor of build/dev.html runs too.
     Exits 1 on any failure.`;
@@ -62,9 +64,10 @@ async function main()
                 const title = `${mode.label} ${world + 1} ${map.world_name}`;
                 const pylons = map.pylons.length ? `, ${map.pylons.length} arc pylons, ${map.charge_fields.length} charge fields` : '';
                 const spires = map.spires.length ? `, ${map.spires.length} magnetic spires` : '';
+                const nests = map.nests.length ? `, ${map.nests.length} brood nests` : '';
                 // a map file packed into the page is what the game flies (src/maps/)
                 const file = map.map_file ? `, map file ${map.map_file}` : '';
-                console.log(`${found.length ? 'FAIL' : 'ok  '} ${title.padEnd(22)} ${map.gates.length} gates, ${map.portals.length} portals${map.arcade ? '' : `, ${map.races.filter(Boolean).length} race courses`}${pylons}${spires}${file}${found.length ? `\n     ${found.join('\n     ')}` : ''}`);
+                console.log(`${found.length ? 'FAIL' : 'ok  '} ${title.padEnd(22)} ${map.gates.length} gates, ${map.portals.length} portals${map.arcade ? '' : `, ${map.races.filter(Boolean).length} race courses`}${pylons}${spires}${nests}${file}${found.length ? `\n     ${found.join('\n     ')}` : ''}`);
                 failures.push(...found.map(v => `${title}: ${v}`));
             }
         }
