@@ -17,3 +17,9 @@ file's own level says nothing: the level each plays at is set in `sound_takes.js
 | `pickup_a`, `pickup_b`, `pickup_c`, `pickup_f` | Kenney, Interface Sounds: `glass_001`, `confirmation_002`, `pluck_002`, `confirmation_004` | CC0 |
 | `pickup_d` | Kenney, RPG Audio: `handleCoins2` | CC0 |
 | `pickup_e` | Kenney, Digital Audio: `powerUp2` | CC0 |
+| `hit_1`, `hit_2`, `hit_3`, `hit_low` | Kenney, Sci-Fi Sounds: `impactMetal_000`, `_003`, `_004`, `_001` | CC0 |
+| `field_1`, `field_2`, `field_3` | Kenney, Sci-Fi Sounds: `forceField_000`, `_002`, `_003` | CC0 |
+| `rail_1`, `rail_2` | Kenney, Sci-Fi Sounds: `laserLarge_000`, `_003` | CC0 |
+| `ion_1`, `ion_2` | Kenney, Sci-Fi Sounds: `laserRetro_001`, `_004` | CC0 |
+| `thrust` | Kenney, Sci-Fi Sounds: `thrusterFire_001`, a second of it | CC0 |
+| `rock` | Kenney, Sci-Fi Sounds: `explosionCrunch_002` | CC0 |

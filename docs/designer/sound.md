@@ -225,8 +225,12 @@ pick is kept in that browser. The pick a new browser starts with is `pick` in
 (-50 dB A-weighted, it fires five times a second and more), a hit on a raider
 next to nothing, a raider's end the loud deep thing (-26.5 dB, its peak held
 under -6): a crunch over a deep boom with the wreck breaking up under it. A
-raider's plasma shot is your shot's recording slowed and dulled. The other
-guns, the hazards and the moments below are still made in code.
+raider's plasma shot is your shot's recording slowed and dulled. A hit on
+the hull, a hit the shield takes, the other guns (yours, and the raiders' as
+the same recording slowed and dulled), the missiles, the turbo's burst, the
+pulse and a rock breaking are recordings too, one take each, most from the
+one pack of game sounds the takes come from; the hazards and the moments
+below are still made in code.
 
 
 The classic effects are a few bare oscillators and a noise that holds next
