@@ -1,6 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-<defs><linearGradient id="accent-fill" x1="0" y1="0" x2="1" y2="1"><stop id="accent-light" offset="0" stop-color="#f2b393"/><stop id="accent-base" offset="0.5" stop-color="#e8743b"/><stop id="accent-dark" offset="1" stop-color="#8b4623"/></linearGradient><linearGradient id="ma9b3be4055" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#cbd1d8"/><stop offset="0.45" stop-color="#a9b3be"/><stop offset="1" stop-color="#4c5155"/></linearGradient><linearGradient id="sheen" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff" stop-opacity="0.22"/><stop offset="0.5" stop-color="#ffffff" stop-opacity="0"/><stop offset="1" stop-color="#03070c" stop-opacity="0.4"/></linearGradient><radialGradient id="core" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#ffffff"/><stop offset="0.45" stop-color="#6cf8ec"/><stop offset="1" stop-color="#0d4b52"/></radialGradient></defs>
-<g id="base" stroke="#0b1722" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"><path d="M32.14 11 L46.95 17.25 L53 32.14 L46.75 46.95 L31.86 53 L17.05 46.75 L11 31.86 L17.25 17.05 Z" fill="url(#ma9b3be4055)"/><path d="M46.95 17.25 L53 32.14 L46.75 46.95 L31.86 53 L32 32 Z" fill="url(#sheen)" stroke="none"/><circle cx="32" cy="32" r="15" fill="#2c343e" stroke-width="1.6"/><circle cx="32" cy="32" r="12" fill="url(#core)" stroke="none"/></g>
-<g id="accent" stroke="#0b1722" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"><path d="M14 32 A18 18 0 1 1 50 32 A18 18 0 1 1 14 32 Z M17 32 A15 15 0 1 0 47 32 A15 15 0 1 0 17 32 Z" fill="url(#accent-fill)" fill-rule="evenodd" stroke-width="1"/></g>
+<defs>
+<linearGradient id="accent-fill" x1="0" y1="0" x2="1" y2="1"><stop id="accent-light" offset="0" stop-color="#ffa36b"/><stop id="accent-base" offset="0.55" stop-color="#e8743b"/><stop id="accent-dark" offset="1" stop-color="#9c4119"/></linearGradient>
+<linearGradient id="case" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f7fafc"/><stop offset="0.45" stop-color="#b9c2cc"/><stop offset="1" stop-color="#56616e"/></linearGradient>
+<radialGradient id="well" cx="0.4" cy="0.35" r="0.75"><stop offset="0" stop-color="#2b3440"/><stop offset="1" stop-color="#0b1016"/></radialGradient>
+<radialGradient id="core" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#ffffff"/><stop offset="0.3" stop-color="#b9fff8"/><stop offset="0.62" stop-color="#4fe3d8"/><stop offset="1" stop-color="#0d4b52"/></radialGradient>
+</defs>
+<g id="base" stroke="#10151c" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round">
+<!-- the casing; its facets: lit to the top left, in shade to the bottom right -->
+<path d="M32 11 L46.85 17.15 L53 32 L46.85 46.85 L32 53 L17.15 46.85 L11 32 L17.15 17.15 Z" fill="url(#case)"/>
+<path d="M32 32 L11 32 L17.15 17.15 Z M32 32 L17.15 17.15 L32 11 Z" fill="#ffffff" fill-opacity="0.45" stroke="none"/>
+<path d="M32 32 L53 32 L46.85 46.85 Z M32 32 L46.85 46.85 L32 53 Z" fill="#0a0f16" fill-opacity="0.3" stroke="none"/>
+<path d="M32 32 L46.85 17.15 L53 32 Z M32 32 L32 53 L17.15 46.85 Z" fill="#0a0f16" fill-opacity="0.12" stroke="none"/>
+<path d="M32 13.6 L32 11 M45.01 18.99 L46.85 17.15 M50.4 32 L53 32 M45.01 45.01 L46.85 46.85 M32 50.4 L32 53 M18.99 45.01 L17.15 46.85 M13.6 32 L11 32 M18.99 18.99 L17.15 17.15" fill="none" stroke="#3b4652" stroke-width="1"/>
+<!-- the well, the core and its coil -->
+<circle cx="32" cy="32" r="15" fill="url(#well)" stroke-width="1.6"/>
+<circle cx="32" cy="32" r="12" fill="url(#core)" stroke="none"/>
+<circle cx="32" cy="32" r="8.4" fill="none" stroke="#0d4b52" stroke-opacity="0.55" stroke-width="1.1"/>
+<path d="M24.11 29.13 A8.4 8.4 0 0 1 30.83 23.68" fill="none" stroke="#ffffff" stroke-opacity="0.8" stroke-width="1"/>
+</g>
+<g id="accent" stroke="#10151c" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round">
+<circle cx="32" cy="32" r="16.5" fill="none" stroke-width="4.2"/>
+<circle cx="32" cy="32" r="16.5" fill="none" stroke="url(#accent-fill)" stroke-width="2.6"/>
+<path d="M16.12 26.22 A16.9 16.9 0 0 1 27.63 15.68" fill="none" stroke="#ffffff" stroke-opacity="0.55" stroke-width="0.9"/>
+</g>
 </svg>
