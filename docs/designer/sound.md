@@ -281,16 +281,18 @@ part of the game calls for these. In the classic set they stay silent.
 | `shield_down` | your shield broken: from a tenth of it or more to next to nothing |
 | `shield_up` | your shield whole again after it was worn under a third |
 | `hull_low` | your hull under 30%, again every 2.8 s while it lasts |
-| `life_lost` | a life lost in the arcade |
+| `life_lost`, `life_gained` | a life lost in the arcade, and one won back |
 | `wave_start` | the arcade's next wave begun |
 | `crest` | a wave's crest breaking (`src/js/arcade_pace.js`) |
 | `wave_clear` | a wave cleared, its breather begun |
 | `nest_hatch`, `nest_burst` | Verdant's nests in the arcade (`src/js/arcade_nests.js`): a raider hatching from one, and a nest burnt; the nests' hunters come with `event_danger` |
 | `overheat`, `guns_ready` | your guns locked by heat, and free again |
 | `combo` | the combo one higher, a step up the scale with each |
+| `graze`, `streak_lost` | a raider's shot that just missed you (`src/js/arcade_streak.js`), climbing through a run of them; a streak of 8 or more broken |
 | `event_convoy`, `event_ace`, `event_jammer`, `event_danger` | an arcade event begun: a convoy, an ace, a jammer, any other (a heat surge) |
 | `geiger` | radiation building in the hull: ticks, the faster the higher the dose |
 | `pulse_ready` | the pulse charged again after it fell under 60 |
+| `turbo_ready` | the turbo ready again after a burst |
 | `victory` | a world cleared |
 
 ### Each world's background

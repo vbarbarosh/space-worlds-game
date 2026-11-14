@@ -1,6 +1,6 @@
 // The moments that had no sound of their own: a button, docking, the shield breaking and closing, a low hull, a life
-// lost, a wave coming, cresting and cleared, the guns locked by heat, the combo climbing, an arcade event, radiation,
-// the pulse charged, a run begun, a world cleared. Each is told by what changed since the last look
+// lost or won back, a wave coming, cresting and cleared, the guns locked by heat, the combo climbing, a graze, a
+// streak broken, an arcade event, radiation, the pulse charged, the turbo ready, a run begun, a world cleared. Each is told by what changed since the last look
 // (sound_moments_watch, on the music's clock, 16 times a second), so no part of the game has to call for them. Their
 // sounds are the new set's (src/js/sfx_new/): in the classic set these moments stay silent, as they were.
 const sound_moments = {
@@ -12,6 +12,9 @@ const sound_moments = {
     wave: null,
     crest: false,
     rest: false,
+    grazes: 0,
+    streak: 0,
+    turbo: true,
     overheated: false,
     combo: 1,
     event: null,
@@ -34,8 +37,8 @@ function sound_moments_watch()
     }
     // a life lost is heard whatever screen follows it
     const lives = arcade.active ? arcade.lives : null;
-    if ((lives !== null) && (m.lives !== null) && (lives < m.lives)) {
-        sfx('life_lost');
+    if ((lives !== null) && (m.lives !== null) && (lives !== m.lives)) {
+        sfx((lives < m.lives) ? 'life_lost' : 'life_gained');
     }
     m.lives = lives;
     if ((state !== 'playing') || !player) {
@@ -44,6 +47,9 @@ function sound_moments_watch()
         m.wave = arcade.active ? arcade.wave : null;
         m.event = arcade.event ? arcade.event.kind : null;
         m.combo = combo;
+        m.grazes = streak.grazes;
+        m.streak = streak.count;
+        m.turbo = true;
         return;
     }
     sound_moments_ship(m, now);
@@ -72,6 +78,15 @@ function sound_moments_watch()
         sfx('combo');
     }
     m.combo = combo;
+    // the arcade's streak (arcade_streak.js): a graze, and a streak of 8 or more broken
+    if (streak.grazes > m.grazes) {
+        sfx('graze');
+    }
+    m.grazes = streak.grazes;
+    if ((m.streak >= 8) && (streak.count === 0)) {
+        sfx('streak_lost');
+    }
+    m.streak = streak.count;
 }
 
 // The screen changed from `was`
@@ -130,6 +145,11 @@ function sound_moments_ship(m, now)
         sfx('geiger', 0.5 + dose/200);
     }
     m.dose = dose;
+    const turbo = !player.turbo_active && !(player.dash_cd > 0);
+    if (turbo && !m.turbo) {
+        sfx('turbo_ready');
+    }
+    m.turbo = turbo;
     const energy = player.energy;
     if (Number.isFinite(energy)) {
         m.energy_spent = m.energy_spent || (energy < 60);
