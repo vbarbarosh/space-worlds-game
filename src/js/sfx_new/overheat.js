@@ -1,11 +1,11 @@
-// Your guns locked by heat: steam venting, a buzz of refusal, the charge running down
+// Your guns locked by heat: steam let go and a low buzz of refusal (recordings)
 const sfx_new_overheat = {
     limit: 1,
     room: 0.6,
-    gain: 0.53,
+    gain: 0.19,
     voices: function (k) {
-        k.noise({d: 0.8, a: 0.06, cutoff: 2600, filter: 'highpass', attack: 0.02, late: true});
-        k.tone({d: 0.26, a: 0.035, f: 142, type: 'square', cutoff: 950, hold: 0.14});
-        k.tone({d: 0.4, a: 0.03, f: 640, f_end: 190, glide: 0.34, cutoff: 2400});
+        k.sample({name: 'door_open', a: 0.4, rate: 0.7});
+        k.sample({name: 'buzz', a: 0.35, at: 0.04});
+        k.sample({name: 'buzz', a: 0.3, rate: 0.84, at: 0.26});
     },
 };

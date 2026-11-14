@@ -5,9 +5,10 @@ Every sound World Explorer plays, as the code stands (2026-10-21, after
 music, and each world's character, so new sounds can be made for it by a
 sound designer, by hand or by a tool, and checked against what it replaces.
 
-The classic set is all made in code, with the browser's Web Audio. The new
-set's shots, blasts and pickup are recordings (`src/sounds/`, their sources
-and licences in its README); the rest of it is made in code too. The code is in `src/js/audio.js` (the mix, `tone()`,
+The classic set is all made in code, with the browser's Web Audio. In the new
+set whatever is matter (a shot, a blast, a hit, steam, an airlock, a field)
+is a recording (`src/sounds/`, their sources and licences in its README) and
+whatever is a signal (a bell, a note, a horn, an alarm) is made in code. The code is in `src/js/audio.js` (the mix, `tone()`,
 `noise()`, the flight's steady sounds), `src/js/music.js` (`sfx()`, the calm
 themes), `src/js/music_drive.js` (the arcade's and the flagship's music),
 `src/js/music_voices.js` (the new music set: each world's instruments) and
@@ -229,8 +230,21 @@ raider's plasma shot is your shot's recording slowed and dulled. A hit on
 the hull, a hit the shield takes, the other guns (yours, and the raiders' as
 the same recording slowed and dulled), the missiles, the turbo's burst, the
 pulse and a rock breaking are recordings too, one take each, most from the
-one pack of game sounds the takes come from; the hazards and the moments
-below are still made in code.
+one pack of game sounds the takes come from.
+
+**Matter is recorded, a signal is a tone.** The other sounds of things are
+recordings too, each levelled to the loudness its code-made take had: your
+shot landing on a raider, the shield breaking and closing, docking and
+undocking (a latch, the lock's air), a run's launch, a stasis charge and a
+portal (a blast played backwards is the air drawn in), a gravity well, an
+ion storm's strike, a solar flare, the guns' overheating (steam and a buzz),
+Verdant's nests hatching and bursting, the radiation counter's tick, a
+jammer's static, a graze, the cards laid out and a button's click. What says
+something to the pilot rather than being a thing is still a tone made in
+code: the bells of a win, an upgrade and a life, the horn of a wave and its
+crest, the combo's tick, the ready notes of the pulse, the turbo and the
+guns, the alarms of the hull and of a hazard, the calls of an ace and a
+convoy, a race's count, the pause.
 
 
 The classic effects are a few bare oscillators and a noise that holds next

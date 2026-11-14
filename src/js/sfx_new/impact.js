@@ -1,12 +1,10 @@
-// Your shot landing on a raider: a tick of sparks and a small knock on its hull, each a little off the last, kept
-// next to nothing (it comes as often as the shot does)
+// Your shot landing on a raider: a small knock of metal, a recording played high and cut short, each a little off the
+// last, kept next to nothing (it comes as often as the shot does)
 const sfx_new_impact = {
     limit: 0.05,
     room: 0.15,
-    gain: 0.7,
+    gain: 0.15,
     voices: function (k) {
-        const r = k.r(0.85, 1.15);
-        k.noise({d: 0.022, a: 0.03, cutoff: 3600*r, filter: 'highpass'});
-        k.tone({d: 0.06, a: 0.04, f: 330*r, f_end: 130*r, glide: 0.04, fm: {ratio: 2.4, index: 1, index_end: 0.05, d: 0.03}, cutoff: 2600});
+        k.sample({name: ['hit_1', 'hit_3'][k.turn(2)], a: 0.3, rate: k.r(1.7, 2.3), fade: 0.07});
     },
 };

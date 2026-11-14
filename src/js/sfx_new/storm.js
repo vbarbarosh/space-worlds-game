@@ -1,13 +1,11 @@
-// Inside an ion storm, a pylon's strike, a flagship's storm: a crack of lightning and its thunder rolling off
+// Inside an ion storm, a pylon's strike, a flagship's storm: a crack, a crunch played high, and its thunder
+// rolling off (recordings)
 const sfx_new_storm = {
     limit: 1.5,
     room: 1,
-    gain: 0.63,
+    gain: 0.14,
     voices: function (k) {
-        const r = k.r(0.9, 1.1);
-        k.noise({d: 0.03, a: 0.11, cutoff: 2600, filter: 'highpass'});
-        k.noise({d: 0.05, a: 0.05, cutoff: 5200, filter: 'highpass', at: 0.05 + Math.random()*0.03});
-        k.noise({d: 0.7, a: 0.11, color: 'pink', cutoff: 1900*r, cutoff_end: 180, filter: 'lowpass', drive: 1.8});
-        k.tone({d: 0.5, a: 0.1, f: 86*r, f_end: 34, glide: 0.4});
+        k.sample({name: 'rock', a: 0.7, rate: k.r(1.5, 1.9), fade: 0.3});
+        k.sample({name: 'boom_low', a: 0.25, rate: k.r(0.95, 1.1), at: 0.08});
     },
 };

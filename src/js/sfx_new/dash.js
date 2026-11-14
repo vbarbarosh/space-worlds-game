@@ -1,11 +1,11 @@
-// A stasis charge used (the name is old): the air drawn in and falling still, a zip rising as time slows
+// A stasis charge used (the name is old): the air drawn in, a blast played backwards, and falling still with a
+// soft thud (recordings)
 const sfx_new_dash = {
     limit: 0.08,
     room: 0.6,
-    gain: 1.66,
+    gain: 0.04,
     voices: function (k) {
-        k.noise({d: 0.28, a: 0.06, cutoff: 4200, cutoff_end: 500, q: 0.9});
-        k.tone({d: 0.14, a: 0.07, f: 100, f_end: 44, glide: 0.1});
-        k.tone({d: 0.26, a: 0.025, f: 260, f_end: 860, fm: {ratio: 2, index: 0.8, index_end: 0.1}, attack: 0.02});
+        k.sample({name: 'swell', a: 0.5, rate: k.r(1.5, 1.7)});
+        k.sample({name: 'hit_low', a: 0.2, rate: 1.2, at: 0.42});
     },
 };

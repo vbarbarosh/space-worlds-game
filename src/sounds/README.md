@@ -23,3 +23,10 @@ file's own level says nothing: the level each plays at is set in `sound_takes.js
 | `ion_1`, `ion_2` | Kenney, Sci-Fi Sounds: `laserRetro_001`, `_004` | CC0 |
 | `thrust` | Kenney, Sci-Fi Sounds: `thrusterFire_001`, a second of it | CC0 |
 | `rock` | Kenney, Sci-Fi Sounds: `explosionCrunch_002` | CC0 |
+| `door_open`, `door_close` | Kenney, Sci-Fi Sounds: `doorOpen_000`, `doorClose_000` | CC0 |
+| `slime`, `slime_long` | Kenney, Sci-Fi Sounds: `slime_000`, a second of `slime_001` | CC0 |
+| `drone` | Kenney, Sci-Fi Sounds: `spaceEngineLow_000`, a second of it | CC0 |
+| `swell` | Kenney, Sci-Fi Sounds: `explosionCrunch_001`, its start played backwards | CC0 |
+| `latch`, `swish` | Kenney, RPG Audio: `metalLatch`, `knifeSlice` | CC0 |
+| `glass`, `tick`, `click`, `swish_up`, `buzz` | Kenney, Interface Sounds: `glass_004`, `tick_001`, `click_002`, `maximize_005`, `error_006` | CC0 |
+| `static` | Kenney, Digital Audio: `spaceTrash1`, its start | CC0 |
