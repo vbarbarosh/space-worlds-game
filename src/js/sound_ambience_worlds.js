@@ -301,7 +301,7 @@ const sound_ambience_worlds = [
     },
 ];
 // What is heard by its nearness in any world that has it (sound_ambience_things): the nearest of Obsidian's magnetic
-// spires, a black hole
+// spires, Verdant's current, a black hole
 const sound_ambience_fields = {
     // a spire's field: a buzzing magnetic hum with a thin whine of iron in it
     spire: {
@@ -310,6 +310,14 @@ const sound_ambience_fields = {
             {tone: 92.5, type: 'sawtooth', cutoff: 520, a: 0.04, tide: {rate: 6, depth: 0.5}},
             {tone: 185, a: 0.014, tide: {rate: 0.7, depth: 0.6}},
             {color: 'white', filter: 'bandpass', f: 2200, q: 4, a: 0.01, tide: {rate: 11, depth: 1}},
+        ],
+    },
+    // Verdant's current: the nebula streaming past the hull, a rush that wavers
+    current: {
+        level: 2.43,
+        layers: [
+            {color: 'pink', filter: 'bandpass', f: 900, q: 0.9, a: 0.05, tide: {rate: 0.6, depth: 0.5}, drift: {rate: 0.21, by: 300}},
+            {color: 'pink', filter: 'bandpass', f: 320, q: 0.8, a: 0.03, tide: {rate: 0.37, depth: 0.6}},
         ],
     },
     // a black hole: the dark rumbling and turning, heavier the nearer its edge

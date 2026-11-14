@@ -1,8 +1,8 @@
 // Each world's background, in the new sound set: a bed that never stops (surf, wind, a hum, a drone: noise and tones
 // with slow tides in them) and calls that come now and then out of the distance (a radio, a bubble, thunder, a clank,
-// a chime of ice, an ember, a voice from the void), and what is heard by its nearness: a flagship, a spire's field, a black hole. It plays on the ambience
-// bus over the space hum and the reactor's tone that both sets have, quieter by the station, silent out of flight.
-// The classic set has none of it.
+// a chime of ice, an ember, a voice from the void), and what is heard by its nearness or its strength: a flagship, a
+// spire's field, a black hole, Verdant's current. It plays on the ambience bus over the space hum and the reactor's
+// tone that both sets have, quieter by the station, silent out of flight. The classic set has none of it.
 const sound_ambience = {
     world: -1,
     // the bed playing: {level, pan, nodes} its own way into the mix and the nodes that run on (sound_ambience_group)
@@ -206,7 +206,8 @@ function sound_ambience_watch()
 }
 
 // The things heard by their nearness, each from its side: the world's flagship within reach, the nearest of
-// Obsidian's spires from a little outside its field, a black hole from its outer field in
+// Obsidian's spires from a little outside its field, a black hole from its outer field in, and Verdant's current by
+// its strength
 function sound_ambience_things(id, now)
 {
     const boss = enemies.find(v => (v.type === 'boss') && (v.hp > 0));
@@ -220,6 +221,9 @@ function sound_ambience_things(id, now)
     sound_ambience_near('spire', sound_ambience_fields.spire, spire ? 1 - (distance(spire, player) - spire_r)/(spire_reach*1.5) : 0, spire, now);
     const hole = nearest_gravity();
     sound_ambience_near('hole', sound_ambience_fields.hole, hole ? Math.min(1, hole.h.radius/Math.max(1, hole.d)) : 0, hole ? hole.h : null, now);
+    // Verdant's current where the ship is: heard by its strength (60 m/s is its most), from the side it comes from
+    const flow = world_flow(player);
+    sound_ambience_near('current', sound_ambience_fields.current, Math.hypot(flow.x, flow.y)/60, {x: player.x - flow.x*15}, now);
 }
 
 // `recipe`'s layers ({level, layers}) heard under `name` while `near` is over nothing: its level is its nearness

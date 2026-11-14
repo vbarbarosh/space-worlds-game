@@ -326,10 +326,11 @@ step every 2.4 s; the Frost Crystal glass singing; the Furnace its fire
 roaring and fluttering; the Eclipse Eye a slow pulse in a drone that beats
 against itself. It ends with the flagship.
 
-Two more things are heard the same way, by their nearness and from their
-side: the nearest of Obsidian's magnetic spires, a buzzing hum from one and a
-half times its field's reach in; and a black hole, the dark rumbling and
-turning, from its outer field in, full at its strong field's edge.
+Three more things are heard the same way, from their side: the nearest of
+Obsidian's magnetic spires, a buzzing hum from one and a half times its
+field's reach in; a black hole, the dark rumbling and turning, from its
+outer field in, full at its strong field's edge; and Verdant's current, the
+nebula streaming past the hull, by its strength where the ship is.
 
 ## The steady sounds of flight
 
@@ -654,8 +655,8 @@ over the root.
 
 ## What has no sound of its own
 
-In either set, beyond the moments above: Verdant's current, Obsidian's spires
-(the new set hums near one), anything of
+In either set, beyond the moments above (the new set has Verdant's current
+and a hum near Obsidian's spires): anything of
 Cryosphere's cold, the heat surge's vents, Nova Forge's overheated guns,
 radiation (its alerts play `hit`; the new set adds the counter's ticks), the
 arcade's events (the new set has a call for each as it begins, none while it
