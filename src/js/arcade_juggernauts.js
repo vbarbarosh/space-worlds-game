@@ -572,11 +572,13 @@ function juggernauts_render()
 {
     const s = juggernaut_run;
     const ship = s.ship;
-    if (!ship || (ship.hp <= 0) || !in_view(ship, juggernaut_charge_most + 100)) {
+    // a lane is drawn from a juggernaut still out of view: it runs to where you are
+    const lane = (s.mode === 'sign') || (s.mode === 'charge');
+    if (!ship || (ship.hp <= 0) || !in_view(ship, lane ? juggernaut_charge_most + 100 : 100)) {
         return;
     }
     ctx.save();
-    if ((s.mode === 'sign') || (s.mode === 'charge')) {
+    if (lane) {
         const blink = (full_fx && (s.mode === 'sign')) ? 0.5 + 0.3*Math.sin(clock*30) : 0.7;
         boss_dash(ship.x, ship.y, ship.x + Math.cos(s.lane)*s.left, ship.y + Math.sin(s.lane)*s.left, juggernaut_colors.ram, blink, 4/zoom);
     }
