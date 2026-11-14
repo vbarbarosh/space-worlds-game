@@ -35,7 +35,9 @@ const usage = `usage: bin/playtest [--mode=normal] [--kind=free] [--seeds=1,2,3]
     clock and a seeded Math.random, as fast as the machine allows, and counts per world and wave what a run costs.
 
     How it flies: it holds 320 m from the nearest raider and circles it, steps aside from shots coming at it, picks
-    up salvage when fewer than three raiders are close, waits by the station when none is, keeps off the radiation
+    up salvage when fewer than three raiders are close, then goes for the nearest of Verdant's brood nests and circles
+    it close enough for its guns to take the nest (src/js/arcade_nests.js), waits by the station when no raider and
+    no nest is left, keeps off the radiation
     at the edge (on a Scroll lane, off the view's edges, and the salvage it picks up is in the view), out of black
     holes' pulls and Ion Reach's arc pylons' rings (it does not seek the charge fields), off Obsidian's magnetic
     spires (it does not seek their cover); a flagship's
@@ -506,12 +508,34 @@ function page_bot(options)
         const lane = arcade_scroll_on();
         const vw = W/zoom;
         const vh = H/zoom;
+        // Verdant's brood nests (src/js/arcade_nests.js), where the build has them: with room (fewer than three raiders
+        // close and none inside its own distance) it goes for a standing one, as a pilot follows the arrow to it, and
+        // picks up only the salvage within 350 m on the way: the nest it has burnt most, as a pilot finishes the one
+        // he began, else the nearest; while a burnt nest's brood is out it fights the brood first
+        const brood_out = arcade.active && !!arcade.pace?.crest && (arcade.pause <= 0);
+        const nests = ((typeof brood_nests === 'object') && !brood_out) ? brood_nests.filter(v => v.rock) : [];
+        const begun = nests.filter(v => v.rock.hp < v.rock.max_hp).sort((a, b) => a.rock.hp - b.rock.hp)[0];
+        const nest = begun || nests.reduce((best, v) => (!best || (distance(v, player) < distance(best, player))) ? v : best, null);
         if (near(600) < 3) {
             const reach = lane ? pickups.filter(v => !arcade_scroll_unseen(v)) : pickups;
             const pickup = reach.reduce((best, v) => (!best || (distance(v, player) < distance(best, player))) ? v : best, null);
-            if (pickup && (distance(pickup, player) < 900)) {
+            if (pickup && (distance(pickup, player) < (nest ? 350 : 900))) {
                 dx = pickup.x - player.x;
                 dy = pickup.y - player.y;
+            }
+            else if (nest && !(nearest && (distance(nearest, player) < 280))) {
+                // far off, straight for it; then round it 110 to 190 m off its rim, nearer than its own distance from a
+                // raider, so the guns take the nest; a shot coming at it still gets its step aside
+                const d = Math.max(1, distance(nest, player));
+                const gap = d - nest.r;
+                const toward = (gap > 190) ? 1 : (gap < 110) ? -1 : 0;
+                const round = (gap > 600) ? 0 : 0.8;
+                dx = ((nest.x - player.x)/d)*toward - ((nest.y - player.y)/d)*round;
+                dy = ((nest.y - player.y)/d)*toward + ((nest.x - player.x)/d)*round;
+                if (dodge) {
+                    dx += dodge.x*1.5;
+                    dy += dodge.y*1.5;
+                }
             }
             else if (!nearest && lane) {
                 const view = arcade_scroll_view();
