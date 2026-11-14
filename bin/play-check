@@ -664,11 +664,15 @@ const cases = [
         },
     },
 ];
+// What a case's own failure says when the browser, not the game, lost the page's storage across a load
+const storage_lost = 'the browser gave the page an empty storage after a load';
 const usage = `usage: bin/play-check [case...]
 
     Plays the game's rules through its own functions, in build/index.html and build/dev.html (copies with a hook into
     the game's scope, in data/play-check/), and checks what bin/layout-check and bin/map-check do not look at: what a
-    run keeps and what it must not, the save, the keys. A page error fails a case. Exits 1 on any failure.
+    run keeps and what it must not, the save, the keys. A page error fails a case. A case in which the browser
+    itself lost the page's storage across a load (seen on a loaded machine) is flown again, twice at most. Exits 1
+    on any failure.
 
     cases:
 ${cases.map(v => `        ${v.name.padEnd(24)} ${v.about}`).join('\n')}`;
@@ -694,7 +698,12 @@ async function main()
     const failures = [];
     try {
         for (const v of cases.filter(vv => !names.length || names.includes(vv.name))) {
-            const found = await case_run(browser, hooked, v);
+            let found = await case_run(browser, hooked, v);
+            // on a loaded machine the browser at times hands the page an empty storage after a load (8 of 32 runs
+            // with eight browsers at once): nothing can be judged from that, so the case is flown again
+            for (let i = 0; (i < 2) && found.some(vv => vv.includes(storage_lost)); ++i) {
+                found = await case_run(browser, hooked, v);
+            }
             console.log(`${found.length ? 'FAIL' : 'ok  '} ${v.name.padEnd(24)} ${v.about}${found.length ? `\n     ${found.join('\n     ')}` : ''}`);
             failures.push(...found.map(vv => `${v.name}: ${vv}`));
         }
@@ -708,6 +717,17 @@ async function main()
     console.log(failures.length ? `${failures.length} failures` : 'all cases pass');
     if (failures.length) {
         process.exit(1);
+    }
+}
+
+// In the page: how many keys localStorage holds; -1 where it is refused
+function page_storage_count()
+{
+    try {
+        return localStorage.length;
+    }
+    catch {
+        return -1;
     }
 }
 
@@ -727,11 +747,14 @@ async function case_run(browser, hooked, v)
             });
         }
         if (v.storage) {
+            // once a tab, by the window's name, which outlives a load of the page whatever the storage does: a mark in
+            // sessionStorage went with the storage when the browser lost it (storage_lost), and the second seeding
+            // then read as the game forgetting what it had stored
             await page.addInitScript(function (values) {
-                if (sessionStorage.getItem('play_check_seeded')) {
+                if (window.name.includes('play_check_seeded')) {
                     return;
                 }
-                sessionStorage.setItem('play_check_seeded', '1');
+                window.name = `${window.name} play_check_seeded`;
                 for (const [key, value] of Object.entries(values)) {
                     localStorage.setItem(key, value);
                 }
@@ -743,10 +766,15 @@ async function case_run(browser, hooked, v)
         function t(code) {
             return page.evaluate(vv => (window.__t ? window.__t(vv) : null), code);
         }
-        // another screen of the same case
+        // another screen of the same case, or the same page loaded again; a storage that held something before the
+        // load and nothing after it is the browser's loss, said as such
         async function open(name, query) {
+            const kept = await page.evaluate(page_storage_count);
             await page.goto(`file://${hooked[name]}${query ? `?${query}` : ''}`, {waitUntil: 'load', timeout: 60000});
             await page.waitForTimeout(500);
+            if ((kept > 0) && (await page.evaluate(page_storage_count) === 0)) {
+                throw new Error(storage_lost);
+            }
         }
         out.push(...await v.run({page, t, errors, open}));
         if (!v.errors && errors.length) {
