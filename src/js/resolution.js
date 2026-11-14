@@ -15,8 +15,10 @@ const resolution_check_ms = 500;
 // a pause, a menu, the settings, a hidden tab, a resize, a new world or a step: the frames of the next second are not
 // measured (the sky and the sprites are drawn again at the new size)
 const resolution_settle_ms = 1000;
-// a frame over this is the tab coming back or a world loading, not the frame rate
+// a frame over this, and over three times the frame before it, is the tab coming back or a world loading, not the
+// frame rate; on a page that slow all the time (a software canvas in a large window) it is a frame like the others
 const resolution_stall_ms = 250;
+const resolution_stall_ratio = 3;
 // Behind: the frames slower than about 54 fps (their mean, the longest tenth left out: a garbage collection is not the
 // frame rate), while the game's own work takes under half of a frame (else fewer pixels would not help); at 20 ms (50
 // fps) a run at 46 fps held, its trimmed mean just under the line, the top of the keeping-up band is the line instead
@@ -60,6 +62,7 @@ const resolution = {
     since: 0,
     check_at: 0,
     last_t0: 0,
+    last_interval: 0,
     work_last: 0,
     down_at: -Infinity,
     // per level: when a ratio that fell behind may be tried again, and the wait it was given
@@ -142,7 +145,9 @@ function resolution_hold(t0)
 function resolution_frame(t0)
 {
     const interval = t0 - resolution.last_t0;
+    const stall = (interval > resolution_stall_ms) && (interval > resolution.last_interval*resolution_stall_ratio);
     resolution.last_t0 = t0;
+    resolution.last_interval = interval;
     if (resolution.forced || (resolution.mode !== 'auto') || (resolution.ladder.length < 2)) {
         return;
     }
@@ -151,7 +156,7 @@ function resolution_frame(t0)
         resolution_hold(t0);
         return;
     }
-    if ((state !== 'playing') || settings_open || document.hidden || (interval > resolution_stall_ms)) {
+    if ((state !== 'playing') || settings_open || document.hidden || stall) {
         resolution_hold(t0);
         return;
     }
@@ -249,8 +254,9 @@ function resolution_step(t0, level)
     resolution_hold(t0);
 }
 
-// The frames of the last `ms` of flight, if they were all measured and are `frames_min` or more: their time (the mean
-// of all but the longest tenth), their median, and the game's own work (the median); null if not
+// The frames of the last `ms` of flight, or the last `frames_min` of them when those took longer (under 5 frames a
+// second 2 s hold fewer than 10), if they were all measured: their time (the mean of all but the longest tenth), their
+// median, and the game's own work (the median); null if not
 function resolution_window(t0, ms, frames_min = 10)
 {
     if (t0 - resolution.since < ms) {
@@ -261,7 +267,7 @@ function resolution_window(t0, ms, frames_min = 10)
     let n = 0;
     for (let i = v.count - 1, end = Math.max(0, v.count - resolution_samples); i >= end; --i) {
         const k = i % resolution_samples;
-        if (v.at[k] < t0 - ms) {
+        if ((v.at[k] < t0 - ms) && (n >= frames_min)) {
             break;
         }
         scratch[n++] = v.work_ms[k];

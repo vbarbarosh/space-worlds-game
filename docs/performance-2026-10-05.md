@@ -384,8 +384,13 @@ pixels at the cap of ×1.7. The canvas's pixel ratio now follows the frames
 - **What is measured.** Each frame of flight: the time since the last frame
   and the game's own work in it (`work_ms`). Not in the menus, the station,
   pause or the settings, nor with the tab hidden; after any of those, a
-  resize, a new world, a step or a frame over 250 ms, the frames of the next
-  second are not counted. Checked twice a second.
+  resize, a new world, a step or a stall, the frames of the next second are
+  not counted. Checked twice a second. A stall is a frame over 250 ms that is
+  also three times the frame before it (2026-11-10): the tab coming back, a
+  world loading. On a page that slow all the time every frame used to be
+  one, the measuring began again at each, and the slowest machine kept the
+  heaviest ratio; now its frames are measured, the last 10 of them when 2 s
+  hold fewer.
 - **Down a step** when the last 2 s of flight ran slower than about 54 fps, 18.5 ms (the
   mean frame, the longest tenth left out: a garbage collection is not the
   frame rate; a median would miss a mix of 16.7 and 33 ms frames, which
@@ -446,6 +451,7 @@ waits 30 ms whatever the size. `bin/resolution-check` flies Nova Forge in an
 | forced | `&dpr=1.3`: the canvas 1040 × 585 however slow |
 | futile | `&stall=30`: 1.7 → 1.5 → 1.3 → 1.15 → 1, no faster, back to ×1.7 at 14–15 s and held |
 | descent | `&slow=20`: down to ×1.3 and held; the cost raised to 150: on to ×1 in 4 s and held there, at 55 ms a frame where ×1.7 takes 150 |
+| crawl | a cost of 300, 3 frames a second at ×1.7: 1.7 → 1.5 → 1.3 → 1.15 → 1 in 11 s, 9 frames a second there |
 | screen1 | a screen at 100%: ×1, nothing stepped |
 | moved | the screen's ratio changed by emulation, the window's size kept: 200% → 100%, ×1 and a canvas of 800 × 450 within a second; back to 200%, ×1.7 and 1360 × 765 |
 

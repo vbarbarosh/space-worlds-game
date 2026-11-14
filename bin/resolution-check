@@ -12,6 +12,8 @@ const screen_ratio = 2;
 const slow = 20;
 // a heavy fight after it: 55 ms a frame at ×1, 150 at ×1.7
 const slow_heavy = 150;
+// a software canvas in a large window: 310 ms a frame at ×1.7, 110 at ×1
+const slow_crawl = 300;
 const scene = 'world=6&screen=flight';
 const usage = `usage: bin/resolution-check [check...]
 
@@ -28,12 +30,14 @@ const usage = `usage: bin/resolution-check [check...]
              and stays
     descent  &slow=${slow} steps down and holds; then the cost grows to ${slow_heavy}: the steps go on to ×1 and stay there,
              judged by the heavy frames, not by the light ones of the steps before
+    crawl    a cost of ${slow_crawl} (3 frames a second at ×1.7, each over the 250 ms a stall is told by): it still steps down,
+             to ×1
     screen1  a screen at 100%: nothing to step to, ×1
     moved    the window moved to a screen at 100% and back to one at 200%, its size kept (no resize event comes): ×1,
              then ×1.7 again, each within a second
 
     Timing on a busy machine can fail steady; run it alone again. Exits 1 on a failure.`;
-const checks = {steady: check_steady, slow: check_slow, sharp: check_sharp, forced: check_forced, futile: check_futile, descent: check_descent, screen1: check_screen1, moved: check_moved};
+const checks = {steady: check_steady, slow: check_slow, sharp: check_sharp, forced: check_forced, futile: check_futile, descent: check_descent, crawl: check_crawl, screen1: check_screen1, moved: check_moved};
 
 cli(main);
 
@@ -198,6 +202,15 @@ async function check_descent(page, trace)
         out.push(`not held at ×1 from 14 s into the heavy cost: ${late.map(v => v.dpr).join(', ')}${state.futile ? ', the pixels declared not the cause' : ''}`);
     }
     return out;
+}
+
+async function check_crawl(page, trace)
+{
+    await scene_open(page, '');
+    await page.evaluate(v => window.dev_resolution.slow(v), slow_crawl);
+    const seen = await ratios_watch(page, 25, trace);
+    const last = seen[seen.length - 1];
+    return (last.dpr === 1) ? [] : [`×${last.dpr} after 25 s at ${slow_crawl} ms a frame for every million pixels: ${seen.map(v => v.dpr).join(', ')}`];
 }
 
 async function check_screen1(page, trace)
