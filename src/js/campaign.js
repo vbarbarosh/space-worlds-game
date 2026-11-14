@@ -143,6 +143,10 @@ function guide_base_reset_run(resume = false)
     if (saved?.news) {
         show_toast('FELTMERE IS CLOSED', saved.news, 8);
     }
+    // and so does one that owned mining drones, a builder, structures or a transport line (checkpoint_without_strategy)
+    if (saved?.paid_back) {
+        show_toast('MINING DRONES AND OUTPOSTS ARE GONE', saved.paid_back, 8);
+    }
 }
 
 function store_world()

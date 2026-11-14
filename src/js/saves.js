@@ -15,22 +15,23 @@ function saves_read()
 {
     try {
         const v = JSON.parse(localStorage.getItem('pulse_drift_saves_v1'));
-        return Array.isArray(v) ? v.map(saves_slot_without_feltmere) : [];
+        return Array.isArray(v) ? v.map(saves_slot_without_gone) : [];
     }
     catch {
         return [];
     }
 }
 
-// A slot saved while Feltmere was in the game, its campaign brought back to the eight worlds and its line naming where
-// and in what it is now (checkpoint_without_feltmere)
-function saves_slot_without_feltmere(slot)
+// A slot saved while a part of the game since taken out was in (Feltmere; the mining drones, structures and transport
+// lines), its campaign brought to the game as it is now and its line naming where, in what and with what salvage it is
+// now (checkpoint_without_gone)
+function saves_slot_without_gone(slot)
 {
     if (!slot?.checkpoint) {
         return slot;
     }
-    checkpoint_without_feltmere(slot.checkpoint);
-    if (slot.checkpoint.news) {
+    checkpoint_without_gone(slot.checkpoint);
+    if (slot.checkpoint.news || slot.checkpoint.paid_back) {
         slot.world = worlds[slot.checkpoint.campaign.world]?.name || slot.world;
         slot.ship = ship_catalog.find(v => v.id === slot.checkpoint.campaign.fleet?.ship_id)?.name || slot.ship;
         slot.salvage = Number.isFinite(slot.checkpoint.salvage) ? slot.checkpoint.salvage : slot.salvage;

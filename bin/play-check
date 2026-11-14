@@ -436,6 +436,88 @@ const cases = [
         },
     },
     {
+        name: 'save-pay-back',
+        about: 'a save with drones, their tier, the builder, three structures and a line: paid back once, plays, saves',
+        page: 'index',
+        run: async function ({page, t}) {
+            const out = [];
+            await t(`(${page_old_save_make})(30)`);
+            await page.reload({waitUntil: 'load'});
+            await page.waitForTimeout(500);
+            const loaded = await t(`(${page_old_save_loaded})()`);
+            // two drones past the free two, both tiers, the builder, two outposts and a platform, a line; of the 16 ore
+            // they were built with 10 fit the hold; sold: the other 6, a store's 7 and a line's 9 of ore, 8 of iron
+            const expected = 2*45 + 220 + 520 + 150 + 120 + 120 + 160 + 350 + (6 + 7 + 9)*loaded.prices.ore + 8*loaded.prices.iron;
+            if (!loaded.offered || (loaded.salvage - 1000 !== expected)) {
+                out.push(`Continue ${loaded.offered ? 'offered' : 'not offered'}; paid back ${loaded.salvage - 1000}, owed ${expected}`);
+            }
+            if ((loaded.ore !== 40) || loaded.left.length || loaded.goal || loaded.guide) {
+                out.push(`after the pay-back: ${loaded.ore} ore aboard (40 owed), fields left ${JSON.stringify(loaded.left)}, goal ${JSON.stringify(loaded.goal)}, marker ${JSON.stringify(loaded.guide)}`);
+            }
+            if (!/PAID BACK: 2 MINING DRONES, .*3 STRUCTURES, 1 TRANSPORT LINE .*30 UNITS .*PROSPECTOR GOAL DROPPED · ◆ \d+$/.test(loaded.paid_back || '')) {
+                out.push(`the news of the pay-back: ${loaded.paid_back}`);
+            }
+            const played = await t(`(${page_old_save_play})()`);
+            if ((played.state !== 'playing') || (played.told !== 1) || !played.valid || (played.salvage !== loaded.salvage) || (played.done.join() !== 'explorer')) {
+                out.push(`continued: ${JSON.stringify(played)}`);
+            }
+            await page.reload({waitUntil: 'load'});
+            await page.waitForTimeout(500);
+            const again = await t(`(${page_old_save_loaded})()`);
+            if (!again.offered || (again.salvage !== played.salvage)) {
+                out.push(`loaded again: Continue ${again.offered ? 'offered' : 'not offered'}, salvage ${again.salvage} after ${played.salvage}`);
+            }
+            return out;
+        },
+    },
+    {
+        name: 'save-over-hold',
+        about: 'a save whose drones in flight were counted past the hold loads: what is over is sold',
+        page: 'index',
+        run: async function ({page, t}) {
+            await t(`(${page_old_save_make})(44)`);
+            await page.reload({waitUntil: 'load'});
+            await page.waitForTimeout(500);
+            const v = await t(`(${page_old_save_loaded})()`);
+            // no room for the 16 ore of the structures; 4 of the ore aboard are over the hold of 40
+            const expected = 2*45 + 220 + 520 + 150 + 120 + 120 + 160 + 350 + (16 + 7 + 9 + 4)*v.prices.ore + 8*v.prices.iron;
+            return (v.offered && (v.aboard === 40) && (v.salvage - 1000 === expected)) ? [] : [`Continue ${v.offered ? 'offered' : 'not offered'}, ${v.aboard} aboard of 40, paid back ${v.salvage - 1000}, owed ${expected}`];
+        },
+    },
+    {
+        name: 'save-slot-pay-back',
+        about: 'the same save kept in a slot: its row shows the salvage with the pay-back, and it loads and plays',
+        page: 'index',
+        run: async function ({page, t}) {
+            await t(`(${page_old_save_make})(30, false, true)`);
+            await page.reload({waitUntil: 'load'});
+            await page.waitForTimeout(500);
+            const v = await t(`(${page_old_slot_load})()`);
+            const expected = 1000 + 2*45 + 220 + 520 + 150 + 120 + 120 + 160 + 350 + (6 + 7 + 9)*v.prices.ore + 8*v.prices.iron;
+            return ((v.row === expected) && (v.salvage === expected) && (v.state === 'playing') && (v.told === 1)) ? [] : [`the slot's row ◆ ${v.row}, loaded ◆ ${v.salvage}, owed ◆ ${expected}; state ${v.state}, told ${v.told} times`];
+        },
+    },
+    {
+        name: 'save-prospector-goal',
+        about: 'a save that follows the Prospector goal and owns nothing else loads: the goal dropped with a word',
+        page: 'index',
+        run: async function ({page, t}) {
+            await t(`(${page_old_save_make})(0, true)`);
+            await page.reload({waitUntil: 'load'});
+            await page.waitForTimeout(500);
+            const loaded = await t(`(${page_old_save_loaded})()`);
+            const played = await t(`(${page_old_save_play})()`);
+            const out = [];
+            if (!loaded.offered || (loaded.salvage !== 1000) || loaded.goal || !/PROSPECTOR GOAL DROPPED$/.test(loaded.paid_back || '')) {
+                out.push(`loaded: ${JSON.stringify(loaded)}`);
+            }
+            if ((played.state !== 'playing') || (played.told !== 1) || (played.done.join() !== 'explorer') || !played.goals_tab) {
+                out.push(`continued: ${JSON.stringify(played)}`);
+            }
+            return out;
+        },
+    },
+    {
         name: 'arcade-rocks',
         about: 'the arcade\'s rocks as they were: shots break one by its hull, it drops salvage, a push wave moves them',
         page: 'index',
@@ -742,4 +824,114 @@ function page_arcade_rocks()
     }
     out.shoved = ore_nodes.filter(v => Math.hypot(v.vx, v.vy) > 0).length;
     return out;
+}
+
+// A campaign's autosave as the game wrote it while it had mining drones, a builder, structures and transport lines,
+// put in place of the autosave: four drones (two bought), their top tier, the builder, an outpost with a store and a
+// drone's load, an outpost half built and a defense platform in Haven, a line there with cargo aboard, `aboard` units
+// in the scout's hold of 40, the Prospector goal followed with its marker on a field. With bare, a save that only
+// follows the goal: the two free drones, nothing bought. With slot, kept in the first save slot, not as the autosave
+function page_old_save_make(aboard, bare = false, slot = false)
+{
+    menu_start('campaign');
+    undock();
+    save_checkpoint();
+    const v = JSON.parse(JSON.stringify(checkpoint));
+    const c = v.campaign;
+    const site = {world: 0, x: 4000, y: 4000, hp: 220, built: 1, store: 0, clock: 0, aim: 0, cooldown: 0};
+    v.salvage = 1000;
+    c.drones = bare ? 2 : 4;
+    c.cargo.ore = Math.min(aboard, 36);
+    c.cargo.iron = aboard - c.cargo.ore;
+    c.goal = {id: 'prospector', step: 1};
+    c.goals_done = ['explorer'];
+    v.guide = {x: 4000, y: 4000, label: 'MINING FIELD · K BUILD AN OUTPOST'};
+    if (!bare) {
+        c.drone_tier = 2;
+        c.builder = true;
+        c.structures = [
+            {...site, id: 1, kind: 'outpost', store: 12, loads: {ore: 7, iron: 5}, crew: [{x: 4000, y: 4000, angle: 0, state: 'cut', rock: null, load: {iron: 3}, count: 3}], idle: false},
+            {...site, id: 2, kind: 'outpost', x: 5000, built: 0.4},
+            {...site, id: 3, kind: 'platform', x: 8000, hp: 280},
+        ];
+        c.lines = {0: {hp: 900, cargo: {ore: 9}, count: 9, earned: 400}};
+    }
+    if (slot) {
+        localStorage.removeItem('pulse_drift_frontier_v4');
+        localStorage.setItem('pulse_drift_saves_v1', JSON.stringify([{saved_at: Date.now(), world: 'Haven', story: '0/16', ship: 'Wisp Scout', salvage: 1000, checkpoint: v}]));
+        return;
+    }
+    localStorage.setItem('pulse_drift_frontier_v4', JSON.stringify(v));
+}
+
+// The autosave as the page read it at its start
+function page_old_save_loaded()
+{
+    const c = checkpoint?.campaign;
+    return {
+        offered: !el.continue_row.classList.contains('hidden'),
+        salvage: checkpoint?.salvage,
+        paid_back: checkpoint?.paid_back || null,
+        ore: c?.cargo.ore,
+        aboard: c ? Object.values(c.cargo).reduce((a, b) => a + b, 0) : null,
+        goal: c?.goal || null,
+        guide: checkpoint?.guide || null,
+        left: c ? ['drones', 'drone_tier', 'builder', 'structures', 'lines'].filter(v => v in c) : null,
+        prices: {ore: commodity_base_price(0, 0) - 2, iron: commodity_base_price(0, commodities.findIndex(v => v.key === 'iron')) - 2},
+    };
+}
+
+// The first save slot as its row shows it, then loaded and flown five seconds
+function page_old_slot_load()
+{
+    let told = 0;
+    const toast = show_toast;
+    show_toast = function (title, ...rest) {
+        told += (title === 'MINING DRONES AND OUTPOSTS ARE GONE') ? 1 : 0;
+        toast(title, ...rest);
+    };
+    const row = saves_read()[0].salvage;
+    load_from_slot(0);
+    for (let i = 0; i < 300; ++i) {
+        enemies = [];
+        hostile = [];
+        update(1/60);
+    }
+    update_hud();
+    render();
+    show_toast = toast;
+    return {row, salvage, state, told, prices: {ore: commodity_base_price(0, 0) - 2, iron: commodity_base_price(0, commodities.findIndex(v => v.key === 'iron')) - 2}};
+}
+
+// Continue, ten seconds of flight with the HUD and the screen drawn, a dock with the goals tab open, and the autosave
+// the game then made
+function page_old_save_play()
+{
+    let told = 0;
+    const toast = show_toast;
+    show_toast = function (title, ...rest) {
+        told += (title === 'MINING DRONES AND OUTPOSTS ARE GONE') ? 1 : 0;
+        toast(title, ...rest);
+    };
+    menu_start('continue');
+    for (let i = 0; i < 600; ++i) {
+        enemies = [];
+        hostile = [];
+        update(1/60);
+        if (i % 30 === 0) {
+            update_hud();
+            render();
+        }
+    }
+    const flown = state;
+    player.x = station.x;
+    player.y = station.y + station_size/2 + 100;
+    dock_station();
+    station_tab = 'career';
+    render_station();
+    const goals_tab = document.getElementById('station_content').textContent.length > 0;
+    undock();
+    show_toast = toast;
+    const saved = JSON.parse(localStorage.getItem('pulse_drift_frontier_v4'));
+    return {state: flown, told, valid: valid_checkpoint(saved), salvage: saved.salvage, done: campaign.goals_done || [], goals_tab};
 }

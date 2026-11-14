@@ -80,7 +80,7 @@ function clear_checkpoint()
 function load_checkpoint()
 {
     try {
-        const v = checkpoint_without_feltmere(JSON.parse(localStorage.getItem('pulse_drift_frontier_v4')));
+        const v = checkpoint_without_gone(JSON.parse(localStorage.getItem('pulse_drift_frontier_v4')));
         if (valid_checkpoint(v)) {
             checkpoint = v;
             menu_continue_show(v.campaign);
@@ -89,12 +89,19 @@ function load_checkpoint()
     catch {
     }
 }
+// A save made while a part of the game since taken out was in, brought to the game as it is now: Feltmere first, so
+// that what stood there is paid back as the rest is
+function checkpoint_without_gone(v)
+{
+    return checkpoint_without_strategy(checkpoint_without_feltmere(v));
+}
+
 // Feltmere, a ninth world entered only in the felt rocket, was taken out of the game. A save made while it was in comes
 // back to the eight worlds: a ship in Feltmere waits beside Haven's station; the felt rocket is bought back at its price
-// and you fly your best other ship, or a scout; Feltmere's contracts, maps, structures and transport line go, their
-// salvage paid back, and its felt berries are sold at Haven's price, as is any cargo the new hold has no room for. The
-// save is changed in place, and `news` says what changed, for a toast when it is played (guide_base_reset_run). A save
-// that never knew Feltmere comes back as it was.
+// and you fly your best other ship, or a scout; Feltmere's contracts and maps go (its structures and transport line
+// with all the others: checkpoint_without_strategy), and its felt berries are sold at Haven's price, as is any cargo
+// the new hold has no room for. The save is changed in place, and `news` says what changed, for a toast when it is
+// played (guide_base_reset_run). A save that never knew Feltmere comes back as it was.
 const feltmere_gone = {world: 8, ship: 'rocket', ship_price: 400, berries: 'berries', berry_price: 15};
 
 function checkpoint_without_feltmere(v)
@@ -122,16 +129,6 @@ function checkpoint_without_feltmere(v)
             news.push(`ITS ${c.contracts.length - kept.length} CONTRACT${(c.contracts.length - kept.length > 1) ? 'S' : ''} DROPPED`);
         }
         c.contracts = kept;
-    }
-    if (Array.isArray(c.structures)) {
-        for (const s of c.structures.filter(vv => vv.world === gone)) {
-            refund += structure_kinds[s.kind]?.cost.salvage || 0;
-        }
-        c.structures = c.structures.filter(vv => vv.world !== gone);
-    }
-    if (c.lines?.[gone]) {
-        refund += transport_price;
-        delete c.lines[gone];
     }
     for (const key of ['maps', 'charts']) {
         if (c[key]) {
@@ -206,6 +203,123 @@ function checkpoint_without_feltmere(v)
         v.salvage += refund;
     }
     v.news = `${news.join(' · ') || 'FELTMERE IS GONE FROM YOUR SAVE'}${refund ? ` · ◆ ${refund}` : ''}`;
+    return v;
+}
+
+// The mining drones, the builder with the outposts and defense platforms it built, and the transport lines were taken
+// out of the game: the guns mine. A save that owned any of them is paid back what they cost: each drone bought beyond
+// the two every pilot began with, the drones' tiers, the builder, each structure's salvage and its ore (into the hold,
+// or sold at the plain price of the structure's world when the hold has no room), each line's price, and what an
+// outpost's store, its drones or a line's hold kept, sold the same way. The ore your own drones were bringing was
+// counted aboard by the save, at times past the hold: what is over is sold where you are. A Prospector goal followed
+// is dropped, with the marker it left on a field; campaign.goals_done keeps what was reached. The fields leave the
+// save, so it is paid once, and `paid_back` says what was paid and why, for the news when the save is played
+// (guide_base_reset_run). A save that owned none of it comes back as it was.
+const strategy_gone = {
+    drone_price: 45,
+    drones_free: 2,
+    tier_prices: [220, 520],
+    builder_price: 150,
+    structures: {outpost: {salvage: 120, ore: 6}, platform: {salvage: 160, ore: 4}},
+    line_price: 350,
+    goal: 'prospector',
+    goal_marker: /K BUILD AN OUTPOST/,
+};
+
+function checkpoint_without_strategy(v)
+{
+    const c = v?.campaign;
+    if (!c || (typeof c !== 'object') || !['drones', 'drone_tier', 'builder', 'structures', 'lines'].some(vv => vv in c)) {
+        return v;
+    }
+    const gone = strategy_gone;
+    const cargo = (c.cargo && (typeof c.cargo === 'object')) ? c.cargo : {};
+    const hold = ship_catalog.find(vv => vv.id === c.fleet?.ship_id)?.cargo || 40;
+    const paid = [];
+    let refund = 0;
+    let sold = 0;
+    function aboard() {
+        return Object.values(cargo).reduce((a, b) => a + (Number.isInteger(b) ? b : 0), 0);
+    }
+    // units sold at a world's plain price (Haven's for a world no longer there)
+    function sell(world, loads) {
+        for (const [key, amount] of Object.entries((loads && (typeof loads === 'object')) ? loads : {})) {
+            const i = commodities.findIndex(vv => vv.key === key);
+            if ((i >= 0) && Number.isInteger(amount) && (amount > 0)) {
+                refund += amount*Math.max(0, commodity_base_price(worlds[world] ? world : 0, i) - 2);
+                sold += amount;
+            }
+        }
+    }
+    function plural(n, word) {
+        return `${n} ${word}${(n > 1) ? 'S' : ''}`;
+    }
+    if (Number.isInteger(c.drones) && (c.drones > gone.drones_free)) {
+        refund += (c.drones - gone.drones_free)*gone.drone_price;
+        paid.push(plural(c.drones - gone.drones_free, 'MINING DRONE'));
+    }
+    if (Number.isInteger(c.drone_tier) && (c.drone_tier > 0)) {
+        refund += gone.tier_prices.slice(0, c.drone_tier).reduce((a, b) => a + b, 0);
+        paid.push('THE DRONES\' TIER');
+    }
+    if (c.builder) {
+        refund += gone.builder_price;
+        paid.push('THE BUILDER');
+    }
+    const structures = Array.isArray(c.structures) ? c.structures.filter(vv => gone.structures[vv?.kind]) : [];
+    for (const site of structures) {
+        const cost = gone.structures[site.kind];
+        refund += cost.salvage;
+        const back = clamp(hold - aboard(), 0, cost.ore);
+        cargo.ore = (Number.isInteger(cargo.ore) ? cargo.ore : 0) + back;
+        sell(site.world, {ore: cost.ore - back});
+        sell(site.world, site.loads || {ore: site.store});
+        for (const drone of Array.isArray(site.crew) ? site.crew : []) {
+            sell(site.world, drone?.load);
+        }
+    }
+    if (structures.length) {
+        paid.push(plural(structures.length, 'STRUCTURE'));
+    }
+    const lines = (c.lines && (typeof c.lines === 'object')) ? Object.entries(c.lines).filter(vv => vv[1]) : [];
+    for (const [world, line] of lines) {
+        refund += gone.line_price;
+        sell(Number(world), line.cargo);
+    }
+    if (lines.length) {
+        paid.push(plural(lines.length, 'TRANSPORT LINE'));
+    }
+    // what the drones in flight put past the hold: the ore first, then the world's own resources, as they brought them
+    let over = aboard() - hold;
+    for (const key of ['ore', ...commodities.map(vv => vv.key).reverse()]) {
+        const amount = Math.min(over, Number.isInteger(cargo[key]) ? cargo[key] : 0);
+        if (amount > 0) {
+            cargo[key] -= amount;
+            sell(c.world, {[key]: amount});
+            over -= amount;
+        }
+    }
+    for (const key of ['drones', 'drone_tier', 'builder', 'structures', 'lines']) {
+        delete c[key];
+    }
+    const news = ['YOUR GUNS MINE THE ROCKS NOW'];
+    if (paid.length) {
+        news.push(`PAID BACK: ${paid.join(', ')}`);
+    }
+    if (sold) {
+        news.push(`${plural(sold, 'UNIT')} OF THEIR ORE SOLD`);
+    }
+    if (c.goal?.id === gone.goal) {
+        c.goal = null;
+        if (gone.goal_marker.test(v.guide?.label || '')) {
+            v.guide = null;
+        }
+        news.push('THE PROSPECTOR GOAL DROPPED');
+    }
+    if (Number.isFinite(v.salvage)) {
+        v.salvage += refund;
+    }
+    v.paid_back = `${news.join(' · ')}${refund ? ` · ◆ ${refund}` : ''}`;
     return v;
 }
 

@@ -23,8 +23,9 @@ function drone_bay()
 
 function drones_owned()
 {
+    // two for free, whatever the ship: a save is paid back for the drones past two (checkpoint_without_strategy)
     if (!Number.isInteger(campaign.drones)) {
-        campaign.drones = drone_bay();
+        campaign.drones = 2;
     }
     campaign.drones = Math.min(campaign.drones, drone_bay());
     return campaign.drones;
