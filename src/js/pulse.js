@@ -194,8 +194,8 @@ function pulse_update(dt)
                 }
             }
         }
-        // ore rocks break only in the arcade, as under your guns; in the campaign the rings pass them by
-        if (wave.rocks && arcade.active) {
+        // ore rocks take the ring as they take your guns: broken in the arcade, cut in the campaign (damage_ore)
+        if (wave.rocks) {
             for (const rock of ore_nodes) {
                 if ((rock.hp > 0) && pulse_wave_reaches(wave, rock)) {
                     pulse_hit(wave, rock, 'ore');
