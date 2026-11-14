@@ -15,11 +15,11 @@ const sound_ambience_worlds = [
         ],
         // the Crescent: a keen engine's whine circling, two voices a shade apart
         flagship: {
-            level: 1.33,
+            level: 1.67,
             layers: [
-                {tone: 220, type: 'sawtooth', cutoff: 900, a: 0.02, tide: {rate: 3.1, depth: 0.35}},
-                {tone: 221.6, type: 'sawtooth', cutoff: 900, a: 0.02, tide: {rate: 2.7, depth: 0.35}},
-                {color: 'pink', filter: 'bandpass', f: 1400, q: 0.8, a: 0.02, tide: {rate: 0.5, depth: 0.7}},
+                {tone: 147, type: 'sawtooth', cutoff: 520, a: 0.02, tide: {rate: 3.1, depth: 0.6}},
+                {tone: 148.1, type: 'sawtooth', cutoff: 520, a: 0.02, tide: {rate: 2.7, depth: 0.6}},
+                {color: 'pink', filter: 'bandpass', f: 1200, q: 0.8, a: 0.04, tide: {rate: 0.5, depth: 0.7}},
             ],
         },
         calls: [
@@ -51,7 +51,7 @@ const sound_ambience_worlds = [
         ],
         // the Thorn Beetle: chitin chittering over a slow low throb
         flagship: {
-            level: 1.14,
+            level: 1.15,
             layers: [
                 {color: 'white', filter: 'bandpass', f: 3000, q: 3, a: 0.1, tide: {rate: 9, depth: 1}},
                 {color: 'white', filter: 'bandpass', f: 4300, q: 4, a: 0.05, tide: {rate: 13, depth: 1}},
@@ -111,14 +111,14 @@ const sound_ambience_worlds = [
             },
         ],
     },
-    // Ion Reach, the electric storm: mains humming in the air, a crackle over it, thunder far off, a snap of static
+    // Ion Reach, the electric storm: a charge humming in the air, swelling and dying, a crackle over it, thunder far off, a snap of static
     {
-        bed_level: 1.23,
+        bed_level: 1.82,
         call_levels: [1.58, 3.35, 2.24],
         every: [4, 11],
         bed: [
-            {tone: 50, type: 'sawtooth', cutoff: 320, a: 0.02, tide: {rate: 0.06, depth: 0.4}},
-            {tone: 100, a: 0.008, tide: {rate: 0.11, depth: 0.6}},
+            {tone: 50, type: 'sawtooth', cutoff: 320, a: 0.014, tide: {rate: 0.23, depth: 0.95}},
+            {tone: 100, a: 0.006, tide: {rate: 0.31, depth: 0.95}},
             {color: 'white', filter: 'highpass', f: 6000, a: 0.006, tide: {rate: 0.9, depth: 1}},
             {color: 'pink', filter: 'bandpass', f: 1500, q: 0.7, a: 0.02, tide: {rate: 0.17, depth: 0.8}},
         ],
@@ -183,25 +183,26 @@ const sound_ambience_worlds = [
             },
         ],
     },
-    // Cryosphere, the frozen aurora: thin cold air, a shimmer that beats slowly, chimes of ice, a crack running through it
+    // Cryosphere, the frozen aurora: thin cold air, a glassy shimmer that comes and goes, chimes of ice, a crack running through it
     {
-        bed_level: 1.43,
+        bed_level: 2.19,
         call_levels: [0.67, 1.8, 0.84],
         every: [4, 10],
         bed: [
             {color: 'white', filter: 'highpass', f: 5200, a: 0.007, tide: {rate: 0.07, depth: 0.7}},
-            {tone: 2093, a: 0.0022, tide: {rate: 0.05, depth: 0.9}},
-            {tone: 2101, a: 0.0022, tide: {rate: 0.04, depth: 0.9}},
+            {color: 'white', filter: 'bandpass', f: 2100, q: 18, a: 0.012, tide: {rate: 0.05, depth: 1}},
+            {color: 'white', filter: 'bandpass', f: 3140, q: 22, a: 0.007, tide: {rate: 0.037, depth: 1}},
             {tone: 88, a: 0.003, tide: {rate: 0.03, depth: 0.5}},
             {color: 'pink', filter: 'bandpass', f: 1100, q: 0.8, a: 0.012, tide: {rate: 0.06, depth: 0.9}},
         ],
         // the Frost Crystal: glass singing, three notes drifting in and out of each other
         flagship: {
-            level: 0.93,
+            level: 1.15,
             layers: [
-                {tone: 1567.98, a: 0.008, tide: {rate: 0.31, depth: 0.9}},
-                {tone: 1574, a: 0.008, tide: {rate: 0.23, depth: 0.9}},
-                {tone: 2349.32, a: 0.005, tide: {rate: 0.17, depth: 1}},
+                {tone: 783.99, a: 0.008, tide: {rate: 0.31, depth: 1}},
+                {tone: 787, a: 0.008, tide: {rate: 0.23, depth: 1}},
+                {tone: 1174.66, a: 0.004, tide: {rate: 0.17, depth: 1}},
+                {color: 'white', filter: 'bandpass', f: 2350, q: 20, a: 0.02, tide: {rate: 0.27, depth: 1}},
                 {color: 'white', filter: 'highpass', f: 6000, a: 0.006, tide: {rate: 0.4, depth: 0.8}},
             ],
         },
@@ -225,7 +226,7 @@ const sound_ambience_worlds = [
     },
     // Nova Forge, the solar foundry: the furnace roaring under everything, embers popping, slag rolling over
     {
-        bed_level: 0.75,
+        bed_level: 0.73,
         call_levels: [5.5, 1.35, 2.95],
         every: [3, 8],
         bed: [
@@ -236,7 +237,7 @@ const sound_ambience_worlds = [
         ],
         // the Furnace: its fire roaring and fluttering, the weight of it under
         flagship: {
-            level: 1.1,
+            level: 1.08,
             layers: [
                 {color: 'pink', filter: 'lowpass', f: 700, a: 0.09, tide: {rate: 0.5, depth: 0.5}},
                 {color: 'white', filter: 'bandpass', f: 2400, q: 1, a: 0.035, tide: {rate: 5, depth: 1}},
@@ -273,7 +274,7 @@ const sound_ambience_worlds = [
         ],
         // the Eclipse Eye: a slow pulse, like a heart, in a drone that beats against itself
         flagship: {
-            level: 0.39,
+            level: 0.4,
             layers: [
                 {tone: 55, a: 0.05},
                 {tone: 55.7, a: 0.05},

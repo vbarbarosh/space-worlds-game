@@ -236,8 +236,10 @@ on.
 **Variation.** Shots take turns between two or three bolts (`k.turn`), a
 raider's end and a ship's blast between three each, most sounds are a little
 off in pitch each time, and a run of pickups inside
-1.3 s climbs a step of a scale with each one (`streak`), as the combo's tick
-does with the combo.
+1.3 s climbs a step of a scale with each one (`streak`), an octave at most,
+as the combo's tick does with the combo. No sound that lasts holds a pure
+tone above 1 kHz: a held high tone is a whistle, and was heard as one in
+earlier rounds.
 
 **A chain is heard.** A classic sound called within its cooldown is
 dropped, so a chain of blasts plays as its first. A new blast waits its turn
@@ -306,16 +308,16 @@ station. What each world's is made of is in
 | Haven | a far surf rolling in and out | the traffic's radio chirps, a sonar's ping, an engine passing far off |
 | Verdant | the nebula breathing, a faint high shimmer | bubbles rising, spores chirring, something large groaning |
 | Dustfall | wind in gusts, grit hissing | a long gust, grit across the hull, rock tumbling |
-| Ion Reach | mains humming, a crackle over it | thunder far off, a snap of static, the hum swelling |
+| Ion Reach | a charge humming, swelling and dying, a crackle over it | thunder far off, a snap of static, the hum swelling |
 | Obsidian | machinery throbbing far below | a clank in the works, steam let go, a girder groaning |
-| Cryosphere | thin cold air, a shimmer that beats slowly | chimes of ice, a crack running through it, the aurora singing |
+| Cryosphere | thin cold air, a glassy shimmer that comes and goes | chimes of ice, a crack running through it, the aurora singing |
 | Nova Forge | the furnace roaring, a flicker of crackle | embers popping, a flare rumbling up, slag rolling over |
 | Eclipse | a drone that beats against itself, the dark swelling | a voice calling from far inside, the dark rising, ticks echoing away |
 
 A flagship within 2.5 km is heard too, from its side, louder as it closes
 (its level is its nearness squared; each is set to -36 LUFS at its nearest
-and to no more than the others to the ear): the Crescent an engine's keen
-whine, two voices a shade apart; the Thorn Beetle chitin chittering over a
+and to no more than the others to the ear): the Crescent an engine's low
+whine in a rush of air; the Thorn Beetle chitin chittering over a
 slow throb; the Sawtooth its blade whirring; the Storm Wheel a hum that
 comes round as it turns, sparks along its spokes; the Iron Stair one heavy
 step every 2.4 s; the Frost Crystal glass singing; the Furnace its fire
