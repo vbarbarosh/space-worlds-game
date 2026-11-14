@@ -258,7 +258,9 @@ function checkpoint_without_strategy(v)
         refund += gone.builder_price;
         paid.push('THE BUILDER');
     }
-    const structures = Array.isArray(c.structures) ? c.structures.filter(vv => gone.structures[vv?.kind]) : [];
+    // a kind is read only from the price list's own names: one named as every object's (constructor) is paid nothing
+    const built = Array.isArray(c.structures) ? c.structures : [];
+    const structures = built.filter(vv => Object.hasOwn(gone.structures, vv?.kind));
     for (const site of structures) {
         const cost = gone.structures[site.kind];
         refund += cost.salvage;
