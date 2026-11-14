@@ -1,8 +1,8 @@
 // The moments that had no sound of their own: a button, docking, the shield breaking and closing, a low hull, a life
-// lost, a wave coming, the guns locked by heat, the combo climbing, an arcade event, radiation, the pulse charged, a
-// run begun, a world cleared. Each is told by what changed since the last look (sound_moments_watch, on the music's
-// clock, 16 times a second), so no part of the game has to call for them. Their sounds are the new set's
-// (src/js/sfx_new/): in the classic set these moments stay silent, as they were.
+// lost, a wave coming, cresting and cleared, the guns locked by heat, the combo climbing, an arcade event, radiation,
+// the pulse charged, a run begun, a world cleared. Each is told by what changed since the last look
+// (sound_moments_watch, on the music's clock, 16 times a second), so no part of the game has to call for them. Their
+// sounds are the new set's (src/js/sfx_new/): in the classic set these moments stay silent, as they were.
 const sound_moments = {
     state: 'menu',
     shield: null,
@@ -10,6 +10,8 @@ const sound_moments = {
     hull_next: 0,
     lives: null,
     wave: null,
+    crest: false,
+    rest: false,
     overheated: false,
     combo: 1,
     event: null,
@@ -50,6 +52,17 @@ function sound_moments_watch()
         sfx('wave_start');
     }
     m.wave = wave;
+    // a wave's crest breaking (arcade_pace.js), and the breather after a wave is cleared
+    const crest = arcade.active && !!arcade.pace && arcade.pace.crest;
+    if (crest && !m.crest) {
+        sfx('crest');
+    }
+    m.crest = crest;
+    const rest = arcade.active && (arcade.pause > 0);
+    if (rest && !m.rest) {
+        sfx('wave_clear');
+    }
+    m.rest = rest;
     const event = arcade.event ? arcade.event.kind : null;
     if (event && (event !== m.event)) {
         sfx(({convoy: 'event_convoy', ace: 'event_ace', jammer: 'event_jammer'})[event] || 'event_danger');

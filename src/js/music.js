@@ -310,6 +310,8 @@ const sfx_new_by_kind = {
     hull_low: sfx_new_hull_low,
     life_lost: sfx_new_life_lost,
     wave_start: sfx_new_wave_start,
+    crest: sfx_new_crest,
+    wave_clear: sfx_new_wave_clear,
     overheat: sfx_new_overheat,
     guns_ready: sfx_new_guns_ready,
     combo: sfx_new_combo,

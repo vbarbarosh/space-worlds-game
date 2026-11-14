@@ -204,8 +204,7 @@ like the six examples above. A raider dies with `kill` and `blast_big` together.
 ### Moments with no sound
 
 In the classic set nothing plays when (the new set has a sound for each of
-these but a wave cleared, see
-[The moments that had no sound](#the-moments-that-had-no-sound)): you dock or undock; a button is pressed (no click
+these, see [The moments that had no sound](#the-moments-that-had-no-sound)): you dock or undock; a button is pressed (no click
 anywhere); a wave starts or is cleared; a world is cleared (only its
 flagship's `win` as it dies); a life is lost and the world starts again; your shield
 breaks (a hit on the shield sounds as one on the hull).
@@ -280,6 +279,8 @@ part of the game calls for these. In the classic set they stay silent.
 | `hull_low` | your hull under 30%, again every 2.8 s while it lasts |
 | `life_lost` | a life lost in the arcade |
 | `wave_start` | the arcade's next wave begun |
+| `crest` | a wave's crest breaking (`src/js/arcade_pace.js`) |
+| `wave_clear` | a wave cleared, its breather begun |
 | `overheat`, `guns_ready` | your guns locked by heat, and free again |
 | `combo` | the combo one higher, a step up the scale with each |
 | `event_convoy`, `event_ace`, `event_jammer`, `event_danger` | an arcade event begun: a convoy, an ace, a jammer, any other (a heat surge) |
@@ -317,6 +318,11 @@ comes round as it turns, sparks along its spokes; the Iron Stair one heavy
 step every 2.4 s; the Frost Crystal glass singing; the Furnace its fire
 roaring and fluttering; the Eclipse Eye a slow pulse in a drone that beats
 against itself. It ends with the flagship.
+
+Two more things are heard the same way, by their nearness and from their
+side: the nearest of Obsidian's magnetic spires, a buzzing hum from one and a
+half times its field's reach in; and a black hole, the dark rumbling and
+turning, from its outer field in, full at its strong field's edge.
 
 ## The steady sounds of flight
 
@@ -564,7 +570,7 @@ over the root.
 
 ## What has no sound of its own
 
-In either set, beyond the moments above: Verdant's current, Obsidian's spires, anything of
+In either set, beyond the moments above: Verdant's current, Obsidian's spires (the new set hums near one), anything of
 Cryosphere's cold, the heat surge's vents, Nova Forge's overheated guns,
 radiation (its alerts play `hit`; the new set adds the counter's ticks), the
 arcade's events (the new set has a call for each as it begins, none while it

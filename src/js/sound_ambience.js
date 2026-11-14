@@ -1,15 +1,14 @@
 // Each world's background, in the new sound set: a bed that never stops (surf, wind, a hum, a drone: noise and tones
 // with slow tides in them) and calls that come now and then out of the distance (a radio, a bubble, thunder, a clank,
-// a chime of ice, an ember, a voice from the void), and a flagship's own sound while one is near, louder as it closes. It plays on the ambience
+// a chime of ice, an ember, a voice from the void), and what is heard by its nearness: a flagship, a spire's field, a black hole. It plays on the ambience
 // bus over the space hum and the reactor's tone that both sets have, quieter by the station, silent out of flight.
 // The classic set has none of it.
 const sound_ambience = {
     world: -1,
     // the bed playing: {level, pan, nodes} its own way into the mix and the nodes that run on (sound_ambience_group)
     bed: null,
-    // a flagship's own sound while one is near, the same shape, and the world it was made for
-    presence: null,
-    presence_world: -1,
+    // what is heard by how near it is, by name (sound_ambience_near): a flagship, a spire's field, a black hole
+    near: {},
     next: 0,
     idle: 0,
     // until then (the audio's clock) world `audition_world`'s background plays whatever the game is doing: the dev
@@ -44,7 +43,7 @@ function sound_ambience_graph(c)
     sound.ambience_far.connect(room);
     sound_ambience.world = -1;
     sound_ambience.bed = null;
-    sound_ambience.presence = null;
+    sound_ambience.near = {};
     sound_ambience.next = 0;
 }
 
@@ -166,11 +165,11 @@ function sound_ambience_stop()
     if (sound_ambience.bed) {
         sound_ambience_group_stop(sound_ambience.bed);
     }
-    if (sound_ambience.presence) {
-        sound_ambience_group_stop(sound_ambience.presence);
+    for (const v of Object.values(sound_ambience.near)) {
+        sound_ambience_group_stop(v);
     }
     sound_ambience.bed = null;
-    sound_ambience.presence = null;
+    sound_ambience.near = {};
     sound_ambience.world = -1;
 }
 
@@ -201,28 +200,53 @@ function sound_ambience_watch()
         sound_ambience_call(world.calls[i], now + 0.05, world.call_levels[i]);
         sound_ambience.next = now + world.every[0] + Math.random()*(world.every[1] - world.every[0]);
     }
-    sound_ambience_presence(id, audition ? null : enemies.find(v => (v.type === 'boss') && (v.hp > 0)), now);
+    if (!audition) {
+        sound_ambience_things(id, now);
+    }
 }
 
-// World `id`'s flagship `boss` heard while it is within reach: its own layers, louder as it closes, from its side
-function sound_ambience_presence(id, boss, now)
+// The things heard by their nearness, each from its side: the world's flagship within reach, the nearest of
+// Obsidian's spires from a little outside its field, a black hole from its outer field in
+function sound_ambience_things(id, now)
 {
-    const near = boss ? clamp(1 - distance(boss, player)/sound_presence_reach, 0, 1) : 0;
-    let presence = sound_ambience.presence;
-    if (presence && ((near <= 0) || (sound_ambience.presence_world !== id))) {
-        sound_ambience_group_stop(presence);
-        sound_ambience.presence = presence = null;
+    const boss = enemies.find(v => (v.type === 'boss') && (v.hp > 0));
+    sound_ambience_near(`flagship ${id}`, sound_ambience_worlds[id].flagship, boss ? 1 - distance(boss, player)/sound_presence_reach : 0, boss, now);
+    let spire = null;
+    for (const v of spires) {
+        if (!spire || (distance(v, player) < distance(spire, player))) {
+            spire = v;
+        }
     }
-    if (near <= 0) {
+    sound_ambience_near('spire', sound_ambience_fields.spire, spire ? 1 - (distance(spire, player) - spire_r)/(spire_reach*1.5) : 0, spire, now);
+    const hole = nearest_gravity();
+    sound_ambience_near('hole', sound_ambience_fields.hole, hole ? Math.min(1, hole.h.radius/Math.max(1, hole.d)) : 0, hole ? hole.h : null, now);
+}
+
+// `recipe`'s layers ({level, layers}) heard under `name` while `near` is over nothing: its level is its nearness
+// squared, its place the side `thing` is on; gone when it is out of reach, and when another name's turn comes
+function sound_ambience_near(name, recipe, near, thing, now)
+{
+    const k = clamp(near, 0, 1);
+    let group = sound_ambience.near[name];
+    if (k <= 0) {
+        if (group) {
+            sound_ambience_group_stop(group);
+            delete sound_ambience.near[name];
+        }
         return;
     }
-    if (!presence) {
-        const flagship = sound_ambience_worlds[id].flagship;
-        sound_ambience.presence = presence = sound_ambience_group(flagship.layers, flagship.level, true);
-        sound_ambience.presence_world = id;
+    if (!group) {
+        // a flagship of another world is let go with its world
+        for (const v of Object.keys(sound_ambience.near)) {
+            if (v.startsWith('flagship') && name.startsWith('flagship')) {
+                sound_ambience_group_stop(sound_ambience.near[v]);
+                delete sound_ambience.near[v];
+            }
+        }
+        group = sound_ambience.near[name] = sound_ambience_group(recipe.layers, recipe.level, true);
     }
-    presence.level.gain.setTargetAtTime(near*near, now, 0.4);
-    presence.pan.pan.setTargetAtTime(clamp((boss.x - player.x)/900, -0.8, 0.8), now, 0.3);
+    group.level.gain.setTargetAtTime(k*k, now, 0.4);
+    group.pan.pan.setTargetAtTime(clamp((thing.x - player.x)/900, -0.8, 0.8), now, 0.3);
 }
 
 // One call out of the distance: somewhere left or right, through the ambience's room
