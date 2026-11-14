@@ -39,11 +39,12 @@ const brood_nest_room = 150;
 const brood_nest_ring = 500;
 // A nest's hull: this many s of your whole kit's fire as the world begins (arcade_base_kit_damage: every mount and
 // every bolt of a volley, which a body this big takes), times the mode's hull, as a raider's (arcade_modes: 1, 1.5,
-// 1.8), and a card's factor on the raiders' hull: 13 s on CHILL, 20 on NORMAL, 24 on OVERLOAD. By the kit, as a Scroll
-// run's raiders are, not by the run's step: at one step a kit with a Prism and a second gun deals a nest eight times
-// what the start kit does (549 a second against 67, measured), so a hull by the step alone lasted the one 1.2 s and
-// the other 10
-const brood_nest_burn = 12;
+// 1.8), and a card's factor on the raiders' hull: 16, 24 and 29 s of that fire on CHILL, NORMAL and OVERLOAD. By the
+// kit, as a Scroll run's raiders are, not by the run's step: at one step a kit with a Prism and a second gun deals a
+// nest eight times what the start kit does (549 a second against 67, measured), so a hull by the step alone lasted the
+// one 1.2 s and the other 10. The bot's Verdant on NORMAL (docs/balance.md): 3.8 min at 12, 4.7 at 16, 4.8 at 18 with
+// its interest down from 61 to 59, against 5.1 before the nests; a world is to take about five (arcade_shapes.js)
+const brood_nest_burn = 16;
 // A wave's share to hatch before its crest: this much of the wave's raiders (arcade_wave_size): 35, 45 and 55 on
 // NORMAL at the run's second step, nine squadrons a wave, which at brood_nest_hatch_gap is a build-up's 36 s; a nest
 // burnt sooner keeps the rest (the bot's hatched 181 to 221 in the five waves, where the director's squadrons brought
