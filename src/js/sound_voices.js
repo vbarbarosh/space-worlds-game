@@ -73,6 +73,13 @@ function sound_voices_graph(c)
         }
     }
     sound.fx_room.buffer = impulse;
+    // what is sent to the room goes in here: without its lows, so a thud stays tight and only the body and the air of
+    // a sound ring on
+    sound.fx_send = c.createBiquadFilter();
+    sound.fx_send.type = 'highpass';
+    sound.fx_send.frequency.value = 240;
+    sound.fx_send.Q.value = 0.5;
+    sound.fx_send.connect(sound.fx_room);
     sound.fx_wet = c.createGain();
     sound.fx_wet.gain.value = 0.5;
     sound.fx_room.connect(sound.fx_wet);

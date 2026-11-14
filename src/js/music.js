@@ -399,7 +399,7 @@ function sfx_new_kit(kind, effect, t, volume, pan)
         state.send.gain.value = effect.room ?? 0.5;
         state.input.connect(sound.fx_bus);
         state.input.connect(state.send);
-        state.send.connect(sound.fx_room);
+        state.send.connect(sound.fx_send);
     }
     state.streak = (effect.streak && (t < state.until)) ? state.streak + 1 : 0;
     state.until = t + (effect.streak || 0);
