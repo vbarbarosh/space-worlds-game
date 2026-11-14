@@ -195,7 +195,7 @@ function shot_group_draw(group)
 {
     const items = group.items;
     const look = shot_looks[group.type] || shot_looks.plasma;
-    // A player's shot is as wide as the bore it left; a drone's or a platform's by its gun
+    // A player's shot is as wide as the bore it left; an orbit drone's by its gun
     const bore = items[0].width;
     // a third wider than the bore with full effects: bright bolts, as Galaxy Attack's
     const width = (bore ? Math.max(1.4, bore) : (group.type === 'rail') ? 4 : (group.type === 'beam') ? 5 : 3)*(full_fx ? 1.35 : 1);
