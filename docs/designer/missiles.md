@@ -85,9 +85,9 @@ different engine.
 
 Layers, as in today's file (the game reads them by id):
 
-- `<g id="base">`: metal body and fins, outline `#0b1722` 1.4 wide, the
-  greys of the other weapon drawings (`#e0e4e9`-`#6c6e72` body,
-  `#9ea4ac`-`#2e343a` fins).
+- `<g id="base">`: metal body and fins, outline `#10151c` 1.5 wide, the
+  greys of the ships' drawings (`#f7fafc`-`#6b7684` body,
+  `#8d99a6`-`#252c35` fins), a bronze bell (`#4b525c`-`#2a1a14`).
 - `<g id="accent">`: the band. Fill it with the gradient `accent-fill`
   whose stops have the ids `accent-light`, `accent-base`, `accent-dark`; the
   game repaints the stops in the shooter's colour: yours `#ff9a68` (the

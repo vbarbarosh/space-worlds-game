@@ -1,7 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-<defs><linearGradient id="accent-fill" x1="0" y1="0" x2="1" y2="1"><stop id="accent-light" offset="0" stop-color="#ffb6a4"/><stop id="accent-base" offset="0.5" stop-color="#ff7a59"/><stop id="accent-dark" offset="1" stop-color="#994935"/></linearGradient><linearGradient id="m5d68744050" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9ea4ac"/><stop offset="0.45" stop-color="#5d6874"/><stop offset="1" stop-color="#2e343a"/></linearGradient><linearGradient id="md8dde32050" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e0e4e9"/><stop offset="0.45" stop-color="#d8dde3"/><stop offset="1" stop-color="#6c6e72"/></linearGradient></defs>
-<g id="base" stroke="#0b1722" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round"><path d="M13.5 19 L8 26.5 L13.5 25 Z M18.5 19 L24 26.5 L18.5 25 Z" fill="url(#m5d68744050)"/><rect x="14" y="25" width="4" height="3" fill="url(#m5d68744050)"/><path d="M13 26 L13 10 Q13 3 16 2 Q19 3 19 10 L19 26 Z" fill="url(#md8dde32050)"/><rect x="14.2" y="8" width="1.2" height="16" fill="#ffffff" fill-opacity="0.45" stroke="none"/></g>
-<g id="accent" stroke="#0b1722" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round"><rect x="13" y="9.5" width="6" height="3.5" fill="url(#accent-fill)"/></g>
+<defs>
+<linearGradient id="accent-fill" x1="0" y1="0" x2="1" y2="1"><stop id="accent-light" offset="0" stop-color="#ffb6a4"/><stop id="accent-base" offset="0.5" stop-color="#ff7a59"/><stop id="accent-dark" offset="1" stop-color="#994935"/></linearGradient>
+<linearGradient id="body" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#f7fafc"/><stop offset="0.4" stop-color="#d6dde5"/><stop offset="1" stop-color="#6b7684"/></linearGradient>
+<linearGradient id="fin-l" x1="1" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8d99a6"/><stop offset="1" stop-color="#4a5562"/></linearGradient>
+<linearGradient id="fin-r" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5f6b78"/><stop offset="1" stop-color="#252c35"/></linearGradient>
+<linearGradient id="bell" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4b525c"/><stop offset="0.55" stop-color="#6d5646"/><stop offset="1" stop-color="#2a1a14"/></linearGradient>
+</defs>
+<g id="base" stroke="#10151c" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round">
+<!-- the fins, the light on the port one's edge -->
+<path d="M13.5 19 L8 26.5 L13.5 25 Z" fill="url(#fin-l)"/>
+<path d="M18.5 19 L24 26.5 L18.5 25 Z" fill="url(#fin-r)"/>
+<path d="M12.6 21.2 L9.8 25" fill="none" stroke="#ffffff" stroke-opacity="0.5" stroke-width="0.7"/>
+<!-- the motor's bell -->
+<path d="M14.2 25 L17.8 25 L18.3 28 L13.7 28 Z" fill="url(#bell)" stroke-width="1.2"/>
+<!-- the body, its seam before the motor, the light down it -->
+<path d="M13 26 L13 10 Q13 3 16 2 Q19 3 19 10 L19 26 Z" fill="url(#body)"/>
+<path d="M13.7 21 L18.3 21" fill="none" stroke="#3b4652" stroke-width="0.8" stroke-linecap="butt"/>
+<rect x="14.1" y="13.8" width="1.1" height="11" fill="#ffffff" fill-opacity="0.6" stroke="none"/>
+<!-- the nose cone's seam, the light on the cone -->
+<path d="M13.8 7.8 L18.2 7.8" fill="none" stroke="#3b4652" stroke-width="0.8" stroke-linecap="butt"/>
+<path d="M15.3 3.7 Q14.5 5 14.3 6.6" fill="none" stroke="#ffffff" stroke-opacity="0.9" stroke-width="0.8"/>
+</g>
+<g id="accent" stroke="#10151c" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round">
+<rect x="13" y="9.5" width="6" height="3.5" fill="url(#accent-fill)"/>
+</g>
 <g id="anchors"><line id="flame-main-1" x1="16" y1="28" x2="16" y2="36" stroke="#ff0000" stroke-width="4"/></g>
 </svg>
