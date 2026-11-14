@@ -138,3 +138,16 @@ function resize()
 }
 resize();
 addEventListener('resize', resize);
+resize_ratio_watch();
+
+// A window moved to a screen of another ratio keeps its size, so no resize event comes: the query for the ratio the
+// screen has now changes once, and the next ratio's is then asked. The canvas made again is cleared, and in pause or
+// a panel nothing would draw on it
+function resize_ratio_watch()
+{
+    matchMedia(`(resolution: ${devicePixelRatio || 1}dppx)`).addEventListener('change', function () {
+        resize();
+        performance_render_dirty = true;
+        resize_ratio_watch();
+    }, {once: true});
+}

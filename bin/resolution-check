@@ -29,9 +29,11 @@ const usage = `usage: bin/resolution-check [check...]
     descent  &slow=${slow} steps down and holds; then the cost grows to ${slow_heavy}: the steps go on to ×1 and stay there,
              judged by the heavy frames, not by the light ones of the steps before
     screen1  a screen at 100%: nothing to step to, ×1
+    moved    the window moved to a screen at 100% and back to one at 200%, its size kept (no resize event comes): ×1,
+             then ×1.7 again, each within a second
 
     Timing on a busy machine can fail steady; run it alone again. Exits 1 on a failure.`;
-const checks = {steady: check_steady, slow: check_slow, sharp: check_sharp, forced: check_forced, futile: check_futile, descent: check_descent, screen1: check_screen1};
+const checks = {steady: check_steady, slow: check_slow, sharp: check_sharp, forced: check_forced, futile: check_futile, descent: check_descent, screen1: check_screen1, moved: check_moved};
 
 cli(main);
 
@@ -203,6 +205,31 @@ async function check_screen1(page, trace)
     await scene_open(page, `&slow=${slow*4}`);
     const seen = await ratios_watch(page, 8, trace);
     return seen.filter(v => v.dpr !== 1).slice(0, 1).map(v => `×${v.dpr} at ${v.s} s on a screen at 100%`);
+}
+
+// Emulation changes the screen's ratio without telling the page's media queries, as a real screen does on its own; a
+// change of the emulated colour gamut, which the game does not read, makes the browser tell them
+async function check_moved(page, trace)
+{
+    const out = [];
+    await scene_open(page, '');
+    const client = await page.context().newCDPSession(page);
+    const turns = [
+        {ratio: 1, gamut: 'p3', dpr: 1},
+        {ratio: screen_ratio, gamut: 'srgb', dpr: 1.7},
+    ];
+    for (const turn of turns) {
+        trace.lines.push(`| a screen at ${turn.ratio*100}%:`);
+        await client.send('Emulation.setDeviceMetricsOverride', {...viewport, deviceScaleFactor: turn.ratio, mobile: false});
+        await client.send('Emulation.setEmulatedMedia', {features: [{name: 'color-gamut', value: turn.gamut}]});
+        const seen = await ratios_watch(page, 3, trace);
+        const state = await page.evaluate(() => window.dev_resolution.state());
+        const want = [Math.round(viewport.width*turn.dpr), Math.round(viewport.height*turn.dpr)];
+        if (seen.some(v => v.dpr !== turn.dpr) || (state.canvas.join('x') !== want.join('x'))) {
+            out.push(`moved to a screen at ${turn.ratio*100}%: ${seen.map(v => `×${v.dpr}`).join(', ')}, canvas ${state.canvas.join(' × ')}; want ×${turn.dpr}, ${want.join(' × ')}`);
+        }
+    }
+    return out;
 }
 
 async function scene_open(page, query)

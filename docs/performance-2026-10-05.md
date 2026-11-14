@@ -375,6 +375,12 @@ pixels at the cap of ×1.7. The canvas's pixel ratio now follows the frames
   under 1, and no step within 6% of the screen's ratio (×1.25: 1.25, 1.15,
   1). A screen at 100% has nothing to step to. At the author's window:
   3.5, 2.7, 2.1, 1.6 and 1.2 million pixels.
+- **A new screen ratio** starts the steps from its own, with the window's
+  size kept too (2026-11-10): a window dragged to a screen of another scaling
+  sends no resize event, so the page listens to a media query on the ratio in
+  use (`resize_ratio_watch` in `src/js/helpers.js`). Before, the picture stayed
+  at ×1 on a 200% screen, or filled 2.9 times the pixels at ×1.7 on a 100%
+  one, until the window was resized.
 - **What is measured.** Each frame of flight: the time since the last frame
   and the game's own work in it (`work_ms`). Not in the menus, the station,
   pause or the settings, nor with the tab hidden; after any of those, a
@@ -441,6 +447,7 @@ waits 30 ms whatever the size. `bin/resolution-check` flies Nova Forge in an
 | futile | `&stall=30`: 1.7 → 1.5 → 1.3 → 1.15 → 1, no faster, back to ×1.7 at 14–15 s and held |
 | descent | `&slow=20`: down to ×1.3 and held; the cost raised to 150: on to ×1 in 4 s and held there, at 55 ms a frame where ×1.7 takes 150 |
 | screen1 | a screen at 100%: ×1, nothing stepped |
+| moved | the screen's ratio changed by emulation, the window's size kept: 200% → 100%, ×1 and a canvas of 800 × 450 within a second; back to 200%, ×1.7 and 1360 × 765 |
 
 The check runs in real time: on a machine busy with other work the headless
 browser itself falls under 50 fps, and steady fails; run it again alone.
