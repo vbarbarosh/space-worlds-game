@@ -9,10 +9,10 @@ A thing in space is either solid or background, and you can tell which at a
 glance.
 
 - **Solid:** asteroids and ore rocks, Dustfall's cliffs and their rubble (arcade),
-  Verdant's brood nests (arcade), Obsidian's magnetic spires, drifting debris and wrecks, built outposts and platforms, the convoy's
-  freighter, every hull (yours and the raiders'). Shots stop on them, and ships
-  collide with them: a hit pushes the ship off, and above cruising speed it
-  costs hull.
+  Verdant's brood nests (arcade), Obsidian's magnetic spires, drifting debris
+  and wrecks, the convoy's freighter, every hull (yours and the raiders').
+  Shots stop on them, and ships collide with them: a hit pushes the ship off,
+  and above cruising speed it costs hull.
 - **Background:** scenery rocks, wrecks and satellites drawn dim (8%) behind the
   world. Shots and ships pass through them, and they never look like the solid
   things. The same drawings far off (`src/js/sky_far.js`) are smaller than any
@@ -134,13 +134,9 @@ shows a health bar (its armour or energy, and how much is left as it is hit).
     `src/js/expedition.js`), but they have no bar. Raiders and raiders' shots
     pass through them: they are not among the solid bodies of
     `src/js/bodies.js`.
-  - **Outposts and defense platforms** (campaign): solid, a bar always shown.
-    Raiders' shots and rams damage them; your own shots pass through.
   - **The convoy's freighter** (campaign): solid, 300 hull, shown as a label
     ("FREIGHTER · n hull"), not a bar. Raiders damage it; your shots pass
     through.
-  - **The transport line's ship** (campaign): a bar always shown; raiders
-    damage it; it is not solid, and your shots pass through.
   - **The survey robot** (campaign): a bar always shown; raiders damage it.
   - **A ring race's rivals** (campaign and the Races mode): solid (they
     bounce off rocks and bump you and each other), raiders' shots and rams
@@ -154,8 +150,8 @@ shows a health bar (its armour or energy, and how much is left as it is hit).
 - Where it lives: `src/js/update.js` (your shots against raiders, rocks and
   drifting debris), `src/js/deposits.js` (a campaign rock's reserve and its
   cutting), `src/js/surfaces.js` (raiders' and rocks' bars),
-  `src/js/structures.js`, `src/js/transports.js`, `src/js/survey.js` (their
-  bars and damage), `update_escort` in `src/js/operations.js`.
+  `src/js/survey.js` (the robot's bar and damage), `update_escort` in
+  `src/js/operations.js`.
 
 ## Every action is a button that shows its key
 
@@ -163,7 +159,7 @@ A key is a shortcut, never the only way. Whatever a key does, a button on the
 screen does too, and the button shows the key.
 
 - The HUD has a button for each flight key: R dock or jump, J map, Q E F
-  supplies, H drones, K build, G formation, B brake, Space pulse, Shift turbo.
+  supplies, G formation, B brake, Space pulse, Shift turbo.
 - A button made in code takes its key as a chip: `ui_button({label, key})` in
   `src/js/ui.js`, e.g. Collect reward [C] on a station contract.
 - The pause screen lists every key with what it does.
@@ -263,7 +259,7 @@ place to fall back to.
 
 - Within `station_shelter` (the station's half size plus 400 m): no radiation,
   no new patrols while you are inside, no mining fields, and raiders are
-  pushed out. A defense platform stands at least 200 m beyond it.
+  pushed out.
 - Docking repairs the hull, restores the shield, refills the turbo, clears
   the radiation dose and saves the flight (`dock_station` in
   `src/js/station.js`).
@@ -273,8 +269,7 @@ place to fall back to.
 - The arcade has no shelter. Its depot raises a shield while raiders are near
   and opens only once they are cleared (`src/js/depot_shield.js`).
 - Where it lives: `station_shelter` in `src/js/worlds.js`; its uses in
-  `src/js/navigation.js`, `src/js/expedition.js`, `src/js/mining.js`,
-  `src/js/structures.js`.
+  `src/js/navigation.js`, `src/js/expedition.js`, `src/js/mining.js`.
 
 ## One scene, one camera
 
