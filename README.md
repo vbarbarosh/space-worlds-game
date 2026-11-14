@@ -138,9 +138,9 @@ Three modes ([docs/modes.md](docs/modes.md) has each in detail):
                      minutes): the canvas's pixel ratio holds when frames
                      keep up, steps down under a stand-in for a slow
                      graphics card and holds where they keep up, comes back
-                     in a new world; Sharp, a forced ratio, a page held to
-                     30 fps, a fight after a light scene, a page at 3 fps,
-                     a screen of another ratio; exit 1 on a failure
+                     in a new run; Sharp, a forced ratio, a page held to 30
+                     fps, a fight after a light scene, a page at 3 fps, a
+                     screen of another ratio; exit 1 on a failure
 
 The main menu's top right corner holds a developers' panel, **Try a world** (src/js/arcade_trial.js): a click on a
 planet starts an arcade run straight in that world, of the kind and level the Arcade row has, at its step, with the

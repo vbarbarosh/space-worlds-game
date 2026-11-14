@@ -415,7 +415,7 @@ pixels at the cap of ×1.7. The canvas's pixel ratio now follows the frames
 - **No gain, no steps.** At ×1 and still behind, and not a tenth faster than
   where the steps began, the pixels are not what is slow (a browser holding
   the page to 30 fps on battery, a 30 Hz screen): the ratio goes back to where
-  it began and stays there until a new world.
+  it began and stays there until a new run.
   Each descent is judged by the scene it is made in (2026-11-10): a ratio
   that held, the last 5 s not behind, ends it; a step whose last half second
   ran slower by a quarter than its 2 s (the scene grew heavy at once, and the
@@ -446,7 +446,7 @@ waits 30 ms whatever the size. `bin/resolution-check` flies Nova Forge in an
 | Check | What happened |
 |---|---|
 | steady | nothing slow: ×1.7 for 20 s at 60 fps |
-| slow | `&slow=20`: ×1.7 → 1.5 at 3 s → 1.3 at 6 s, then held at 60 fps; the cost taken away, ×1.3 kept (the ×1.5 that fell behind waits 3 minutes); in a new world back to 1.5 at 7 s and 1.7 at 13 s. Each step drew its own frame on the new canvas and kept the stars; the play log's record holds the ratio |
+| slow | `&slow=20`: ×1.7 → 1.5 at 3 s → 1.3 at 6 s, then held at 60 fps; the cost taken away, ×1.3 kept (the ×1.5 that fell behind waits 3 minutes), and kept in a new world; in a new run back to 1.5 at 1 s and 1.7 at 7 s. Each step drew its own frame on the new canvas and kept the stars; the play log's record holds the ratio |
 | sharp | Settings → Resolution → Sharp: ×1.7 at once, kept under `&slow`, and after a reload |
 | forced | `&dpr=1.3`: the canvas 1040 × 585 however slow |
 | futile | `&stall=30`: 1.7 → 1.5 → 1.3 → 1.15 → 1, no faster, back to ×1.7 at 14–15 s and held |
