@@ -52,6 +52,10 @@ const screens = [
     {value: 'arcade-world-cleared', label: 'arcade-world-cleared-scroll', query: '&t=7&kind=scroll', phone: true},
     {value: 'arcade-world-cleared', label: 'arcade-world-cleared-scroll-long', query: '&t=7&kind=scroll&long=1', phone: true},
     {value: 'arcade-world-cleared', label: 'arcade-world-cleared-long', query: '&t=7&long=1', phone: true},
+    // Dustfall's task on the cleared screen's line (src/js/arcade_juggernauts.js): three buried; &long=1 four, the
+    // line at its longest, and the flagship away
+    {value: 'arcade-world-cleared', label: 'arcade-world-cleared-juggernauts', world: 'dustfall', query: '&t=7', phone: true},
+    {value: 'arcade-world-cleared', label: 'arcade-world-cleared-juggernauts-long', world: 'dustfall', query: '&t=7&long=1', phone: true},
     {value: 'arcade', label: 'hud-arcade-rival', query: '&rival=behind', phone: true},
     {value: 'arcade-cleared', label: 'arcade-cleared'},
     // the depot before the next world (src/js/arcade_power.js): nothing installed, the reactor's power empty; a gunship's

@@ -382,8 +382,8 @@ function juggernaut_stunned(rock)
     sfx('impact', 1, ship);
 }
 
-// Its plating answers the shots it took since the last frame: sparks off its rim on your side, and now and then a
-// word, so a pilot sees the guns are not the way
+// Its plating answers the shots it took since the last frame: sparks off its rim on your side, and now and then, in
+// the open, a word, so a pilot sees the guns are not the way
 function juggernaut_answer()
 {
     const s = juggernaut_run;
@@ -398,7 +398,8 @@ function juggernaut_answer()
         s.spark_at = time;
         burst(ship.x + Math.cos(a)*ship.r, ship.y + Math.sin(a)*ship.r, juggernaut_colors.light, 4, 140);
     }
-    if (time - s.word_at >= juggernaut_word_gap) {
+    // no word while it is under a cliff: there the pilot is at the right thing
+    if ((time - s.word_at >= juggernaut_word_gap) && !cliffs.some(v => (v.rock.hp > 0) && cliff_zone_has(v, ship, 0))) {
         s.word_at = time;
         label(ship.x, ship.y - ship.r*3.3, 'PLATING HOLDS', juggernaut_colors.light);
         sfx('hit', 0.5, ship);
@@ -429,7 +430,8 @@ function juggernaut_down()
     s.buried++;
     const points = juggernaut_points*combo;
     score += points;
-    label(ship.x, ship.y - 34, `BURIED · +${points}`, gold);
+    // over the kill's own number and the blasts of the fall
+    label(ship.x, ship.y - ship.r*3.6, `BURIED · +${points}`, gold);
     ring(ship.x, ship.y, juggernaut_colors.glow, 300, 0.7);
     burst(ship.x, ship.y, juggernaut_colors.light, 50, 360);
     shake = Math.max(shake, 24);
@@ -503,8 +505,8 @@ function juggernauts_share()
 }
 
 // What the card says (arcade_tasks): the juggernauts buried so far, with the way to the nearest cliff still standing;
-// the juggernaut under a cliff, to shoot the crack; with no cliff left, the way to the juggernaut; down, its escort
-// left; in the breather, what comes next; the flagship's wave is the flagship's
+// the juggernaut under a cliff, to shoot the crack, or to get clear of the zone first; with no cliff left, the way
+// to the juggernaut; down, its escort left; in the breather, what comes next; the flagship's wave is the flagship's
 function juggernauts_card()
 {
     if ((arcade.wave < 1) || (arcade.wave >= arcade_free_waves)) {
@@ -522,7 +524,9 @@ function juggernauts_card()
     }
     const under = juggernaut_cliffs_live().find(v => cliff_zone_has(v, ship, 0));
     if (under) {
-        return {title: 'It is under a cliff: shoot the crack', target: under.rock, eta: 'the crack'};
+        // the guns never fell a cliff whose zone you are in (cliff_target): the card says so
+        const you = cliff_zone_has(under, player, player.r + cliff_aim_margin);
+        return {title: you ? 'It is under a cliff: stand clear of it' : 'It is under a cliff: shoot the crack', target: under.rock, eta: you ? 'out of its zone' : 'the crack'};
     }
     const cliff = juggernaut_cliff_nearest();
     if (!cliff) {
