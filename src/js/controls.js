@@ -47,7 +47,7 @@ function base_finish(won)
         clear_checkpoint();
     }
     else if (checkpoint) {
-        menu_continue_sector(checkpoint.wave);
+        checkpoint_wreck();
     }
     set_hidden(document.getElementById('retry_sector'), won || !checkpoint);
     set_hidden(el.result_overlay, false);

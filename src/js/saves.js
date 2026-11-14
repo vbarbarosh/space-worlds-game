@@ -149,7 +149,7 @@ function load_kept()
     saves_return = null;
     set_pause_icon(false);
     arcade_stop();
-    reset_run(true);
+    campaign_resume();
     show_toast('GAME LOADED', `THE EARLIER CAMPAIGN · ${v.world.toUpperCase()}`, 2);
     sync_load_button();
 }
@@ -390,7 +390,7 @@ function load_from_slot(i)
     saves_return = null;
     set_pause_icon(false);
     arcade_stop();
-    reset_run(true);
+    campaign_resume();
     show_toast('GAME LOADED', `SLOT ${i + 1} · ${v.world.toUpperCase()}${(kept === 'kept') ? ' · THE GAME BEFORE IS KEPT IN SAVED GAMES' : ''}`, (kept === 'kept') ? 3.5 : 2);
     if (kept === 'refused') {
         saves_kept_refused_say();

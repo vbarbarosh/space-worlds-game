@@ -205,7 +205,7 @@ function menu_start(mode, world = 0)
 {
     set_pause_icon(false);
     if (mode === 'continue') {
-        reset_run(true);
+        campaign_resume();
     }
     else if (mode === 'campaign') {
         arcade_stop();
@@ -236,26 +236,19 @@ function menu_campaign_new()
     }
 }
 
-// The game to continue: its card, its scene's line, and the art of its world and ship
-function menu_continue_show(c)
+// The game to continue: its card, its scene's line, and the art of its world and ship. wrecked: the ship was lost
+// (checkpoint_wreck), and the line says what Continue then does
+function menu_continue_show(c, wrecked = false)
 {
     const ship = ship_catalog.find(v => v.id === c.fleet?.ship_id) || ship_catalog[0];
     set_hidden(el.continue_row, false);
     document.getElementById('continue_name').textContent = 'Continue campaign';
     document.getElementById('continue_detail').textContent = `${worlds[c.world].name} · ${ship.name} · ${c.visited?.length || 1}/${worlds.length} worlds`;
     document.getElementById('continue_title').textContent = `Back to ${worlds[c.world].name}`;
-    document.getElementById('continue_line').textContent = `Your ${ship.name} is waiting in orbit. Story ${c.story || 0}/${story.length}.`;
+    document.getElementById('continue_line').textContent = wrecked
+        ? `Your ${ship.name} was lost. A tug brings the wreck to ${worlds[c.world].station} for a tenth of your salvage; the cargo aboard is gone.`
+        : `Your ${ship.name} is waiting in orbit. Story ${c.story || 0}/${story.length}.`;
     menu_art_sync(c.world, ship.id);
-}
-
-// An arcade run lost with a checkpoint: Continue retries its sector
-function menu_continue_sector(wave)
-{
-    set_hidden(el.continue_row, false);
-    document.getElementById('continue_name').textContent = 'Continue arcade';
-    document.getElementById('continue_detail').textContent = `Arcade · sector ${String(wave).padStart(2, '0')}`;
-    document.getElementById('continue_title').textContent = 'Back to the arcade';
-    document.getElementById('continue_line').textContent = 'Retry from the start of the sector.';
 }
 
 // A save in flight only names the art; the menu draws it when it shows, and again only when the world or ship changed

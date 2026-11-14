@@ -75,7 +75,7 @@ function load_checkpoint()
         const v = checkpoint_without_gone(JSON.parse(localStorage.getItem('pulse_drift_frontier_v4')));
         if (valid_checkpoint(v)) {
             checkpoint = v;
-            menu_continue_show(v.campaign);
+            menu_continue_show(v.campaign, !!v.wrecked);
         }
     }
     catch {
@@ -326,21 +326,40 @@ document.getElementById('retry_sector').addEventListener('click', function () {
     if (!checkpoint) {
         return;
     }
-    const towed = (state === 'dead') && !arcade.active;
-    // the autosave is up to 15 s old: a flagship keeps the damage dealt it since (boss_hp, src/js/navigation.js)
-    if (towed) {
-        for (const saved of checkpoint.campaign.contracts) {
-            const live = campaign.contracts.find(v => v.id === saved.id);
-            if (live && (live.boss_hp > 0) && (live.stage_index === saved.stage_index)) {
-                saved.boss_hp = live.boss_hp;
-            }
+    campaign_resume();
+});
+
+// A campaign death (base_finish): the autosave, up to 15 s old, is marked wrecked and stored so, with the damage dealt
+// a flagship since (boss_hp, src/js/navigation.js). Whatever resumes it then, the result's button, Continue on the
+// menu, now or after the page was closed, has the tug bring the wreck in (campaign_resume): going through the menu
+// skips neither the tow's fee nor the lost cargo.
+function checkpoint_wreck()
+{
+    for (const saved of checkpoint.campaign.contracts) {
+        const live = campaign.contracts.find(v => v.id === saved.id);
+        if (live && (live.boss_hp > 0) && (live.stage_index === saved.stage_index)) {
+            saved.boss_hp = live.boss_hp;
         }
     }
+    checkpoint.wrecked = true;
+    try {
+        storage_set('pulse_drift_frontier_v4', JSON.stringify(checkpoint));
+    }
+    catch {
+    }
+    menu_continue_show(checkpoint.campaign, true);
+}
+
+// The campaign resumed from its autosave; one marked wrecked is towed to its station first. Docking there writes the
+// autosave anew, without the mark
+function campaign_resume()
+{
+    const towed = !!checkpoint?.wrecked;
     reset_run(true);
     if (towed) {
         tow_to_station();
     }
-});
+}
 
 // A campaign death: a tug brings the wreck to the world's station, docked and repaired. The tow takes a share of the
 // salvage, and the cargo aboard is lost; contracts keep their progress. (Resuming at the last autosave could leave the

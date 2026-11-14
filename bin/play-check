@@ -658,6 +658,33 @@ const cases = [
         },
     },
     {
+        name: 'death-then-menu',
+        about: 'after a campaign death Continue on the menu tows as the result\'s button does, also after a load of the page; the tow is paid once',
+        page: 'index',
+        run: async function ({page, t, open}) {
+            const out = [];
+            await t('menu_start(\'campaign\'); undock(); salvage = 5000; campaign.cargo.ore = 20; save_checkpoint(); finish(false)');
+            const card = await page.evaluate(() => `${document.getElementById('continue_name').textContent}|${document.getElementById('continue_line').textContent}`);
+            if (!card.startsWith('Continue campaign|') || !card.includes('tug')) {
+                out.push(`the menu's card after a campaign death: "${card.slice(0, 90)}" (Continue campaign, and the tug)`);
+            }
+            // the page closed and opened again, then Continue
+            await open('index');
+            await t('menu_start(\'continue\')');
+            const towed = await t('({state, salvage, ore: campaign.cargo.ore, wrecked: !!checkpoint?.wrecked})');
+            if ((towed.state !== 'upgrade') || (towed.salvage !== 4500) || (towed.ore !== 0) || towed.wrecked) {
+                out.push(`Continue after a death and a load of the page: ${JSON.stringify(towed)} (docked, salvage 4500 after the tow, no cargo, the mark gone)`);
+            }
+            // out to the menu and Continue again: no second tow
+            await t('menu_open(); menu_start(\'continue\')');
+            const again = await t('salvage');
+            if (again !== 4500) {
+                out.push(`a second Continue: salvage ${again} (4500, the tow is paid once)`);
+            }
+            return out;
+        },
+    },
+    {
         name: 'arcade-rocks',
         about: 'the arcade\'s rocks as they were: shots break one by its hull, it drops salvage, a push wave moves them',
         page: 'index',
