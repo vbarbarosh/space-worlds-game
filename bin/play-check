@@ -585,6 +585,37 @@ const cases = [
         },
     },
     {
+        name: 'slot-refused',
+        about: 'a slot, and a campaign to keep, that the browser does not store: said in the news and in the panel, not passed over',
+        page: 'index',
+        run: async function ({page, t}) {
+            const out = [];
+            const news = '[hud_news.shown, ...hud_news.queue].filter(Boolean).map(v => v.title)';
+            await t('menu_start(\'campaign\'); undock(); run_time = 300; save_checkpoint()');
+            // the browser refuses the slots' key and the kept campaign's from here on
+            await page.evaluate(function () {
+                const set = Storage.prototype.setItem;
+                Storage.prototype.setItem = function (key, value) {
+                    if ((key === 'pulse_drift_saves_v1') || (key === 'pulse_drift_kept_v1')) {
+                        throw new DOMException('The quota has been exceeded.', 'QuotaExceededError');
+                    }
+                    return set.call(this, key, value);
+                };
+            });
+            await t('toggle_pause(); saves_open(\'pause\'); save_to_slot(0)');
+            const saved = await t(`({news: ${news}, note: document.getElementById('saves_note').textContent, row: document.querySelector('#save_slots .slot b').textContent})`);
+            if (!saved.news.includes('Not saved') || !saved.note.includes('Slot 1 was not saved') || (saved.row !== 'Empty')) {
+                out.push(`Save here refused by the browser: the news ${JSON.stringify(saved.news)} (Not saved), the panel's note "${saved.note.slice(0, 50)}", the row "${saved.row}" (Empty)`);
+            }
+            await t('saves_close(); toggle_pause(); menu_open(); menu_start(\'campaign\')');
+            const kept = await t(`({news: ${news}, kept: !!saves_kept_read()})`);
+            if (!kept.news.includes('Earlier campaign not kept') || kept.kept) {
+                out.push(`New campaign with the kept campaign refused: the news ${JSON.stringify(kept.news)} (Earlier campaign not kept), a kept campaign ${kept.kept}`);
+            }
+            return out;
+        },
+    },
+    {
         name: 'arcade-rocks',
         about: 'the arcade\'s rocks as they were: shots break one by its hull, it drops salvage, a push wave moves them',
         page: 'index',

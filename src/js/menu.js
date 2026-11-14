@@ -228,8 +228,11 @@ function menu_campaign_new()
 {
     const kept = saves_keep_replaced();
     reset_run();
-    if (kept) {
+    if (kept === 'kept') {
         show_toast('EARLIER CAMPAIGN KEPT', 'LOAD IT FROM SAVED GAMES · F5', 3.5, 'info');
+    }
+    else if (kept === 'refused') {
+        saves_kept_refused_say();
     }
 }
 

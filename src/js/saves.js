@@ -84,23 +84,31 @@ function saves_kept_takes(v, kept)
 }
 
 // Before another game takes the place of the campaign to continue (a new campaign, a slot's Load, F9): that one
-// becomes the kept campaign. True when it was kept. running: it is the game in flight, kept as it is now and not as
-// its last autosave left it; false where the game in flight is not the campaign (an arcade run and a race fly over
-// it, and it waits as it was saved).
+// becomes the kept campaign. Says how it went: 'kept'; 'nothing' where there was none to keep; 'refused' where the
+// browser did not store it, and then the news says so, for the campaign is about to be replaced all the same.
+// running: it is the game in flight, kept as it is now and not as its last autosave left it; false where the game in
+// flight is not the campaign (an arcade run and a race fly over it, and it waits as it was saved).
 function saves_keep_replaced(running = true)
 {
     if (race_mode.active) {
-        return false;
+        return 'nothing';
     }
     if (running && !arcade.active && ['playing', 'paused'].includes(state)) {
         save_checkpoint();
     }
     if (!saves_kept_takes(checkpoint, saves_kept_read())) {
-        return false;
+        return 'nothing';
     }
-    const out = saves_kept_write(JSON.parse(JSON.stringify(checkpoint)));
+    const stored = saves_kept_write(JSON.parse(JSON.stringify(checkpoint)));
     sync_load_button();
-    return out;
+    return stored ? 'kept' : 'refused';
+}
+
+// The news line for a campaign the browser did not let be kept (saves_keep_replaced): called once the game that
+// took its place is on the screen
+function saves_kept_refused_say()
+{
+    show_toast('EARLIER CAMPAIGN NOT KEPT', 'THE BROWSER DID NOT STORE IT', 3.5, 'danger');
 }
 
 // The kept campaign resumed as a slot is; the game it takes the place of becomes the kept one, so the two change
@@ -309,11 +317,19 @@ function save_to_slot(i)
             checkpoint: JSON.parse(JSON.stringify(checkpoint)),
         };
     }
-    if (saves_write(slots)) {
+    const stored = saves_write(slots);
+    if (stored) {
         show_toast('GAME SAVED', `SLOT ${i + 1} · ${worlds[campaign.world].name.toUpperCase()}`, 2);
+    }
+    else {
+        show_toast('NOT SAVED', `THE BROWSER DID NOT STORE SLOT ${i + 1}`, 3.5, 'danger');
     }
     sync_load_button();
     saves_render();
+    // said in the panel too, where the eyes are; the row shows what storage holds, the slot as it was
+    if (!stored) {
+        document.getElementById('saves_note').textContent = `Slot ${i + 1} was not saved: the browser did not store it.`;
+    }
 }
 
 // The game in slot i, resumed as CONTINUE resumes the autosave, which it now also is
@@ -350,5 +366,8 @@ function load_from_slot(i)
     set_pause_icon(false);
     arcade_stop();
     reset_run(true);
-    show_toast('GAME LOADED', `SLOT ${i + 1} · ${v.world.toUpperCase()}${kept ? ' · THE GAME BEFORE IS KEPT IN SAVED GAMES' : ''}`, kept ? 3.5 : 2);
+    show_toast('GAME LOADED', `SLOT ${i + 1} · ${v.world.toUpperCase()}${(kept === 'kept') ? ' · THE GAME BEFORE IS KEPT IN SAVED GAMES' : ''}`, (kept === 'kept') ? 3.5 : 2);
+    if (kept === 'refused') {
+        saves_kept_refused_say();
+    }
 }
