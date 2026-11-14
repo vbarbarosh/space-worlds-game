@@ -19,8 +19,8 @@ set): **Classic**, everything this page describes below as it stands, and
 **New**, the default, which plays a remade take of every effect, sounds for
 moments that had none, and a background of its own for each world. The new
 set is described in [The new set](#the-new-set); where it has nothing of its
-own (the engine, the space hum, the reactor's tone, the music) it plays what
-the classic set plays. `bin/sound-render --set=classic` or `--set=new`
+own (the space hum, the reactor's tone) it plays what the classic set plays.
+The music has two sets of its own, chosen beside it (Music set). `bin/sound-render --set=classic` or `--set=new`
 records either, and the Sounds tab has a button for each set beside every
 sound.
 
@@ -233,8 +233,9 @@ all of it, a stream of shots a fifth), and the lows are kept out of the
 room, so a thud stays tight and only the body and the air of a sound ring
 on.
 
-**Variation.** Shots take turns between two or three bolts (`k.turn`), most
-sounds are a little off in pitch each time, and a run of pickups inside
+**Variation.** Shots take turns between two or three bolts (`k.turn`), a
+raider's end and a ship's blast between three each, most sounds are a little
+off in pitch each time, and a run of pickups inside
 1.3 s climbs a step of a scale with each one (`streak`), as the combo's tick
 does with the combo.
 
