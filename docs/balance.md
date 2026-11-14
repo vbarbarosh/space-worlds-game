@@ -1282,8 +1282,8 @@ Thorn Swarm · then its flagship.
 | nests | 5, one a wave before the flagship's, 62 to 76 m in radius, the same every visit (their own seed) | `brood_nest_count`, `brood_nest_size` |
 | where | one in each fifth of the valley from 30% to 94% of its length, either bank in turn; 2 km from the station, 1.2 km apart, 600 m inside the edge, 500 m past every range, 150 m clear of rocks ([placement.md](placement.md#round-them)) | `brood_nest_out`, `brood_nest_apart`, `brood_nest_edge`, `brood_nest_ring`, `brood_nest_room` |
 | hull | 16 s of the whole kit's fire as the world begins (every mount, every bolt of a volley) × the mode's raider hull (1, 1.5, 1.8) × a card's raider hull; by the kit, not the run's step | `brood_nest_burn`, `brood_nest_hull_now` |
-| a wave's share to hatch | 1.25 × the wave's raiders; the rest stays in the nest if it burns sooner | `brood_nest_share` |
-| hatching | a build-up's squadrons come out of the nest hurt in the last 6 s, else the nearest, one squadron in 4 s at most; a nest over 2.4 km away 2 raiders in 8 s | `brood_nest_hold`, `brood_nest_hatch_gap`, `brood_nest_far`, `brood_nest_trickle` |
+| a wave's share to hatch | 1.75 × the wave's raiders; the rest stays in the nest if it burns sooner | `brood_nest_share` |
+| hatching | a build-up's squadrons come out of the nest hurt in the last 6 s, else the nearest, one squadron in 4 s at most, in 1.5 s once no raider is within 900 m of you; a nest over 2.4 km away 2 raiders in 8 s | `brood_nest_hold`, `brood_nest_hatch_gap`, `brood_nest_hatch_gap_clear`, `brood_nest_far`, `brood_nest_trickle` |
 | hunters | no nest hurt for 45 s of a build-up: 2 elite interceptors out of the nearest nest, then a pack every 25 s, one more each time up to 5; they drop nothing | `brood_nest_away`, `brood_nest_away_gap`, `brood_nest_hunters` |
 | the burst | a blast of 110 m (its front to 198 m), 60 to a raider at its middle, 30 × the mode's blast to you; 400 × the combo in score, 4 pieces of a rock's salvage | `brood_nest_blast`, `brood_nest_points`, `brood_nest_salvage` |
 | the brood | the wave's crest (the crest's share as in any wave), 0.45 s after the burst, scattered 60 to 260 m round the nest's rim, an elite leading as in any crest | `brood_nest_brood_delay`, `brood_nest_scatter` |
@@ -1308,8 +1308,43 @@ bot not being repeatable; Verdant's means):
 
 At 12 s a world was over in under four minutes. 16 s gives back most of
 it; 18 s adds 5 s a world and costs interest, so the hull stays at 16. The
-seconds with nobody near rose by a third; where in the world they fall is
-not measured yet.
+seconds with nobody near rose by a third.
+
+Where they fell (the bot's trace, each second placed in the task, 24 runs
+of the hull at 16 s): 47% at a nest whose wave still had raiders to hatch,
+two thirds of them with no raider alive anywhere until the next hatch, 4 s
+after the last; 8% at a nest whose share was out; 25% in the breather,
+most of it (19% of all) flying on to the next nest; 8% flying to the next
+nest in a build-up, 3% to the first; 2% in a brood, 7% in the flagship's
+wave.
+
+So a nest hatches again 1.5 s after the last once nobody is within 900 m
+of you, and its share is 1.75 × the wave's raiders, not 1.25. Measured as
+above, the landed nests against each change, in alternating batches:
+
+| | nests as landed | quicker hatches | and a share of 1.75 (kept) | quicker hatches, a trickle once the share is out |
+|---|---|---|---|---|
+| runs | 24 | 12 | 22 | 12 |
+| runs won | 22 | 12 | 20 | 12 |
+| deaths in the run (mean) | 0.50 | 0.58 | 0.73 | 0.58 |
+| minutes in Verdant | 4.74 (3.9 to 6.1) | 4.43 (4.1 to 5.0) | 4.90 (4.2 to 6.1) | 4.96 (4.3 to 5.7) |
+| deaths in Verdant | 0 | 0 | 0 | 0 |
+| raiders killed there | 468 | 486 | 621 | 584 |
+| hull lost (hull and shield) | 114 (333) | 105 (305) | 124 (391) | 140 (349) |
+| interest | 60 | 64 | 62 | 61 |
+| peaks in 5 minutes | 2.0 | 2.2 | 2.1 | 1.6 |
+| seconds with no raider within 900 m | 38% | 33% | 25% | 23% |
+| longest gap with nothing new | 53 s | 48 s | 61 s | 61 s |
+
+Quicker hatches alone ran the share out: 29% of the seconds at a nest came
+with nothing left to hatch, and the world got shorter. With the share at
+1.75 the bot kills a third more raiders and loses more hull and shield,
+wins as often and never dies in Verdant; the breather is now the emptiest
+part (36% of the empty seconds). A trickle once the share is out (2
+raiders a hatch) made the world as long but its interest lower. Every
+death of these runs came after Verdant: 12 in 24 runs as landed, all in
+Eclipse; 16 in 22 with the share at 1.75, 15 in Eclipse and 1 in Nova
+Forge; the landed nests' 32 runs of the round before had 0.75 a run.
 
 ## The arcade's pace
 
