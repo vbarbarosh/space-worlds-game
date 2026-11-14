@@ -153,5 +153,12 @@ start line on the five places along it (298 m from its middle).
   flies into a ring or a rock. *Checked*; placed by `brood_nests_generate`,
   `src/js/arcade_nests.js` (one in each fifth of the valley east of the
   depot, either bank in turn, the same every visit).
+- **Haven's haulers (arcade Free) fly round the harbour, not through it: 60 m
+  from every rock's rim and 250 m outside the reach the depot's shield
+  watches.** A hauler passing never closes the depot, and its string of
+  containers, which follows its trail, never drags through a rock. Not
+  checked by `bin/map-check`: the way is found as each hauler comes in
+  (`hauler_path`, `src/js/arcade_haulers.js`), over the rocks as they then
+  stand; the five ways measured pass 1.76 km or more from the station.
 - Storm and flare zones keep 200 m beyond their edge from a gate
   (`src/js/environment.js`).

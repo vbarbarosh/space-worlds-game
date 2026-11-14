@@ -28,6 +28,11 @@ glance.
   same way, in full colour with a dark outline and a cast shadow. Burnt, it
   leaves a husk drawn flat and dim with no outline, as the background is:
   nothing stops on it (`src/js/arcade_nests.js`).
+- A hauler and the containers it tows (Haven's task in the arcade) are
+  raiders, solid as any raider and hit by all that hits one, drawn in full
+  colour with a dark outline. A container has no hull of its own: what hits
+  it comes off the hauler's. The hauler flies a way found round the rocks,
+  its string on its trail (`src/js/arcade_haulers.js`).
 - **Fields** are neither: a black hole's pull, Ion Reach's storms, and its arc
   pylons and charge fields act on a ship inside a ring drawn round them, and
   ships and shots pass through them. A pylon is drawn as light (a glowing knot

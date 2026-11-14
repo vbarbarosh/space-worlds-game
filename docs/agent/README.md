@@ -144,7 +144,12 @@ shield the Thorn Beetle; the Sawtooth's blade turns your shots until it rams a
 rock; the Storm Wheel is hurt through the gaps of its turning shell; the
 Iron Stair at its one glowing weak point; the Frost Crystal while it glows;
 the Furnace's ring of fire closes in and burns outside; the Eclipse Eye's
-dome opens only while you are at the hole's edge. In the arcade the
+dome opens only while you are at the hole's edge. In Haven's Free world each
+of the first five waves brings a corsair hauler towing three containers to
+a gate: shooting it breaks the containers loose, and at its gate it jumps
+away with the rest. It and its containers are raiders on the radar, but
+the autopilot does not go after them: fly to the hauler yourself. In the
+arcade the
 autopilot flies for you: it keeps the nearest raider at gun range,
 sidesteps, collects pickups when the sky is clear, flies the flagship's
 fight when no raider is close and keeps away from gravity wells. Your guns

@@ -1299,6 +1299,67 @@ both sides, and a pull to fly against.
   20 s more, the shots of both sides drawn into spires), and in one Free run
   of six the flagship's duel ran 115 s against 41.
 
+## Haven's haulers
+
+Haven's task in the arcade's Free kind (`src/js/arcade_haulers.js`; none on
+a Scroll lane, none in the campaign): stop the Rim Corsairs' five haulers,
+each a wave, then the flagship. The world's arrival says it: Stop the
+haulers · 5 haulers of the Rim Corsairs, cargo in tow · then its flagship.
+
+| What | Value | Where |
+|---|---|---|
+| haulers | 5, one a wave before the flagship's, each towing 3 containers: 15 in the world | `hauler_count`, `hauler_boxes` |
+| their ways | in at the middle of a side (west, east, north, south, west), along the map's rim to the gate in the far corner, 5.5 to 6.1 km, the same every visit; found round every rock, 60 m from its rim, and 250 m outside the reach the depot's shield watches ([placement.md](placement.md#round-them)) | `hauler_routes`, `hauler_path`, `hauler_room`, `hauler_depot_room` |
+| speed | 90, 120 and 140 m/s on CHILL, NORMAL and OVERLOAD (your cruise is 285): at its gate in 61 to 68 s, 46 to 51 and 39 to 44 | `hauler_speeds` |
+| hull | 15 s of the whole kit's fire as its wave begins × the mode's raider hull (1, 1.5, 1.8) × a card's raider hull: 15, 22.5 and 27 s; by the kit, as a brood nest's | `hauler_burn`, `hauler_hull_now` |
+| the string | a container 72 m behind the hauler, the next two 62 m apart, on its trail; what hits a container comes off the hauler's hull, the most any one took in a frame (a blast over the string counts once) | `hauler_tow`, `hauler_boxes_follow` |
+| a container breaks off | at each third of the hull lost, the last with the hauler down: 3 pieces of salvage of 3 ◆ (2 more a step of the run), thrown 70 to 150 m your way; the hauler down with none lost, a repair too where the mode lets repairs drop | `hauler_box_pieces`, `hauler_piece_value`, `hauler_throw` |
+| its escort | the wave's squadrons, as the director calls them: while you are within 1.5 km of the hauler they come out 280 to 380 m ahead of it on its way; farther, they warp in round you as in any world | `hauler_escort_near`, `hauler_escort_place` |
+| at its gate | it jumps 90 m short of the ring with what it still tows, said 700 m before; no score, no salvage | `hauler_jump_at`, `hauler_warn_at`, `hauler_jump` |
+| the crest | 0.6 s after the hauler is down or gone: the wave's crest as in any wave, round you | `hauler_crest_delay` |
+| the world's end | 200 points a container saved, 2,000 more for all 15, said on the cleared screen's line | `hauler_points`, `hauler_points_all` |
+| events | a fleeing ace in waves 2 to 5; no convoy here, the prize wave's neither | `arcade_tasks`: `events` |
+
+Measured (`bin/playtest`'s bot, Free, Haven, the run's first world, cut as
+its second begins; before the haulers and with them in alternating batches
+of four seeds, the bot not being repeatable; means of a world). The bot
+goes for the hauler while one is out and circles it 150 to 260 m off; it
+does not use the turbo for the chase.
+
+| NORMAL | before | hull 27 s, 105 m/s | 22.5 s, 120 m/s | escort behind it | escort ahead (kept) |
+|---|---|---|---|---|---|
+| runs | 16 | 16 | 8 | 16 | 16 |
+| worlds cleared | 16 | 16 | 8 | 16 | 16 |
+| minutes in Haven | 5.2 | 5.7 | 5.3 | 5.5 | 5.5 |
+| deaths | 0 | 0 | 0 | 0 | 0 |
+| containers saved of 15 | | 13.6 | 13.1 | 13.1 | 13.0 (10 to 15) |
+| raiders down | 275 | 246 | 240 | 211 | 226 |
+| salvage at the depot | 944 | 1063 | 1072 | 1071 | 1079 |
+| interest | 70 | 64 | 69 | 63 | 66 |
+| seconds with no raider within 900 m | 20% | 28% | 17% | 21% | 19% |
+
+The first column of haulers counted no hauler as a raider near; the others
+count it. With a hull of 27 s a world took 5.7 minutes. An escort that came
+out beside the hauler on the pilot's side cost the bot 0.9 lives in an
+OVERLOAD Haven against 0.25 before (8 runs a side); behind the hauler, the
+raiders, slower than it, never reached a pilot who kept up, and the kills
+and the interest fell; ahead of it the chase flies into them. Interest
+stays 3 under the world before the haulers: the bot's fire goes into the
+hauler, and the measure counts raiders down, not containers.
+
+| the kept numbers | CHILL before | CHILL | OVERLOAD before | OVERLOAD | NORMAL, never chasing |
+|---|---|---|---|---|---|
+| runs | 8 | 8 | 8 | 8 | 8 |
+| worlds cleared | 8 | 8 | 8 | 8 | 8 |
+| minutes in Haven | 5.1 | 4.5 | 6.4 | 7.4 | 6.2 |
+| deaths | 0 | 0 | 0.25 | 0.38 | 0 |
+| containers saved of 15 | | 15 in every run | | 10.6 (7 to 13) | 2.5 (0 to 7) |
+| interest | 52 | 51 | 74 | 66 | 65 |
+
+A pilot who never goes for a hauler flies a world of 6.2 minutes: a wave
+lasts until its hauler is at its gate, 46 to 51 s on NORMAL against the 36
+of a build-up, with the raiders the director keeps in play as in any wave.
+
 ## Verdant's nests
 
 Verdant's task in the arcade's Free kind, the first world with one

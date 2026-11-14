@@ -32,8 +32,10 @@ Three modes ([docs/modes.md](docs/modes.md) has each in detail):
 - **Arcade**: one run through the eight worlds, about five minutes each:
   six waves of raiders, each building to a crest and a breather, something
   new from the third, the world's flagship in the last, each flagship a
-  fight of its own. A world may set a task of its own: in Verdant the
-  raiders hatch from five nests, and each nest burnt is a wave's crest.
+  fight of its own. A world may set a task of its own: in Haven each wave
+  is a corsair hauler towing cargo to a gate, to stop before it gets there;
+  in Verdant the raiders hatch from five nests, and each nest burnt is a
+  wave's crest.
   Salvage buys weapons, ships and modules at the depot between worlds, as
   many as the ship's reactor can power. Three lives, a score and a best; no
   stations or contracts. Two kinds: **Free**, the world open around you,
@@ -81,13 +83,13 @@ Three modes ([docs/modes.md](docs/modes.md) has each in detail):
                      world's calm theme with an ending, composed with the
                      game's own music and instruments (bin/world-music haven);
                      needs Playwright's Chromium and ffmpeg
-    bin/perf         frame times, garbage and drawing costs over 56 scenes
+    bin/perf         frame times, garbage and drawing costs over 58 scenes
                      (every world calm and in a fight, zoom 100% and 50%,
-                     the arcade from Dustfall on, Verdant's nests, Scroll
-                     lanes in Dustfall, Obsidian, Nova Forge and Eclipse, a
-                     ring race and drifting debris close by in Haven and
-                     Eclipse), at any window size, pixel ratio and
-                     difficulty; see
+                     the arcade from Dustfall on, Haven's haulers, Verdant's
+                     nests, Scroll lanes in Dustfall, Obsidian, Nova Forge
+                     and Eclipse, a ring race and drifting debris close by
+                     in Haven and Eclipse), at any window size, pixel ratio
+                     and difficulty; see
                      docs/performance-2026-10-05.md
     bin/playtest     a bot plays arcade runs on a virtual clock (about a
                      minute each) and counts per world and wave the hull
@@ -171,6 +173,8 @@ With Obsidian (`world=obsidian`, the same scenes), `&spire=near|pull|cover|bend`
 outside its field, inside it drawn in, behind it with three shooters held beyond it, or firing past it at a tank.
 In Verdant's Free world (`world=verdant&screen=arcade`) a wave past the first finds as many brood nests burnt as the
 waves before it, so `&wave=5` leaves the last nest standing.
+In Haven's Free world (`world=haven&screen=arcade`) a wave past the first counts the haulers before it as stopped,
+so `&wave=5` brings the fifth with 12 containers of 15 saved.
 `&screen=arcade-lost` shows a death on the world's last wave with two lives left, with Retry for that world
 (`&lives=1` the last one left), `arcade-over` the last life lost, the run over; `&long=1` gives either a very long
 world name and a huge score. With `&screen=arcade`, `&lives=n` sets the HUD's lives (0 to 3), the lost ones blinking;

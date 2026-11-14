@@ -38,6 +38,18 @@ contracts and get your ship ready before you head out to the harder worlds.
 - ![An interceptor](haven/raider-interceptor.jpg) **Interceptor.** In the arcade: it bursts faster than you cruise. Turbo away, or shoot it down.
 - ![An elite raider](haven/raider-elite.jpg) **Elite.** In the arcade, elites lead some squadrons. Haven's fire short fans of plasma.
 
+## The haulers
+
+In the arcade's Free runs Haven has a job for you from the first wave: the
+corsairs are towing the harbour's cargo away. Each wave a hauler comes in
+at one side of the map with three containers on a cable and runs for a
+gate in a far corner. It is slower than you: follow the arrow on the card
+and catch it. Each third of its hull you shoot away breaks a container
+loose, and its salvage flies your way. Bring the hauler down and the last
+container opens too. If it reaches its gate, it jumps away with whatever
+it still tows, and the wave goes on. The card counts the cargo you saved,
+out of 15, and the world's end pays for it.
+
 ## The flagship: the Crescent
 
 ![The Crescent, Haven's flagship](haven/flagship.jpg)

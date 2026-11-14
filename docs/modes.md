@@ -37,8 +37,27 @@ stand**), and a kill drops a repair kit, one in 20 s at most.
 ### A world's task
 
 Each world is to get a task of its own for its waves, one world at a time;
-a world with none flies the waves above. Verdant's is the first: **burn
-the nests**. Five brood nests of the Thorn Swarm stand down the valley, the
+a world with none flies the waves above. A Scroll lane has no task.
+
+Haven's is **stop the haulers**. The Rim Corsairs tow the harbour's cargo
+away. As each of the five waves begins, a corsair hauler comes in at one
+side of the map with three containers in tow and runs round the harbour
+for the gate in a far corner, slower than you cruise; the sides and the
+gates are the same every visit. The wave's squadrons are its escort: while
+you are near it they come out ahead of it, on its way, else they jump
+ahead to you. Shoot
+the hauler or its string: at each third of its hull a container breaks off
+and bursts into salvage, thrown your way, and with the hauler down the
+last one opens. A hauler that reaches its gate jumps away with what it
+still tows. Either way the wave's crest comes, its escort's last squadron,
+then the breather and the next hauler; after the fifth, the Crescent.
+Nothing fails: a pilot who never chases flies the world as it was. The
+card counts the cargo saved, of 15, and points to the hauler, the map
+marks it and its gate, an arrow at the screen's edge points to it while it
+is out of view, and the world's cleared screen pays for the cargo in
+score.
+
+Verdant's is **burn the nests**. Five brood nests of the Thorn Swarm stand down the valley, the
 same every visit, and the world's raiders hatch from them: through a
 build-up, out of the nest you are burning, else the nearest, the next
 brood soon after the last is down; a nest far off sends only a few. A nest
@@ -50,7 +69,7 @@ and one hurt in the breather starts its wave at once. The fifth burnt, the
 Thorn Beetle comes. A pilot who keeps away from the nests for 45 s is sent
 hunters. The card says how many nests are left and the way to the nearest,
 the map marks them, and an arrow at the screen's edge points to the nearest
-while none is in view. A Scroll lane has no task.
+while none is in view.
 
 ### The raiders
 
