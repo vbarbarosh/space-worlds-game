@@ -45,7 +45,8 @@ side of the map with three containers in tow and runs round the harbour
 for the gate in a far corner, slower than you cruise; the sides and the
 gates are the same every visit. The wave's squadrons are its escort: while
 you are near it they come out ahead of it, on its way, else they jump
-ahead to you. Shoot
+ahead to you, and raiders a chase leaves behind regroup ahead of the
+hauler. Shoot
 the hauler or its string: at each third of its hull a container breaks off
 and bursts into salvage, thrown your way, and with the hauler down the
 last one opens. A hauler that reaches its gate jumps away with what it

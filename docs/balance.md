@@ -1315,6 +1315,7 @@ haulers · 5 haulers of the Rim Corsairs, cargo in tow · then its flagship.
 | the string | a container 72 m behind the hauler, the next two 62 m apart, on its trail; what hits a container comes off the hauler's hull, the most any one took in a frame (a blast over the string counts once) | `hauler_tow`, `hauler_boxes_follow` |
 | a container breaks off | at each third of the hull lost, the last with the hauler down: 3 pieces of salvage of 3 ◆ (2 more a step of the run), thrown 70 to 150 m your way; the hauler down with none lost, a repair too where the mode lets repairs drop | `hauler_box_pieces`, `hauler_piece_value`, `hauler_throw` |
 | its escort | the wave's squadrons, as the director calls them: while you are within 1.5 km of the hauler they come out 280 to 380 m ahead of it on its way; farther, they warp in round you as in any world | `hauler_escort_near`, `hauler_escort_place` |
+| an escort left behind | while you are within 1.5 km of the hauler, with fewer raiders within 900 m of you or of it than the director wants for 3 s, those farther than that from both regroup: they jump ahead of the hauler, as its escort comes out | `hauler_regroup_after`, `hauler_regroup` |
 | at its gate | it jumps 90 m short of the ring with what it still tows, said 700 m before; no score, no salvage | `hauler_jump_at`, `hauler_warn_at`, `hauler_jump` |
 | the crest | 0.6 s after the hauler is down or gone: the wave's crest as in any wave, round you | `hauler_crest_delay` |
 | the world's end | 200 points a container saved, 2,000 more for all 15, said on the cleared screen's line | `hauler_points`, `hauler_points_all` |
@@ -1359,6 +1360,67 @@ hauler, and the measure counts raiders down, not containers.
 A pilot who never goes for a hauler flies a world of 6.2 minutes: a wave
 lasts until its hauler is at its gate, 46 to 51 s on NORMAL against the 36
 of a build-up, with the raiders the director keeps in play as in any wave.
+
+Where the seconds with nobody near fell (the bot's trace, each second
+placed in the task, 64 runs of the haulers as they landed, NORMAL): 30% of
+a Haven world's seconds had no raider within 900 m. Of those, 31% were the
+breather; 29% at the hauler, all but a hundredth of them with raiders
+alive out of reach; 23% on the way to a hauler, five sixths of them with
+raiders alive out of reach; 14% in a crest; 2% in the flagship's wave. A
+raider flies at 95 m/s where the hauler runs at 120, so a chase leaves its
+escort behind, and a raider out of reach still counts for the director:
+it had as many alive as it wanted, and fewer than that within reach, for
+16 s of a hauler's 35 s build-up, and a third of the gaps between two
+squadrons were 10 s or more.
+
+So raiders a chase leaves behind regroup ahead of the hauler. Measured as
+above, the landed haulers against each change, in alternating batches:
+
+| NORMAL | haulers as landed | left behind, they regroup (kept) | only as many as the director is short of | out of reach, they do not count for the director |
+|---|---|---|---|---|
+| runs | 64 | 48 | 16 | 16 |
+| worlds cleared | 64 | 48 | 16 | 16 |
+| deaths | 0 | 0 | 0 | 0 |
+| minutes in Haven | 5.41 | 5.20 | 5.15 | 5.75 |
+| seconds with no raider within 900 m | 30% | 22% | 24% | 21% |
+| of the seconds at the hauler | 26% | 5% | 7% | 12% |
+| of the seconds on the way to it | 32% | 30% | 29% | 12% |
+| the director held by raiders out of reach, s a wave | 16.3 | 8.4 | 9.2 | 8.5 |
+| gaps of 10 s or more between two squadrons | 34% | 13% | 18% | 7% |
+| raiders down | 217 | 272 | 249 | 281 |
+| hull lost (hull and shield) | 257 (495) | 315 (573) | | |
+| containers saved of 15 | 13.6 | 12.4 | 12.7 | 12.4 |
+| salvage at the depot | 1099 | 1039 | 1057 | 1015 |
+| interest | 66 | 65 | 64 | 65 |
+
+The regroup fills the chase: a second at the hauler with no raider near
+is one in twenty, where it was one in four, the bot shoots down a quarter
+more raiders and saves one container fewer, never dies, and the world is
+0.2 minutes shorter. The interest score does not move, and four samples of
+the landed haulers alone read 64, 67, 64 and 67: its parts go both ways,
+tension 0.32 to 0.39, peaks in five minutes 4.2 to 5.7, the longest lull
+25 s to 20, against a climax of 1.83 to 1.36, the flagship's wave standing
+out less over fuller waves. The first 32 of the kept rule's runs judged
+"left behind" from the ship alone; the last 16, from the hauler too (so a
+raider that has regrouped is not called again while the pilot is still
+1 km off), read the same: 5.11 minutes, 22% and 5%. Regrouping only as
+many as the director is short of did no better on any line but the cargo,
+so the simpler rule stays. With raiders out of reach not counted, new
+squadrons warp in round a pilot on the way to the hauler, but the seconds
+at the hauler stay emptier, the world is 0.3 minutes longer and pays less:
+dropped. What is still empty is the breather (44% of the empty seconds),
+meant as a rest, and the way to the next hauler (33%), which a raider at
+95 m/s cannot fill beside a ship at 285.
+
+| the kept rule | CHILL as landed | CHILL | OVERLOAD as landed | OVERLOAD |
+|---|---|---|---|---|
+| runs | 8 | 8 | 8 | 8 |
+| worlds cleared | 8 | 8 | 8 | 8 |
+| deaths | 0 | 0 | 0.25 | 0.25 |
+| minutes in Haven | 4.53 | 4.18 | 6.69 | 6.56 |
+| containers saved of 15 | 15 in every run | 15 in every run | 10.8 | 9.4 |
+| raiders down | 167 | 207 | 304 | 345 |
+| interest | 58 | 60 | 65 | 66 |
 
 ## Verdant's nests
 
