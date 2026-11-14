@@ -6,12 +6,13 @@ const fs = require('node:fs');
 const path = require('node:path');
 const {chromium} = require('playwright');
 
-const usage = `usage: bin/sound-render [--label=name] [--page=build/dev.html] [--set=new|classic] [part...]
+const usage = `usage: bin/sound-render [--label=name] [--page=build/dev.html] [--set=new|classic] [--music-set=new|classic] [part...]
 
     Records the game's own sound as it plays in Chromium (build/dev.html, or --page: a build kept from before a change),
     taken after the compressor and the limiter, into data/sound/<label>/ (default: now) as WebM files, and measures each
     with ffmpeg: its peak and mean level (dB), and each effect's length. report.json holds the numbers. --set plays the
     new sound set or the classic one (Settings, Sound set); without it, the page's own.
+    --music-set plays that music set (Settings, Music set); without it the page plays its default, the new one.
 
     parts (all by default):
         effects   every effect the set plays (src/js/sfx/, src/js/sfx_new/) alone, 2 s apart, at full volume, no music
@@ -68,7 +69,7 @@ async function main()
     const args = process.argv.slice(2);
     const options = Object.fromEntries(args.filter(v => v.startsWith('--')).map(v => v.replace(/^--/, '').split('=')));
     const names = args.filter(v => !v.startsWith('--'));
-    if (Object.keys(options).some(v => !['label', 'page', 'set'].includes(v)) || (options.set && !['new', 'classic'].includes(options.set)) || names.some(v => !parts.includes(v))) {
+    if (Object.keys(options).some(v => !['label', 'page', 'set'].includes(v)) || (options.set && !['new', 'classic'].includes(options.set)) || (('music-set' in options) && !['new', 'classic'].includes(options['music-set'])) || names.some(v => !parts.includes(v))) {
         console.log(usage);
         process.exit(2);
     }
@@ -80,7 +81,9 @@ async function main()
     const html = fs.readFileSync(options.page || path.join(__dirname, '..', 'build', 'dev.html'), 'utf8');
     const at = html.lastIndexOf('})();');
     const hooked = path.join(out_dir, 'dev-hooked.html');
-    fs.writeFileSync(hooked, `${html.slice(0, at)}window.__t = function (code) { return eval(code); };\n${html.slice(at)}`);
+    // a page from before the music sets has one music, and no set to choose
+    const music_set = options['music-set'] ? `if (typeof music_set !== 'undefined') { music_set = '${options['music-set']}'; }\n` : '';
+    fs.writeFileSync(hooked, `${html.slice(0, at)}window.__t = function (code) { return eval(code); };\n${music_set}${html.slice(at)}`);
     const browser = await chromium.launch({args: ['--autoplay-policy=no-user-gesture-required']});
     const report = {};
     try {
