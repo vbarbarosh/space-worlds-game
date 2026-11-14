@@ -69,7 +69,7 @@ async function main()
     const args = process.argv.slice(2);
     const options = Object.fromEntries(args.filter(v => v.startsWith('--')).map(v => v.replace(/^--/, '').split('=')));
     const names = args.filter(v => !v.startsWith('--'));
-    if (Object.keys(options).some(v => !['label', 'page', 'set'].includes(v)) || (options.set && !['new', 'classic'].includes(options.set)) || (('music-set' in options) && !['new', 'classic'].includes(options['music-set'])) || names.some(v => !parts.includes(v))) {
+    if (Object.keys(options).some(v => !['label', 'page', 'set', 'music-set'].includes(v)) || (options.set && !['new', 'classic'].includes(options.set)) || (('music-set' in options) && !['new', 'classic'].includes(options['music-set'])) || names.some(v => !parts.includes(v))) {
         console.log(usage);
         process.exit(2);
     }
