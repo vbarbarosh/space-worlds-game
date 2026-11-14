@@ -238,8 +238,7 @@ below). That gives, in the campaign at NORMAL:
   radiation, traction, braking, cooling, turbo and extra turbo seconds
   (`endurance`).
 - The Mule Prospector's shots cut ore rocks 2.5 times faster (`mining: 2.5`,
-  [Mining](#mining)), and its drone bay holds four drones, other ships two
-  (`drone_bay` in `src/js/drones.js`).
+  [Mining](#mining)).
 - All six ships deal ×1 damage today (`damage: 1`).
 - Shield: the ship's own + 25 per Shield capacitor level (`shield_max` in
   `src/js/helpers.js`). It recharges after 5 seconds unhit at
@@ -710,13 +709,15 @@ no repairs, and the first ship does not last five minutes of it).
 | Guns | 120 + 45 × rating, no rank; from the world that opens it | the price above, gated by rank and by the world that opens it; each more of a gun the same (the cannon 120) |
 | Gun tier | free, one per world cleared, up to the tier the next world opens: 2 in Dustfall, 3 Ion Reach, 4 Obsidian, 5 Nova Forge (`gun_tier_open`) | (130 + 22% of price) × tier × 1.5 |
 | Modules, supplies | the tables above; a module level from the world that opens it, and it works installed, within the reactor's power ([The arcade's power budget](#the-arcades-power-budget)) | the same, every level installed |
-| Builder drone, outposts, transport | none | see below |
 
-- Campaign extras: builder drone 150 (`builder_price`), mining outpost 120 and
-  6 ore, defense platform 160 and 4 ore (`structure_kinds` in
-  `src/js/structures.js`), transport line 350 (`transport_price` in
-  `src/js/transports.js`), a mining drone 45, drone tiers Hauler 220 and
-  Harvester 520 (`drone_tiers` in `src/js/drones.js`).
+- A save from before 2026-11-14 may own what was taken out that day: mining
+  drones (45 each past the two every pilot began with), their tiers (Hauler
+  220, Harvester 520), the builder drone (150), mining outposts (120 and 6
+  ore) and defense platforms (160 and 4 ore), transport lines (350). Loading
+  it pays all of that back, the ore into the hold or sold at the structure's
+  world's plain price when there is no room, with what the outposts' stores
+  and the lines' holds kept (`checkpoint_without_strategy` in
+  `src/js/checkpoint.js`).
 
 ## Trade
 
@@ -753,8 +754,8 @@ an ore rock cuts it by its damage (the arcade's rocks break and drop salvage,
   reach by their own damage (140 and 160 at the start: half a unit a rock).
 - Tuned on the start ship (2026-11-10): the Wisp Scout's Pulse cannon (14 a
   bolt, one every 0.19 s), parked where FLY TO OBJECTIVE parks it, no raiders,
-  fills its hold of 40 in 146 s. Its two mining drones, taken out the same
-  day, filled it in 143 to 145 s. The story's first mining stage (10 units)
+  fills its hold of 40 in 146 s. Its two mining drones, since taken out,
+  filled it in 143 to 145 s. The story's first mining stage (10 units)
   takes 36 s of fire, 41 s from the scan's beacon with the flight, 47 s with
   Haven's patrols (39 s with the drones). The Mule Prospector with the same
   cannon fills its 150 in 219 s (212 s with its drones).
@@ -1871,8 +1872,7 @@ weaker pilot is still open.
   s, 1 + min(9, tier) / 3 raiders (the tier is the world's index, or the
   story's front past it, above), while you are outside the station's
   shelter and fewer than 12 are out (`src/js/navigation.js`). While you hold
-  a hunt or a mining stage, growing waves come instead (see
-  [goals.md](goals.md)).
+  a hunt, growing waves come instead (see [goals.md](goals.md)).
 - A death (campaign): a tug brings the ship to the world's station, docked
   and repaired, for 10% of the salvage saved; the cargo aboard is lost, the
   contracts keep their progress, a flagship its damage (`tow_to_station` in
