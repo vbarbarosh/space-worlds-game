@@ -13,6 +13,16 @@ themes), `src/js/music_drive.js` (the arcade's and the flagship's music) and
 output as it plays, and the dev page's Sounds tab (`build/dev.html`) plays any
 effect on demand.
 
+Since 2026-11-14 the game has two sets of sounds, chosen in Settings (Sound
+set): **Classic**, everything this page describes below as it stands, and
+**New**, the default, which plays a remade take of every effect, sounds for
+moments that had none, and a background of its own for each world. The new
+set is described in [The new set](#the-new-set); where it has nothing of its
+own (the engine, the space hum, the reactor's tone, the music) it plays what
+the classic set plays. `bin/sound-render --set=classic` or `--set=new`
+records either, and the Sounds tab has a button for each set beside every
+sound.
+
 The dev page's sound maker (`build/dev.html?screen=sound-maker`, `&sound=blast`
 for that one) makes an effect by ear: each of the 28 opens as its layers, the
 tones and noises its file plays, a row of sliders each, and plays through
@@ -193,10 +203,104 @@ like the six examples above. A raider dies with `kill` and `blast_big` together.
 
 ### Moments with no sound
 
-Nothing plays when: you dock or undock; a button is pressed (no click
+In the classic set nothing plays when (the new set has a sound for each of
+these but a wave cleared, see
+[The moments that had no sound](#the-moments-that-had-no-sound)): you dock or undock; a button is pressed (no click
 anywhere); a wave starts or is cleared; a world is cleared (only its
 flagship's `win` as it dies); a life is lost and the world starts again; your shield
 breaks (a hit on the shield sounds as one on the hull).
+
+## The new set
+
+The classic effects are a few bare oscillators and a noise that holds next
+to nothing over 1 kHz, so a crack or a hiss in them is its filter ringing,
+and nothing has a room to sound in. The new set keeps each sound's place in
+the mix and its cooldown and changes what it is made of. It is in
+`src/js/sfx_new/` (one file per sound, `sfx_new_by_kind` in
+`src/js/music.js`), played by `src/js/sound_voices.js`.
+
+**Its instruments.** `voice_tone` is a tone whose pitch may glide, with a
+modulator at a ratio of its pitch for an edge that fades (`fm`), a soft clip
+(`drive`) and a filter that may slide. `voice_noise` is white noise (a crack,
+a hiss), pink (wind, fire, a roar) or the classic brown (a rumble), through a
+band, a lowpass or a highpass; each starts somewhere else in the noise, so
+two in a row are never the same sound. Both rise from silence and fall along
+a curve that ends in silence.
+
+**Its room.** Effects have a room of their own (1.3 s, darkening as it
+fades). Each sound sends its own share to it (`room` in its file: a blast
+all of it, a stream of shots a fifth), and the lows are kept out of the
+room, so a thud stays tight and only the body and the air of a sound ring
+on.
+
+**Variation.** Shots take turns between two or three bolts (`k.turn`), most
+sounds are a little off in pitch each time, and a run of pickups inside
+1.3 s climbs a step of a scale with each one (`streak`), as the combo's tick
+does with the combo.
+
+**A chain is heard.** A classic sound called within its cooldown is
+dropped, so a chain of blasts plays as its first. A new blast waits its turn
+instead (`queue`, four at most), so a chain is heard blast by blast.
+
+**Its levels.** Each new take of a classic sound is set by measure to that
+sound's level: its loudest 300 ms, A-weighted, within 1.5 dB over the
+classic one's (your own shot 2 dB over, the raiders' shots level with
+theirs), rendered offline through the game's whole mix. The sounds only the
+new set has are set against the same ladder. Nobody has yet judged them by
+ear in a fight: a level here is a starting point.
+
+### Sounds the new set tells apart
+
+| Sound | In the classic set | When |
+|---|---|---|
+| `gun_scatter`, `gun_ion`, `gun_rail`, `gun_beam` | the raiders' `enemy_scatter`, `enemy_ion`, `enemy_railgun`, `enemy_beam` | your own gun of that kind fires (`src/js/fleet.js`); a gun with no sound of its own fires with the raiders' |
+| `shield_hit` | `hit` | a hit your shield took whole; `hit` is then a hit that reached the hull |
+
+### The moments that had no sound
+
+`src/js/sound_moments.js` watches the game from the music's clock, 16 times
+a second, and plays a sound for what changed since its last look, so no
+part of the game calls for these. In the classic set they stay silent.
+
+| Sound | When |
+|---|---|
+| `ui_click` | a button pressed, on any panel |
+| `launch` | a run begun from the menu |
+| `pause` | the game paused, and going on again |
+| `dock`, `undock` | docked at the station, and leaving it (the campaign) |
+| `card_open` | the arcade's cards laid out for a pick |
+| `shield_down` | your shield broken: from a tenth of it or more to next to nothing |
+| `shield_up` | your shield whole again after it was worn under a third |
+| `hull_low` | your hull under 30%, again every 2.8 s while it lasts |
+| `life_lost` | a life lost in the arcade |
+| `wave_start` | the arcade's next wave begun |
+| `overheat`, `guns_ready` | your guns locked by heat, and free again |
+| `combo` | the combo one higher, a step up the scale with each |
+| `event_convoy`, `event_ace`, `event_jammer`, `event_danger` | an arcade event begun: a convoy, an ace, a jammer, any other (a heat surge) |
+| `geiger` | radiation building in the hull: ticks, the faster the higher the dose |
+| `pulse_ready` | the pulse charged again after it fell under 60 |
+| `victory` | a world cleared |
+
+### Each world's background
+
+`src/js/sound_ambience.js` plays, in flight, a bed that never stops and a
+call out of the distance every few seconds, on the ambience bus over the
+space hum and the reactor's tone; a call goes through a room of the
+ambience's own. Each bed is set to the same level, about 11 dB under the
+calm music with the engine and the hum (-40 LUFS against -29), ×0.4 by the
+station. What each world's is made of is in
+`src/js/sound_ambience_worlds.js`:
+
+| World | Its bed | Its calls |
+|---|---|---|
+| Haven | a far surf rolling in and out | the traffic's radio chirps, a sonar's ping, an engine passing far off |
+| Verdant | the nebula breathing, a faint high shimmer | bubbles rising, spores chirring, something large groaning |
+| Dustfall | wind in gusts, grit hissing | a long gust, grit across the hull, rock tumbling |
+| Ion Reach | mains humming, a crackle over it | thunder far off, a snap of static, the hum swelling |
+| Obsidian | machinery throbbing far below | a clank in the works, steam let go, a girder groaning |
+| Cryosphere | thin cold air, a shimmer that beats slowly | chimes of ice, a crack running through it, the aurora singing |
+| Nova Forge | the furnace roaring, a flicker of crackle | embers popping, a flare rumbling up, slag rolling over |
+| Eclipse | a drone that beats against itself, the dark swelling | a voice calling from far inside, the dark rising, ticks echoing away |
 
 ## The steady sounds of flight
 
@@ -444,12 +548,21 @@ over the root.
 
 ## What has no sound of its own
 
-Beyond the moments above: Verdant's current, Obsidian's spires, anything of
+In either set, beyond the moments above: Verdant's current, Obsidian's spires, anything of
 Cryosphere's cold, the heat surge's vents, Nova Forge's overheated guns,
-radiation (its alerts play `hit`), the arcade's events (convoy, ace, jammer).
+radiation (its alerts play `hit`; the new set adds the counter's ticks), the
+arcade's events (the new set has a call for each as it begins, none while it
+lasts).
 
 ## The author's notes
 
+- **2026-11-14:** the sounds became the first priority: better ones, more of
+  them, background sounds, music of its own for each world. The new set is
+  the answer to the first three, built beside the classic one so that
+  either can be played and compared in the game; the music follows as a set
+  of its own. Every new sound is made in code and set by measure, not by
+  ear: what is wrong to the ear is changed sound by sound from what the
+  author says after playing.
 - **2026-10-23 00:17, the author:** "lets return them": the very first
   explosions, the code-made blasts of a8e6b51 (2026-10-21), back for every
   blast and for a rock. The evening before, from ten recordings played

@@ -110,7 +110,8 @@ Three modes ([docs/modes.md](docs/modes.md) has each in detail):
                      music, an arcade fight and a flagship fight, as WebM
                      files with their peak and mean levels (ffmpeg), in
                      data/sound/<label>/; --page records a build kept from
-                     before a change, for before and after
+                     before a change, for before and after; --set=new or
+                     classic plays that sound set
     bin/sound-pack   generate the sound brief as WAV, MP3 and Ogg assets:
                      every effect, new explosion takes, full world music
                      loops, flight stems and listening demos; --label=name
@@ -204,7 +205,8 @@ Export downloads the file to put in src/maps/ ([src/maps/README.md](src/maps/REA
 effect as its layers, tones and noises, a row of sliders each, played through the game's own mix, with its picture and
 peak; new sounds start from a tone or a copy. Fly with it is an arcade run with this browser's changed sounds
 (`&sounds=made`), Copy gives the sound as its file of src/js/sfx/, WAV downloads it
-([docs/designer/sound.md](docs/designer/sound.md)).
+([docs/designer/sound.md](docs/designer/sound.md)). The Sounds tab plays every sound as the new set or the classic one
+has it, and each world's background: its bed and its calls from the distance.
 `&dpr=1.3` draws the canvas at that pixel ratio, whatever Settings → Resolution
 says; `&slow=20` stands in for a slow graphics card, each frame waiting 20 ms
 for every million pixels of the canvas, so Auto steps down;
@@ -249,6 +251,9 @@ for the dev page.
                      play it with, src/js/music_drive.js)
     src/js/ships/    one file per ship class: catalog entry and hull profile
     src/js/sfx/      one file per sound effect: its cooldown and its synth calls
+    src/js/sfx_new/  the new sound set's take of each effect, and the sounds only
+                     it has; Settings, Sound set, plays it or the classic one
+                     (docs/designer/sound.md)
     src/maps/        map files: a world's map as the map editor left it, packed into the page
     src/sprites/     drawings (SVG): ships in 3d/ (the shaded set), weapons, pickups, worlds/<world>; a
                      `<!-- svgs sprites as sprite_svgs -->` line packs them
