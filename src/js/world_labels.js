@@ -215,6 +215,10 @@ function target_plate_name(target)
     if (target.ace) {
         return `WANTED · ${target.ace.toUpperCase()}`;
     }
+    // a hauler or a container of its string (arcade_haulers.js)
+    if (target.hauler) {
+        return hauler_plate_name(target);
+    }
     // a flagship's nest (boss_duels.js)
     if (target.duel_owner) {
         return 'NEST';

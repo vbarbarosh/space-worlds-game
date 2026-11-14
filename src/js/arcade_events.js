@@ -34,11 +34,15 @@ const arcade_vent_damage = 22;
 function arcade_event_start()
 {
     arcade_event_end();
-    const pool = arcade_event_pools[campaign.world] || arcade_event_pools[0];
+    // a world's task may give the kinds its waves' events are drawn from (arcade_tasks: events)
+    const own = arcade_task()?.events || null;
+    const pool = own || arcade_event_pools[campaign.world] || arcade_event_pools[0];
     // a world's second event (Free's wave 4) is its other kind
     const fresh = pool.filter(v => v !== arcade.event_last);
-    // a prize event of the arcade's stakes, or the world's own (arcade_stakes.js)
-    const prize = stakes_event_kind();
+    // a prize event of the arcade's stakes, or the world's own (arcade_stakes.js); a prize of a kind the task keeps out
+    // gives way to the world's own
+    const stake = stakes_event_kind();
+    const prize = (stake && own && !own.includes(stake)) ? null : stake;
     const kind = prize || fresh[Math.floor(Math.random()*fresh.length)] || pool[0];
     arcade.event_last = prize ? arcade.event_last : kind;
     arcade.event = {kind, time: 0, target: null, vents: [], vent_timer: 2};

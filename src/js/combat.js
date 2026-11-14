@@ -266,6 +266,8 @@ function base_spawn_enemy(type)
         unarmed: false,
         event_kind: null,
         event_goal: null,
+        // a hauler's part: 'tug' or 'box' (arcade_haulers.js)
+        hauler: null,
         operation_id: null,
         operation_stage: null,
         escort_raider: false,

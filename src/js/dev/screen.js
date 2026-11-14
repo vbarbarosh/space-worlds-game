@@ -222,6 +222,12 @@ function dev_screen_open()
         // widest
         Object.assign(streak, dev_screen_long ? {best: 12345, grazes: 99999, hull_lost: hull_max()*99, missed: 9999} : {best: 42, grazes: 23, hull_lost: hull_max()*0.4, missed: 2});
         rank_rival.flagship_at = run_time - (dev_screen_long ? 9999 : 24);
+        // Haven's task (arcade_haulers.js): some of its cargo saved, said on the cleared screen's line; &long=1 the line
+        // at its longest, one container short of all and the flagship away
+        if (arcade_task()?.cleared) {
+            hauler_run.saved = dev_screen_long ? haulers_cargo() - 1 : 7;
+            arcade.flagship_escaped = dev_screen_long;
+        }
         finale.frozen = (dev_screen_time === null) ? null : Number(dev_screen_time);
         // a Scroll run's (&kind=scroll) plays on the lane (arcade_lane_clear.js)
         lane_clear.frozen = finale.frozen;

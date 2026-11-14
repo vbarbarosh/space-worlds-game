@@ -204,6 +204,7 @@ function base_render_screen_controls()
     boss_duel_marker();
     render_arcade_jammer_marker();
     brood_nests_render_marks();
+    haulers_render_marks();
 }
 
 function render()
@@ -276,6 +277,7 @@ function render()
     render_hostile_marks();
     boss_render();
     render_raider_trails();
+    haulers_render();
     render_enemies();
     raider_jobs_render();
     boss_duel_render_over();

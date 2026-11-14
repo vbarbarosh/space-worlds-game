@@ -58,7 +58,7 @@ const arcade_modes = {
 // A world's task: its own way through a Free world's six waves (a run of eight worlds flew as the same six waves
 // eight times, so each world gets a task of its own, one world at a time). A task is its world's entry here (by the
 // world's number, Haven 0), a set of hooks the waves ask; each may be left out, and a world with no task flies its
-// waves as it always did. A Scroll lane has none. arcade_nests.js is Verdant's.
+// waves as it always did. A Scroll lane has none. arcade_haulers.js is Haven's, arcade_nests.js Verdant's.
 //   wave_start(n)   a wave begins (the first one: the world)
 //   update(dt)      each frame of the world after its first, between waves too
 //   source(size)    where the build-up's next squadron comes from and how many of its `size` come now:
@@ -69,6 +69,9 @@ const arcade_modes = {
 //   card()          what the card says: {title, target, eta}, a part left out being the wave's (hud.js); or null
 //   banner()        what the arrival's banner says: {title, line} (physics.js)
 //   marks(add)      its marks for the map and the minimap (charting.js)
+//   cleared()       the world cleared: {points, line}, the score the task pays and its words for the cleared screen's
+//                   line, after the flagship's
+//   events          the kinds a wave's event is drawn from here, in place of the world's pool (arcade_events.js)
 const arcade_tasks = [];
 // the task's source of the squadron being formed (arcade_squad_spawn), or null: its raiders warp in round you
 let arcade_squad_source = null;
@@ -949,6 +952,9 @@ function arcade_world_clear()
         arcade_base_world_end();
         return;
     }
+    // what the world's task pays, in score (arcade_tasks)
+    const task = arcade_task()?.cleared?.() || null;
+    score += task ? task.points : 0;
     if (arcade_level() >= arcade_worlds - 1) {
         // a gamble taken for the last world pays in score (arcade_cards.js)
         arcade_cards_world_cleared();
@@ -965,7 +971,7 @@ function arcade_world_clear()
     set_hidden(el.bossbar, true);
     arcade.between_worlds = {world: campaign.world, bonus, won, next: null};
     toasts_clear();
-    arcade_world_cleared_open(campaign.world, arcade_world_run(bonus));
+    arcade_world_cleared_open(campaign.world, {...arcade_world_run(bonus), task: task ? task.line : ''});
 }
 
 // What a world's cleared screen counts up: the score, raiders and time since the world began, its bonus, the salvage

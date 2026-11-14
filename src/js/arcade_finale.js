@@ -78,7 +78,8 @@ function arcade_finale_open(run)
     finale_open(-1, run);
 }
 
-// Opens the scene for world i cleared: score, raiders and time in it, the run's total, the best, the bonus and salvage
+// Opens the scene for world i cleared: score, raiders and time in it, the run's total, the best, the bonus and salvage,
+// and the words of the world's task (run.task), if it has one, for the screen's line
 function arcade_world_cleared_open(i, run)
 {
     finale_open(i, run);
@@ -151,8 +152,10 @@ function finale_build()
     letters.style.setProperty('--n', name.length + 8);
     document.getElementById('finale_stage').style.setProperty('--finale-accent', (world < 0) ? 'var(--cyan)' : worlds[world].accent);
     const next = finale.offers.map(v => worlds[v].name);
-    // a flagship that reached its gate (the Crescent's chase, boss_duels.js) is said to have got away
-    document.getElementById('finale_line').textContent = (world < 0) ? 'All eight worlds, all eight flagships.' : `${arcade.flagship_escaped ? 'The flagship got away' : 'Flagship down'} · next: ${(next.length > 1) ? `${next.join(' or ')}, your choice` : (finale.offers[0] === arcade_worlds - 1) ? `${next[0]}, the last` : next[0]}`;
+    // a flagship that reached its gate (the Crescent's chase, boss_duels.js) is said to have got away; then what the
+    // world's task came to (arcade_tasks: cleared), the line kept short for it: one line in a 640 px window still
+    const task = ((world >= 0) && finale.run.task) || '';
+    document.getElementById('finale_line').textContent = (world < 0) ? 'All eight worlds, all eight flagships.' : `${arcade.flagship_escaped ? 'The flagship got away' : 'Flagship down'}${task ? ` · ${task}` : ''} · next: ${(next.length > 1) ? `${next.join(' or ')}${task ? '' : ', your choice'}` : (finale.offers[0] === arcade_worlds - 1) ? `${next[0]}, the last` : next[0]}`;
     document.getElementById('finale_score_label').textContent = (world < 0) ? 'Final score' : `Score in ${worlds[world].name}`;
     document.getElementById('finale_time_label').textContent = (world < 0) ? 'Time' : 'Time here';
     document.getElementById('finale_raiders_label').textContent = (world < 0) ? 'Raiders' : 'Raiders here';

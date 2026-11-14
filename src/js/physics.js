@@ -31,6 +31,7 @@ function generate_map()
     generate_drifting_debris();
     cliffs_generate();
     brood_nests_generate();
+    haulers_reset();
 }
 
 function expedition_base_reset_run(resume = false)

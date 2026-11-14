@@ -270,8 +270,9 @@ function render_marksman_aims()
 function render_enemies()
 {
     for (const enemy of enemies) {
-        // a flagship's nest is drawn by its duel (boss_duels.js)
-        if (!in_view(enemy, enemy.r + 40) || enemy.duel_owner) {
+        // a flagship's nest is drawn by its duel (boss_duels.js), a hauler and its containers by their task
+        // (arcade_haulers.js)
+        if (!in_view(enemy, enemy.r + 40) || enemy.duel_owner || enemy.hauler) {
             continue;
         }
         const color = (enemy.flash > 0) ? '#e5faff' : enemy.color || pink;
