@@ -78,12 +78,13 @@ function sound_moments_watch()
         sfx('combo');
     }
     m.combo = combo;
-    // the arcade's streak (arcade_streak.js): a graze, and a streak of 8 or more broken
+    // the arcade's streak (arcade_streak.js): a graze, and a long streak broken
     if (streak.grazes > m.grazes) {
         sfx('graze');
     }
     m.grazes = streak.grazes;
-    if ((m.streak >= 8) && (streak.count === 0)) {
+    // lost: fallen from a length the game itself calls out (the next kill may start a new one before the next look)
+    if ((m.streak >= streak_lost_shown) && (streak.count < m.streak)) {
         sfx('streak_lost');
     }
     m.streak = streak.count;

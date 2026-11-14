@@ -288,7 +288,7 @@ part of the game calls for these. In the classic set they stay silent.
 | `nest_hatch`, `nest_burst` | Verdant's nests in the arcade (`src/js/arcade_nests.js`): a raider hatching from one, and a nest burnt; the nests' hunters come with `event_danger` |
 | `overheat`, `guns_ready` | your guns locked by heat, and free again |
 | `combo` | the combo one higher, a step up the scale with each |
-| `graze`, `streak_lost` | a raider's shot that just missed you (`src/js/arcade_streak.js`), climbing through a run of them; a streak of 8 or more broken |
+| `graze`, `streak_lost` | a raider's shot that just missed you (`src/js/arcade_streak.js`), climbing through a run of them; a streak long enough for the game to call out, broken |
 | `event_convoy`, `event_ace`, `event_jammer`, `event_danger` | an arcade event begun: a convoy, an ace, a jammer, any other (a heat surge) |
 | `geiger` | radiation building in the hull: ticks, the faster the higher the dose |
 | `pulse_ready` | the pulse charged again after it fell under 60 |
