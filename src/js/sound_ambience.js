@@ -9,6 +9,10 @@ const sound_ambience = {
     out: null,
     next: 0,
     idle: 0,
+    // until then (the audio's clock) world `audition_world`'s background plays whatever the game is doing: the dev
+    // page's Sounds tab, to hear one
+    audition: 0,
+    audition_world: 0,
 };
 // Out of flight this long (s), the bed is let go; it is made again with the next flight
 const sound_ambience_idle = 6;
@@ -147,8 +151,9 @@ function sound_ambience_watch()
 {
     const c = sound.ctx;
     const now = c.currentTime;
-    const flight = (sound_set === 'new') && (state === 'playing') && !settings_open && !document.hidden && !muted && !!player;
-    const sheltered = flight && (distance(player, station) < station_shelter);
+    const audition = (now < sound_ambience.audition) && !muted;
+    const flight = audition || ((sound_set === 'new') && (state === 'playing') && !settings_open && !document.hidden && !muted && !!player);
+    const sheltered = flight && !audition && (distance(player, station) < station_shelter);
     sound.ambience_in.gain.setTargetAtTime(flight ? (sheltered ? 0.4 : 1) : 0, now, 0.5);
     if (!flight) {
         if (sound_ambience.out && (now > sound_ambience.idle + sound_ambience_idle)) {
@@ -157,7 +162,7 @@ function sound_ambience_watch()
         return;
     }
     sound_ambience.idle = now;
-    const id = campaign.world;
+    const id = audition ? sound_ambience.audition_world : campaign.world;
     if (sound_ambience.world !== id) {
         sound_ambience_bed(id);
     }
