@@ -323,6 +323,7 @@ const sfx_new_by_kind = {
     life_gained: sfx_new_life_gained,
     nest_hatch: sfx_new_nest_hatch,
     nest_burst: sfx_new_nest_burst,
+    cargo_loose: sfx_new_cargo_loose,
     overheat: sfx_new_overheat,
     guns_ready: sfx_new_guns_ready,
     combo: sfx_new_combo,

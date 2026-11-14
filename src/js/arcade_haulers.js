@@ -500,7 +500,7 @@ function hauler_box_free(box)
     ring(v.x, v.y, color, 130, 0.45);
     label(v.x, v.y - 24, 'CARGO LOOSE', hauler_colors.mark);
     show_toast('CARGO LOOSE', `ITS SALVAGE IS YOURS · ${s.saved} OF ${haulers_cargo()} SAVED`, 2.5, 'income');
-    sfx('nest_burst', 1, v);
+    sfx('cargo_loose', 1, v);
     hit_stop_start(0.05);
     const a = Math.atan2(player.y - v.y, player.x - v.x);
     for (let k = 0; k < hauler_box_pieces; ++k) {
@@ -548,6 +548,7 @@ function hauler_down()
     }
     if (s.saved >= haulers_cargo()) {
         show_toast('ALL CARGO SAVED', `EVERY CONTAINER OF THE ${hauler_count} HAULERS · ${s.saved} OF ${haulers_cargo()}`, 3.5, 'income');
+        sfx('upgrade');
     }
     s.ship = null;
     s.end = 'down';

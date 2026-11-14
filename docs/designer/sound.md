@@ -321,6 +321,7 @@ part of the game calls for these. In the classic set they stay silent.
 | `crest` | a wave's crest breaking (`src/js/arcade_pace.js`) |
 | `wave_clear` | a wave cleared, its breather begun |
 | `nest_hatch`, `nest_burst` | Verdant's nests in the arcade (`src/js/arcade_nests.js`): a raider hatching from one, and a nest burnt; the nests' hunters come with `event_danger` |
+| `cargo_loose` | Haven's haulers in the arcade (`src/js/arcade_haulers.js`): a container breaking off a hauler's string and bursting open (a recording; in the classic set a missile's blast); the hauler comes in with `event_danger`, leaves through its gate with `portal`, and all fifteen saved ring `upgrade` |
 | `overheat`, `guns_ready` | your guns locked by heat, and free again |
 | `combo` | the combo one higher, a step up the scale with each |
 | `graze`, `streak_lost` | a raider's shot that just missed you (`src/js/arcade_streak.js`), climbing through a run of them; a streak long enough for the game to call out, broken |
