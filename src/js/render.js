@@ -270,7 +270,6 @@ function render()
     }
     ctx.globalAlpha = 1;
     ctx.restore();
-    render_structures();
     render_waypoints();
     render_survey_robot();
     raider_jobs_render_under();
