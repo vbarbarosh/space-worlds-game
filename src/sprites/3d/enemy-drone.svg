@@ -1,15 +1,62 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
-<defs><radialGradient id="glass" cx="0.35" cy="0.28" r="0.85"><stop offset="0" stop-color="#8fd0f0"/><stop offset="0.35" stop-color="#2f6a92"/><stop offset="1" stop-color="#0b1824"/></radialGradient><linearGradient id="shade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff" stop-opacity="0.16"/><stop offset="0.55" stop-color="#ffffff" stop-opacity="0"/><stop offset="1" stop-color="#05080c" stop-opacity="0.38"/></linearGradient><radialGradient id="nozzle" cx="0.5" cy="0.25" r="0.9"><stop offset="0" stop-color="#ffd59a"/><stop offset="0.4" stop-color="#e2742f"/><stop offset="1" stop-color="#2a1a14"/></radialGradient><linearGradient id="l3a414a" x1="0" y1="0" x2="1" y2="0.35"><stop offset="0" stop-color="#85898f"/><stop offset="0.45" stop-color="#3a414a"/><stop offset="1" stop-color="#1e2226"/></linearGradient><linearGradient id="l5d6670" x1="0" y1="0" x2="1" y2="0.35"><stop offset="0" stop-color="#9ba0a6"/><stop offset="0.45" stop-color="#5d6670"/><stop offset="1" stop-color="#30353a"/></linearGradient><linearGradient id="l8a929c" x1="0" y1="0" x2="1" y2="0.35"><stop offset="0" stop-color="#b6bbc2"/><stop offset="0.45" stop-color="#8a929c"/><stop offset="1" stop-color="#484c51"/></linearGradient><radialGradient id="r5d6670" cx="0.35" cy="0.32" r="0.8"><stop offset="0" stop-color="#a6abb0"/><stop offset="0.5" stop-color="#5d6670"/><stop offset="1" stop-color="#2e3338"/></radialGradient><radialGradient id="r3a414a" cx="0.35" cy="0.32" r="0.8"><stop offset="0" stop-color="#93969b"/><stop offset="0.5" stop-color="#3a414a"/><stop offset="1" stop-color="#1d2025"/></radialGradient><linearGradient id="accent-fill" x1="0" y1="0" x2="1" y2="1"><stop id="accent-light" offset="0" stop-color="#aefbf5"/><stop id="accent-base" offset="0.5" stop-color="#6cf8ec"/><stop id="accent-dark" offset="1" stop-color="#41958e"/></linearGradient></defs>
-<g id="hull" stroke="#141a22" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"><path d="M128 14 L150 110 L106 110 Z" fill="url(#l3a414a)" />
-<path d="M84 150 L22 232 L60 238 L110 196 Z" fill="url(#l5d6670)" />
-<path d="M172 150 L234 232 L196 238 L146 196 Z" fill="url(#l5d6670)" />
-<circle cx="128" cy="160" r="66" fill="url(#r5d6670)" />
-<circle cx="128" cy="160" r="66" fill="url(#shade)" stroke="none" />
-<circle cx="128" cy="160" r="40" fill="url(#l8a929c)" stroke-width="3.5" /></g>
-<g id="accent" stroke="#141a22" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"><circle cx="128" cy="156" r="20" fill="url(#accent-fill)" stroke-width="3.5" />
-<path d="M22 232 L60 238 L54 222 L32 218 Z" fill="url(#accent-fill)" />
-<path d="M234 232 L196 238 L202 222 L224 218 Z" fill="url(#accent-fill)" />
+<defs>
+<linearGradient id="shadeV" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0" stop-color="#ffffff" stop-opacity="0.16"/><stop offset="0.5" stop-color="#ffffff" stop-opacity="0"/><stop offset="1" stop-color="#05080c" stop-opacity="0.45"/>
+</linearGradient>
+<linearGradient id="bladeL" x1="1" y1="0" x2="0" y2="1">
+<stop offset="0" stop-color="#aab3bd"/><stop offset="0.6" stop-color="#6c7682"/><stop offset="1" stop-color="#414a54"/>
+</linearGradient>
+<linearGradient id="bladeR" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0" stop-color="#7a848f"/><stop offset="0.6" stop-color="#48515b"/><stop offset="1" stop-color="#242a31"/>
+</linearGradient>
+<linearGradient id="dark" x1="0" y1="0" x2="1" y2="0">
+<stop offset="0" stop-color="#5a6470"/><stop offset="0.5" stop-color="#363e48"/><stop offset="1" stop-color="#161b21"/>
+</linearGradient>
+<linearGradient id="bell" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0" stop-color="#474e58"/><stop offset="0.55" stop-color="#6a5445"/><stop offset="1" stop-color="#2a1a14"/>
+</linearGradient>
+<radialGradient id="nozzle" cx="0.5" cy="0.3" r="0.8"><stop offset="0" stop-color="#fff1cf"/><stop offset="0.4" stop-color="#ffab52"/><stop offset="1" stop-color="#b3431c"/></radialGradient>
+<linearGradient id="deck" x1="0" y1="0" x2="1" y2="0">
+<stop offset="0" stop-color="#d3d9df"/><stop offset="0.5" stop-color="#98a2ad"/><stop offset="1" stop-color="#434c56"/>
+</linearGradient>
+<radialGradient id="core" cx="0.35" cy="0.3" r="0.8"><stop offset="0" stop-color="#b4bcc5"/><stop offset="0.5" stop-color="#68727d"/><stop offset="1" stop-color="#2b3138"/></radialGradient>
+<radialGradient id="well" cx="0.4" cy="0.35" r="0.75"><stop offset="0" stop-color="#3a4552"/><stop offset="1" stop-color="#0b1016"/></radialGradient>
+<linearGradient id="accent-fill" x1="0" y1="0" x2="1" y2="1">
+<stop id="accent-light" offset="0" stop-color="#c8fffa"/><stop id="accent-base" offset="0.5" stop-color="#6cf8ec"/><stop id="accent-dark" offset="1" stop-color="#1f9c93"/>
+</linearGradient>
+<radialGradient id="lamp-red" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#ffd6d0"/><stop offset="0.35" stop-color="#ff4a3d"/><stop offset="1" stop-color="#ff4a3d" stop-opacity="0"/></radialGradient>
+</defs>
+<g id="hull" stroke="#0e1318" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round">
+<!-- the spike, a ridge down it -->
+<path d="M128 14 L150 110 L106 110 Z" fill="url(#dark)"/>
+<path d="M128 14 L128 100 L113 100 Z" fill="#ffffff" fill-opacity="0.22" stroke="none"/>
+<!-- the legs, a spar in each -->
+<path d="M84 150 L22 232 L60 238 L110 196 Z" fill="url(#bladeL)"/>
+<path d="M172 150 L234 232 L196 238 L146 196 Z" fill="url(#bladeR)"/>
+<path d="M92 178 L47 228 M164 178 L209 228" fill="none" stroke="#1b2128" stroke-width="2.4"/>
+<path d="M94 179.6 L49 229.6" fill="none" stroke="#ffffff" stroke-opacity="0.4" stroke-width="1.4"/>
+<!-- the shell: four plates with a bolt in each, the nozzle and its fire -->
+<circle cx="128" cy="160" r="66" fill="url(#core)"/>
+<circle cx="128" cy="160" r="66" fill="url(#shadeV)" stroke="none"/>
+<path d="M99.7 131.7 L81.3 113.3 M99.7 188.3 L81.3 206.7 M156.3 131.7 L174.7 113.3 M156.3 188.3 L174.7 206.7" fill="none" stroke="#1b2128" stroke-width="2.4"/>
+<g fill="#1b2128" stroke="none"><circle cx="128" cy="107" r="2.6"/><circle cx="75" cy="160" r="2.6"/><circle cx="181" cy="160" r="2.6"/></g>
+<path d="M80 122 A60 60 0 0 1 118 100.8" fill="none" stroke="#ffffff" stroke-opacity="0.45" stroke-width="2.4"/>
+<path d="M113 211 L143 211 L140 227 L116 227 Z" fill="url(#bell)" stroke-width="2.6"/>
+<ellipse cx="128" cy="224.8" rx="9.6" ry="2.8" fill="url(#nozzle)" stroke="none"/>
+<!-- the plate round the eye -->
+<circle cx="128" cy="160" r="40" fill="url(#deck)" stroke-width="2.8"/>
+</g>
+<g id="accent" stroke="#0e1318" stroke-width="3.2" stroke-linejoin="round">
+<!-- the eye with its pupil, the legs' tips -->
+<circle cx="128" cy="156" r="20" fill="url(#accent-fill)" stroke-width="2.8"/>
+<circle cx="128" cy="156" r="6.5" fill="url(#well)" stroke-width="1.8"/>
+<circle cx="120.5" cy="148.5" r="3" fill="#ffffff" fill-opacity="0.75" stroke="none"/>
+<path d="M22 232 L60 238 L54 222 L32 218 Z" fill="url(#accent-fill)"/>
+<path d="M234 232 L196 238 L202 222 L224 218 Z" fill="url(#accent-fill)"/>
+</g>
+<g id="lamps">
+<circle cx="128" cy="30" r="6" fill="url(#lamp-red)"/>
 </g>
 <g id="anchors"><line id="flame-main-1" x1="128" y1="226" x2="128" y2="266" stroke="#ff0000" stroke-width="26" /></g>
 </svg>
