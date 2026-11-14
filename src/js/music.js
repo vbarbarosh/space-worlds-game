@@ -312,6 +312,8 @@ const sfx_new_by_kind = {
     wave_start: sfx_new_wave_start,
     crest: sfx_new_crest,
     wave_clear: sfx_new_wave_clear,
+    nest_hatch: sfx_new_nest_hatch,
+    nest_burst: sfx_new_nest_burst,
     overheat: sfx_new_overheat,
     guns_ready: sfx_new_guns_ready,
     combo: sfx_new_combo,
