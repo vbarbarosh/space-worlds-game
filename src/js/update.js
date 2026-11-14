@@ -58,7 +58,6 @@ function base_update_hud()
         push_button.dataset.cd = sweep;
         push_button.style.setProperty('--cd', sweep);
     }
-    set_hidden(document.getElementById('quick_build'), arcade.active);
     set_hidden(document.getElementById('quick_route'), arcade.active);
     const convoy = document.getElementById('quick_convoy');
     set_hidden(convoy, !formation_candidates().some(v => distance(v, player) < 1500));
@@ -406,7 +405,7 @@ function update(dt, frame_dt = dt)
         const enemy_dt = dt*stasis_scale(v);
         v.age += enemy_dt;
         v.flash = Math.max(0, v.flash - dt);
-        const prey = (v.escort_raider && escort) ? escort : (v.robot_raider && survey_robot) ? survey_robot : (structure_prey(v) || race_prey(v) || guard_prey(v));
+        const prey = (v.escort_raider && escort) ? escort : (v.robot_raider && survey_robot) ? survey_robot : (race_prey(v) || guard_prey(v));
         // a race on: the raiders turn away from its course and leave (race_keep_off)
         const waypoint = (race.course && race_keep_off(v, prey)) || prey || (drones.length && drone_prey(v)) || enemy_waypoint(v);
         const a = Math.atan2(waypoint.y - v.y, waypoint.x - v.x);
@@ -473,7 +472,7 @@ function update(dt, frame_dt = dt)
             // a held formation's raider faces you and moves its own way (arcade_scroll_hold_steer)
             heading = v.hold ? v.hold.heading : v.angle;
         }
-        // raiders steer round the asteroids and structures ahead, as the rule for everything solid asks
+        // raiders steer round the asteroids ahead, as the rule for everything solid asks
         if (move > 0) {
             heading = raider_avoid(v, heading);
         }
@@ -510,7 +509,7 @@ function update(dt, frame_dt = dt)
     if (arcade.active) {
         crashes_update(dt);
     }
-    // no two hulls overlap: raiders out of asteroids, structures, the freighter, you and each other
+    // no two hulls overlap: raiders out of asteroids, the freighter, you and each other
     bodies_resolve();
     // a ring race: the rivals fly, bump and pass rings, and yours count (js/race.js)
     race_update(dt);
