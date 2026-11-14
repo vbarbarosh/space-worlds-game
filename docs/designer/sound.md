@@ -302,6 +302,16 @@ station. What each world's is made of is in
 | Nova Forge | the furnace roaring, a flicker of crackle | embers popping, a flare rumbling up, slag rolling over |
 | Eclipse | a drone that beats against itself, the dark swelling | a voice calling from far inside, the dark rising, ticks echoing away |
 
+A flagship within 2.5 km is heard too, from its side, louder as it closes
+(its level is its nearness squared; each is set to -36 LUFS at its nearest
+and to no more than the others to the ear): the Crescent an engine's keen
+whine, two voices a shade apart; the Thorn Beetle chitin chittering over a
+slow throb; the Sawtooth its blade whirring; the Storm Wheel a hum that
+comes round as it turns, sparks along its spokes; the Iron Stair one heavy
+step every 2.4 s; the Frost Crystal glass singing; the Furnace its fire
+roaring and fluttering; the Eclipse Eye a slow pulse in a drone that beats
+against itself. It ends with the flagship.
+
 ## The steady sounds of flight
 
 Played all through flight, faded in and out with it (`create_flight_audio`

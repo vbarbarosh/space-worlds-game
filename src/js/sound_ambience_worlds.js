@@ -1,5 +1,6 @@
 // What each world's background is made of (sound_ambience.js), Haven to Eclipse: `bed` its layers that run on, `calls`
-// the sounds that come out of the distance, one every `every` seconds (from, to);
+// the sounds that come out of the distance, one every `every` seconds (from, to), `flagship` the layers of its
+// flagship's own sound while it is near;
 // `bed_level` and `call_levels` set each to its place in the mix (measured: a bed about 11 dB under the calm music).
 const sound_ambience_worlds = [
     // Haven, the ocean world: a far surf rolling in and out, the traffic's radio, a sonar's ping
@@ -12,6 +13,15 @@ const sound_ambience_worlds = [
             {color: 'pink', filter: 'bandpass', f: 1500, q: 0.6, a: 0.012, tide: {rate: 0.09, depth: 1}, drift: {rate: 0.05, by: 400}},
             {tone: 124, a: 0.006, tide: {rate: 0.03, depth: 0.5}},
         ],
+        // the Crescent: a keen engine's whine circling, two voices a shade apart
+        flagship: {
+            level: 1.33,
+            layers: [
+                {tone: 220, type: 'sawtooth', cutoff: 900, a: 0.02, tide: {rate: 3.1, depth: 0.35}},
+                {tone: 221.6, type: 'sawtooth', cutoff: 900, a: 0.02, tide: {rate: 2.7, depth: 0.35}},
+                {color: 'pink', filter: 'bandpass', f: 1400, q: 0.8, a: 0.02, tide: {rate: 0.5, depth: 0.7}},
+            ],
+        },
         calls: [
             function (k) {
                 const notes = [1174.66, 1396.91, 1567.98];
@@ -39,6 +49,15 @@ const sound_ambience_worlds = [
             {color: 'white', filter: 'bandpass', f: 5200, q: 2, a: 0.006, tide: {rate: 0.31, depth: 1}},
             {tone: 73, a: 0.008, tide: {rate: 0.13, depth: 0.7}},
         ],
+        // the Thorn Beetle: chitin chittering over a slow low throb
+        flagship: {
+            level: 1.14,
+            layers: [
+                {color: 'white', filter: 'bandpass', f: 3000, q: 3, a: 0.1, tide: {rate: 9, depth: 1}},
+                {color: 'white', filter: 'bandpass', f: 4300, q: 4, a: 0.05, tide: {rate: 13, depth: 1}},
+                {tone: 55, a: 0.03, tide: {rate: 0.7, depth: 0.8}},
+            ],
+        },
         calls: [
             function (k) {
                 for (let i = 0, end = 3 + Math.floor(Math.random()*4); i < end; ++i) {
@@ -66,6 +85,15 @@ const sound_ambience_worlds = [
             {color: 'pink', filter: 'bandpass', f: 320, q: 0.7, a: 0.03, tide: {rate: 0.07, depth: 0.6}},
             {color: 'white', filter: 'highpass', f: 4500, a: 0.005, tide: {rate: 0.23, depth: 1}},
         ],
+        // the Sawtooth: its blade whirring, grit thrown off it
+        flagship: {
+            level: 1.82,
+            layers: [
+                {tone: 110, type: 'sawtooth', cutoff: 1400, a: 0.03, tide: {rate: 14, depth: 0.9}},
+                {tone: 165, type: 'sawtooth', cutoff: 900, a: 0.012, tide: {rate: 14, depth: 0.9}},
+                {color: 'white', filter: 'highpass', f: 3800, a: 0.008, tide: {rate: 1.3, depth: 0.9}},
+            ],
+        },
         calls: [
             function (k) {
                 k.noise({d: 3.8, a: 0.07, color: 'pink', cutoff: 520, cutoff_end: 1500, sweep: 1.6, attack: 1.5, late: true, q: 0.6});
@@ -94,6 +122,15 @@ const sound_ambience_worlds = [
             {color: 'white', filter: 'highpass', f: 6000, a: 0.006, tide: {rate: 0.9, depth: 1}},
             {color: 'pink', filter: 'bandpass', f: 1500, q: 0.7, a: 0.02, tide: {rate: 0.17, depth: 0.8}},
         ],
+        // the Storm Wheel: a hum that comes round as it turns, sparks along its spokes
+        flagship: {
+            level: 1.41,
+            layers: [
+                {tone: 100, type: 'sawtooth', cutoff: 700, a: 0.035, tide: {rate: 1.1, depth: 0.8}},
+                {tone: 150, a: 0.012, tide: {rate: 1.1, depth: 0.8}},
+                {color: 'white', filter: 'highpass', f: 5000, a: 0.012, tide: {rate: 7, depth: 1}},
+            ],
+        },
         calls: [
             function (k) {
                 k.noise({d: 3.2, a: 0.09, color: 'pink', cutoff: 700, cutoff_end: 110, filter: 'lowpass', attack: 0.06});
@@ -122,6 +159,15 @@ const sound_ambience_worlds = [
             {tone: 92, type: 'sawtooth', cutoff: 260, a: 0.012, tide: {rate: 0.8, depth: 0.5}},
             {color: 'brown', filter: 'lowpass', f: 300, a: 0.08, tide: {rate: 0.08, depth: 0.6}},
         ],
+        // the Iron Stair: one heavy step every 2.4 s, iron grinding between them
+        flagship: {
+            level: 0.66,
+            layers: [
+                {tone: 41, a: 0.06, tide: {rate: 0.417, depth: 1}},
+                {tone: 82, type: 'sawtooth', cutoff: 520, a: 0.07, tide: {rate: 0.417, depth: 1}},
+                {color: 'pink', filter: 'bandpass', f: 600, q: 1.2, a: 0.05, tide: {rate: 0.834, depth: 0.9}},
+            ],
+        },
         calls: [
             function (k) {
                 const f = k.r(170, 270);
@@ -149,6 +195,16 @@ const sound_ambience_worlds = [
             {tone: 88, a: 0.003, tide: {rate: 0.03, depth: 0.5}},
             {color: 'pink', filter: 'bandpass', f: 1100, q: 0.8, a: 0.012, tide: {rate: 0.06, depth: 0.9}},
         ],
+        // the Frost Crystal: glass singing, three notes drifting in and out of each other
+        flagship: {
+            level: 0.93,
+            layers: [
+                {tone: 1567.98, a: 0.008, tide: {rate: 0.31, depth: 0.9}},
+                {tone: 1574, a: 0.008, tide: {rate: 0.23, depth: 0.9}},
+                {tone: 2349.32, a: 0.005, tide: {rate: 0.17, depth: 1}},
+                {color: 'white', filter: 'highpass', f: 6000, a: 0.006, tide: {rate: 0.4, depth: 0.8}},
+            ],
+        },
         calls: [
             function (k) {
                 const notes = [1174.66, 1318.51, 1567.98, 1760, 2093];
@@ -178,6 +234,15 @@ const sound_ambience_worlds = [
             {color: 'white', filter: 'bandpass', f: 3600, q: 1.5, a: 0.005, tide: {rate: 3.7, depth: 1}},
             {tone: 65, a: 0.02, tide: {rate: 0.21, depth: 0.5}},
         ],
+        // the Furnace: its fire roaring and fluttering, the weight of it under
+        flagship: {
+            level: 1.1,
+            layers: [
+                {color: 'pink', filter: 'lowpass', f: 700, a: 0.09, tide: {rate: 0.5, depth: 0.5}},
+                {color: 'white', filter: 'bandpass', f: 2400, q: 1, a: 0.035, tide: {rate: 5, depth: 1}},
+                {tone: 49, a: 0.04, tide: {rate: 0.25, depth: 0.5}},
+            ],
+        },
         calls: [
             function (k) {
                 for (let i = 0, end = 4 + Math.floor(Math.random()*5); i < end; ++i) {
@@ -206,6 +271,17 @@ const sound_ambience_worlds = [
             {color: 'brown', filter: 'lowpass', f: 190, a: 0.1, tide: {rate: 0.06, depth: 0.7}},
             {color: 'pink', filter: 'bandpass', f: 300, q: 1, a: 0.014, tide: {rate: 0.05, depth: 1}, drift: {rate: 0.03, by: 120}},
         ],
+        // the Eclipse Eye: a slow pulse, like a heart, in a drone that beats against itself
+        flagship: {
+            level: 0.39,
+            layers: [
+                {tone: 55, a: 0.05},
+                {tone: 55.7, a: 0.05},
+                {tone: 110, a: 0.06, tide: {rate: 0.9, depth: 1}},
+                {tone: 220, a: 0.012, tide: {rate: 0.9, depth: 1}},
+                {color: 'brown', filter: 'lowpass', f: 150, a: 0.08, tide: {rate: 0.9, depth: 0.8}},
+            ],
+        },
         calls: [
             function (k) {
                 const f = k.pick([196, 174.61, 146.83]);
