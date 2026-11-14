@@ -237,8 +237,9 @@ below). That gives, in the campaign at NORMAL:
   (`opens`: the world it goes on sale in, below), `hull_profile` the
   radiation, traction, braking, cooling, turbo and extra turbo seconds
   (`endurance`).
-- The Mule Prospector mines 2.5 times faster (`mining: 2.5`) and its drone bay
-  holds four drones, other ships two (`drone_bay` in `src/js/drones.js`).
+- The Mule Prospector's shots cut ore rocks 2.5 times faster (`mining: 2.5`,
+  [Mining](#mining)), and its drone bay holds four drones, other ships two
+  (`drone_bay` in `src/js/drones.js`).
 - All six ships deal ×1 damage today (`damage: 1`).
 - Shield: the ship's own + 25 per Shield capacitor level (`shield_max` in
   `src/js/helpers.js`). It recharges after 5 seconds unhit at
@@ -731,6 +732,34 @@ no repairs, and the first ship does not last five minutes of it).
   for each world farther along the list; it is never bought.
 - Where: `market_price`, `trade_total` in `src/js/trade.js`;
   `commodity_base_price` in `src/js/resources.js`.
+
+## Mining
+
+In the campaign your guns mine: a shot, a missile or the pulse that lands on
+an ore rock cuts it by its damage (the arcade's rocks break and drop salvage,
+[Salvage in](#salvage-in)).
+
+- A rock holds a reserve by its size: 8 units of ore for each unit of its
+  radius (176 to 368 for a rock 22 to 46 across), a rich rock 2.5 of its
+  world's resource (55 to 115) (`ore_reserve` in `src/js/deposits.js`).
+- Every 250 of damage frees one unit (`ore_cut_cost`), into the hold at once
+  and counted toward a mining stage; the rest of a hit is kept for the next
+  unit. With the hold full the rock is still cut, nothing is loaded, and the
+  news says CARGO FULL once. The rock's bar is the share of its reserve left,
+  and it breaks with its last unit; one of Dustfall then leaves a unit of ore
+  more.
+- The Mule Prospector's shots count 2.5 times (`mining` in
+  `src/js/ships/miner.js`). The pulse and the EMP cut each rock in their
+  reach by their own damage (140 and 160 at the start: half a unit a rock).
+- Tuned on the start ship (2026-11-10): the Wisp Scout's Pulse cannon (14 a
+  bolt, one every 0.19 s), parked where FLY TO OBJECTIVE parks it, no raiders,
+  fills its hold of 40 in 146 s. Its two mining drones, taken out the same
+  day, filled it in 143 to 145 s. The story's first mining stage (10 units)
+  takes 36 s of fire, 41 s from the scan's beacon with the flight, 47 s with
+  Haven's patrols (39 s with the drones). The Mule Prospector with the same
+  cannon fills its 150 in 219 s (212 s with its drones).
+- A stronger gun mines as much faster as it hits harder.
+- When the guns' own aim takes a rock: [principles.md](principles.md).
 
 ## Elites and flagships
 
