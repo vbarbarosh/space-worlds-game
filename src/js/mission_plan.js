@@ -38,7 +38,7 @@ function mission_plan_steps()
             title: step.title,
             text: `Goal · ${g.kind.title} ${g.index + 1}/${g.steps.length}`,
             // the goal's picture, as on GOALS
-            picture: ship_parts_url(`map/${(campaign.goal?.id === 'explorer') ? 'world-gate' : 'outpost'}`),
+            picture: ship_parts_url(`map/${g.kind.icon}`),
             world,
             point: (world === campaign.world) ? step.target?.point || null : null,
             current: !campaign.tracked_id,

@@ -5,18 +5,12 @@
 const goal_kinds = {
     explorer: {
         title: 'Explorer',
+        icon: 'world-gate',
         pitch: 'See all eight worlds as fast as you can. The plan takes the nearest world you have not seen; at each gate the guide lists the modules it needs, with BUY buttons at the station.',
         reward: 1500,
         steps: explorer_steps,
     },
-    prospector: {
-        title: 'Prospector',
-        pitch: 'Get rich from the rocks: a builder drone, mining outposts whose drones mine for you, a transport line that sells their ore, and better drones.',
-        reward: 1200,
-        steps: prospector_steps,
-    },
 };
-const prospector_target = 2000;
 
 // The worlds in the order to see them: those seen already, then each time the nearest one not seen yet
 function explorer_steps()
@@ -34,67 +28,6 @@ function explorer_steps()
         from = id;
     }
     return out;
-}
-
-function prospector_steps()
-{
-    const outposts = (campaign.structures || []).filter(v => (v.kind === 'outpost') && (v.built >= 1));
-    const earned = Object.values(campaign.lines || {}).reduce((n, v) => n + (v.earned || 0), 0);
-    const at_station = {point: station, label: worlds[campaign.world].station};
-    const field = goal_free_field();
-    const next_tier = drone_tiers[1];
-    return [
-        {
-            title: 'Buy a builder drone',
-            text: `At a station: MODULES → Builder drone, ◆ ${builder_price}. It builds what you place with K.`,
-            done: !!campaign.builder,
-            target: at_station,
-            buy: {label: `BUY BUILDER DRONE · ◆ ${builder_price}`, price: builder_price, run: buy_builder},
-        },
-        {
-            title: 'Build a mining outpost',
-            text: `Fly to a mining field with rocks, press K and place an outpost on it (◆ ${structure_kinds.outpost.cost.salvage} and ${structure_kinds.outpost.cost.ore} ore). Its two drones mine the field.`,
-            done: outposts.length >= 1,
-            target: field,
-            build: true,
-        },
-        {
-            title: 'Open a transport line',
-            text: `At the station of the world with your outpost: MODULES → Transport line, ◆ ${transport_price}. It collects the outposts' ore and sells it.`,
-            done: Object.keys(campaign.lines || {}).length > 0,
-            target: at_station,
-            buy: {label: `BUY TRANSPORT LINE · ◆ ${transport_price}`, price: transport_price, run: buy_transport_line},
-        },
-        {
-            title: `Upgrade the drones to ${next_tier.name} ${next_tier.mark}`,
-            text: `At a station: MODULES → ${next_tier.name} drones, ◆ ${next_tier.price}. Your own drones fly faster and carry ${next_tier.carry} units a trip.`,
-            done: (campaign.drone_tier || 0) >= 1,
-            target: at_station,
-            buy: {label: `UPGRADE DRONES · ◆ ${next_tier.price}`, price: next_tier.price, run: buy_drone_tier},
-        },
-        {
-            title: 'Build a second outpost',
-            text: 'Another field, another outpost: the transport visits each one with a load on its loop.',
-            done: outposts.length >= 2,
-            target: field,
-            build: true,
-        },
-        {
-            title: `Earn ◆ ${prospector_target} from your transports`,
-            text: 'Keep the outposts mining and the transport flying, and defend it from raids. A defense platform beside an outpost helps.',
-            done: earned >= prospector_target,
-            progress: [Math.min(earned, prospector_target), prospector_target],
-        },
-    ];
-}
-
-// The mining field nearest you with rocks left and no outpost on it yet, as a guide target
-function goal_free_field()
-{
-    const taken = structures_here().filter(v => v.kind === 'outpost');
-    const free = mining_fields.filter(v => ore_nodes.some(vv => (vv.hp > 0) && (vv.field === v.id)) && !taken.some(vv => distance(vv, v) < v.r));
-    const field = free.sort((a, b) => distance(a, player || station) - distance(b, player || station))[0];
-    return field ? {point: {x: field.x, y: field.y}, label: 'MINING FIELD · K BUILD AN OUTPOST'} : null;
 }
 
 // The goal you follow, its steps, and the step you are on; null without one
@@ -191,10 +124,7 @@ function sync_goal_strip(g)
     const step = g.steps[g.index];
     const progress = step.progress ? ` · ◆ ${step.progress[0]}/${step.progress[1]}` : '';
     hud_text(document.getElementById('goal_text'), `${g.kind.title.toUpperCase()} · ${g.index + 1}/${g.steps.length} · ${step.title}${progress}`);
-    const b = document.getElementById('goal_button');
-    const here = step.build && step.target && player && (distance(player, step.target.point) < 450);
-    hud_html(b, here ? '<span>K</span> BUILD' : 'FOLLOW GOAL');
-    b.disabled = !here && !step.target;
+    document.getElementById('goal_button').disabled = !step.target;
 }
 
 function on_goal_button()
@@ -203,12 +133,7 @@ function on_goal_button()
     if (!g || (g.index < 0) || (state !== 'playing')) {
         return;
     }
-    const step = g.steps[g.index];
-    if (step.build && step.target && (distance(player, step.target.point) < 450)) {
-        build_menu_toggle();
-        return;
-    }
-    goal_follow(step, true);
+    goal_follow(g.steps[g.index], true);
 }
 document.getElementById('goal_button').addEventListener('click', on_goal_button);
 
@@ -268,7 +193,7 @@ function render_station_goals(parent)
     const left = document.createElement('div');
     left.className = 'goal-panel';
     if (g && (g.index >= 0)) {
-        const icon = map_icon_html((campaign.goal.id === 'explorer') ? 'world-gate' : 'outpost', 56);
+        const icon = map_icon_html(g.kind.icon, 56);
         const head = `<div class="goal-panel-head"><span class="eyebrow eyebrow--gold">Goal you follow</span><span class="money">${ui_number(g.kind.reward)} bonus</span></div>`;
         const title = `<div class="goal-panel-title">${icon}<div><h3 class="h-section">${g.kind.title}</h3><p class="small">${g.kind.pitch}</p></div></div>`;
         left.innerHTML = `${head}${title}${ui_progress_html(g.steps.length, g.index, `${g.index} / ${g.steps.length}`)}`;
@@ -334,13 +259,16 @@ function render_station_goals(parent)
         const row = document.createElement('div');
         row.className = 'goal-row';
         const done = (campaign.goals_done || []).includes(id);
-        row.innerHTML = `${map_icon_html((id === 'explorer') ? 'world-gate' : 'outpost', 30)}<div><b>${kind.title}</b><p class="small">${kind.pitch.split('.')[0]} · ${done ? `reached, its bonus of ${ui_number(kind.reward)} paid` : `bonus ${ui_number(kind.reward)}`}</p></div>`;
+        row.innerHTML = `${map_icon_html(kind.icon, 30)}<div><b>${kind.title}</b><p class="small">${kind.pitch.split('.')[0]} · ${done ? `reached, its bonus of ${ui_number(kind.reward)} paid` : `bonus ${ui_number(kind.reward)}`}</p></div>`;
         // a goal reached has paid its bonus: it is not offered again
         if (!done) {
             row.append(ui_button({label: 'Follow', size: 'sm', on: () => goal_choose(id)}));
         }
         others.append(row);
     }
-    right.append(others);
+    // none when the goal you follow is the only one
+    if (others.querySelector('.goal-row')) {
+        right.append(others);
+    }
     parent.append(left, right);
 }

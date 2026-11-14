@@ -43,11 +43,6 @@
     border-color: #ffd16e55;
 }
 
-.goal-strip button span {
-    margin-right: 4px;
-    opacity: 0.6;
-}
-
 /* The goal's steps on the station's GOALS tab */
 .goal-steps {
     margin: 10px 0;

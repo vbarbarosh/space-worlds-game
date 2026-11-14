@@ -401,10 +401,12 @@ dropped and picked again.
 | Goal | Steps | Bonus |
 |---|---|---|
 | Explorer | reach every world not yet seen, nearest first; a step names the modules a gate needs | 1500 |
-| Prospector | buy a builder drone, build a mining outpost, open a transport line, upgrade the drones to Hauler, build a second outpost, earn 2000 from transports | 1200 |
 
-- Where: `goal_kinds`, `explorer_steps`, `prospector_steps`;
-  `prospector_target` is the 2000.
+- Where: `goal_kinds`, `explorer_steps`.
+- A save that follows the Prospector goal, taken out with the outposts and
+  transport lines it was about, loads with no goal followed and a word in
+  the news (`checkpoint_without_strategy` in `src/js/checkpoint.js`);
+  `campaign.goals_done` keeps it if it was reached.
 - The same tab shows the pilot's rank and XP, and reputation in the worlds
   seen, with the fines this station takes.
 
