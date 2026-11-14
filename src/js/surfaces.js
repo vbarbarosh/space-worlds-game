@@ -505,7 +505,7 @@ function ore_art(v)
 
 // A rock broken (base_damage_ore): its drawing in pieces (rock_break). A cliff falls and a brood nest bursts their own
 // way.
-function ore_break(v)
+function ore_pieces(v)
 {
     const art = ((v.type === 'cliff') || (v.type === 'brood_nest')) ? null : ore_art(v);
     if (art) {

@@ -11,7 +11,7 @@ function base_damage_ore(v, amount)
     burst(v.x, v.y, gold, 25, 150);
     ring(v.x, v.y, gold, v.r*2, 0.4);
     explode(v.x, v.y, v.r*1.5, '#c9924e');
-    ore_break(v);
+    ore_pieces(v);
     // in the arcade it blows up: its blast breaks the rocks packed close round it (rocks.js)
     rock_blow(v);
     sfx('mine', 1, v);
