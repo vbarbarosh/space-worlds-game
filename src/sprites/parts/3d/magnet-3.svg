@@ -1,6 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-<defs><linearGradient id="accent-fill" x1="0" y1="0" x2="1" y2="1"><stop id="accent-light" offset="0" stop-color="#f2b393"/><stop id="accent-base" offset="0.5" stop-color="#e8743b"/><stop id="accent-dark" offset="1" stop-color="#8b4623"/></linearGradient><radialGradient id="b5d68744555" cx="0.35" cy="0.32" r="0.8"><stop offset="0" stop-color="#a6acb3"/><stop offset="0.5" stop-color="#5d6874"/><stop offset="1" stop-color="#2a2f34"/></radialGradient><linearGradient id="mc9824a4550" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e1ba9b"/><stop offset="0.45" stop-color="#c9824a"/><stop offset="1" stop-color="#644125"/></linearGradient></defs>
-<g id="base" stroke="#0b1722" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"><circle cx="32" cy="32" r="24" fill="url(#b5d68744555)"/><path d="M11 32 A21 21 0 1 1 53 32 A21 21 0 1 1 11 32 Z M13.2 32 A18.8 18.8 0 1 0 50.8 32 A18.8 18.8 0 1 0 13.2 32 Z" fill="url(#mc9824a4550)" fill-rule="evenodd" stroke-width="1"/><path d="M15 32 A17 17 0 1 1 49 32 A17 17 0 1 1 15 32 Z M17.2 32 A14.8 14.8 0 1 0 46.8 32 A14.8 14.8 0 1 0 17.2 32 Z" fill="url(#mc9824a4550)" fill-rule="evenodd" stroke-width="1"/><path d="M19 32 A13 13 0 1 1 45 32 A13 13 0 1 1 19 32 Z M21.2 32 A10.8 10.8 0 1 0 42.8 32 A10.8 10.8 0 1 0 21.2 32 Z" fill="url(#mc9824a4550)" fill-rule="evenodd" stroke-width="1"/><path d="M23 32 A9 9 0 1 1 41 32 A9 9 0 1 1 23 32 Z M25.2 32 A6.8 6.8 0 1 0 38.8 32 A6.8 6.8 0 1 0 25.2 32 Z" fill="url(#mc9824a4550)" fill-rule="evenodd" stroke-width="1"/><circle cx="32" cy="32" r="6" fill="#2c343e" stroke-width="1.4"/></g>
-<g id="accent" stroke="#0b1722" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"><circle cx="32" cy="32" r="3.5" fill="url(#accent-fill)" stroke-width="1.2"/><circle cx="49.68" cy="49.68" r="2.6" fill="url(#accent-fill)" stroke-width="1.2"/><circle cx="14.32" cy="49.68" r="2.6" fill="url(#accent-fill)" stroke-width="1.2"/><circle cx="14.32" cy="14.32" r="2.6" fill="url(#accent-fill)" stroke-width="1.2"/><circle cx="49.68" cy="14.32" r="2.6" fill="url(#accent-fill)" stroke-width="1.2"/></g>
+<defs>
+<linearGradient id="accent-fill" x1="0" y1="0" x2="1" y2="1"><stop id="accent-light" offset="0" stop-color="#ffa36b"/><stop id="accent-base" offset="0.55" stop-color="#e8743b"/><stop id="accent-dark" offset="1" stop-color="#9c4119"/></linearGradient>
+<radialGradient id="house" cx="0.35" cy="0.3" r="0.8"><stop offset="0" stop-color="#9aa5b2"/><stop offset="0.5" stop-color="#4a5562"/><stop offset="1" stop-color="#1b2028"/></radialGradient>
+<radialGradient id="floor" cx="0.4" cy="0.35" r="0.75"><stop offset="0" stop-color="#2b3440"/><stop offset="1" stop-color="#0b1016"/></radialGradient>
+<linearGradient id="copper" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f6d2ad"/><stop offset="0.42" stop-color="#c9824a"/><stop offset="1" stop-color="#5a391f"/></linearGradient>
+<radialGradient id="well" cx="0.4" cy="0.35" r="0.75"><stop offset="0" stop-color="#3a4552"/><stop offset="1" stop-color="#0b1016"/></radialGradient>
+</defs>
+<g id="base" stroke="#10151c" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round">
+<!-- four lugs for the emitters -->
+<path d="M19 19 L14.32 14.32 M19 45 L14.32 49.68 M45 19 L49.68 14.32 M45 45 L49.68 49.68" fill="none" stroke-width="7.4"/>
+<path d="M19 19 L14.32 14.32 M19 45 L14.32 49.68 M45 19 L49.68 14.32 M45 45 L49.68 49.68" fill="none" stroke="#4a5562" stroke-width="5"/>
+<!-- the housing and the light on its rim -->
+<circle cx="32" cy="32" r="24" fill="url(#house)"/>
+<path d="M9.62 29.65 A22.5 22.5 0 0 1 12.71 20.41 M20.41 12.71 A22.5 22.5 0 0 1 29.65 9.62" fill="none" stroke="#ffffff" stroke-opacity="0.55" stroke-width="1.1"/>
+<!-- the windings on their floor -->
+<circle cx="32" cy="32" r="21.3" fill="url(#floor)" stroke-width="1"/>
+<circle cx="32" cy="32" r="19.9" fill="none" stroke="url(#copper)" stroke-width="2.3"/>
+<circle cx="32" cy="32" r="15.9" fill="none" stroke="url(#copper)" stroke-width="2.3"/>
+<circle cx="32" cy="32" r="11.9" fill="none" stroke="url(#copper)" stroke-width="2.3"/>
+<circle cx="32" cy="32" r="7.9" fill="none" stroke="url(#copper)" stroke-width="2.3"/>
+<path d="M13.69 23.46 A20.2 20.2 0 0 1 25.09 13.02 M17.32 25.15 A16.2 16.2 0 0 1 26.46 16.78 M20.94 26.84 A12.2 12.2 0 0 1 27.83 20.54 M24.57 28.53 A8.2 8.2 0 0 1 29.2 24.29" fill="none" stroke="#ffffff" stroke-opacity="0.5" stroke-width="0.8"/>
+<!-- the pole piece -->
+<circle cx="32" cy="32" r="6" fill="url(#well)" stroke-width="1.6"/>
+</g>
+<g id="accent" stroke="#10151c" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round">
+<circle cx="32" cy="32" r="3.5" fill="url(#accent-fill)" stroke-width="1.2"/>
+<circle cx="30.9" cy="30.9" r="1" fill="#ffffff" fill-opacity="0.65" stroke="none"/>
+<circle cx="49.68" cy="49.68" r="2.6" fill="url(#accent-fill)" stroke-width="1.2"/><circle cx="14.32" cy="49.68" r="2.6" fill="url(#accent-fill)" stroke-width="1.2"/><circle cx="14.32" cy="14.32" r="2.6" fill="url(#accent-fill)" stroke-width="1.2"/><circle cx="49.68" cy="14.32" r="2.6" fill="url(#accent-fill)" stroke-width="1.2"/>
+</g>
 </svg>

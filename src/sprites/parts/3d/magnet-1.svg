@@ -1,6 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-<defs><linearGradient id="accent-fill" x1="0" y1="0" x2="1" y2="1"><stop id="accent-light" offset="0" stop-color="#f2b393"/><stop id="accent-base" offset="0.5" stop-color="#e8743b"/><stop id="accent-dark" offset="1" stop-color="#8b4623"/></linearGradient><radialGradient id="b5d68744555" cx="0.35" cy="0.32" r="0.8"><stop offset="0" stop-color="#a6acb3"/><stop offset="0.5" stop-color="#5d6874"/><stop offset="1" stop-color="#2a2f34"/></radialGradient><linearGradient id="mc9824a4550" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e1ba9b"/><stop offset="0.45" stop-color="#c9824a"/><stop offset="1" stop-color="#644125"/></linearGradient></defs>
-<g id="base" stroke="#0b1722" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"><circle cx="32" cy="32" r="18" fill="url(#b5d68744555)"/><path d="M17 32 A15 15 0 1 1 47 32 A15 15 0 1 1 17 32 Z M19.2 32 A12.8 12.8 0 1 0 44.8 32 A12.8 12.8 0 1 0 19.2 32 Z" fill="url(#mc9824a4550)" fill-rule="evenodd" stroke-width="1"/><path d="M21 32 A11 11 0 1 1 43 32 A11 11 0 1 1 21 32 Z M23.2 32 A8.8 8.8 0 1 0 40.8 32 A8.8 8.8 0 1 0 23.2 32 Z" fill="url(#mc9824a4550)" fill-rule="evenodd" stroke-width="1"/><circle cx="32" cy="32" r="8" fill="#2c343e" stroke-width="1.4"/></g>
-<g id="accent" stroke="#0b1722" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"><circle cx="32" cy="32" r="3.5" fill="url(#accent-fill)" stroke-width="1.2"/></g>
+<defs>
+<linearGradient id="accent-fill" x1="0" y1="0" x2="1" y2="1"><stop id="accent-light" offset="0" stop-color="#ffa36b"/><stop id="accent-base" offset="0.55" stop-color="#e8743b"/><stop id="accent-dark" offset="1" stop-color="#9c4119"/></linearGradient>
+<radialGradient id="house" cx="0.35" cy="0.3" r="0.8"><stop offset="0" stop-color="#9aa5b2"/><stop offset="0.5" stop-color="#4a5562"/><stop offset="1" stop-color="#1b2028"/></radialGradient>
+<radialGradient id="floor" cx="0.4" cy="0.35" r="0.75"><stop offset="0" stop-color="#2b3440"/><stop offset="1" stop-color="#0b1016"/></radialGradient>
+<linearGradient id="copper" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f6d2ad"/><stop offset="0.42" stop-color="#c9824a"/><stop offset="1" stop-color="#5a391f"/></linearGradient>
+<radialGradient id="well" cx="0.4" cy="0.35" r="0.75"><stop offset="0" stop-color="#3a4552"/><stop offset="1" stop-color="#0b1016"/></radialGradient>
+</defs>
+<g id="base" stroke="#10151c" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round">
+<!-- the housing and the light on its rim -->
+<circle cx="32" cy="32" r="18" fill="url(#house)"/>
+<path d="M16.06 27.73 A16.5 16.5 0 0 1 29.7 15.66" fill="none" stroke="#ffffff" stroke-opacity="0.55" stroke-width="1.1"/>
+<!-- the windings on their floor -->
+<circle cx="32" cy="32" r="15.3" fill="url(#floor)" stroke-width="1"/>
+<circle cx="32" cy="32" r="13.9" fill="none" stroke="url(#copper)" stroke-width="2.3"/>
+<circle cx="32" cy="32" r="9.9" fill="none" stroke="url(#copper)" stroke-width="2.3"/>
+<path d="M19.13 26 A14.2 14.2 0 0 1 27.14 18.66 M22.76 27.69 A10.2 10.2 0 0 1 28.51 22.42" fill="none" stroke="#ffffff" stroke-opacity="0.5" stroke-width="0.8"/>
+<!-- the pole piece -->
+<circle cx="32" cy="32" r="8" fill="url(#well)" stroke-width="1.6"/>
+<!-- rim bolts -->
+<circle cx="20.23" cy="20.23" r="0.95" fill="#c5ccd5" stroke="none"/><circle cx="20.23" cy="43.77" r="0.95" fill="#c5ccd5" stroke="none"/><circle cx="43.77" cy="20.23" r="0.95" fill="#c5ccd5" stroke="none"/><circle cx="43.77" cy="43.77" r="0.95" fill="#c5ccd5" stroke="none"/>
+</g>
+<g id="accent" stroke="#10151c" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round">
+<circle cx="32" cy="32" r="3.5" fill="url(#accent-fill)" stroke-width="1.2"/>
+<circle cx="30.9" cy="30.9" r="1" fill="#ffffff" fill-opacity="0.65" stroke="none"/>
+</g>
 </svg>
