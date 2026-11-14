@@ -1,18 +1,17 @@
-// Sprites: the SVGs of src/sprites/, packed into sprite_svgs by bin/build. Ships are in 3d/; weapons/ holds the turrets and the missile, drones/ the orbit, builder and survey drones,
-// structures/ what the builder builds, pickups/ the loot of every world, worlds/<world>/ a world's objects. A ship is nose up on a 256 canvas, its longest side 228 units; an anchors layer marks flames
+// Sprites: the SVGs of src/sprites/, packed into sprite_svgs by bin/build. Ships are in 3d/; weapons/ holds the turrets and the missile, drones/ the orbit drone and the survey robot,
+// pickups/ the loot of every world, worlds/<world>/ a world's objects. A ship is nose up on a 256 canvas, its longest side 228 units; an anchors layer marks flames
 // (lines from the nozzle, as long as a full-thrust flame) and points (turrets, muzzles, berths, beam).
 const sprite_cache = new Map();
 // How big things are drawn, in game units, in one place so the proportions are tuned together: ship classes by
 // length, from the 42-unit interceptor to the 104-unit cruiser; raiders and flagships by their radius; the rest
 // across. The hit radii stay as they are; a ship is drawn a little larger than it is hit.
 // Every ship's drawn length in metres, on one scale with the station (station_size): fighters 40-50, the warships up to
-// 120, a flagship 300, the haulers 340-400. Raiders and flagships are a factor of their hit radius.
+// 120, a flagship 300, the freighter 400. Raiders and flagships are a factor of their hit radius.
 const sprite_sizes = {
     ships: {interceptor: 40, scout: 46, courier: 56, miner: 72, gunship: 86, cruiser: 120},
     raider: 2.9,
     flagship: 3.53,
     freighter: 400,
-    transport: 340,
     pickup: 15,
 };
 const sprite_span = 228;
