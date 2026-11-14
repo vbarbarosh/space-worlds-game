@@ -45,11 +45,11 @@ const brood_nest_ring = 500;
 // one 1.2 s and the other 10. The bot's Verdant on NORMAL (docs/balance.md): 3.8 min at 12, 4.7 at 16, 4.8 at 18 with
 // its interest down from 61 to 59, against 5.1 before the nests; a world is to take about five (arcade_shapes.js)
 const brood_nest_burn = 16;
-// A wave's share to hatch before its crest: this much of the wave's raiders (arcade_wave_size): 35, 45 and 55 on
-// NORMAL at the run's second step, nine squadrons a wave, which at brood_nest_hatch_gap is a build-up's 36 s; a nest
-// burnt sooner keeps the rest (the bot's hatched 181 to 221 in the five waves, where the director's squadrons brought
-// it 215 before the nests). The brood is the crest's own, on top
-const brood_nest_share = 1.25;
+// A wave's share to hatch before its crest: this much of the wave's raiders (arcade_wave_size): 49, 63 and 77 on
+// NORMAL at the run's second step; a nest burnt sooner keeps the rest. The brood is the crest's own, on top. At 1.25,
+// with hatches as quick as brood_nest_hatch_gap_clear lets them come, the share was out before its nest burnt for 29%
+// of the bot's seconds at a nest, three quarters of them with nobody near (12 runs)
+const brood_nest_share = 1.75;
 // The nest you are burning hatches the wave's squadrons: the one hurt within this many s, else the nearest; a nest
 // hatches at most once in brood_nest_hatch_gap s. Out of a nest a squadron is in your guns' reach at once, where one
 // that warps in 640 m off takes some 3 s to come: with no gap the bot had a wave's share down in 15 to 20 s, against
