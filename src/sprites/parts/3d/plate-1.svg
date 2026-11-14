@@ -1,6 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-<defs><linearGradient id="accent-fill" x1="0" y1="0" x2="1" y2="1"><stop id="accent-light" offset="0" stop-color="#f2b393"/><stop id="accent-base" offset="0.5" stop-color="#e8743b"/><stop id="accent-dark" offset="1" stop-color="#8b4623"/></linearGradient><linearGradient id="ma9b3be4550" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#d0d5db"/><stop offset="0.45" stop-color="#a9b3be"/><stop offset="1" stop-color="#545a5f"/></linearGradient><linearGradient id="sheen" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff" stop-opacity="0.22"/><stop offset="0.5" stop-color="#ffffff" stop-opacity="0"/><stop offset="1" stop-color="#03070c" stop-opacity="0.4"/></linearGradient><linearGradient id="phase" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#636db2"/><stop offset="0.5" stop-color="#c6ceff"/><stop offset="1" stop-color="#636db2"/></linearGradient></defs>
-<g id="base" stroke="#0b1722" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"><path d="M14 40 L17 27 L32 24 L47 27 L50 40 Z" fill="url(#ma9b3be4550)"/><path d="M32 24 L47 27 L50 40 L32 40 Z" fill="url(#sheen)" stroke="none"/><path d="M19 36 L45 36" fill="none" stroke="#5d6268" stroke-width="1.6"/><circle cx="19" cy="32" r="1.6" fill="#2c343e" stroke="none"/><circle cx="45" cy="32" r="1.6" fill="#2c343e" stroke="none"/></g>
-<g id="accent" stroke="#0b1722" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"><path d="M20 30 L44 30 L43 33 L21 33 Z" fill="url(#phase)" stroke-width="1.2"/></g>
+<defs>
+<linearGradient id="accent-fill" x1="0" y1="0" x2="1" y2="1"><stop id="accent-light" offset="0" stop-color="#ffa36b"/><stop id="accent-base" offset="0.55" stop-color="#e8743b"/><stop id="accent-dark" offset="1" stop-color="#9c4119"/></linearGradient>
+<linearGradient id="steel" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e3e9f0"/><stop offset="0.45" stop-color="#a3b0be"/><stop offset="1" stop-color="#4d5a69"/></linearGradient>
+<linearGradient id="carrier" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7d8995"/><stop offset="0.5" stop-color="#4a5562"/><stop offset="1" stop-color="#20262e"/></linearGradient>
+<linearGradient id="phase" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#5a64ad"/><stop offset="0.5" stop-color="#d3d9ff"/><stop offset="1" stop-color="#5a64ad"/></linearGradient>
+</defs>
+<g id="base" stroke="#10151c" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round">
+<!-- the slab, its outer edge up -->
+<path d="M14.2 39.8 L17 27.2 L32 24.2 L47 27.2 L49.8 39.8 Z" fill="url(#steel)"/>
+<!-- its chamfers: lit on the outer edge, in shade inboard -->
+<path d="M18.2 28.3 L32 25.6 L45.8 28.3 L45.2 30 L32 27.5 L18.8 30 Z" fill="#ffffff" fill-opacity="0.6" stroke="none"/>
+<path d="M15.8 36.9 L48.2 36.9 L48.6 38.6 L15.4 38.6 Z" fill="#0a0f16" fill-opacity="0.32" stroke="none"/>
+<!-- a clamp at each end, bolted -->
+<path d="M15.3 34.5 L19.6 34.5 L19.6 39.8 L14.2 39.8 Z M48.7 34.5 L44.4 34.5 L44.4 39.8 L49.8 39.8 Z" fill="url(#carrier)" stroke-width="1.2"/>
+<circle cx="17.3" cy="37.2" r="0.9" fill="#c5ccd5" stroke="none"/><circle cx="46.7" cy="37.2" r="0.9" fill="#c5ccd5" stroke="none"/>
+</g>
+<g id="accent" stroke="#10151c" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round">
+<!-- the phase strip in its channel -->
+<path d="M20.4 30.7 L43.6 30.7 L42.9 34 L21.1 34 Z" fill="url(#phase)" stroke-width="1.2"/>
+<path d="M23 31.8 L41 31.8" fill="none" stroke="#ffffff" stroke-opacity="0.75" stroke-width="0.7"/>
+</g>
 </svg>

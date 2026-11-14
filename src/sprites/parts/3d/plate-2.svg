@@ -1,6 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-<defs><linearGradient id="accent-fill" x1="0" y1="0" x2="1" y2="1"><stop id="accent-light" offset="0" stop-color="#f2b393"/><stop id="accent-base" offset="0.5" stop-color="#e8743b"/><stop id="accent-dark" offset="1" stop-color="#8b4623"/></linearGradient><linearGradient id="m5d68743050" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8e959e"/><stop offset="0.45" stop-color="#5d6874"/><stop offset="1" stop-color="#2e343a"/></linearGradient><linearGradient id="ma9b3be4550" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#d0d5db"/><stop offset="0.45" stop-color="#a9b3be"/><stop offset="1" stop-color="#545a5f"/></linearGradient><linearGradient id="sheen" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff" stop-opacity="0.22"/><stop offset="0.5" stop-color="#ffffff" stop-opacity="0"/><stop offset="1" stop-color="#03070c" stop-opacity="0.4"/></linearGradient><linearGradient id="phase" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#636db2"/><stop offset="0.5" stop-color="#c6ceff"/><stop offset="1" stop-color="#636db2"/></linearGradient></defs>
-<g id="base" stroke="#0b1722" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"><path d="M9 43 L12 27 L52 27 L55 43 Z" fill="url(#m5d68743050)"/><path d="M12 42 L15 24 L32 21 L49 24 L52 42 Z" fill="url(#ma9b3be4550)"/><path d="M32 21 L49 24 L52 42 L32 42 Z" fill="url(#sheen)" stroke="none"/><path d="M17 38 L47 38" fill="none" stroke="#5d6268" stroke-width="1.6"/><circle cx="17" cy="34" r="1.6" fill="#2c343e" stroke="none"/><circle cx="47" cy="34" r="1.6" fill="#2c343e" stroke="none"/></g>
-<g id="accent" stroke="#0b1722" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"><path d="M18 27 L46 27 L45 31 L19 31 Z" fill="url(#phase)" stroke-width="1.2"/></g>
+<defs>
+<linearGradient id="accent-fill" x1="0" y1="0" x2="1" y2="1"><stop id="accent-light" offset="0" stop-color="#ffa36b"/><stop id="accent-base" offset="0.55" stop-color="#e8743b"/><stop id="accent-dark" offset="1" stop-color="#9c4119"/></linearGradient>
+<linearGradient id="steel" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e3e9f0"/><stop offset="0.45" stop-color="#a3b0be"/><stop offset="1" stop-color="#4d5a69"/></linearGradient>
+<linearGradient id="carrier" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7d8995"/><stop offset="0.5" stop-color="#4a5562"/><stop offset="1" stop-color="#20262e"/></linearGradient>
+<linearGradient id="phase" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#5a64ad"/><stop offset="0.5" stop-color="#d3d9ff"/><stop offset="1" stop-color="#5a64ad"/></linearGradient>
+</defs>
+<g id="base" stroke="#10151c" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round">
+<!-- the carrier, bolted to the hull -->
+<path d="M9.2 42.8 L12 27.2 L52 27.2 L54.8 42.8 Z" fill="url(#carrier)"/>
+<path d="M11.9 30 L10.6 40.5" fill="none" stroke="#ffffff" stroke-opacity="0.45" stroke-width="1"/>
+<!-- the slab on it, its chamfers -->
+<path d="M12.2 41.8 L15 24.2 L32 21.2 L49 24.2 L51.8 41.8 Z" fill="url(#steel)"/>
+<path d="M16.2 25.4 L32 22.6 L47.8 25.4 L47.3 27.2 L32 24.6 L16.7 27.2 Z" fill="#ffffff" fill-opacity="0.6" stroke="none"/>
+<path d="M13.9 38.7 L50.1 38.7 L50.4 40.6 L13.6 40.6 Z" fill="#0a0f16" fill-opacity="0.32" stroke="none"/>
+<!-- a groove and its light, two bolts -->
+<path d="M19.5 36.2 L44.5 36.2" fill="none" stroke="#3b4652" stroke-width="1.3"/>
+<path d="M19.5 37.3 L44.5 37.3" fill="none" stroke="#ffffff" stroke-opacity="0.5" stroke-width="0.8"/>
+<circle cx="17" cy="33.6" r="1.6" fill="#2b3440" stroke="none"/><circle cx="47" cy="33.6" r="1.6" fill="#2b3440" stroke="none"/>
+</g>
+<g id="accent" stroke="#10151c" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round">
+<path d="M18.2 27.6 L45.8 27.6 L44.9 31.6 L19.1 31.6 Z" fill="url(#phase)" stroke-width="1.2"/>
+<path d="M21 28.8 L43 28.8" fill="none" stroke="#ffffff" stroke-opacity="0.75" stroke-width="0.8"/>
+</g>
 </svg>
