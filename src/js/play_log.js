@@ -6,7 +6,7 @@
 // always comes before the log (storage_set). Nothing leaves the device but the file the pause panel's Download saves.
 const play_log_key = 'play_log_v1';
 const play_log_format = 'world-explorer-play-log';
-const play_log_version = 1;
+const play_log_version = 2;
 // all the stored sessions together, in characters of JSON: about 40 hours of play, and room left for the saves
 const play_log_cap = 1500000;
 const play_log_events_cap = 5000;
@@ -647,8 +647,8 @@ function play_log_earn(source, amount)
     play_log_salvage_expected += amount;
 }
 
-// A purchase: kind (ship, gun, gun tier, module, supply, repair, drone, drone tier, builder, structure, transport
-// line, trade, tow), the item's id and its price; details go into its event as they are
+// A purchase: kind (ship, gun, gun tier, module, supply, repair, trade, tow), the item's id and its price; details go
+// into its event as they are
 function play_log_spend(kind, id, price, details = null)
 {
     if (!play_log_session || !(price > 0)) {
@@ -952,8 +952,8 @@ function play_log_race_forfeit(why)
     }
 }
 
-// The kit as it is now: ship, the gun on each mount with its tier, module levels installed, drones, rank; in the arcade
-// also the levels owned and the reactor's power used and held (arcade_power.js)
+// The kit as it is now: ship, the gun on each mount with its tier, module levels installed, rank; in the arcade also
+// the levels owned and the reactor's power used and held (arcade_power.js)
 function play_log_kit()
 {
     const f = ensure_career();
@@ -979,7 +979,6 @@ function play_log_kit()
         modules_total: upgrade_options.length,
         modules_below_cap: below_cap,
         ships_owned: f.ships.length,
-        drones: arcade.active ? null : (campaign.drones || 0),
         rank: play_log_rank_name(),
         ...(arcade.active ? {owned: Object.fromEntries(upgrade_options.filter(v => arcade.owned[v.key]).map(v => [v.key, arcade.owned[v.key]])), power: [arcade_power_used(), arcade_power_capacity()]} : {}),
     };

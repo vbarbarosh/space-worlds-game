@@ -65,7 +65,7 @@ reads as text and loads as JSON.
 
     {
      "format": "world-explorer-play-log",
-     "format_version": 1,
+     "format_version": 2,
      "about": "…",
      "exported_at": "2026-10-13T20:46:00.000Z",
      "game": {"version": "0.1.0", "built": "2026-10-13T20:42:31.451Z"},
@@ -75,6 +75,9 @@ reads as text and loads as JSON.
 
 `format_version` grows when a field changes meaning or goes away; new fields
 can come without it. A reader skips fields it does not know.
+
+- 2 (2026-11-14): the kit's `drones` is gone, with the mining drones; a
+  session written before keeps it. `bin/play-log` reads both.
 
 ### Units
 
@@ -134,12 +137,12 @@ can come without it. A reader skips fields it does not know.
 | `world` | the world it was played in |
 | `flight_s`, `docked_s` | seconds in flight; seconds in the station, depot, map or inventory |
 | `salvage` | on hand at its end |
-| `earned` | by source: `pickups` (wreck and cache salvage), `contract`, `story` (a story chapter), `race`, `goal`, `world bonus` (arcade), `swallowed` (a raider the arcade's Eclipse hole took), `sell <cargo>` (ore, cells, relics, commodities), `transport` (a transport line's sales), `refund` (a structure still building when you left), `unlogged` |
-| `spent` | by kind: `ship`, `gun`, `gun tier`, `module`, `supply`, `repair` (arcade), `card` (arcade, a card's price), `drone`, `drone tier`, `builder`, `structure`, `transport line`, `trade` (commodities bought), `tow` (the tug after a death), `fine` (a reputation's fine, or an inspection's for contraband), `unlogged` |
+| `earned` | by source: `pickups` (wreck and cache salvage), `contract`, `story` (a story chapter), `race`, `goal`, `world bonus` (arcade), `swallowed` (a raider the arcade's Eclipse hole took), `sell <cargo>` (ore, cells, relics, commodities), `unlogged`; a log from before 2026-11-14 may hold `transport` (a transport line's sales) and `refund` (a structure still building when you left), no longer written: the lines and structures were taken out |
+| `spent` | by kind: `ship`, `gun`, `gun tier`, `module`, `supply`, `repair` (arcade), `card` (arcade, a card's price), `trade` (commodities bought), `tow` (the tug after a death), `fine` (a reputation's fine, or an inspection's for contraband), `unlogged`; a log from before 2026-11-14 may hold `drone`, `drone tier`, `builder`, `structure` and `transport line`, no longer written: the mining drones, the builder, its structures and the transport lines were taken out |
 | `xp_total`, `xp`, `rank` | campaign only (null in the arcade): XP at the end, earned by source (`kill`, `contract`, `unlogged`), the rank. `kill` is the hull of the raiders destroyed, `contract` the pay of the contracts collected (since 2026-10-19; before, 2 to 6 a kill and 28% of the pay + 18 a stage, and a save from then has its XP rescaled once when it loads, which can show as `unlogged`) |
 | `kills` | by raider type: `chaser`, `shooter`, `lancer`, `tank`, `splitter`, `shard`, `boss` |
 | `elite_kills` | of those, elites |
-| `dealt` | damage your side dealt to raiders' shields and hulls: guns, pulse, EMP, missiles, drones, platforms, arcade chain blasts |
+| `dealt` | damage your side dealt to raiders' shields and hulls: guns, pulse, EMP, missiles, Orbit drones, arcade chain blasts (and, before 2026-11-14, defense platforms and transports) |
 | `taken` | the damage you took, on the shield and on the hull |
 | `taken_by` | by cause: `shot`, `ram`, `flagship` (its attacks that are not shots), `missile` (a blast), `ship blast` (arcade), `rock blast` (arcade: an ore rock broken close by), `mine` (arcade), `vent` (arcade event), `flare`, `lightning` (Ion Reach's arc pylons), `rock` (an ore rock or an Obsidian spire), `debris`, `radiation`, `black hole` |
 | `raider_shots` | shots raiders fired (at you, and at what you protect) |
@@ -165,7 +168,7 @@ Every event has `t` and `type`.
 | `run` | a load or the tow inside a session: `how`, `world`, `salvage`, `xp` |
 | `buy` | `kind` (as `spent`), `item`, `price`, `salvage_left`, `priciest_yet` (the game's dearest purchase so far), and for a gun tier `tier`, for trade `amount` |
 | `sell` | `item`, `amount`, `value`, `salvage_left` |
-| `kit` | `ship`, `guns` (mount by mount: `id`, `name`, `tier`, or null for an empty mount), `modules` (installed level by key), `modules_at_cap`, `modules_total`, `modules_below_cap` (by the levels owned; those needing a launcher are marked), `ships_owned`, `drones`, `rank`, `salvage`; in the arcade `owned` (owned level by key, installed or not) and `power` (used, held by the reactor) |
+| `kit` | `ship`, `guns` (mount by mount: `id`, `name`, `tier`, or null for an empty mount), `modules` (installed level by key), `modules_at_cap`, `modules_total`, `modules_below_cap` (by the levels owned; those needing a launcher are marked), `ships_owned`, `rank`, `salvage` (and `drones`, the mining drones owned, in a log from before 2026-11-14); in the arcade `owned` (owned level by key, installed or not) and `power` (used, held by the reactor) |
 | `rank` | `rank`, `xp` |
 | `milestone` | `what`: `top ship` (the priciest ship owned), `all modules at cap` (all but those needing a launcher you do not carry), `all guns tier 5`; `salvage` |
 | `contract` | `action` (`taken`, `stage done`, `completed`, `claimed`, `abandoned`), `title`, `kind` (the stage's), `stage`, `stages`, `world`, `reward`, `story`, `secs` (since taken), `stage_secs` (since the stage began), and `xp` when claimed |

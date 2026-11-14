@@ -94,8 +94,8 @@ function log_from_file(file)
     if (!log || (log.format !== 'world-explorer-play-log') || !Array.isArray(log.sessions)) {
         throw new Error(`${file}: not a World Explorer play log (format "${plain(log?.format)}")`);
     }
-    if (log.format_version > 1) {
-        console.log(`warning: format_version ${plain(log.format_version)}, this tool knows 1; fields it does not know are skipped`);
+    if (log.format_version > 2) {
+        console.log(`warning: format_version ${plain(log.format_version)}, this tool knows 2; fields it does not know are skipped`);
     }
     return log;
 }
