@@ -159,7 +159,9 @@ function render_surface_ship(x, y, angle, alpha = 1, ghost = false, definition =
     const color = v.color || cyan;
     // The designer's sprite when there is one; the painted hull below while it loads, or for a ship with none
     const art = definition ? definition.sprite : ship_sprite(v);
-    if (art && sprite_draw(art.name, definition?.enemy ? color : null, art.length, x, y, angle, alpha)) {
+    const tint = definition?.enemy ? color : null;
+    // a ghost of the trail is the sprite alone, through the pool of copies (sprite_draw_ghost)
+    if (art && ((ghost && sprite_draw_ghost(art.name, tint, art.length, x, y, angle, alpha)) || sprite_draw(art.name, tint, art.length, x, y, angle, alpha))) {
         // the player's ship wears what it bought
         if (!definition && !ghost) {
             ship_parts_draw(art.length, x, y, angle, alpha);

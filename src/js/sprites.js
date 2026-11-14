@@ -335,6 +335,99 @@ function sprite_still_evict()
     }
 }
 
+// A ship's ghosts (the trail a moving ship leaves, render()): its sprite again at the turns of its last frames, ten or
+// so a frame, each a turned and scaled copy; on a software canvas they were the dearest part of a calm frame (1.6 ms
+// of 8.4 at 1536 × 794 and a pixel ratio of 2.5). A turn's copy is made once, as the screen shows it, in a canvas of a
+// small pool that is used again (a turning ship makes a new copy a frame: no canvas is made or dropped for it), and
+// copied to the nearest device pixel. False while the sprite is not ready, while the zoom moves and for a ship too
+// big for the pool: the caller draws it as before.
+const sprite_ghost_pool = [];
+const sprite_ghost_pool_size = 24;
+const sprite_ghost_side_max = 512;
+
+function sprite_draw_ghost(name, color, length, x, y, angle, alpha)
+{
+    const v = sprite(name);
+    if (!v || v.spin || (zoom_target !== null)) {
+        return false;
+    }
+    const size = (length*256)/sprite_span;
+    const t = ctx.getTransform();
+    const raster = sprite_raster(name, color, sprite_raster_px(v, size, t));
+    const copy = raster ? sprite_ghost_copy(raster, size, angle, t) : null;
+    if (!copy) {
+        return false;
+    }
+    ctx.save();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.globalAlpha = alpha;
+    ctx.drawImage(
+        copy.canvas,
+        (copy.canvas.width - copy.w)/2,
+        (copy.canvas.height - copy.h)/2,
+        copy.w,
+        copy.h,
+        Math.round(t.a*x + t.c*y + t.e) - copy.w/2,
+        Math.round(t.b*x + t.d*y + t.f) - copy.h/2,
+        copy.w,
+        copy.h
+    );
+    ctx.restore();
+    return true;
+}
+
+// The pool's copy of the raster at this size and turn under the transform t, made now if it is not there: in the
+// canvas used longest ago, each a square that holds the sprite at any turn; w, h: the part the sprite takes at this one
+function sprite_ghost_copy(raster, size, angle, t)
+{
+    const cos = Math.cos(angle);
+    const sin = Math.sin(angle);
+    const a = t.a*cos + t.c*sin;
+    const b = t.b*cos + t.d*sin;
+    const c = t.c*cos - t.a*sin;
+    const d = t.d*cos - t.b*sin;
+    let oldest = null;
+    for (let i = 0, end = sprite_ghost_pool.length; i < end; ++i) {
+        const v = sprite_ghost_pool[i];
+        if ((v.raster === raster) && (v.size === size) && (v.a === a) && (v.b === b) && (v.c === c) && (v.d === d)) {
+            v.used = clock;
+            return v;
+        }
+        if (!oldest || (v.used < oldest.used)) {
+            oldest = v;
+        }
+    }
+    // even sides, a pixel clear of the drawing all round, so its centre is on a pixel corner
+    const side = 2*Math.ceil((Math.sqrt(a*a + b*b) + Math.sqrt(c*c + d*d))*size/2) + 2;
+    if (side > sprite_ghost_side_max) {
+        return null;
+    }
+    let out = oldest;
+    if (sprite_ghost_pool.length < sprite_ghost_pool_size) {
+        out = {canvas: document.createElement('canvas')};
+        sprite_ghost_pool.push(out);
+    }
+    if ((out.canvas.width !== side) || (out.canvas.height !== side)) {
+        out.canvas.width = side;
+        out.canvas.height = side;
+    }
+    const draw = out.canvas.getContext('2d');
+    draw.setTransform(1, 0, 0, 1, 0, 0);
+    draw.clearRect(0, 0, side, side);
+    draw.setTransform(a, b, c, d, side/2, side/2);
+    draw.drawImage(raster, -size/2, -size/2, size, size);
+    out.raster = raster;
+    out.size = size;
+    out.a = a;
+    out.b = b;
+    out.c = c;
+    out.d = d;
+    out.w = Math.min(side, 2*Math.ceil(((Math.abs(a) + Math.abs(c))*size)/2) + 2);
+    out.h = Math.min(side, 2*Math.ceil(((Math.abs(b) + Math.abs(d))*size)/2) + 2);
+    out.used = clock;
+    return out;
+}
+
 // Flames along a sprite's anchors of one kind, on `draw` in the ship's frame (the caller has turned the context):
 // each as long as its anchor times `power`, as wide as its nozzle
 function sprite_flames(draw, flames, power, color, flicker = 0)
