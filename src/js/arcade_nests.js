@@ -56,6 +56,9 @@ const brood_nest_share = 1.25;
 // the 36 s of a build-up
 const brood_nest_hold = 6;
 const brood_nest_hatch_gap = 4;
+// once nobody is within reach of you (pace_reach), the next hatch waits only this many s: with 4 s the bot spent 33%
+// of its seconds at a nest with nobody near, two thirds of them with no raider alive at all (12 runs)
+const brood_nest_hatch_gap_clear = 1.5;
 // A nest farther than this (m) hatches a trickle: this many raiders at most, this many s apart. The next nest down
 // the valley is within it, so its squadrons are on their way as you fly to it
 const brood_nest_far = 2400;
@@ -350,7 +353,8 @@ function brood_nests_source(size)
         return {size: 0};
     }
     const far = distance(nest, player) > brood_nest_far;
-    if (time - w.hatched_at < (far ? brood_nest_trickle_gap : brood_nest_hatch_gap)) {
+    const clear = !enemies.some(v => (v.hp > 0) && (distance(v, player) < pace_reach));
+    if (time - w.hatched_at < (far ? brood_nest_trickle_gap : clear ? brood_nest_hatch_gap_clear : brood_nest_hatch_gap)) {
         return {size: 0};
     }
     const count = Math.min(size, w.left, far ? brood_nest_trickle : size);
