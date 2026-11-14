@@ -13,6 +13,8 @@ const slow = 20;
 // the flight with the frames keeping up that a step up waits for (resolution_up_stretch_ms in src/js/resolution.js):
 // the dev page's kept_up() stands in for it
 const stretch_ms = 180000;
+// the frames of a 144 Hz screen, seen before the window came to this one at 60 Hz
+const refresh_fast_ms = 6.94;
 // a heavy fight after it: 55 ms a frame at ×1, 150 at ×1.7
 const slow_heavy = 150;
 // a software canvas in a large window: 310 ms a frame at ×1.7, 110 at ×1
@@ -21,7 +23,7 @@ const scene = 'world=6&screen=flight';
 const usage = `usage: bin/resolution-check [check...]
 
     Flies Nova Forge on build/dev.html in headless Chromium (an 800 × 450 window at 200%) and checks the adaptive
-    resolution (src/js/resolution.js), in real time, about six minutes:
+    resolution (src/js/resolution.js), in real time, about seven minutes:
 
     steady   no stand-in for a slow card: the canvas stays at the top ratio, ×1.7
     slow     &slow=${slow}: it steps down to where the frames keep up and holds there, each step drawn in its own
@@ -30,6 +32,9 @@ const usage = `usage: bin/resolution-check [check...]
     up       stepped down under &slow=${slow}, the cost gone, 3 minutes of keeping up (stood in for): one step up, not
              to the top; the cost again takes it back down, and that ratio is not tried again in the run; a new
              campaign and a new arcade run, each started as the menu starts it, keep the ratio and may try it once more
+    refresh  stepped down under &slow=${slow}, the cost gone, frames of ${refresh_fast_ms} ms seen before (a 144 Hz screen the
+             window has left): within 45 s a frame of this 60 Hz one counts as keeping up again, and 3 minutes of
+             it (stood in for) bring the step up
     remembered
              stepped down under &slow=${slow} and held: the page loaded again starts at that ratio from its first
              frame, and with the cost gone too, where 3 minutes of keeping up bring one step up; loaded once more it
@@ -47,7 +52,7 @@ const usage = `usage: bin/resolution-check [check...]
              then ×1.7 again, each within a second
 
     Timing on a busy machine can fail steady; run it alone again. Exits 1 on a failure.`;
-const checks = {steady: check_steady, slow: check_slow, up: check_up, remembered: check_remembered, sharp: check_sharp, forced: check_forced, futile: check_futile, descent: check_descent, crawl: check_crawl, screen1: check_screen1, moved: check_moved};
+const checks = {steady: check_steady, slow: check_slow, up: check_up, refresh: check_refresh, remembered: check_remembered, sharp: check_sharp, forced: check_forced, futile: check_futile, descent: check_descent, crawl: check_crawl, screen1: check_screen1, moved: check_moved};
 
 cli(main);
 
@@ -165,6 +170,38 @@ async function check_up(page, trace)
         }
     }
     out.push(...await steps_check(page, trace));
+    return out;
+}
+
+async function check_refresh(page, trace)
+{
+    const out = [];
+    await scene_open(page, `&slow=${slow}`);
+    const seen = await ratios_watch(page, 12, trace);
+    const low = seen[seen.length - 1].dpr;
+    if (low >= 1.7) {
+        return ['never stepped down'];
+    }
+    trace.lines.push(`| cost gone, ${refresh_fast_ms} ms seen:`);
+    await page.evaluate(() => window.dev_resolution.slow(0));
+    await page.evaluate(v => window.dev_resolution.refresh_seen(v), refresh_fast_ms);
+    const waited = await ratios_watch(page, 45, trace);
+    if (waited.some(v => v.dpr > low)) {
+        out.push(`stepped up before 3 minutes of keeping up: ${ratios_text(waited)}`);
+    }
+    // the ratio is read again: a busy machine may have stepped it down while the 45 s went by, and the step up is
+    // judged from the one in use
+    const state = await page.evaluate(() => window.dev_resolution.state());
+    const above = state.ladder[state.level - 1];
+    if (!above) {
+        out.push(`back at the top 45 s after the cost went: ${ratios_text(waited)}`);
+        return out;
+    }
+    trace.lines.push(`| the refresh taken for ${state.refresh_ms.toFixed(1)} ms; 3 minutes kept up:`);
+    const up = await kept_up_watch(page, 6, trace);
+    if (up.some(v => v.dpr > above) || (up[up.length - 1].dpr !== above)) {
+        out.push(`the refresh taken for ${state.refresh_ms.toFixed(1)} ms 45 s after ${refresh_fast_ms} ms was seen, and 3 minutes of keeping up at ×${state.dpr}: ${ratios_text(up)}; want one step, to ×${above}`);
+    }
     return out;
 }
 

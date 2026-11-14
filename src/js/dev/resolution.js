@@ -40,7 +40,8 @@ frame = function (timestamp) {
 // record of it; slow(ms) changes &slow, world(n) flies to world n as a gate would (the ratios stepped up to stay
 // barred), run(mode) starts a new run as the menu does ('campaign', undocked at once into flight, or 'arcade'), so the
 // game's own call is what forgets them; kept_up(ms) stands in for that much flight with the frames keeping up, as a
-// check in real time cannot wait the 3 minutes a step up takes
+// check in real time cannot wait the 3 minutes a step up takes; refresh_seen(ms) stands in for frames of that length
+// seen before (a headless browser has one refresh rate: 6.94 is a 144 Hz screen the window has left)
 window.dev_resolution = {
     state() {
         const record = play_log_session ? play_log_record_make(true) : null;
@@ -66,5 +67,8 @@ window.dev_resolution = {
     },
     kept_up(ms) {
         resolution.clear_ms += ms;
+    },
+    refresh_seen(ms) {
+        resolution.refresh_ms = ms;
     },
 };
