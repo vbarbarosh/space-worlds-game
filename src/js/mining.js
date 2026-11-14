@@ -60,6 +60,49 @@ function mark_mining_changed()
     guide_context_cache = null;
 }
 
+// Whether the guns' own aim takes the rocks in reach in the campaign (update.js): while the contract you follow is at
+// a mining stage in this world, or while the guide's own marker stands on a mining field (a click on one in the map).
+// A raider within 600 m always comes first, so a fight is never spent on rocks; in the Races mode the rocks stay whole
+function mining_aim()
+{
+    if (race_mode.active) {
+        return false;
+    }
+    if (guide_manual) {
+        return /^MINING FIELD/.test(guide_manual.label || '');
+    }
+    const m = focused_contract();
+    return !!m && !m.ready && (m.type === 'mining') && (m.world === campaign.world);
+}
+
+// The rock the pilot points at, the guns' whatever the task: the pointer moved in the last 2 s and is on it, as the
+// turrets' aim by the pointer asks (update_ship_orientation), and it stays theirs while the pointer rests on it; null
+// without one
+let ore_pointed_rock = null;
+
+function ore_pointed()
+{
+    if (!pointer.active || mouse_drive.active || mouse_drive.following || race_mode.active) {
+        ore_pointed_rock = null;
+        return null;
+    }
+    const kept = ore_pointed_rock;
+    if (kept && (kept.hp > 0) && (distance(pointer, kept) < kept.r) && ore_nodes.includes(kept)) {
+        return kept;
+    }
+    ore_pointed_rock = null;
+    if (time - pointer.last < 2) {
+        for (let i = 0; i < ore_nodes.length; ++i) {
+            const v = ore_nodes[i];
+            if ((v.hp > 0) && (v.type !== 'cliff') && (distance(pointer, v) < v.r)) {
+                ore_pointed_rock = v;
+                break;
+            }
+        }
+    }
+    return ore_pointed_rock;
+}
+
 function mining_objective()
 {
     const rocks = mineable_deposits();

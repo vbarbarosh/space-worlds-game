@@ -65,22 +65,26 @@ function cargo_normalize(cargo)
     return cargo;
 }
 
-// Loads what a broken rock held; what does not fit stays behind, and a label says so. The arcade has no hold: its
-// rocks drop salvage, and nothing is loaded.
+// Loads what was cut from a rock, and says what came aboard; what does not fit stays behind, and the news says so
+// once, until the hold has room again. The arcade has no hold: its rocks drop salvage, and nothing is loaded.
+let cargo_full_told = false;
+
 function ore_load(v)
 {
     if (arcade.active) {
         return;
     }
     const key = v.resource || 'ore';
-    const room = cargo_capacity() - cargo_count();
-    const amount = Math.min(room, v.amount || 1);
+    const wanted = v.amount || 1;
+    const amount = clamp(cargo_capacity() - cargo_count(), 0, wanted);
     campaign.cargo[key] = (campaign.cargo[key] || 0) + amount;
-    if (v.resource && (amount > 0)) {
-        label(v.x, v.y, `+${amount} ${resource_of(key).name.toUpperCase()}`, ore_color(v));
+    if (amount > 0) {
+        cargo_full_told = false;
+        label(v.x, v.y, `+${amount} ${v.resource ? resource_of(key).name.toUpperCase() : 'ORE'}`, ore_color(v));
     }
-    if (amount < (v.amount || 1)) {
-        label(v.x, v.y + 18, 'CARGO FULL · SALVAGE COLLECTIBLE', gold);
+    if ((amount < wanted) && !cargo_full_told) {
+        cargo_full_told = true;
+        show_toast('CARGO FULL', 'WHAT YOU CUT NOW IS LEFT BEHIND · SELL THE LOAD AT A STATION', 3);
     }
 }
 

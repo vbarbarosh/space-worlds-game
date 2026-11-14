@@ -10,12 +10,12 @@ function damage_ore(v, amount)
         brood_nest_damage(v, amount);
         return;
     }
-    const alive = v.hp > 0;
-    physics_base_damage_ore(v, amount);
-    if (alive && (v.hp <= 0) && !arcade.active && (campaign.world === 2) && (cargo_count() < cargo_capacity())) {
-        campaign.cargo.ore++;
-        save_checkpoint();
+    // in the campaign a hit cuts ore out of the rock, and the rock breaks when none is left (deposits.js)
+    if (!arcade.active) {
+        ore_cut(v, amount);
+        return;
     }
+    physics_base_damage_ore(v, amount);
 }
 
 function magnetic_radius()
