@@ -8,7 +8,8 @@ sound designer, by hand or by a tool, and checked against what it replaces.
 All of it is made in code today, with the browser's Web Audio: no sound file
 ships with the game. The code is in `src/js/audio.js` (the mix, `tone()`,
 `noise()`, the flight's steady sounds), `src/js/music.js` (`sfx()`, the calm
-themes), `src/js/music_drive.js` (the arcade's and the flagship's music) and
+themes), `src/js/music_drive.js` (the arcade's and the flagship's music),
+`src/js/music_voices.js` (the new music set: each world's instruments) and
 `src/js/sfx/`, one file per effect. `bin/sound-render` records the game's own
 output as it plays, and the dev page's Sounds tab (`build/dev.html`) plays any
 effect on demand.
@@ -340,7 +341,21 @@ and `update_audio_scene` in `src/js/audio.js`):
 ## The music
 
 Each world has a theme (its file's `music`: tempo, root note, four chords, a
-scale, a short tune, a rhythm and a filter); the game plays it three ways.
+scale, a short tune, a rhythm and a filter); the game plays it three ways,
+in one of two music sets (Settings, "Music set: New | Classic"; kept in
+the browser as `pulse_drift_music_set`):
+
+- **Classic:** the music as it was made first. Every world plays the same
+  instruments (sine pads, a sine tune, the same drums, a square, triangle or
+  sawtooth lead in the drive), only the notes differ. The three ways below
+  describe it.
+- **New**, the default: the same three ways, the same chords, scales, tunes,
+  tempos and figures, each world on instruments of its own
+  ([The new set](#the-new-set), below), so a world is known by its first
+  notes.
+
+Choosing a set changes the music at once: the other set's notes fade out on
+their own bus in about 0.1 s and the theme starts again at its chord.
 
 **The calm theme** (`music_step` in `src/js/music.js`): the menu, the
 campaign, the station, the shop. A cycle of 256 eighths: each chord 16
@@ -374,11 +389,61 @@ campaign fight), docked at the station or choosing an upgrade 0.54, a jump 0.42,
 pulse 0.38; none while the tab is hidden, sound is off, or the music or the
 master volume is at zero.
 
+### The new set
+
+`src/js/music_voices.js`: a world's `music.voices` names its four
+instruments, and the new set's steps (`music_voices_step`,
+`music_voices_drive_step`, `music_voices_drive_hit`) play the classic
+steps' cycle with them. Every instrument is made of `voice_tone` and
+`voice_noise` (`src/js/sound_voices.js`: a tone with a modulator, a drive
+and a sliding filter; white, pink or brown noise; an envelope that starts
+from silence) on the music's bus.
+
+| World | Lead (`lead`) | Pad (`pad`) | Bass (`bass`) | Drums (`kit`) |
+|---|---|---|---|---|
+| Haven | `epiano`: an electric piano, a soft body under a tine's ping | `warm`: two sawtooths a little apart, only their first harmonics | `round`: a sine with a soft octave | `soft`: a round kick, brushes |
+| Verdant | `marimba`: the bar, its overtone two octaves up, the mallet's knock | `breath`: a hollow reed that swells in and out twice a chord, with a breath of air | `wood`: a plucked double bass | `wood`: a log drum, a wood block, a shaker on every eighth |
+| Dustfall | `pluck`: a plucked string with a twang, a second course an octave up | `drone`: the chord's root and fifth an octave down, buzzing and held | `string`: a low string, picked | `hand`: a hand drum, its "dum" and its "tek" |
+| Ion Reach | `digital`: a glassy digital note that comes back twice, a dotted eighth apart; it also plays the chord as an arpeggio on the eighths the tune leaves free (`arp`) | `thin`: a narrow band of a square wave | `sub`: a held sine | `tight`: an electric kick, a snap, short hats on every eighth |
+| Obsidian | `anvil`: struck metal an octave down under a clang of partials that are not its harmonics | `iron`: a dark driven sawtooth, the root doubled an octave down | `growl`: a driven sawtooth with a rough undertone, opening as it is held | `iron`: a heavy step, an anvil's ring, a link of chain |
+| Cryosphere | `celesta`: a small bell an octave up, ringing long | `glass`: the chord an octave up, thin and slow, under a band of air at 7.5 kHz | `soft`: a slow sine, an octave up | `ice`: a far thud, ice cracking, a splinter of glass |
+| Nova Forge | `brass`: two driven sawtooths, the filter opening as the note swells | `swell`: brass swelling over half the chord | `tuba`: a driven sawtooth that opens at once | `big`: big drums, two more low ones in every second bar |
+| Eclipse | `piano`: two strings a little apart, bright at the hammer, ringing long | `choir`: two voices a little apart, each through one band of a sung "oh" (480 and 880 Hz) | `deep`: a pressed sine and its octave below | `void`: a boom from far below, a far blow, a faint tick |
+
+- **The calm theme:** the pad holds each chord, the bass its root, the lead
+  the tune, as the classic set places them. The drums keep the world's
+  classic figure (its `rhythm`) on the world's kit, and a kit may add a
+  figure of its own (Verdant's shaker, Dustfall's "tek" and second "dum", Ion
+  Reach's hats, Obsidian's steps in three bars of four and its anvil, Nova
+  Forge's low drums); a campaign fight's kick, snare and hats are the kit's
+  too.
+- **The drive:** the classic kit figure, bass figure, arpeggio, tune (from the
+  second section) and pad, on the world's kit, bass, lead and pad. An
+  arpeggio's note is the lead's body alone, one voice, so the sixteenths
+  stay light; a note of the tune is the whole instrument.
+- **The boss:** the classic piece (its tempo, its kit figure, the bass in
+  sixteenths, the riff, the stabs, the hit that starts it) with the riff
+  and the stabs on the world's lead over an edge of sawtooth, the bass and
+  the drums the world's.
+- **Its levels:** `voices.calm`, `voices.drive` and `voices.boss` give each
+  part (lead, pad, bass, kit; `fight` the drums of a campaign fight) its
+  level, set by measurement: both sets rendered offline through the game's
+  mix (60 s of a calm theme and of a drive, 30 s of a campaign fight and of
+  a boss fight), the new set's mean level within 1.2 dB of the classic one's
+  in every world, and its peak within 1.6 dB. A struck or plucked instrument
+  peaks higher than a held sine at the same mean level, so the new set sits
+  at or a little under the classic mean. At most 24 music voices are alive
+  at once in a calm theme (25 in a campaign fight), 35 in a drive or a boss
+  fight.
+- `bin/sound-render --music-set=classic` (or `new`) records the game with
+  that set; `bin/world-music` composes the docs' tracks with the classic
+  set, the one they were approved with.
+
 ## The tracks
 
 `bin/world-music [world...]` composes a world's five-minute track for its page
 of the docs, `docs/worlds/<world>/music.mp3`, with the game's own music and
-instruments: the world's calm theme as the campaign plays it, fading in over
+the classic set's instruments: the world's calm theme, fading in over
 its first chord, for as many whole chords as fit, then an ending on its home
 chord (the calm pad, the tune slow, the root an octave up ringing out to
 5:00). One piece, relaxed, as the author asked (2026-10-24: a first version
@@ -433,7 +498,8 @@ over the root.
   hull lost stalls its engine (`kill`), and at the gate it escapes (`portal`)
   with its bounty.
 - **Music:** C major, warm and open (chords I, IV, vi, V with added ninths; a
-  pentatonic tune).
+  pentatonic tune). The new set: an electric piano over a warm pad, a round
+  bass, a soft kick.
 - **Its sounds can carry:** home, light and clean; the arcade's first steps.
 
 ### Verdant: the living veil
@@ -449,7 +515,9 @@ over the root.
   drifting spore mines (`mine`), a thorn ring; its brood hatches in its second
   phase (`portal`). In the arcade, nests hold a green shield over it that no
   hit gets through, and it sows new ones at half hull.
-- **Music:** D minor (Dorian), breathing.
+- **Music:** D minor (Dorian), breathing. The new set: a marimba over a reed
+  pad that swells in and out, a plucked double bass, a log drum and a
+  shaker.
 - **Its sounds can carry:** something alive: wet, organic, spores and
   currents. The current has no sound now.
 
@@ -469,7 +537,9 @@ over the root.
   pods, a spinning saw charge (`boost`) that leaves bursts of dust. In the
   arcade it jousts: its blade lets half a shot through, and a charge that ends
   on a rock stuns it with its hull open (`kill` as it rams).
-- **Music:** G minor pentatonic, a caravan's trot.
+- **Music:** G minor pentatonic, a caravan's trot. The new set: a twanging
+  plucked string over a drone of the root and fifth, a picked low string, a
+  hand drum.
 - **Its sounds can carry:** dry and gritty: sand, stone, rockfalls, the saw.
 
 ### Ion Reach: the electric storm
@@ -490,7 +560,9 @@ over the root.
   lightning spokes sweeping a quarter turn, blink jumps; pods shield its hub
   in its second phase. In the arcade a turning shell with two gaps; its arcs
   light every plate but the gaps (`enemy_beam`, then `storm`).
-- **Music:** A minor, a brisk rain of notes.
+- **Music:** A minor, a brisk rain of notes. The new set: glassy digital
+  notes with two echoes and an arpeggio between them, a sub bass, a thin
+  pad, tight hats.
 - **Its sounds can carry:** electricity: crackle, hum, thunder.
 
 ### Obsidian: the iron expanse
@@ -511,7 +583,9 @@ over the root.
   broadside. In the arcade a siege: armour stops every shot but at one glowing
   weak point, stern, flanks, bow, each a quarter of its hull (`kill` as it
   breaks).
-- **Music:** C minor pentatonic, the lowest root, slow.
+- **Music:** C minor pentatonic, the lowest root, slow. The new set: struck
+  metal low down, a dark hum, a growling bass, a heavy step in three bars of
+  four and an anvil's ring.
 - **Its sounds can carry:** weight and metal: magnetic hum, steel, machinery.
 
 ### Cryosphere: the frozen aurora
@@ -527,7 +601,9 @@ over the root.
   shots; shard spirals, icicles dropping where you are (`mine`), a frost nova
   that pulls the plates in (`enemy_beam`, then `pulse`). In the arcade it can
   be hurt only while it glows.
-- **Music:** D minor, the slowest but one, the brightest filter.
+- **Music:** D minor, the slowest but one, the brightest filter. The new set:
+  a celesta ringing long over a thin glass pad and a band of air, no low
+  bass, ice cracking now and then.
 - **Its sounds can carry:** ice and glass: chimes, crystal, cracking, a cold
   shimmer. Nothing of it sounds now.
 
@@ -546,7 +622,8 @@ over the root.
   heats your guns, mortar embers leaving slag (`mine`), missile salvos, a
   flare wave that opens its core (`flare`). In the arcade a ring of fire
   closes on you as it heats (`flare` each step); outside it you burn.
-- **Music:** A minor, the fastest calm theme.
+- **Music:** A minor, the fastest calm theme. The new set: brass, in the
+  tune and swelling under it, a tuba, big drums.
 - **Its sounds can carry:** fire and furnace: roar, sizzle, molten metal,
   overheating. Overheated guns have no sound now.
 
@@ -565,7 +642,8 @@ over the root.
   hole's edge, and its surge makes the hole pull harder ("THE HOLE SURGES",
   `gravity`).
 - **Music:** D minor, the slowest theme, the darkest space hum (190 Hz) and
-  the lowest reactor (38 Hz).
+  the lowest reactor (38 Hz). The new set: a choir on "oh", a far piano
+  ringing long, a deep bass, a boom from below.
 - **Its sounds can carry:** the end of the world: void, vast and dark,
   gravity you can hear.
 
