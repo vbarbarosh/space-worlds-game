@@ -1,25 +1,122 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
-<defs><radialGradient id="glass" cx="0.35" cy="0.28" r="0.85"><stop offset="0" stop-color="#8fd0f0"/><stop offset="0.35" stop-color="#2f6a92"/><stop offset="1" stop-color="#0b1824"/></radialGradient><linearGradient id="shade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff" stop-opacity="0.16"/><stop offset="0.55" stop-color="#ffffff" stop-opacity="0"/><stop offset="1" stop-color="#05080c" stop-opacity="0.38"/></linearGradient><radialGradient id="nozzle" cx="0.5" cy="0.25" r="0.9"><stop offset="0" stop-color="#ffd59a"/><stop offset="0.4" stop-color="#e2742f"/><stop offset="1" stop-color="#2a1a14"/></radialGradient><linearGradient id="l5d6874" x1="0" y1="0" x2="1" y2="0.35"><stop offset="0" stop-color="#9ba1a9"/><stop offset="0.45" stop-color="#5d6874"/><stop offset="1" stop-color="#30363c"/></linearGradient><linearGradient id="la9b3be" x1="0" y1="0" x2="1" y2="0.35"><stop offset="0" stop-color="#cad0d7"/><stop offset="0.45" stop-color="#a9b3be"/><stop offset="1" stop-color="#585d63"/></linearGradient><linearGradient id="ld8dde3" x1="0" y1="0" x2="1" y2="0.35"><stop offset="0" stop-color="#e7eaee"/><stop offset="0.45" stop-color="#d8dde3"/><stop offset="1" stop-color="#707376"/></linearGradient><linearGradient id="accent-fill" x1="0" y1="0" x2="1" y2="1"><stop id="accent-light" offset="0" stop-color="#f2b393"/><stop id="accent-base" offset="0.5" stop-color="#e8743b"/><stop id="accent-dark" offset="1" stop-color="#8b4623"/></linearGradient></defs>
-<g id="hull" stroke="#141a22" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"><rect x="119.78" y="59.19" width="16.43" height="156.11" fill="url(#l5d6874)" />
-<rect x="119.78" y="59.19" width="16.43" height="156.11" fill="url(#shade)" stroke="none" /><rect x="103.35" y="227.62" width="18.49" height="14.38" fill="url(#l5d6874)" />
-<rect x="134.16" y="227.62" width="18.49" height="14.38" fill="url(#l5d6874)" />
-<rect x="99.24" y="209.14" width="57.51" height="24.65" rx="4.11" fill="url(#la9b3be)" />
-<path d="M105.41 65.35 L107.46 32.49 Q128 14 148.54 32.49 L150.59 65.35 Z" fill="url(#ld8dde3)" />
-<rect x="86.92" y="73.57" width="36.97" height="41.08" rx="3.08" fill="url(#la9b3be)" />
-<rect x="132.11" y="73.57" width="36.97" height="41.08" rx="3.08" fill="url(#la9b3be)" />
-<rect x="86.92" y="168.05" width="36.97" height="41.08" rx="3.08" fill="url(#la9b3be)" />
-<rect x="132.11" y="168.05" width="36.97" height="41.08" rx="3.08" fill="url(#la9b3be)" />
-<path d="M115.68 34.54 L140.32 34.54 L143.41 48.92 L112.59 48.92 Z" fill="url(#glass)" stroke-width="3.5" />
-<ellipse cx="123.07" cy="39.14" rx="4.01" ry="2.88" fill="#ffffff" fill-opacity="0.8" stroke="none" /><path d="M99.24 78.7 L99.24 109.51 M111.57 78.7 L111.57 109.51" fill="none" stroke="#3b4652" stroke-width="2.5" /><path d="M99.24 173.19 L99.24 204 M111.57 173.19 L111.57 204" fill="none" stroke="#3b4652" stroke-width="2.5" /><path d="M144.43 78.7 L144.43 109.51 M156.76 78.7 L156.76 109.51" fill="none" stroke="#3b4652" stroke-width="2.5" /><path d="M144.43 173.19 L144.43 204 M156.76 173.19 L156.76 204" fill="none" stroke="#3b4652" stroke-width="2.5" />
-<rect x="105.41" y="215.3" width="45.19" height="3.59" fill="#0e1318" stroke="none" />
-<rect x="105.41" y="222.49" width="45.19" height="3.59" fill="#0e1318" stroke="none" />
-<rect x="88.97" y="77.68" width="3.08" height="32.86" fill="#ffffff" fill-opacity="0.45" stroke="none" />
-<rect x="88.97" y="172.16" width="3.08" height="32.86" fill="#ffffff" fill-opacity="0.45" stroke="none" />
-<ellipse cx="112.59" cy="238.5" rx="6.24" ry="3.2" fill="url(#nozzle)" stroke="none" /><ellipse cx="143.41" cy="238.5" rx="6.24" ry="3.2" fill="url(#nozzle)" stroke="none" /></g>
-<g id="accent" stroke="#141a22" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"><rect x="86.92" y="120.81" width="36.97" height="41.08" rx="3.08" fill="url(#accent-fill)" />
-<rect x="132.11" y="120.81" width="36.97" height="41.08" rx="3.08" fill="url(#accent-fill)" />
-<rect x="108.49" y="55.08" width="39.03" height="6.16" fill="url(#accent-fill)" />
+<defs>
+<linearGradient id="fus" x1="0" y1="0" x2="1" y2="0">
+<stop offset="0" stop-color="#f7fafc"/><stop offset="0.38" stop-color="#d6dde5"/><stop offset="0.68" stop-color="#97a3b1"/><stop offset="1" stop-color="#56616e"/>
+</linearGradient>
+<linearGradient id="shadeV" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0" stop-color="#ffffff" stop-opacity="0.2"/><stop offset="0.5" stop-color="#ffffff" stop-opacity="0"/><stop offset="1" stop-color="#0a0f16" stop-opacity="0.4"/>
+</linearGradient>
+<linearGradient id="box" x1="0" y1="0" x2="1" y2="0.35">
+<stop offset="0" stop-color="#e3e8ed"/><stop offset="0.45" stop-color="#b1bbc6"/><stop offset="1" stop-color="#667080"/>
+</linearGradient>
+<linearGradient id="box2" x1="0" y1="0" x2="1" y2="0.35">
+<stop offset="0" stop-color="#c3ccd6"/><stop offset="0.45" stop-color="#8c99a8"/><stop offset="1" stop-color="#4a5563"/>
+</linearGradient>
+<linearGradient id="dark" x1="0" y1="0" x2="1" y2="0">
+<stop offset="0" stop-color="#77838f"/><stop offset="0.5" stop-color="#4a5562"/><stop offset="1" stop-color="#252c35"/>
+</linearGradient>
+<linearGradient id="gun" x1="0" y1="0" x2="1" y2="0">
+<stop offset="0" stop-color="#5a6572"/><stop offset="0.45" stop-color="#394350"/><stop offset="1" stop-color="#171c23"/>
+</linearGradient>
+<linearGradient id="bell" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0" stop-color="#4b525c"/><stop offset="0.55" stop-color="#6d5646"/><stop offset="1" stop-color="#2a1a14"/>
+</linearGradient>
+<radialGradient id="glass" cx="0.34" cy="0.24" r="0.9"><stop offset="0" stop-color="#b9ecff"/><stop offset="0.3" stop-color="#3f86b3"/><stop offset="0.75" stop-color="#143049"/><stop offset="1" stop-color="#081320"/></radialGradient>
+<radialGradient id="nozzle" cx="0.5" cy="0.3" r="0.8"><stop offset="0" stop-color="#fff1cf"/><stop offset="0.4" stop-color="#ffab52"/><stop offset="1" stop-color="#b3431c"/></radialGradient>
+<linearGradient id="accent-fill" x1="0" y1="0" x2="1" y2="1">
+<stop id="accent-light" offset="0" stop-color="#ffa36b"/><stop id="accent-base" offset="0.55" stop-color="#e8743b"/><stop id="accent-dark" offset="1" stop-color="#9c4119"/>
+</linearGradient>
+<radialGradient id="lamp-red" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#ffd6d0"/><stop offset="0.35" stop-color="#ff4a3d"/><stop offset="1" stop-color="#ff4a3d" stop-opacity="0"/></radialGradient>
+<radialGradient id="lamp-green" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#e3ffe9"/><stop offset="0.35" stop-color="#3fe37a"/><stop offset="1" stop-color="#3fe37a" stop-opacity="0"/></radialGradient>
+<radialGradient id="lamp-cyan" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#ecfdff"/><stop offset="0.35" stop-color="#52d9ff"/><stop offset="1" stop-color="#52d9ff" stop-opacity="0"/></radialGradient>
+</defs>
+<g id="hull" stroke="#10151c" stroke-width="2.8" stroke-linejoin="round" stroke-linecap="round">
+<!-- the spine: a girder with two pipes, a beam across it between the rows -->
+<rect x="120" y="58" width="16" height="158" fill="url(#gun)" stroke-width="2.4"/>
+<path d="M126.2 60 L126.2 214 M129.8 60 L129.8 214" fill="none" stroke="#8d99a6" stroke-width="1.3"/>
+<rect x="93" y="115.6" width="70" height="4.8" rx="1" fill="url(#dark)" stroke-width="1.6"/>
+<rect x="93" y="162.6" width="70" height="4.8" rx="1" fill="url(#dark)" stroke-width="1.6"/>
+<!-- the engines' bells with their petals and fire, a radiator on each side -->
+<path d="M104.6 231 L120.6 231 L119.4 241.6 L105.8 241.6 Z" fill="url(#bell)" stroke-width="2.2"/>
+<path d="M151.4 231 L135.4 231 L136.6 241.6 L150.2 241.6 Z" fill="url(#bell)" stroke-width="2.2"/>
+<path d="M109.4 234 L109.6 239.5 M112.6 234 L112.6 239.5 M115.8 234 L115.6 239.5 M146.6 234 L146.4 239.5 M143.4 234 L143.4 239.5 M140.2 234 L140.4 239.5" fill="none" stroke="#10151c" stroke-width="1.3"/>
+<ellipse cx="112.59" cy="239.6" rx="5.4" ry="2" fill="url(#nozzle)" stroke="none"/><ellipse cx="143.41" cy="239.6" rx="5.4" ry="2" fill="url(#nozzle)" stroke="none"/>
+<path d="M89 213 L99.5 213 L99.5 231 L89 231 Z" fill="url(#gun)" stroke-width="2"/>
+<path d="M167 213 L156.5 213 L156.5 231 L167 231 Z" fill="url(#gun)" stroke-width="2"/>
+<path d="M90.5 216.6 L98 216.6 M90.5 220.2 L98 220.2 M90.5 223.8 L98 223.8 M90.5 227.4 L98 227.4 M165.5 216.6 L158 216.6 M165.5 220.2 L158 220.2 M165.5 223.8 L158 223.8 M165.5 227.4 L158 227.4" fill="none" stroke="#6c7884" stroke-width="1.3"/>
+<!-- the engine block: a grille over each engine, the reactor hatch between -->
+<rect x="99.2" y="209.1" width="57.6" height="24.7" rx="4" fill="url(#box)" stroke-width="2.8"/>
+<rect x="99.2" y="209.1" width="57.6" height="24.7" rx="4" fill="url(#shadeV)" stroke="none"/>
+<rect x="103.5" y="214" width="17" height="13.5" rx="1.5" fill="#1a2028" stroke-width="1.6"/><rect x="135.5" y="214" width="17" height="13.5" rx="1.5" fill="#141920" stroke-width="1.6"/>
+<path d="M106 217.6 L118 217.6 M106 220.8 L118 220.8 M106 224 L118 224 M150 217.6 L138 217.6 M150 220.8 L138 220.8 M150 224 L138 224" fill="none" stroke="#6c7884" stroke-width="1.3"/>
+<circle cx="128" cy="220.7" r="5.4" fill="#c5ccd5" stroke-width="1.6"/>
+<path d="M128 217.4 L128 224 M124.7 220.7 L131.3 220.7" fill="none" stroke="#3b4652" stroke-width="1.3"/>
+<path d="M101.5 211.5 L154.5 211.5" fill="none" stroke="#ffffff" stroke-opacity="0.6" stroke-width="1"/>
+<!-- the collar under the bridge: a dish to port, a beacon's mast to starboard; a thruster block at each beam's end -->
+<rect x="111" y="62" width="34" height="12.5" rx="2" fill="url(#gun)" stroke-width="2.4"/>
+<g fill="#9aa5b2" stroke="none"><circle cx="115" cy="70" r="1"/><circle cx="141" cy="70" r="1"/><circle cx="121.5" cy="70" r="1"/><circle cx="134.5" cy="70" r="1"/><circle cx="128" cy="70" r="1"/></g>
+<path d="M105.4 69.3 L111 69.3 M145 69.3 L151 69.3" fill="none" stroke="#10151c" stroke-width="2"/>
+<circle cx="105" cy="69.3" r="3.4" fill="#c5ccd5" stroke-width="1.5"/>
+<circle cx="105" cy="69.3" r="1.1" fill="#3b4652" stroke="none"/>
+<rect x="88.5" y="115" width="5.5" height="6" rx="1" fill="url(#gun)" stroke-width="1.5"/><rect x="162" y="115" width="5.5" height="6" rx="1" fill="url(#gun)" stroke-width="1.5"/>
+<rect x="88.5" y="162" width="5.5" height="6" rx="1" fill="url(#gun)" stroke-width="1.5"/><rect x="162" y="162" width="5.5" height="6" rx="1" fill="url(#gun)" stroke-width="1.5"/>
+<!-- the containers fore and aft: ribs, end frames, corner castings, a plate -->
+<rect x="87" y="74" width="37" height="41" rx="2.5" fill="url(#box)" stroke-width="2.8"/>
+<rect x="132" y="74" width="37" height="41" rx="2.5" fill="url(#box)" stroke-width="2.8"/>
+<rect x="87" y="168" width="37" height="41" rx="2.5" fill="url(#box2)" stroke-width="2.8"/>
+<rect x="132" y="168" width="37" height="41" rx="2.5" fill="url(#box2)" stroke-width="2.8"/>
+<path d="M93.5 80.5 L93.5 108.5 M98.3 80.5 L98.3 108.5 M103.1 80.5 L103.1 108.5 M107.9 80.5 L107.9 108.5 M112.7 80.5 L112.7 108.5 M117.5 80.5 L117.5 108.5 M138.5 80.5 L138.5 108.5 M143.3 80.5 L143.3 108.5 M148.1 80.5 L148.1 108.5 M152.9 80.5 L152.9 108.5 M157.7 80.5 L157.7 108.5 M162.5 80.5 L162.5 108.5 M93.5 174.5 L93.5 202.5 M98.3 174.5 L98.3 202.5 M103.1 174.5 L103.1 202.5 M107.9 174.5 L107.9 202.5 M112.7 174.5 L112.7 202.5 M117.5 174.5 L117.5 202.5 M138.5 174.5 L138.5 202.5 M143.3 174.5 L143.3 202.5 M148.1 174.5 L148.1 202.5 M152.9 174.5 L152.9 202.5 M157.7 174.5 L157.7 202.5 M162.5 174.5 L162.5 202.5" fill="none" stroke="#3b4652" stroke-width="1.3"/>
+<path d="M94.7 80.5 L94.7 108.5 M99.5 80.5 L99.5 108.5 M104.3 80.5 L104.3 108.5 M109.1 80.5 L109.1 108.5 M113.9 80.5 L113.9 108.5 M118.7 80.5 L118.7 108.5 M139.7 80.5 L139.7 108.5 M144.5 80.5 L144.5 108.5 M149.3 80.5 L149.3 108.5 M154.1 80.5 L154.1 108.5 M158.9 80.5 L158.9 108.5 M163.7 80.5 L163.7 108.5 M94.7 174.5 L94.7 202.5 M99.5 174.5 L99.5 202.5 M104.3 174.5 L104.3 202.5 M109.1 174.5 L109.1 202.5 M113.9 174.5 L113.9 202.5 M118.7 174.5 L118.7 202.5 M139.7 174.5 L139.7 202.5 M144.5 174.5 L144.5 202.5 M149.3 174.5 L149.3 202.5 M154.1 174.5 L154.1 202.5 M158.9 174.5 L158.9 202.5 M163.7 174.5 L163.7 202.5" fill="none" stroke="#ffffff" stroke-opacity="0.45" stroke-width="1"/>
+<path d="M88.5 78.5 L122.5 78.5 M88.5 110.5 L122.5 110.5 M133.5 78.5 L167.5 78.5 M133.5 110.5 L167.5 110.5 M88.5 172.5 L122.5 172.5 M88.5 204.5 L122.5 204.5 M133.5 172.5 L167.5 172.5 M133.5 204.5 L167.5 204.5" fill="none" stroke="#3b4652" stroke-width="1.4"/>
+<path d="M88.3 75.3 L91 75.3 L91 78 L88.3 78 Z M120 75.3 L122.7 75.3 L122.7 78 L120 78 Z M88.3 111 L91 111 L91 113.7 L88.3 113.7 Z M120 111 L122.7 111 L122.7 113.7 L120 113.7 Z M133.3 75.3 L136 75.3 L136 78 L133.3 78 Z M165 75.3 L167.7 75.3 L167.7 78 L165 78 Z M133.3 111 L136 111 L136 113.7 L133.3 113.7 Z M165 111 L167.7 111 L167.7 113.7 L165 113.7 Z M88.3 169.3 L91 169.3 L91 172 L88.3 172 Z M120 169.3 L122.7 169.3 L122.7 172 L120 172 Z M88.3 205 L91 205 L91 207.7 L88.3 207.7 Z M120 205 L122.7 205 L122.7 207.7 L120 207.7 Z M133.3 169.3 L136 169.3 L136 172 L133.3 172 Z M165 169.3 L167.7 169.3 L167.7 172 L165 172 Z M133.3 205 L136 205 L136 207.7 L133.3 207.7 Z M165 205 L167.7 205 L167.7 207.7 L165 207.7 Z" fill="#3b4652" stroke="none"/>
+<path d="M89 81 L89 108 M134 81 L134 108 M89 175 L89 202 M134 175 L134 202" fill="none" stroke="#ffffff" stroke-opacity="0.5" stroke-width="1.6"/>
+<rect x="107.5" y="98" width="11.5" height="8" rx="1" fill="#eef1f4" stroke-width="1.3"/>
+<path d="M110 101 L116.5 101 M110 103.6 L114 103.6" fill="none" stroke="#3b4652" stroke-width="1.3"/>
+<path d="M89.5 191.5 L121.5 191.5 M134.5 191.5 L166.5 191.5" fill="none" stroke="#eef1f4" stroke-opacity="0.8" stroke-width="2.6"/>
+<rect x="137" y="177" width="11.5" height="8" rx="1" fill="#eef1f4" stroke-width="1.3"/>
+<path d="M139.5 180 L146 180 M139.5 182.6 L143.5 182.6" fill="none" stroke="#3b4652" stroke-width="1.3"/>
+<rect x="121.5" y="80" width="13" height="6" rx="1" fill="url(#gun)" stroke-width="1.5"/>
+<rect x="121.5" y="103" width="13" height="6" rx="1" fill="url(#gun)" stroke-width="1.5"/>
+<rect x="121.5" y="174" width="13" height="6" rx="1" fill="url(#gun)" stroke-width="1.5"/>
+<rect x="121.5" y="197" width="13" height="6" rx="1" fill="url(#gun)" stroke-width="1.5"/>
+<g fill="#9aa5b2" stroke="none"><circle cx="124.4" cy="83" r="1"/><circle cx="131.6" cy="83" r="1"/><circle cx="124.4" cy="106" r="1"/><circle cx="131.6" cy="106" r="1"/><circle cx="124.4" cy="177" r="1"/><circle cx="131.6" cy="177" r="1"/><circle cx="124.4" cy="200" r="1"/><circle cx="131.6" cy="200" r="1"/></g>
+<!-- the bridge: a sensor strip round the bow with two lamps, the window in three panes, a roof hatch -->
+<path d="M105.4 65.4 L107.5 32.5 Q128 14 148.5 32.5 L150.6 65.4 Z" fill="url(#fus)" stroke-width="2.8"/>
+<path d="M105.4 65.4 L107.5 32.5 Q128 14 148.5 32.5 L150.6 65.4 Z" fill="url(#shadeV)" stroke="none"/>
+<path d="M110.3 31.2 Q128 15.3 145.7 31.2 L144.2 33.2 Q128 19.2 111.8 33.2 Z" fill="url(#gun)" stroke-width="1.4"/>
+<circle cx="118.3" cy="25.6" r="1.3" fill="#f1faff" stroke="none"/><circle cx="137.7" cy="25.6" r="1.3" fill="#f1faff" stroke="none"/>
+<path d="M112.6 34.5 L143.4 34.5 L146.4 50.5 L109.6 50.5 Z" fill="#2b3440" stroke-width="2"/>
+<path d="M114.7 36.8 L122.4 36.8 L121.8 48.3 L112.6 48.3 Z" fill="url(#glass)" stroke-width="1.3"/>
+<path d="M141.3 36.8 L133.6 36.8 L134.2 48.3 L143.4 48.3 Z" fill="url(#glass)" stroke-width="1.3"/>
+<path d="M124.6 36.8 L131.4 36.8 L132 48.3 L124 48.3 Z" fill="url(#glass)" stroke-width="1.3"/>
+<path d="M115.8 38.5 L119.6 38.5 L118.6 45.5 L114.6 45.5 Z" fill="#ffffff" fill-opacity="0.7" stroke="none"/>
+<path d="M107.4 52.6 L148.6 52.6" fill="none" stroke="#3b4652" stroke-width="1.3"/>
+<rect x="107.6" y="39" width="2.4" height="6" rx="0.8" fill="#10151c" stroke="none"/><rect x="146" y="39" width="2.4" height="6" rx="0.8" fill="#10151c" stroke="none"/>
+</g>
+<g id="accent" stroke="#10151c" stroke-width="2.8" stroke-linejoin="round">
+<!-- the bridge's band, the two containers amidships with their ribs, frames, castings and latches -->
+<rect x="108.5" y="55.1" width="39" height="6.1" fill="url(#accent-fill)" stroke-width="2"/>
+<path d="M110 56.7 L126 56.7" fill="none" stroke="#ffffff" stroke-opacity="0.55" stroke-width="1"/>
+<rect x="87" y="121" width="37" height="41" rx="2.5" fill="url(#accent-fill)" stroke-width="2.8"/>
+<rect x="132" y="121" width="37" height="41" rx="2.5" fill="url(#accent-fill)" stroke-width="2.8"/>
+<path d="M93.5 127.5 L93.5 155.5 M98.3 127.5 L98.3 155.5 M103.1 127.5 L103.1 155.5 M107.9 127.5 L107.9 155.5 M112.7 127.5 L112.7 155.5 M117.5 127.5 L117.5 155.5 M138.5 127.5 L138.5 155.5 M143.3 127.5 L143.3 155.5 M148.1 127.5 L148.1 155.5 M152.9 127.5 L152.9 155.5 M157.7 127.5 L157.7 155.5 M162.5 127.5 L162.5 155.5" fill="none" stroke="#10151c" stroke-opacity="0.5" stroke-width="1.3"/>
+<path d="M94.7 127.5 L94.7 155.5 M99.5 127.5 L99.5 155.5 M104.3 127.5 L104.3 155.5 M109.1 127.5 L109.1 155.5 M113.9 127.5 L113.9 155.5 M118.7 127.5 L118.7 155.5 M139.7 127.5 L139.7 155.5 M144.5 127.5 L144.5 155.5 M149.3 127.5 L149.3 155.5 M154.1 127.5 L154.1 155.5 M158.9 127.5 L158.9 155.5 M163.7 127.5 L163.7 155.5" fill="none" stroke="#ffffff" stroke-opacity="0.4" stroke-width="1"/>
+<path d="M88.5 125.5 L122.5 125.5 M88.5 157.5 L122.5 157.5 M133.5 125.5 L167.5 125.5 M133.5 157.5 L167.5 157.5" fill="none" stroke="#10151c" stroke-opacity="0.55" stroke-width="1.4"/>
+<path d="M88.3 122.3 L91 122.3 L91 125 L88.3 125 Z M120 122.3 L122.7 122.3 L122.7 125 L120 125 Z M88.3 158 L91 158 L91 160.7 L88.3 160.7 Z M120 158 L122.7 158 L122.7 160.7 L120 160.7 Z M133.3 122.3 L136 122.3 L136 125 L133.3 125 Z M165 122.3 L167.7 122.3 L167.7 125 L165 125 Z M133.3 158 L136 158 L136 160.7 L133.3 160.7 Z M165 158 L167.7 158 L167.7 160.7 L165 160.7 Z" fill="#10151c" fill-opacity="0.7" stroke="none"/>
+<path d="M89 128 L89 155 M134 128 L134 155" fill="none" stroke="#ffffff" stroke-opacity="0.5" stroke-width="1.6"/>
+<rect x="152.5" y="145" width="11.5" height="8" rx="1" fill="#eef1f4" stroke-width="1.3"/>
+<path d="M155 148 L161.5 148 M155 150.6 L159 150.6" fill="none" stroke="#3b4652" stroke-width="1.3"/>
+<rect x="121.5" y="127" width="13" height="6" rx="1" fill="url(#gun)" stroke-width="1.5"/>
+<rect x="121.5" y="150" width="13" height="6" rx="1" fill="url(#gun)" stroke-width="1.5"/>
+<g fill="#9aa5b2" stroke="none"><circle cx="124.4" cy="130" r="1"/><circle cx="131.6" cy="130" r="1"/><circle cx="124.4" cy="153" r="1"/><circle cx="131.6" cy="153" r="1"/></g>
+</g>
+<g id="lamps">
+<circle cx="107.2" cy="35" r="4" fill="url(#lamp-red)"/>
+<circle cx="148.8" cy="35" r="4" fill="url(#lamp-green)"/>
+<circle cx="151.5" cy="69.3" r="4" fill="url(#lamp-cyan)"/>
+<circle cx="91" cy="229.5" r="4" fill="url(#lamp-red)"/>
+<circle cx="165" cy="229.5" r="4" fill="url(#lamp-green)"/>
 </g>
 <g id="anchors"><line id="flame-main-1" x1="112.59" y1="242" x2="112.59" y2="268.7" stroke="#ff0000" stroke-width="16.43" /><line id="flame-main-2" x1="143.41" y1="242" x2="143.41" y2="268.7" stroke="#ff0000" stroke-width="16.43" /></g>
 </svg>
