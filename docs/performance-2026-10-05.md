@@ -397,18 +397,24 @@ pixels at the cap of ×1.7. The canvas's pixel ratio now follows the frames
   averages 45 fps) **and** the game's own work took under half of a frame.
   When the script itself is slow, fewer pixels would not help, and the ratio
   stays.
-- **Up a step** when the last 5 s kept up, no sooner than 10 s after a step
-  down: the mean frame as above at the screen's refresh (the lowest median of
+- **Up a step** after 3 minutes of flight in which every check kept up
+  (2026-11-10; before, when the last 5 s kept up, 10 s after a step down):
+  the mean frame as above at the screen's refresh (the lowest median of
   a 2 s window seen lately, ×1.1) and at most 14 ms on a screen over 72 Hz,
-  never over 18.5 ms. A 60 Hz screen never shows a frame under 16.7 ms, so it
-  is tried: if the higher ratio falls behind again it steps back down. The
+  never over 18.5 ms. A 60 Hz screen never shows a frame under 16.7 ms, so
+  headroom shows only as a long stretch with no frames late, and the step is
+  a trial: if the higher ratio falls behind again it steps back down. The
   lowest median is let go by 1% a check (2026-11-10), so it follows the
   window to a slower screen within a minute; kept for the page's life, the
   6.9 ms of a 144 Hz screen left 14 ms as the line, which no 60 Hz frame
   meets, and the ratio never came back.
-- **No see-saw.** A ratio that fell behind is not tried again for 3 minutes,
-  then 6, 12, up to 24. A new run forgets it all, and so does a new screen
-  ratio; a new world only waits a second before measuring (until 2026-11-02
+- **No see-saw.** Each ratio is stepped up to once a run (2026-11-10): where
+  it falls behind again it is not tried a second time in that run. Before, it
+  was tried again after 3 minutes, then 6, 12, up to 24. A new run forgets
+  which were tried, and so does a new screen ratio, but the run keeps the
+  ratio in use: before, with nothing barred, it climbed back to the top in its
+  first seconds, a step every 6 s, to step down again in its first fight. A
+  new world only waits a second before measuring (until 2026-11-02
   a new world forgot it too, as Haven costs less than Nova Forge, and the
   author's play log showed ×1.7 tried again in each of 8 worlds, at 42 fps
   against 56 at ×1).
@@ -446,7 +452,8 @@ waits 30 ms whatever the size. `bin/resolution-check` flies Nova Forge in an
 | Check | What happened |
 |---|---|
 | steady | nothing slow: ×1.7 for 20 s at 60 fps |
-| slow | `&slow=20`: ×1.7 → 1.5 at 3 s → 1.3 at 6 s, then held at 60 fps; the cost taken away, ×1.3 kept (the ×1.5 that fell behind waits 3 minutes), and kept in a new world; in a new run back to 1.5 at 1 s and 1.7 at 7 s. Each step drew its own frame on the new canvas and kept the stars; the play log's record holds the ratio |
+| slow | `&slow=20`: ×1.7 → 1.5 at 3 s → 1.3 at 6 s, then held at 60 fps; the cost taken away, ×1.3 kept (a step up takes 3 minutes of keeping up), and kept in a new world. Each step drew its own frame on the new canvas and kept the stars; the play log's record holds the ratio |
+| up | `&slow=20` down to ×1.3, the cost taken away and 3 minutes of keeping up stood in for (the dev page's `kept_up`): one step, to ×1.5; the cost again, back to ×1.3, and after 3 more minutes ×1.5 is not tried again; a new campaign and a new arcade run, each started as the menu starts it, keep ×1.3 and step to ×1.5 once after their own 3 minutes |
 | sharp | Settings → Resolution → Sharp: ×1.7 at once, kept under `&slow`, and after a reload |
 | forced | `&dpr=1.3`: the canvas 1040 × 585 however slow |
 | futile | `&stall=30`: 1.7 → 1.5 → 1.3 → 1.15 → 1, no faster, back to ×1.7 at 14–15 s and held |

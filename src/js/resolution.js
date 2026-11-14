@@ -1,16 +1,16 @@
 // Adaptive resolution (docs/performance-2026-10-05.md, 18 October): in flight the canvas's pixel ratio (dpr) goes a
 // step lower while the frames fall behind and the game's own work is not what holds them (the graphics card is: it
-// fills every pixel of the canvas each frame), and a step higher again once they keep up. Settings → Resolution: Auto,
-// this, or Sharp: always the screen's own ratio up to resolution_cap, as before. The dev page forces a ratio with &dpr=.
+// fills every pixel of the canvas each frame), and a step higher again once they have kept up for 3 minutes. Settings
+// → Resolution: Auto, this, or Sharp: always the screen's own ratio up to resolution_cap, as before. The dev page
+// forces a ratio with &dpr=.
 const resolution_cap = 1.7;
 // the ratios under the screen's own the canvas steps down to; never under 1, and none within 6% of the screen's
 const resolution_steps = [1.5, 1.3, 1.15, 1];
 const resolution_step_gap = 0.94;
-// the frames measured for a step down (the last 2 s of flight) and for a step up (the last 5 s), checked twice a
-// second; a step up waits 10 s after a step down
+// the frames measured for a step down (the last 2 s of flight), checked twice a second; a ratio has held when the
+// last 5 s were not behind
 const resolution_down_window_ms = 2000;
-const resolution_up_window_ms = 5000;
-const resolution_up_after_ms = 10000;
+const resolution_held_window_ms = 5000;
 const resolution_check_ms = 500;
 // a pause, a menu, the settings, a hidden tab, a resize, a new world or a step: the frames of the next second are not
 // measured (the sky and the sprites are drawn again at the new size)
@@ -37,11 +37,12 @@ const resolution_refresh_fade = 1.01;
 // ends its descent, and frames slower by a quarter than those it began with are its measure from there on
 const resolution_futile_gain = 0.9;
 const resolution_heavier = 1.25;
-// a ratio that fell behind is not tried again for 3 minutes, then 6, 12, up to 24; a new run forgets it all, a new
-// world only waits a second (the author's play log, 2026-11-01: forgotten at each world, 1.7 was tried again in each of
-// 8 worlds and held 42 fps against 56 at 1)
-const resolution_retry_ms = 180000;
-const resolution_retry_max_ms = 1440000;
+// Up: one step, after 3 minutes of flight in which every check found the frames keeping up (a screen shows no frame
+// under its refresh, so headroom shows only as a long stretch with none late), and each ratio is stepped up to once a
+// run: where it fell behind again it is not tried a second time. A new run forgets that and keeps the ratio; a new
+// world only waits a second (the author's play log, 2026-11-01: forgotten at each world, 1.7 was tried again in each
+// of 8 worlds and held 42 fps against 56 at 1)
+const resolution_up_stretch_ms = 180000;
 const resolution_samples = 2048;
 const resolution = {
     // 'auto' or 'sharp' (Settings → Resolution), kept in the browser's storage
@@ -64,9 +65,9 @@ const resolution = {
     last_t0: 0,
     last_interval: 0,
     work_last: 0,
-    down_at: -Infinity,
-    // per level: when a ratio that fell behind may be tried again, and the wait it was given
-    retry: [],
+    // the flight in a row whose every check found the frames keeping up (ms), and per level: stepped up to in this run
+    clear_ms: 0,
+    tried: [],
     // the steps down being made: the level they began at and the frame time (ms) they are judged by; null once a
     // ratio has held
     descent: null,
@@ -123,11 +124,12 @@ function resolution_mode_set(mode)
     performance_render_dirty = true;
 }
 
-// What the steps learned about this run and screen goes: a ratio that fell behind may be tried again (a new run: a new
-// campaign, reset_run, or a new arcade run, arcade_start)
+// What the steps learned about this run and screen goes: a ratio stepped up to may be tried again, after a stretch of
+// its own (a new run: a new campaign, reset_run, or a new arcade run, arcade_start). The ratio in use stays
 function resolution_forget()
 {
-    resolution.retry = [];
+    resolution.tried = [];
+    resolution.clear_ms = 0;
     resolution.descent = null;
     resolution.futile = false;
 }
@@ -190,6 +192,7 @@ function resolution_check(t0)
     const level = resolution.level;
     const bottom = resolution.ladder.length - 1;
     if ((down.frame_ms > resolution_behind_ms) && (down.work_ms < down.frame_ms*resolution_work_share)) {
+        resolution.clear_ms = 0;
         if (resolution.futile) {
             return;
         }
@@ -210,45 +213,41 @@ function resolution_check(t0)
     }
     // the ratio in use held: its descent is over, and the next one is judged by its own frames
     if (resolution.descent && !resolution.futile) {
-        const held = resolution_window(t0, resolution_up_window_ms);
+        const held = resolution_window(t0, resolution_held_window_ms);
         if (held && (held.frame_ms <= resolution_behind_ms)) {
             resolution.descent = null;
         }
     }
-    if ((level === 0) || (t0 - resolution.down_at < resolution_up_after_ms)) {
-        return;
-    }
-    const retry = resolution.retry[level - 1];
-    if (retry && (t0 < retry.at)) {
-        return;
-    }
-    const up = resolution_window(t0, resolution_up_window_ms);
     const keep_up_ms = Math.min(resolution_up_ms_max, Math.max(resolution_up_ms_min, resolution.refresh_ms*resolution_refresh_slack));
-    if (up && (up.frame_ms <= keep_up_ms)) {
-        resolution_step(t0, level - 1);
+    if (down.frame_ms > keep_up_ms) {
+        resolution.clear_ms = 0;
+        return;
     }
+    resolution.clear_ms += resolution_check_ms;
+    if ((resolution.clear_ms < resolution_up_stretch_ms) || (level === 0) || resolution.tried[level - 1]) {
+        return;
+    }
+    resolution.tried[level - 1] = true;
+    resolution_step(t0, level - 1);
 }
 
-// The ratio in use fell behind: the next lower, and this one not tried again for a while
+// The ratio in use fell behind: the next lower
 function resolution_step_down(t0, frame_ms)
 {
     const level = resolution.level;
-    const retry = resolution.retry[level];
-    const wait = retry ? Math.min(retry.wait*2, resolution_retry_max_ms) : resolution_retry_ms;
-    resolution.retry[level] = {at: t0 + wait, wait};
     if (!resolution.descent) {
         resolution.descent = {level, frame_ms};
     }
     else if (frame_ms > resolution.descent.frame_ms*resolution_heavier) {
         resolution.descent.frame_ms = frame_ms;
     }
-    resolution.down_at = t0;
     resolution_step(t0, level + 1);
 }
 
 function resolution_step(t0, level)
 {
     resolution.level = level;
+    resolution.clear_ms = 0;
     resize();
     performance_render_dirty = true;
     resolution_hold(t0);

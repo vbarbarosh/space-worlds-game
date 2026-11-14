@@ -137,8 +137,9 @@ Three modes ([docs/modes.md](docs/modes.md) has each in detail):
                      the adaptive resolution in real time (about five
                      minutes): the canvas's pixel ratio holds when frames
                      keep up, steps down under a stand-in for a slow
-                     graphics card and holds where they keep up, comes back
-                     in a new run; Sharp, a forced ratio, a page held to 30
+                     graphics card and holds where they keep up, keeps it
+                     in a new run, steps up once after three minutes of
+                     keeping up; Sharp, a forced ratio, a page held to 30
                      fps, a fight after a light scene, a page at 3 fps, a
                      screen of another ratio; exit 1 on a failure
 

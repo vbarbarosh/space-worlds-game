@@ -37,15 +37,17 @@ frame = function (timestamp) {
 };
 
 // For a browser driver (bin/resolution-check): the ratio in use and what it was chosen from, and the play log's
-// record of it; slow(ms) changes &slow, world(n) flies to world n as a gate would (the ratios that fell behind are
-// kept), run(mode) starts a new run as the menu does ('campaign', undocked at once into flight, or 'arcade'), so the
-// game's own call is what forgets them
+// record of it; slow(ms) changes &slow, world(n) flies to world n as a gate would (the ratios stepped up to stay
+// barred), run(mode) starts a new run as the menu does ('campaign', undocked at once into flight, or 'arcade'), so the
+// game's own call is what forgets them; kept_up(ms) stands in for that much flight with the frames keeping up, as a
+// check in real time cannot wait the 3 minutes a step up takes
 window.dev_resolution = {
     state() {
         const record = play_log_session ? play_log_record_make(true) : null;
         return {
             dpr, mode: resolution.mode, forced: resolution.forced, top: resolution.top, ladder: resolution.ladder, level: resolution.level,
-            futile: resolution.futile, refresh_ms: resolution.refresh_ms, canvas: [canvas.width, canvas.height], width, height,
+            futile: resolution.futile, refresh_ms: resolution.refresh_ms, clear_ms: resolution.clear_ms, tried: resolution.tried,
+            canvas: [canvas.width, canvas.height], width, height,
             slow: dev_slow_ms, stall: dev_stall_ms, fps: dev_time.fps, world: campaign.world, state,
             log: record ? {dpr: record.dpr, dpr_min: record.dpr_min} : null, steps: dev_resolution_steps,
         };
@@ -60,5 +62,8 @@ window.dev_resolution = {
     run(mode) {
         menu_start(mode);
         undock();
+    },
+    kept_up(ms) {
+        resolution.clear_ms += ms;
     },
 };

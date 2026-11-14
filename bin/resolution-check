@@ -10,6 +10,9 @@ const page_file = path.join(__dirname, '..', 'build', 'dev.html');
 const viewport = {width: 800, height: 450};
 const screen_ratio = 2;
 const slow = 20;
+// the flight with the frames keeping up that a step up waits for (resolution_up_stretch_ms in src/js/resolution.js):
+// the dev page's kept_up() stands in for it
+const stretch_ms = 180000;
 // a heavy fight after it: 55 ms a frame at ×1, 150 at ×1.7
 const slow_heavy = 150;
 // a software canvas in a large window: 310 ms a frame at ×1.7, 110 at ×1
@@ -22,9 +25,11 @@ const usage = `usage: bin/resolution-check [check...]
 
     steady   no stand-in for a slow card: the canvas stays at the top ratio, ×1.7
     slow     &slow=${slow}: it steps down to where the frames keep up and holds there, each step drawn in its own
-             frame with the scene kept; with the cost gone it stays (the ratio that fell behind waits 3 minutes), and
-             a new world keeps it, a new run brings it back to ×1.7: a new campaign, then (stepped down again) a new
-             arcade run, each started as the menu starts it; the play log's record holds the ratio
+             frame with the scene kept; with the cost gone it stays (a step up takes 3 minutes of keeping up), and a
+             new world keeps it; the play log's record holds the ratio
+    up       stepped down under &slow=${slow}, the cost gone, 3 minutes of keeping up (stood in for): one step up, not
+             to the top; the cost again takes it back down, and that ratio is not tried again in the run; a new
+             campaign and a new arcade run, each started as the menu starts it, keep the ratio and may try it once more
     sharp    Settings → Resolution → Sharp puts ×1.7 back at once and keeps it however slow; kept after a reload
     forced   &dpr=1.3: the canvas at ×1.3, however slow, never stepped
     futile   &stall=30 (a page held to 30 fps whatever its size): the steps down bring nothing, so ×1.7 comes back
@@ -38,7 +43,7 @@ const usage = `usage: bin/resolution-check [check...]
              then ×1.7 again, each within a second
 
     Timing on a busy machine can fail steady; run it alone again. Exits 1 on a failure.`;
-const checks = {steady: check_steady, slow: check_slow, sharp: check_sharp, forced: check_forced, futile: check_futile, descent: check_descent, crawl: check_crawl, screen1: check_screen1, moved: check_moved};
+const checks = {steady: check_steady, slow: check_slow, up: check_up, sharp: check_sharp, forced: check_forced, futile: check_futile, descent: check_descent, crawl: check_crawl, screen1: check_screen1, moved: check_moved};
 
 cli(main);
 
@@ -104,39 +109,58 @@ async function check_slow(page, trace)
     await page.evaluate(() => window.dev_resolution.slow(0));
     const kept = await ratios_watch(page, 12, trace);
     if (kept.some(v => v.dpr !== last.dpr)) {
-        out.push(`the ratio that fell behind was tried again within 12 s: ${kept.map(v => v.dpr).join(', ')}`);
+        out.push(`stepped within 12 s of the cost going: ${ratios_text(kept)}`);
     }
     trace.lines.push('| new world:');
     await page.evaluate(() => window.dev_resolution.world(4));
-    const world = await ratios_watch(page, 20, trace);
+    const world = await ratios_watch(page, 10, trace);
     if (world.some(v => v.dpr !== last.dpr)) {
-        out.push(`the ratio that fell behind was tried again in a new world of the same run: ${world.map(v => v.dpr).join(', ')}`);
+        out.push(`stepped in a new world of the same run: ${ratios_text(world)}`);
     }
-    trace.lines.push('| new campaign:');
-    await page.evaluate(() => window.dev_resolution.run('campaign'));
-    const campaign = await ratios_watch(page, 30, trace);
-    if (campaign[campaign.length - 1].dpr !== 1.7) {
-        out.push(`not back at ×1.7 30 s into a new campaign: ${campaign.map(v => v.dpr).join(', ')}`);
+    out.push(...await steps_check(page, trace));
+    return out;
+}
+
+async function check_up(page, trace)
+{
+    const out = [];
+    await scene_open(page, `&slow=${slow}`);
+    const seen = await ratios_watch(page, 12, trace);
+    const state = await page.evaluate(() => window.dev_resolution.state());
+    const low = seen[seen.length - 1].dpr;
+    const above = state.ladder[state.level - 1];
+    if (!above) {
+        return ['never stepped down'];
     }
-    trace.lines.push('| the cost again:');
-    await page.evaluate(v => window.dev_resolution.slow(v), slow);
-    const again = await ratios_watch(page, 12, trace);
-    if (again[again.length - 1].dpr >= 1.7) {
-        out.push('never stepped down under the cost come again');
-    }
-    trace.lines.push('| gone, new arcade run:');
+    trace.lines.push('| cost gone, 3 minutes kept up:');
     await page.evaluate(() => window.dev_resolution.slow(0));
-    await page.evaluate(() => window.dev_resolution.run('arcade'));
-    const arcade = await ratios_watch(page, 30, trace);
-    if (arcade[arcade.length - 1].dpr !== 1.7) {
-        out.push(`not back at ×1.7 30 s into a new arcade run: ${arcade.map(v => v.dpr).join(', ')}`);
+    const up = await kept_up_watch(page, 8, trace);
+    if (up.some(v => v.dpr > above) || (up[up.length - 1].dpr !== above)) {
+        out.push(`3 minutes of keeping up at ×${low}: ${ratios_text(up)}; want one step, to ×${above}`);
     }
-    // each step, down and up, drew its frame on the new canvas (never showing it cleared) and kept the scene
-    const steps = (await page.evaluate(() => window.dev_resolution.state())).steps;
-    for (const step of steps.filter(v => !v.drawn || !v.stars_kept)) {
-        out.push(`the step to ×${step.dpr}: ${step.drawn ? '' : 'left the canvas black '}${step.stars_kept ? '' : 'made the stars again'}`);
+    out.push(...await cost_again(page, trace, low));
+    trace.lines.push('| gone, 3 minutes kept up:');
+    const barred = await kept_up_watch(page, 8, trace);
+    if (barred.some(v => v.dpr !== low)) {
+        out.push(`×${above} fell behind after the step up to it and was tried again in the same run: ${ratios_text(barred)}`);
     }
-    trace.lines.push(`| ${steps.length} steps drawn in their frame`);
+    for (const mode of ['campaign', 'arcade']) {
+        trace.lines.push(`| new ${mode}:`);
+        await page.evaluate(v => window.dev_resolution.run(v), mode);
+        const start = await ratios_watch(page, 6, trace);
+        if (start.some(v => v.dpr !== low)) {
+            out.push(`a new ${mode} run began by stepping: ${ratios_text(start)}; want ×${low} kept`);
+        }
+        trace.lines.push('| 3 minutes kept up:');
+        const again = await kept_up_watch(page, 8, trace);
+        if (again.some(v => v.dpr > above) || (again[again.length - 1].dpr !== above)) {
+            out.push(`3 minutes of keeping up in a new ${mode} run: ${ratios_text(again)}; want one step, to ×${above}`);
+        }
+        if (mode === 'campaign') {
+            out.push(...await cost_again(page, trace, low));
+        }
+    }
+    out.push(...await steps_check(page, trace));
     return out;
 }
 
@@ -257,6 +281,36 @@ async function check_moved(page, trace)
         }
     }
     return out;
+}
+
+// The cost back for 10 s, then gone: the ratio stepped up to falls behind, and `low` is in use again
+async function cost_again(page, trace, low)
+{
+    trace.lines.push('| the cost again:');
+    await page.evaluate(v => window.dev_resolution.slow(v), slow);
+    const seen = await ratios_watch(page, 10, trace);
+    await page.evaluate(() => window.dev_resolution.slow(0));
+    return (seen[seen.length - 1].dpr === low) ? [] : [`the cost again: ${ratios_text(seen)}; want ×${low} again`];
+}
+
+// The ratios for `seconds` once 3 minutes of flight with the frames keeping up are stood in for
+async function kept_up_watch(page, seconds, trace)
+{
+    await page.evaluate(v => window.dev_resolution.kept_up(v), stretch_ms);
+    return await ratios_watch(page, seconds, trace);
+}
+
+// Each step so far, down and up, drew its frame on the new canvas (never showing it cleared) and kept the scene
+async function steps_check(page, trace)
+{
+    const steps = (await page.evaluate(() => window.dev_resolution.state())).steps;
+    trace.lines.push(`| ${steps.length} steps drawn in their frame`);
+    return steps.filter(v => !v.drawn || !v.stars_kept).map(v => `the step to ×${v.dpr}: ${v.drawn ? '' : 'left the canvas black '}${v.stars_kept ? '' : 'made the stars again'}`);
+}
+
+function ratios_text(seen)
+{
+    return seen.map(v => v.dpr).join(', ');
 }
 
 async function scene_open(page, query)
