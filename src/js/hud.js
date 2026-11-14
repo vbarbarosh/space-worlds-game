@@ -195,7 +195,7 @@ function ui_sentence_names(text)
     return out;
 }
 
-// A capitalised line in sentence case: TRANSPORT UNLOADED becomes Transport unloaded
+// A capitalised line in sentence case: CONTRACT COMPLETE becomes Contract complete
 function ui_sentence(text)
 {
     return /[a-z]/.test(text) ? text : text.toLowerCase().replace(/^\w/, v => v.toUpperCase());

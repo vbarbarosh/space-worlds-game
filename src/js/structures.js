@@ -9,7 +9,7 @@ const structure_kinds = {
         cost: {salvage: 120, ore: 6},
         hp: 220,
         size: 127,
-        text: 'Stands on a mining field; its two drones mine the rocks into its store of 60. Fly by to take the load, or let a transport line collect it.',
+        text: 'Stands on a mining field; its two drones mine the rocks into its store of 60. Fly by to take the load.',
     },
     platform: {
         title: 'Defense platform',
@@ -244,7 +244,7 @@ function builder_update(dt)
 
 // An outpost keeps two mining drones. Each flies to a rock of its field within reach, cuts it a chunk at a time and
 // brings the units home to the store; a full store keeps them docked until it is emptied. Flying within 220 m moves
-// the store into your hold, and a transport line (transports.js) collects it too.
+// the store into your hold.
 function outpost_update(site, dt)
 {
     if (!Array.isArray(site.crew)) {
@@ -428,14 +428,11 @@ function structure_raids(dt)
     show_toast(`RAID ON YOUR ${structure_kinds[v.kind].title.toUpperCase()}`, `${Math.round(distance(player, v))} m AWAY · DEFEND IT`, 3);
 }
 
-// The structure (or the transport) a raider was sent for, while it stands
+// The structure a raider was sent for, while it stands
 function structure_prey(enemy)
 {
     if (!enemy.structure_target) {
         return null;
-    }
-    if (enemy.structure_target === 'transport') {
-        return transport_prey();
     }
     return structures_here().find(v => v.id === enemy.structure_target) || null;
 }

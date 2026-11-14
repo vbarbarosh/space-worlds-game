@@ -1,4 +1,4 @@
-// Names in the world (the station, gates, fields, transports, the guide's marker) on dark plates, as the kit draws
+// Names in the world (the station, gates, fields, the guide's marker) on dark plates, as the kit draws
 // them: queued while the world is drawn, then drawn over it in screen px, each moved the shortest way out of the HUD's
 // blocks and of the labels before it, and kept inside the window. A target off the screen becomes an edge marker.
 const world_label_pad = 8;

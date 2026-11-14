@@ -292,13 +292,6 @@ ships. "Modes" is arcade, campaign or both.
   Campaign.
 - Where: `update_escort` in `src/js/operations.js`; `src/js/formation.js`.
 
-### The transport line's ship
-
-- Your own freighter: it collects ore from your outposts and sells it at the
-  station, with two turrets of its own. Raids come for it.
-- Not solid; raiders damage it (900 hull, a bar). Campaign.
-- Where: `src/js/transports.js`.
-
 ### Drones
 
 - Mining drones (H) drill rocks and carry the load home; two in the bay, four
@@ -315,7 +308,7 @@ ships. "Modes" is arcade, campaign or both.
 ### Mining outpost
 
 - Stands on a mining field; its two drones mine the rocks into a store of 60
-  that you or a transport line collect.
+  that you collect.
 - Solid; raiders damage it (220 hull, a bar). Where: `structure_kinds` in
   `src/js/structures.js`.
 

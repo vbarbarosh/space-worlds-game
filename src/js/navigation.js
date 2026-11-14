@@ -423,7 +423,6 @@ function guide_base_update_frontier(dt)
     update_escort(dt);
     drones_update(dt);
     structures_update(dt);
-    transports_update(dt);
     if (waypoint && (distance(player, waypoint) < 110)) {
         waypoint = null;
     }

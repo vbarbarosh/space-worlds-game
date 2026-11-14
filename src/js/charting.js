@@ -286,10 +286,6 @@ function map_things(every_layer = false)
     for (const v of structures_here()) {
         add('yours', v, (v.kind === 'outpost') ? 'outpost' : 'platform', null, (v.kind === 'outpost') ? `OUTPOST · ${v.store}/${outpost_store}` : 'DEFENCE PLATFORM');
     }
-    const t = transport_prey();
-    if (t) {
-        add('yours', t, 'transport', null, `TRANSPORT · ${t.line.count}/${transport_hold}`, {angle: t.angle + Math.PI/2});
-    }
     // the arcade draws no gates or beacons (physics_base_render_navigation_objects), so its map shows none
     for (const v of arcade.active ? [] : world_gates) {
         add('gates', v, 'world-gate', worlds[v.destination].accent, `${worlds[v.destination].name.toUpperCase()} · WORLD GATE`, {target: {...v, label: `WORLD GATE → ${worlds[v.destination].name}`}});
@@ -688,7 +684,7 @@ function render_map_legend()
         ['route', [['you', 'You'], ['waypoint', 'Route point'], ['objective', 'Objective']]],
         ['gates', [['world-gate', 'World gate'], ['jump-gate', 'Jump gate']]],
         ['mining', [['mining-field', 'Ore field'], ['mining-field-rich', 'Rich field']]],
-        ['yours', [['station', 'Station'], ['guard', 'Guards'], ['outpost', 'Outpost'], ['platform', 'Defense platform'], ['transport', 'Transport']]],
+        ['yours', [['station', 'Station'], ['guard', 'Guards'], ['outpost', 'Outpost'], ['platform', 'Defense platform']]],
         ['danger', [['black-hole', 'Black hole'], ['storm', 'Storm / radiation'], ['pylon', 'Arc pylon'], ['charge-field', 'Charge field'], ['spire', 'Magnetic spire'], ['raiders', 'Raiders seen']]],
         ['contracts', [['beacon', 'Scan beacon']]],
     ];
