@@ -218,14 +218,18 @@ breaks (a hit on the shield sounds as one on the hull).
 takes of these three were thrown out on 2026-11-14 (heard in the game, they
 were a slight change of the classic ones, and as bad): each is now a recording
 from `src/sounds/`, played by `voice_sample`, and each has several takes
-(`src/js/sound_takes.js`): six shots, four blasts, six pickups. One take of
+(`src/js/sound_takes.js`): six shots, five blasts, six pickups. One take of
 each plays. In flight 7, 8 and 9 step through the takes of the shots, the
 blasts and the pickup; the game says which one plays and plays it, and the
 pick is kept in that browser. The pick a new browser starts with is `pick` in
 `sound_takes`. A fight's mix is built on them: your own shot short and quiet
 (-50 dB A-weighted, it fires five times a second and more), a hit on a raider
 next to nothing, a raider's end the loud deep thing (-26.5 dB, its peak held
-under -6): a crunch over a deep boom with the wreck breaking up under it. A
+under -6), with the wreck breaking up under it. The blast a new browser
+starts with is take E: the heavy, deep recordings picked by ear on
+2026-10-22 for the dark worlds, each under a blast with a body, because
+alone they hold next to nothing over 125 Hz and a small speaker would not
+play them. A
 raider's plasma shot is your shot's recording slowed and dulled. A hit on
 the hull, a hit the shield takes, the other guns (yours, and the raiders' as
 the same recording slowed and dulled), the missiles, the turbo's burst, the

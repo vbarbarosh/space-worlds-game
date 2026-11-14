@@ -9,8 +9,8 @@ const sound_takes_key = 'pulse_drift_sound_takes';
 // Each take's level by the sound it plays, set by measure (the sound brief, docs/designer/sound.md, says against what)
 const sound_take_levels = {
     /* levels */
-    shot: {a: {shot: 0.04, enemy_plasma: 0.018}, b: {shot: 0.082, enemy_plasma: 0.04}, c: {shot: 0.048, enemy_plasma: 0.021}, d: {shot: 0.034, enemy_plasma: 0.015}, e: {shot: 0.039, enemy_plasma: 0.019}, f: {shot: 0.097, enemy_plasma: 0.045}},
-    blast: {a: {blast: 0.366, blast_big: 0.489, blast_huge: 0.57, kill: 0.224}, b: {blast: 0.274, blast_big: 0.425, blast_huge: 0.628, kill: 0.227}, c: {blast: 0.293, blast_big: 0.472, blast_huge: 0.581, kill: 0.224}, d: {blast: 0.337, blast_big: 0.616, blast_huge: 0.61, kill: 0.217}},
+    shot: {a: {shot: 0.04, enemy_plasma: 0.018}, b: {shot: 0.082, enemy_plasma: 0.04}, c: {shot: 0.048, enemy_plasma: 0.021}, d: {shot: 0.034, enemy_plasma: 0.015}, e: {shot: 0.039, enemy_plasma: 0.018}, f: {shot: 0.097, enemy_plasma: 0.046}},
+    blast: {a: {blast: 0.362, blast_big: 0.481, blast_huge: 0.57, kill: 0.221}, b: {blast: 0.275, blast_big: 0.427, blast_huge: 0.628, kill: 0.223}, c: {blast: 0.291, blast_big: 0.458, blast_huge: 0.581, kill: 0.231}, d: {blast: 0.337, blast_big: 0.732, blast_huge: 0.61, kill: 0.216}, e: {blast: 0.297, blast_big: 0.466, blast_huge: 0.494, kill: 0.229}},
     pickup: {a: {pickup: 0.483}, b: {pickup: 0.265}, c: {pickup: 0.88}, d: {pickup: 0.392}, e: {pickup: 0.252}, f: {pickup: 0.237}},
     /* levels end */
 };
@@ -31,7 +31,7 @@ const sound_takes = {
         },
     },
     blast: {
-        pick: 'a',
+        pick: 'e',
         key: 'Digit8',
         label: 'Blast',
         hear: 'blast_big',
@@ -40,6 +40,7 @@ const sound_takes = {
             b: {name: 'a film’s explosion, long'},
             c: {name: 'a middle-sized explosion'},
             d: {name: 'the deepest, mostly felt'},
+            e: {name: 'heavy and deep, with a body'},
         },
     },
     pickup: {
@@ -172,7 +173,7 @@ function sound_take_blast(k, kind)
             layer('boom_sub', 0.7, {rate: 0.9, at: 0.05});
         }
     }
-    else {
+    else if (letter === 'd') {
         if (kind === 'blast') {
             layer('boom_low', 0.8, {rate: r*1.2, fade: 0.6});
         }
@@ -183,6 +184,25 @@ function sound_take_blast(k, kind)
         else {
             layer('boom_sub', 0.9, {rate: 0.9});
             layer('boom_deep', 0.8, {rate: 0.8, at: 0.1});
+        }
+    }
+    else {
+        // the recordings picked by ear for the heavy, deep blasts, each under a blast with a body, so it is heard on
+        // small speakers too (the heavy ones alone hold next to nothing over 125 Hz)
+        if (kind === 'blast') {
+            layer('boom_heavy_small', 0.8, {rate: r*1.1});
+            layer('boom_medium', 0.3, {rate: 1.3, fade: 0.5});
+        }
+        else if (kind === 'blast_big') {
+            layer('boom_medium', 0.9, {rate: r});
+            layer('boom_heavy', 0.3, {rate: k.r(0.95, 1.05)});
+            layer('debris', 0.12, {rate: k.r(0.9, 1.2), at: 0.1, extra: true});
+        }
+        else {
+            layer('boom_heavy_huge', 0.9);
+            layer('boom_medium', 0.5, {rate: 0.75});
+            layer('boom_sub', 0.35, {rate: 0.9, at: 0.05});
+            layer('debris', 0.2, {rate: 0.8, at: 0.35});
         }
     }
 }

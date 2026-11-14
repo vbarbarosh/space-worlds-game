@@ -30,3 +30,4 @@ file's own level says nothing: the level each plays at is set in `sound_takes.js
 | `latch`, `swish` | Kenney, RPG Audio: `metalLatch`, `knifeSlice` | CC0 |
 | `glass`, `tick`, `click`, `swish_up`, `buzz` | Kenney, Interface Sounds: `glass_004`, `tick_001`, `click_002`, `maximize_005`, `error_006` | CC0 |
 | `static` | Kenney, Digital Audio: `spaceTrash1`, its start | CC0 |
+| `boom_heavy_small`, `boom_heavy`, `boom_heavy_huge` | Freesound 200465, 665092 (its first 2.5 s) and 568877 (its first 5 s) | CC0 |
