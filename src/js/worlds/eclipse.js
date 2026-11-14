@@ -81,8 +81,17 @@ const world_eclipse = {
             pad: 'choir',
             bass: 'deep',
             kit: 'void',
+            // its bar in the drive: the drums, the bass and the arpeggio, a character a slot (music_voices_groove)
+            groove: {
+                grid: 16,
+                low: 'X..x............X..x......x.....',
+                mid: '........x.......',
+                high: '....o.......o...',
+                bass: 'r-----------....',
+                arp: 'x.....x...x.....',
+            },
             calm: {lead: 1.4, pad: 2.44, bass: 0.73, kit: 1.12, fight: 0.87},
-            drive: {lead: 1.58, pad: 3.44, bass: 0.36, kit: 1.14},
+            drive: {lead: 1.75, pad: 5.48, bass: 0.51, kit: 0.99},
             boss: {lead: 1.58, bass: 0.29, kit: 1.03},
         },
         // the arcade's and a flagship fight's (music_drive.js)

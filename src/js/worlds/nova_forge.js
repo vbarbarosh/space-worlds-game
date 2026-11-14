@@ -81,8 +81,18 @@ const world_nova_forge = {
             pad: 'swell',
             bass: 'tuba',
             kit: 'big',
+            // its bar in the drive: the drums, the bass and the arpeggio, a character a slot (music_voices_groove)
+            groove: {
+                grid: 16,
+                low: 'X..xX...X..xX.x.',
+                mid: '....X.......X...',
+                high: '..x...x...x...x.',
+                bass: 'r-.rr-.rr-.ru-.r',
+                arp: 'x.x.x.x.x.x.x.x.',
+                stab: '......X...X.....',
+            },
             calm: {lead: 1.88, pad: 1.35, bass: 0.72, kit: 0.83, fight: 0.83},
-            drive: {lead: 2.34, pad: 2.12, bass: 0.7, kit: 0.82},
+            drive: {lead: 2.18, pad: 2.38, bass: 0.65, kit: 0.62},
             boss: {lead: 2.34, bass: 0.7, kit: 0.94},
         },
         // the arcade's and a flagship fight's (music_drive.js)

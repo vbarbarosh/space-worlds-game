@@ -80,8 +80,17 @@ const world_cryosphere = {
             pad: 'glass',
             bass: 'soft',
             kit: 'ice',
+            // its bar in the drive: the drums, the bass and the arpeggio, a character a slot (music_voices_groove)
+            groove: {
+                grid: 16,
+                low: 'X.........................x.....',
+                mid: '........x...............x...x...',
+                high: '....x.......x...',
+                bass: 'r-------r-------',
+                arp: 'xxxxxxxxxxxxxxxx',
+            },
             calm: {lead: 1.75, pad: 1.61, bass: 1.09, kit: 2.79, fight: 1.76},
-            drive: {lead: 2.51, pad: 2.35, bass: 0.88, kit: 1.32},
+            drive: {lead: 3.61, pad: 2.96, bass: 1.11, kit: 1.61},
             boss: {lead: 2.51, bass: 1.01, kit: 1.28},
         },
         // the arcade's and a flagship fight's (music_drive.js)

@@ -80,8 +80,17 @@ const world_dustfall = {
             pad: 'drone',
             bass: 'string',
             kit: 'hand',
+            // its bar in the drive: the drums, the bass and the arpeggio, a character a slot (music_voices_groove)
+            groove: {
+                grid: 12,
+                low: 'X..x..X..x..',
+                mid: '..x.xx..x.xx',
+                high: '.o.....o....',
+                bass: 'r-rr-rf-rr-r',
+                arp: 'x.xx.xx.xx.x',
+            },
             calm: {lead: 1.96, pad: 1.51, bass: 0.86, kit: 0.83, fight: 0.83},
-            drive: {lead: 1.65, pad: 2.35, bass: 1.42, kit: 0.64},
+            drive: {lead: 1.96, pad: 2.64, bass: 1.18, kit: 1.13},
             boss: {lead: 1.7, bass: 1.53, kit: 0.66},
         },
         // the arcade's and a flagship fight's (music_drive.js)

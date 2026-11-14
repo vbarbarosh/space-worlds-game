@@ -74,8 +74,17 @@ const world_verdant = {
             pad: 'breath',
             bass: 'wood',
             kit: 'wood',
+            // its bar in the drive: the drums, the bass and the arpeggio, a character a slot (music_voices_groove)
+            groove: {
+                grid: 16,
+                low: 'X..x..x...x..x..',
+                mid: '....x..x....x.x.',
+                high: 'XoxoXoxoXoxoXoxo',
+                bass: 'r-.r-.u-..r-.f-.',
+                arp: 'x.xx.xx.x.xx.xx.',
+            },
             calm: {lead: 1.53, pad: 1.51, bass: 1.09, kit: 1.37, fight: 1.05},
-            drive: {lead: 1.32, pad: 1.93, bass: 0.7, kit: 0.99},
+            drive: {lead: 1.38, pad: 2.26, bass: 1.05, kit: 0.97},
             boss: {lead: 1.32, bass: 1.26, kit: 0.99},
         },
         // the arcade's and a flagship fight's (music_drive.js)

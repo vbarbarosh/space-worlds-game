@@ -698,46 +698,27 @@ function music_voices_drive_hit(p, t)
     }
 }
 
-// One eighth of the drive in the new set: music_drive_step's kit, bass figure, arpeggio, tune and pad, and a boss
-// fight's riff and stabs, played by the world's instruments
+// One eighth of the drive in the new set: the world's own bar of drums, bass and arpeggio (its voices.groove), its
+// tune and its pad; a boss fight is music_drive_step's piece, its kit, bass, riff and stabs on the world's instruments
 function music_voices_drive_step(p, step, t, eighth, level)
 {
     const d = p.drive;
     const v = p.voices;
     const s = step % 256;
-    const boss = (level === 2);
     const chord = p.chords[Math.floor(s/16) % 4];
     const section = Math.floor(s/64);
     const root = p.root + chord[0] + ((p.root + chord[0] < 36) ? 12 : 0);
     const half = eighth/2;
     const beat = eighth*2;
     const lead = music_leads[v.lead];
-    const mix = boss ? v.boss : v.drive;
-    music_voices_level = mix.kit;
-    music_voices_drive_kit(music_kits[v.kit], d.kit, s, t, half, boss);
-    music_voices_level = mix.bass;
-    function bass(note, when, length, a = 0.075) {
-        music_basses[v.bass]({f: midi_frequency(note), t: when, d: length, a});
-    }
-    if (boss) {
-        bass(root, t, half*0.9);
-        bass(root + ((s % 2) ? 12 : 0), t + half, half*0.9);
-    }
-    else if (d.bass === 'offbeat') {
-        bass((s % 2) ? root + 12 : root, t, (s % 2) ? eighth*0.8 : eighth*1.6);
-    }
-    else if (d.bass === 'gallop') {
-        bass(root, t, half*0.9);
-        if (s % 2) {
-            bass(root, t + half, half*0.9);
-        }
-    }
-    else {
-        bass(root + ((s % 8 === 7) ? 12 : 0), t, eighth*0.85);
-    }
-    music_voices_level = mix.lead;
-    // a boss fight: its riff on the world's lead with an edge of sawtooth under it, the chord stabbed
-    if (boss) {
+    if (level === 2) {
+        music_voices_level = v.boss.kit;
+        music_voices_boss_kit(music_kits[v.kit], s, t, half);
+        music_voices_level = v.boss.bass;
+        music_basses[v.bass]({f: midi_frequency(root), t, d: half*0.9, a: 0.075});
+        music_basses[v.bass]({f: midi_frequency(root + ((s % 2) ? 12 : 0)), t: t + half, d: half*0.9, a: 0.075});
+        // its riff on the world's lead with an edge of sawtooth under it, the chord stabbed
+        music_voices_level = v.boss.lead;
         const note = root + 24 + music_boss_riff[s % music_boss_riff.length];
         lead({f: midi_frequency(note), t, d: eighth*0.8, a: 0.03, pan: -0.15, beat});
         music_tone({t, d: eighth*0.8, a: 0.012, f: midi_frequency(note - 12), type: 'sawtooth', cutoff: 1500, attack: 0.004, pan: 0.15});
@@ -748,10 +729,12 @@ function music_voices_drive_step(p, step, t, eighth, level)
         }
         return;
     }
-    for (const k of [0, 1]) {
-        const i = d.arp[(s*2 + k) % d.arp.length] % chord.length;
-        lead({f: midi_frequency(p.root + 24 + chord[i]), t: t + k*half, d: half*0.9, a: 0.012, pan: k ? 0.35 : -0.35, beat});
+    music_voices_groove(p, s, t, eighth, chord, root);
+    music_voices_level = v.drive.kit;
+    if (s % 64 === 0) {
+        music_air({t, d: 1.2, a: 0.016, cutoff: 5500, filter: 'highpass', attack: 0.01, pan: -0.3});
     }
+    music_voices_level = v.drive.lead;
     if ((section > 0) && (s % 2 === 0)) {
         const degree = p.motif[(s/2) % p.motif.length];
         if (degree !== null) {
@@ -766,37 +749,82 @@ function music_voices_drive_step(p, step, t, eighth, level)
     }
 }
 
-// The drums of one eighth of the drive in the new set: music_drive_kit's figures on the world's kit
-function music_voices_drive_kit(kit, figure, s, t, half, boss)
+// How hard a slot of a groove's row is played
+const music_groove_hits = {X: 1, x: 0.65, o: 0.35};
+// The bass's note in a groove's row, over the chord's root: the root, its fifth, the octave up
+const music_groove_notes = {r: 0, f: 7, u: 12};
+
+// One eighth of the world's own bar in the drive (its voices.groove): rows of slots, `grid` of them a bar (16
+// sixteenths, or 12 for a bar in triplets), a row one bar long or several. The drums' rows low, mid and high, and
+// stab (the chord on the lead): X a full hit, x a lighter one, o a ghost. bass: r the chord's root, f its fifth, u
+// the octave up, held for each - after it. arp: x the next note of the chord's arpeggio (the drive's arp)
+function music_voices_groove(p, s, t, eighth, chord, root)
+{
+    const v = p.voices;
+    const g = v.groove;
+    const kit = music_kits[v.kit];
+    const lead = music_leads[v.lead];
+    const slot = eighth*8/g.grid;
+    const bar = Math.floor(s/8);
+    const e = s % 8;
+    // each slot of the row that starts within this eighth: play(the slot's character, when, its place in the row)
+    function row(pattern, play) {
+        if (!pattern) {
+            return;
+        }
+        const from = (bar % (pattern.length/g.grid))*g.grid;
+        for (let k = Math.ceil(e*g.grid/8), end = Math.ceil((e + 1)*g.grid/8); k < end; ++k) {
+            if (pattern[from + k] !== '.') {
+                play(pattern[from + k], t + (k - e*g.grid/8)*slot, from + k);
+            }
+        }
+    }
+    music_voices_level = v.drive.kit;
+    row(g.low, (c, when) => kit.low(when, 0.1*music_groove_hits[c]));
+    row(g.mid, (c, when) => kit.mid(when, 0.05*music_groove_hits[c], 0));
+    row(g.high, (c, when, k) => kit.high(when, 0.014*music_groove_hits[c], (k % 2) ? -0.2 : 0.2));
+    music_voices_level = v.drive.bass;
+    row(g.bass, function (c, when, k) {
+        if (c === '-') {
+            return;
+        }
+        let length = 1;
+        while (g.bass[k + length] === '-') {
+            length++;
+        }
+        music_basses[v.bass]({f: midi_frequency(root + music_groove_notes[c]), t: when, d: length*slot*0.92, a: 0.075});
+    });
+    music_voices_level = v.drive.lead;
+    row(g.arp, function (c, when, k) {
+        const i = p.drive.arp[(bar*g.grid + k) % p.drive.arp.length] % chord.length;
+        lead({f: midi_frequency(p.root + 24 + chord[i]), t: when, d: slot*0.9, a: 0.012, pan: (k % 2) ? 0.35 : -0.35, beat: eighth*2});
+    });
+    row(g.stab, function (c, when) {
+        for (let i = 0, end = chord.length; i < end; ++i) {
+            lead({f: midi_frequency(p.root + 12 + chord[i]), t: when, d: slot*1.8, a: 0.014*music_groove_hits[c], pan: (i % 2) ? 0.3 : -0.3, beat: eighth*2});
+        }
+    });
+}
+
+// The drums of one eighth of a boss fight in the new set: music_drive_kit's boss figure on the world's kit
+function music_voices_boss_kit(kit, s, t, half)
 {
     const bar = s % 8;
-    const kick = boss
-        ? (bar % 2 === 0)
-        : (figure === 'break')
-            ? [0, 3, 5].includes(bar)
-            : (figure === 'half')
-                ? [0, 5].includes(bar)
-                : (bar % 2 === 0);
-    const snare = ((figure === 'half') && !boss) ? (bar === 4) : ((bar === 2) || (bar === 6));
-    if (kick) {
+    if (bar % 2 === 0) {
         kit.low(t, 0.1);
     }
-    if (boss && (bar === 7)) {
+    if (bar === 7) {
         kit.low(t + half, 0.07);
     }
-    if (snare) {
+    if ((bar === 2) || (bar === 6)) {
         kit.mid(t, 0.05, 0);
     }
-    if (boss && (s % 64 >= 60)) {
+    if (s % 64 >= 60) {
         kit.mid(t, 0.03, -0.2);
         kit.mid(t + half, 0.034, 0.2);
     }
-    if (boss || (figure !== 'four') || (s % 2)) {
-        kit.high(t, 0.014, 0.2);
-    }
-    if (boss) {
-        kit.high(t + half, 0.009, -0.2);
-    }
+    kit.high(t, 0.014, 0.2);
+    kit.high(t + half, 0.009, -0.2);
     if (s % 64 === 0) {
         music_air({t, d: 1.2, a: 0.016, cutoff: 5500, filter: 'highpass', attack: 0.01, pan: -0.3});
     }

@@ -74,8 +74,17 @@ const world_haven = {
             pad: 'warm',
             bass: 'round',
             kit: 'soft',
+            // its bar in the drive: the drums, the bass and the arpeggio, a character a slot (music_voices_groove)
+            groove: {
+                grid: 16,
+                low: 'X......x..X.....',
+                mid: '....X.......X...',
+                high: '..x...x...x...xo',
+                bass: 'r--...u-..r-..f-',
+                arp: 'x.xxx.xxx.xxx.xx',
+            },
             calm: {lead: 1.61, pad: 1.34, bass: 0.76, kit: 0.92, fight: 0.92},
-            drive: {lead: 2.29, pad: 2.54, bass: 0.62, kit: 1.46},
+            drive: {lead: 2.24, pad: 2.54, bass: 0.95, kit: 1.37},
             boss: {lead: 2.29, bass: 0.62, kit: 1.17},
         },
         // the arcade's and a flagship fight's (music_drive.js)

@@ -82,8 +82,17 @@ const world_ion_reach = {
             bass: 'sub',
             kit: 'tight',
             arp: true,
+            // its bar in the drive: the drums, the bass and the arpeggio, a character a slot (music_voices_groove)
+            groove: {
+                grid: 16,
+                low: 'X.....x.X..x....',
+                mid: '....X.......X..x',
+                high: 'xoxoxoXoxoxoxoXo',
+                bass: 'r--..r-...r-.u-.',
+                arp: 'xxxxxxxxxxxxxxxx',
+            },
             calm: {lead: 2.16, pad: 1.27, bass: 0.89, kit: 1.18, fight: 0.88},
-            drive: {lead: 2.3, pad: 3.44, bass: 0.75, kit: 1.18},
+            drive: {lead: 2.57, pad: 3.08, bass: 0.99, kit: 1.17},
             boss: {lead: 2.3, bass: 0.75, kit: 1.18},
         },
         // the arcade's and a flagship fight's (music_drive.js)

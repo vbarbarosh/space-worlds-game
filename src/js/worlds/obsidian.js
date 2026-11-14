@@ -81,8 +81,17 @@ const world_obsidian = {
             pad: 'iron',
             bass: 'growl',
             kit: 'iron',
+            // its bar in the drive: the drums, the bass and the arpeggio, a character a slot (music_voices_groove)
+            groove: {
+                grid: 16,
+                low: 'X.......x.x.....',
+                mid: '........X.......',
+                high: '.......x.......x',
+                bass: 'r--.r--.f--.r--.',
+                arp: 'x...x...x...x...',
+            },
             calm: {lead: 2.76, pad: 0.84, bass: 0.78, kit: 0.53, fight: 0.53},
-            drive: {lead: 1.93, pad: 1.48, bass: 0.53, kit: 0.72},
+            drive: {lead: 2.13, pad: 1.66, bass: 0.66, kit: 0.84},
             boss: {lead: 1.93, bass: 0.61, kit: 0.72},
         },
         // the arcade's and a flagship fight's (music_drive.js)
