@@ -1,28 +1,136 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
-<defs><radialGradient id="glass" cx="0.35" cy="0.28" r="0.85"><stop offset="0" stop-color="#8fd0f0"/><stop offset="0.35" stop-color="#2f6a92"/><stop offset="1" stop-color="#0b1824"/></radialGradient><linearGradient id="shade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff" stop-opacity="0.16"/><stop offset="0.55" stop-color="#ffffff" stop-opacity="0"/><stop offset="1" stop-color="#05080c" stop-opacity="0.38"/></linearGradient><radialGradient id="nozzle" cx="0.5" cy="0.25" r="0.9"><stop offset="0" stop-color="#ffd59a"/><stop offset="0.4" stop-color="#e2742f"/><stop offset="1" stop-color="#2a1a14"/></radialGradient><linearGradient id="l3a414a" x1="0" y1="0" x2="1" y2="0.35"><stop offset="0" stop-color="#85898f"/><stop offset="0.45" stop-color="#3a414a"/><stop offset="1" stop-color="#1e2226"/></linearGradient><linearGradient id="l5d6670" x1="0" y1="0" x2="1" y2="0.35"><stop offset="0" stop-color="#9ba0a6"/><stop offset="0.45" stop-color="#5d6670"/><stop offset="1" stop-color="#30353a"/></linearGradient><linearGradient id="l8a929c" x1="0" y1="0" x2="1" y2="0.35"><stop offset="0" stop-color="#b6bbc2"/><stop offset="0.45" stop-color="#8a929c"/><stop offset="1" stop-color="#484c51"/></linearGradient><radialGradient id="r5d6670" cx="0.35" cy="0.32" r="0.8"><stop offset="0" stop-color="#a6abb0"/><stop offset="0.5" stop-color="#5d6670"/><stop offset="1" stop-color="#2e3338"/></radialGradient><radialGradient id="r3a414a" cx="0.35" cy="0.32" r="0.8"><stop offset="0" stop-color="#93969b"/><stop offset="0.5" stop-color="#3a414a"/><stop offset="1" stop-color="#1d2025"/></radialGradient><linearGradient id="accent-fill" x1="0" y1="0" x2="1" y2="1"><stop id="accent-light" offset="0" stop-color="#aefbf5"/><stop id="accent-base" offset="0.5" stop-color="#6cf8ec"/><stop id="accent-dark" offset="1" stop-color="#41958e"/></linearGradient></defs>
-<g id="hull" stroke="#141a22" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"><path d="M70 78 L20 94 L20 182 L70 196 Z" fill="url(#l5d6670)" />
-<path d="M186 78 L236 94 L236 182 L186 196 Z" fill="url(#l5d6670)" />
-<rect x="90" y="222" width="22" height="20" fill="url(#l3a414a)" />
-<rect x="144" y="222" width="22" height="20" fill="url(#l3a414a)" />
-<path d="M104 14 L152 14 L186 52 L186 214 L168 230 L88 230 L70 214 L70 52 Z" fill="url(#l5d6670)" />
-<path d="M104 14 L152 14 L186 52 L186 214 L168 230 L88 230 L70 214 L70 52 Z" fill="url(#shade)" stroke="none" /><path d="M110 40 L146 40 L166 62 L166 206 L90 206 L90 62 Z" fill="url(#l8a929c)" />
-<path d="M108 48 L108 200 M138 48 L138 200" fill="none" stroke="#3b4652" stroke-width="2.5" />
-<path d="M30 104 L62 94 L62 182 L30 172 Z" fill="#0b0f15" stroke-width="3" />
-<path d="M226 104 L194 94 L194 182 L226 172 Z" fill="#0b0f15" stroke-width="3" />
-<rect x="140" y="120" width="26" height="40" fill="url(#l3a414a)" />
-<rect x="144" y="126" width="18" height="10" fill="url(#glass)" stroke-width="2.5" />
-<path d="M70 52 L104 14 L108 20 L76 56 Z" fill="#ffffff" fill-opacity="0.45" stroke="none" />
-<rect x="73" y="58" width="5" height="150" fill="#ffffff" fill-opacity="0.4" stroke="none" />
-<ellipse cx="101" cy="238.5" rx="8.5" ry="3.2" fill="url(#nozzle)" stroke="none" /><ellipse cx="155" cy="238.5" rx="8.5" ry="3.2" fill="url(#nozzle)" stroke="none" /></g>
-<g id="accent" stroke="#141a22" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"><path d="M20 94 L30 97 L30 179 L20 182 Z" fill="url(#accent-fill)" stroke-width="3" />
-<path d="M236 94 L226 97 L226 179 L236 182 Z" fill="url(#accent-fill)" stroke-width="3" />
-<path d="M112 22 L144 22 L152 34 L104 34 Z" fill="url(#accent-fill)" />
-<rect x="118" y="56" width="10" height="14" fill="url(#accent-fill)" stroke-width="2.5" />
-<rect x="118" y="88" width="10" height="14" fill="url(#accent-fill)" stroke-width="2.5" />
-<rect x="118" y="120" width="10" height="14" fill="url(#accent-fill)" stroke-width="2.5" />
-<rect x="118" y="152" width="10" height="14" fill="url(#accent-fill)" stroke-width="2.5" />
-<rect x="118" y="184" width="10" height="14" fill="url(#accent-fill)" stroke-width="2.5" />
+<defs>
+<linearGradient id="plate" x1="0" y1="0" x2="1" y2="0">
+<stop offset="0" stop-color="#e6eaef"/><stop offset="0.5" stop-color="#a3adb7"/><stop offset="1" stop-color="#454e58"/>
+</linearGradient>
+<linearGradient id="shadeV" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0" stop-color="#ffffff" stop-opacity="0.16"/><stop offset="0.5" stop-color="#ffffff" stop-opacity="0"/><stop offset="1" stop-color="#05080c" stop-opacity="0.45"/>
+</linearGradient>
+<linearGradient id="bladeL" x1="1" y1="0" x2="0" y2="1">
+<stop offset="0" stop-color="#aab3bd"/><stop offset="0.6" stop-color="#6c7682"/><stop offset="1" stop-color="#414a54"/>
+</linearGradient>
+<linearGradient id="bladeR" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0" stop-color="#7a848f"/><stop offset="0.6" stop-color="#48515b"/><stop offset="1" stop-color="#242a31"/>
+</linearGradient>
+<linearGradient id="dark" x1="0" y1="0" x2="1" y2="0">
+<stop offset="0" stop-color="#5a6470"/><stop offset="0.5" stop-color="#363e48"/><stop offset="1" stop-color="#161b21"/>
+</linearGradient>
+<linearGradient id="bell" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0" stop-color="#474e58"/><stop offset="0.55" stop-color="#6a5445"/><stop offset="1" stop-color="#2a1a14"/>
+</linearGradient>
+<radialGradient id="nozzle" cx="0.5" cy="0.3" r="0.8"><stop offset="0" stop-color="#fff1cf"/><stop offset="0.4" stop-color="#ffab52"/><stop offset="1" stop-color="#b3431c"/></radialGradient>
+<linearGradient id="rim" x1="0" y1="0" x2="1" y2="0">
+<stop offset="0" stop-color="#a4adb7"/><stop offset="0.45" stop-color="#66707b"/><stop offset="1" stop-color="#2b3138"/>
+</linearGradient>
+<linearGradient id="deck" x1="0" y1="0" x2="1" y2="0">
+<stop offset="0" stop-color="#d3d9df"/><stop offset="0.5" stop-color="#98a2ad"/><stop offset="1" stop-color="#434c56"/>
+</linearGradient>
+<radialGradient id="drone" cx="0.35" cy="0.3" r="0.8"><stop offset="0" stop-color="#8e98a3"/><stop offset="0.55" stop-color="#4d5661"/><stop offset="1" stop-color="#1d2329"/></radialGradient>
+<radialGradient id="glass" cx="0.34" cy="0.24" r="0.9"><stop offset="0" stop-color="#a9dcf2"/><stop offset="0.3" stop-color="#2f6a92"/><stop offset="0.75" stop-color="#102538"/><stop offset="1" stop-color="#081320"/></radialGradient>
+<linearGradient id="accent-fill" x1="0" y1="0" x2="1" y2="1">
+<stop id="accent-light" offset="0" stop-color="#c8fffa"/><stop id="accent-base" offset="0.5" stop-color="#6cf8ec"/><stop id="accent-dark" offset="1" stop-color="#1f9c93"/>
+</linearGradient>
+<radialGradient id="lamp-red" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#ffd6d0"/><stop offset="0.35" stop-color="#ff4a3d"/><stop offset="1" stop-color="#ff4a3d" stop-opacity="0"/></radialGradient>
+<filter id="soft" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3"/></filter>
+</defs>
+<g id="hull" stroke="#0e1318" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round">
+<!-- the bay pods -->
+<path d="M70 78 L20 94 L20 182 L70 196 Z" fill="url(#bladeL)"/>
+<path d="M186 78 L236 94 L236 182 L186 196 Z" fill="url(#bladeR)"/>
+<path d="M70 78 L20 94 L20 99.5 L70 84.5 Z" fill="#ffffff" stroke="none" fill-opacity="0.4"/>
+<path d="M186 78 L236 94 L236 99.5 L186 84.5 Z" fill="#ffffff" stroke="none" fill-opacity="0.14"/>
+<!-- each bay: open, its doors drawn back fore and aft, two drones on the rails -->
+<path d="M30 103 L63 93 L63 183 L30 173 Z" fill="#07090d" stroke-width="2.4"/>
+<path d="M226 103 L193 93 L193 183 L226 173 Z" fill="#07090d" stroke-width="2.4"/>
+<path d="M34 138 L62 138 M222 138 L194 138" fill="none" stroke="#2c343d" stroke-width="2"/>
+<path d="M39 121 L31.5 124.5 L39 128 Z" fill="#3a424c" stroke-width="1.6"/>
+<path d="M217 121 L224.5 124.5 L217 128 Z" fill="#3a424c" stroke-width="1.6"/>
+<path d="M54 118.5 L61 115 L58 121.5 Z M54 130.5 L61 134 L58 127.5 Z" fill="#3a424c" stroke-width="1.6"/>
+<path d="M202 118.5 L195 115 L198 121.5 Z M202 130.5 L195 134 L198 127.5 Z" fill="#3a424c" stroke-width="1.6"/>
+<circle cx="47" cy="124.5" r="10" fill="url(#drone)" stroke-width="2"/><circle cx="209" cy="124.5" r="10" fill="url(#drone)" stroke-width="2"/>
+<circle cx="47" cy="124.5" r="6" fill="none" stroke-width="1.4"/><circle cx="209" cy="124.5" r="6" fill="none" stroke-width="1.4"/>
+<path d="M39 148 L31.5 151.5 L39 155 Z" fill="#3a424c" stroke-width="1.6"/>
+<path d="M217 148 L224.5 151.5 L217 155 Z" fill="#3a424c" stroke-width="1.6"/>
+<path d="M54 145.5 L61 142 L58 148.5 Z M54 157.5 L61 161 L58 154.5 Z" fill="#3a424c" stroke-width="1.6"/>
+<path d="M202 145.5 L195 142 L198 148.5 Z M202 157.5 L195 161 L198 154.5 Z" fill="#3a424c" stroke-width="1.6"/>
+<circle cx="47" cy="151.5" r="10" fill="url(#drone)" stroke-width="2"/><circle cx="209" cy="151.5" r="10" fill="url(#drone)" stroke-width="2"/>
+<circle cx="47" cy="151.5" r="6" fill="none" stroke-width="1.4"/><circle cx="209" cy="151.5" r="6" fill="none" stroke-width="1.4"/>
+<path d="M30 103 L63 93 L63 102 L30 112 Z" fill="url(#dark)" stroke-width="1.8"/>
+<path d="M226 103 L193 93 L193 102 L226 112 Z" fill="url(#dark)" stroke-width="1.8"/>
+<path d="M30 173 L63 183 L63 174 L30 164 Z" fill="url(#dark)" stroke-width="1.8"/>
+<path d="M226 173 L193 183 L193 174 L226 164 Z" fill="url(#dark)" stroke-width="1.8"/>
+<path d="M41 99.7 L41 108.7 M52 96.3 L52 105.3 M41 176.3 L41 167.3 M52 179.7 L52 170.7 M215 99.7 L215 108.7 M204 96.3 L204 105.3 M215 176.3 L215 167.3 M204 179.7 L204 170.7" fill="none" stroke="#0e1318" stroke-width="1.4"/>
+<path d="M31.5 104.2 L61.5 95.1" fill="none" stroke="#ffffff" stroke-opacity="0.35" stroke-width="1.1"/>
+<g fill="#1b2128" stroke="none"><circle cx="66.5" cy="90" r="1.3"/><circle cx="189.5" cy="90" r="1.3"/><circle cx="66.5" cy="112" r="1.3"/><circle cx="189.5" cy="112" r="1.3"/><circle cx="66.5" cy="138" r="1.3"/><circle cx="189.5" cy="138" r="1.3"/><circle cx="66.5" cy="164" r="1.3"/><circle cx="189.5" cy="164" r="1.3"/><circle cx="66.5" cy="186" r="1.3"/><circle cx="189.5" cy="186" r="1.3"/></g>
+<!-- the hull's shadow on the pods -->
+<path d="M70 80 L60 83 L60 193 L70 196 Z M186 80 L196 83 L196 193 L186 196 Z" fill="#05080c" fill-opacity="0.34" stroke="none" filter="url(#soft)"/>
+<!-- the engines: a bell each with its petals and fire -->
+<path d="M90.5 226 L111.5 226 L110 241 L92 241 Z" fill="url(#bell)" stroke-width="2.6"/>
+<path d="M165.5 226 L144.5 226 L146 241 L164 241 Z" fill="url(#bell)" stroke-width="2.6"/>
+<path d="M96.5 232 L97 238 M101 232 L101 238 M105.5 232 L105 238 M159.5 232 L159 238 M155 232 L155 238 M150.5 232 L151 238" fill="none" stroke="#0e1318" stroke-width="1.3"/>
+<ellipse cx="101" cy="239" rx="7.4" ry="2.7" fill="url(#nozzle)" stroke="none"/><ellipse cx="155" cy="239" rx="7.4" ry="2.7" fill="url(#nozzle)" stroke="none"/>
+<!-- the hull: a notched bow, plating round the deck -->
+<path d="M104 14 L122 14 L125 19.5 L131 19.5 L134 14 L152 14 L186 52 L186 214 L168 230 L88 230 L70 214 L70 52 Z" fill="url(#rim)"/>
+<path d="M104 14 L122 14 L125 19.5 L131 19.5 L134 14 L152 14 L186 52 L186 214 L168 230 L88 230 L70 214 L70 52 Z" fill="url(#shadeV)" stroke="none"/>
+<path d="M70 52 L104 14 L108.5 18.5 L76 55 L76 208 L72.5 212 L72 54 Z" fill="#ffffff" fill-opacity="0.4" stroke="none"/>
+<path d="M90 62 L71.5 52.5 M110 40 L105 16 M90 206 L71.5 213.5 M72 78 L89 78 M72 196 L89 196 M166 62 L184.5 52.5 M146 40 L151 16 M166 206 L184.5 213.5 M184 78 L167 78 M184 196 L167 196" fill="none" stroke="#1b2128" stroke-width="1.5"/>
+<path d="M91 63.6 L72.5 54.1 M72 79.6 L89 79.6 M72 197.6 L89 197.6" fill="none" stroke="#ffffff" stroke-opacity="0.4" stroke-width="1"/>
+<g fill="#1b2128" stroke="none"><circle cx="80" cy="66" r="1.4"/><circle cx="176" cy="66" r="1.4"/><circle cx="80" cy="92" r="1.4"/><circle cx="176" cy="92" r="1.4"/><circle cx="80" cy="137" r="1.4"/><circle cx="176" cy="137" r="1.4"/><circle cx="80" cy="182" r="1.4"/><circle cx="176" cy="182" r="1.4"/><circle cx="80" cy="204" r="1.4"/><circle cx="176" cy="204" r="1.4"/><circle cx="97" cy="31" r="1.4"/><circle cx="159" cy="31" r="1.4"/><circle cx="88" cy="43" r="1.4"/><circle cx="168" cy="43" r="1.4"/></g>
+<!-- the stern: a cover with slats over each engine, a hatch between -->
+<path d="M92 211 L110 211 L110 224.5 L92 224.5 Z" fill="#11161c" stroke-width="1.8"/>
+<path d="M164 211 L146 211 L146 224.5 L164 224.5 Z" fill="#0c1015" stroke-width="1.8"/>
+<path d="M94.5 215.5 L107.5 215.5 M94.5 220 L107.5 220 M161.5 215.5 L148.5 215.5 M161.5 220 L148.5 220" fill="none" stroke="#4d5763" stroke-width="1.4"/>
+<path d="M118.5 211.5 L137.5 211.5 L137.5 224.5 L118.5 224.5 Z" fill="url(#plate)" stroke-width="1.8"/>
+<g fill="#2a313a" stroke="none"><circle cx="121.5" cy="214.5" r="1.2"/><circle cx="134.5" cy="214.5" r="1.2"/><circle cx="121.5" cy="221.5" r="1.2"/><circle cx="134.5" cy="221.5" r="1.2"/></g>
+<!-- the flight deck: two rails, dashes along the lane, hatches and a grille to port -->
+<path d="M110 40 L146 40 L166 62 L166 206 L90 206 L90 62 Z" fill="url(#deck)" stroke-width="2.6"/>
+<path d="M108 46 L108 204 M138 46 L138 204" fill="none" stroke="#3b4652" stroke-width="1.6"/>
+<path d="M109.5 46 L109.5 204 M139.5 46 L139.5 116 M139.5 164 L139.5 204" fill="none" stroke="#ffffff" stroke-opacity="0.5" stroke-width="1"/>
+<path d="M113 74 L113 84 M113 106 L113 116 M113 138 L113 148 M113 170 L113 180 M133 74 L133 84 M133 106 L133 116 M133 138 L133 148 M133 170 L133 180" fill="none" stroke="#ffffff" stroke-opacity="0.45" stroke-width="1.5"/>
+<path d="M115.5 51 L123 45 L130.5 51" fill="none" stroke="#ffffff" stroke-opacity="0.6" stroke-width="1.6"/>
+<rect x="93.5" y="70" width="11" height="15" rx="1.5" fill="#b4bcc5" stroke-width="1.8"/>
+<path d="M93.5 77.5 L104.5 77.5" fill="none" stroke="#3b4652" stroke-width="1.4"/>
+<rect x="93.5" y="126" width="11" height="15" rx="1.5" fill="#b4bcc5" stroke-width="1.8"/>
+<path d="M93.5 133.5 L104.5 133.5" fill="none" stroke="#3b4652" stroke-width="1.4"/>
+<rect x="93.5" y="172" width="11" height="24" rx="1.5" fill="#11161c" stroke-width="1.8"/>
+<path d="M95.5 177 L102.5 177 M95.5 181.5 L102.5 181.5 M95.5 186 L102.5 186 M95.5 190.5 L102.5 190.5" fill="none" stroke="#4d5763" stroke-width="1.4"/>
+<g fill="#3b4652" stroke="none"><circle cx="99" cy="96" r="1.3"/><circle cx="99" cy="112" r="1.3"/><circle cx="99" cy="152" r="1.3"/><circle cx="99" cy="163" r="1.3"/></g>
+<!-- to starboard: a dish, the island with its windows and mast, a hatch -->
+<circle cx="152" cy="88" r="8.5" fill="url(#dark)" stroke-width="2"/>
+<circle cx="152" cy="88" r="4.6" fill="#aab3bd" stroke-width="1.4"/>
+<path d="M152 88 L158 82" fill="none" stroke-width="1.6"/>
+<path d="M141 117 L166 117 L166 163 L141 163 Z" fill="url(#dark)" stroke-width="2.6"/>
+<path d="M144 121 L163 121 L163 143 L144 143 Z" fill="url(#rim)" stroke-width="1.8"/>
+<path d="M146 124.5 L161 124.5 L161 132 L146 132 Z" fill="url(#glass)" stroke-width="1.4"/>
+<path d="M153.5 124.5 L153.5 132" fill="none" stroke-width="1.3"/>
+<path d="M146 137.5 L161 137.5" fill="none" stroke="#1b2128" stroke-width="1.5"/>
+<circle cx="150" cy="153" r="5" fill="#aab3bd" stroke-width="1.6"/>
+<path d="M158.5 147 L158.5 159.5" fill="none" stroke-width="2"/>
+<path d="M142.5 118.5 L142.5 161.5" fill="none" stroke="#ffffff" stroke-opacity="0.3" stroke-width="1.2"/>
+<rect x="146" y="174" width="14" height="13" rx="1.5" fill="#aab3bd" stroke-width="1.8"/>
+<g fill="#3b4652" stroke="none"><circle cx="149" cy="177" r="1.1"/><circle cx="157" cy="177" r="1.1"/><circle cx="149" cy="184" r="1.1"/><circle cx="157" cy="184" r="1.1"/></g>
+<g fill="#3b4652" stroke="none"><circle cx="152" cy="70" r="1.3"/><circle cx="152" cy="105" r="1.3"/><circle cx="152" cy="196" r="1.3"/></g>
+</g>
+<g id="accent" stroke="#0e1318" stroke-width="3.2" stroke-linejoin="round">
+<!-- the bow's band, the lane's five lights, the pods' edges; an eye on each drone -->
+<path d="M111.5 24 L144.5 24 L152 34 L104 34 Z" fill="url(#accent-fill)" stroke-width="2.6"/>
+<path d="M112 26.3 L128 26.3" fill="none" stroke="#ffffff" stroke-opacity="0.55" stroke-width="1.3"/>
+<rect x="118" y="56" width="10" height="14" fill="url(#accent-fill)" stroke-width="2.2"/>
+<rect x="118" y="88" width="10" height="14" fill="url(#accent-fill)" stroke-width="2.2"/>
+<rect x="118" y="120" width="10" height="14" fill="url(#accent-fill)" stroke-width="2.2"/>
+<rect x="118" y="152" width="10" height="14" fill="url(#accent-fill)" stroke-width="2.2"/>
+<rect x="118" y="184" width="10" height="14" fill="url(#accent-fill)" stroke-width="2.2"/>
+<path d="M20 94 L30 97 L30 179 L20 182 Z" fill="url(#accent-fill)" stroke-width="2.6"/>
+<path d="M236 94 L226 97 L226 179 L236 182 Z" fill="url(#accent-fill)" stroke-width="2.6"/>
+<path d="M22.5 98 L22.5 178" fill="none" stroke="#ffffff" stroke-opacity="0.5" stroke-width="1.3"/>
+<circle cx="47" cy="124.5" r="3.4" fill="url(#accent-fill)" stroke-width="1.4"/><circle cx="209" cy="124.5" r="3.4" fill="url(#accent-fill)" stroke-width="1.4"/>
+<circle cx="47" cy="151.5" r="3.4" fill="url(#accent-fill)" stroke-width="1.4"/><circle cx="209" cy="151.5" r="3.4" fill="url(#accent-fill)" stroke-width="1.4"/>
+</g>
+<g id="lamps">
+<circle cx="113" cy="17.5" r="4" fill="url(#lamp-red)"/><circle cx="143" cy="17.5" r="4" fill="url(#lamp-red)"/>
+<circle cx="73" cy="211" r="4" fill="url(#lamp-red)"/><circle cx="183" cy="211" r="4" fill="url(#lamp-red)"/>
+<circle cx="158.5" cy="147" r="4" fill="url(#lamp-red)"/>
 </g>
 <g id="anchors"><line id="flame-main-1" x1="101" y1="240" x2="101" y2="272" stroke="#ff0000" stroke-width="18" /><line id="flame-main-2" x1="155" y1="240" x2="155" y2="272" stroke="#ff0000" stroke-width="18" /></g>
 </svg>
