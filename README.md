@@ -80,13 +80,13 @@ Three modes ([docs/modes.md](docs/modes.md) has each in detail):
                      world's calm theme with an ending, composed with the
                      game's own music and instruments (bin/world-music haven);
                      needs Playwright's Chromium and ffmpeg
-    bin/perf         frame times, garbage and drawing costs over 59 scenes
+    bin/perf         frame times, garbage and drawing costs over 56 scenes
                      (every world calm and in a fight, zoom 100% and 50%,
                      the arcade from Dustfall on, Verdant's nests, Scroll
-                     lanes in Dustfall, Obsidian, Nova Forge and Eclipse,
-                     campaigns of 10, 50 and 100 structures, a ring race and
-                     drifting debris close by in Haven and Eclipse), at
-                     any window size, pixel ratio and difficulty; see
+                     lanes in Dustfall, Obsidian, Nova Forge and Eclipse, a
+                     ring race and drifting debris close by in Haven and
+                     Eclipse), at any window size, pixel ratio and
+                     difficulty; see
                      docs/performance-2026-10-05.md
     bin/playtest     a bot plays arcade runs on a virtual clock (about a
                      minute each) and counts per world and wave the hull
