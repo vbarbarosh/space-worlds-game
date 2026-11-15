@@ -13,8 +13,8 @@
     "lint": "bin/lint"
   },
   "devDependencies": {
-    "@vbarbarosh/node-helpers": "^3.78.1",
-    "marked": "^18.0.14",
-    "playwright": "^1.63.0"
+    "@vbarbarosh/node-helpers": "^3.80.1",
+    "marked": "^18.2.0",
+    "playwright": "^1.65.1"
   }
 }
